@@ -1,0 +1,72 @@
+commit 9051683b68f2fd5ad91b4210d0678eb2058ee328
+Author: Filip Hanik <fhanik@apache.org>
+Date:   Fri Jul 14 04:49:46 2006 +0000
+
+    Take advantage of Java 5 concurrent classes
+
+diff --git a/java/org/apache/tomcat/util/net/NioEndpoint.java b/java/org/apache/tomcat/util/net/NioEndpoint.java
+index 8301cbd..48278ae 100644
+--- a/java/org/apache/tomcat/util/net/NioEndpoint.java
++++ b/java/org/apache/tomcat/util/net/NioEndpoint.java
+@@ -39,6 +39,7 @@ import org.apache.tomcat.jni.Poll;
+ import org.apache.tomcat.jni.SSL;
+ import org.apache.tomcat.jni.Status;
+ import org.apache.tomcat.util.res.StringManager;
++import java.util.concurrent.ConcurrentLinkedQueue;
+ 
+ /**
+  * NIO tailored thread pool, providing the following services:
+@@ -965,7 +966,7 @@ public class NioEndpoint {
+     public class Poller implements Runnable {
+ 
+         protected Selector selector;
+-        protected LinkedList<Runnable> events = new LinkedList<Runnable>();
++        protected ConcurrentLinkedQueue<Runnable> events = new ConcurrentLinkedQueue<Runnable>();
+         protected boolean close = false;
+         protected long nextExpiration = 0;//optimize expiration handling
+ 
+@@ -1006,9 +1007,7 @@ public class NioEndpoint {
+         }
+         
+         public void addEvent(Runnable event) {
+-            synchronized (events) {
+-                events.add(event);
+-            }
++            events.add(event);
+             selector.wakeup();
+         }
+ 
+@@ -1044,16 +1043,13 @@ public class NioEndpoint {
+         }
+ 
+         public void events() {
+-            synchronized (events) {
+-                Runnable r = null;
+-                while ( (events.size() > 0) && (r = events.removeFirst()) != null ) {
+-                    try {
+-                        r.run();
+-                    } catch ( Exception x ) {
+-                        log.error("",x);
+-                    }
++            Runnable r = null;
++            while ( (events.size() > 0) && (r = events.poll()) != null ) {
++                try {
++                    r.run();
++                } catch ( Exception x ) {
++                    log.error("",x);
+                 }
+-                events.clear();
+             }
+         }
+         
+@@ -1070,9 +1066,7 @@ public class NioEndpoint {
+                 }
+     
+             };
+-            synchronized (events) {
+-                events.add(r);
+-            }
++            events.add(r);
+             selector.wakeup();
+         }
+         
