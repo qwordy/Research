@@ -1,0 +1,111 @@
+commit 43295b9f7b8615f0f5d675f191f4500c35e5e552
+Author: Eli Collins <eli@apache.org>
+Date:   Tue Jan 8 19:41:04 2013 +0000
+
+    HDFS-4030. BlockManager excessBlocksCount and postponedMisreplicatedBlocksCount should be AtomicLongs. Contributed by Eli Collins
+
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+index 457d445..689af24 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
++++ b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+@@ -454,6 +454,9 @@ Release 2.0.3-alpha - Unreleased
+     HADOOP-9173. Add security token protobuf definition to common and
+     use it in hdfs. (suresh)
+ 
++    HDFS-4030. BlockManager excessBlocksCount and
++    postponedMisreplicatedBlocksCount should be AtomicLongs. (eli)
++
+   OPTIMIZATIONS
+ 
+   BUG FIXES
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/BlockManager.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/BlockManager.java
+index 81bb67c..26e88ce 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/BlockManager.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/BlockManager.java
+@@ -33,6 +33,7 @@
+ import java.util.Queue;
+ import java.util.Set;
+ import java.util.TreeMap;
++import java.util.concurrent.atomic.AtomicLong;
+ 
+ import org.apache.commons.logging.Log;
+ import org.apache.commons.logging.LogFactory;
+@@ -107,8 +108,8 @@
+   private volatile long corruptReplicaBlocksCount = 0L;
+   private volatile long underReplicatedBlocksCount = 0L;
+   private volatile long scheduledReplicationBlocksCount = 0L;
+-  private volatile long excessBlocksCount = 0L;
+-  private volatile long postponedMisreplicatedBlocksCount = 0L;
++  private AtomicLong excessBlocksCount = new AtomicLong(0L);
++  private AtomicLong postponedMisreplicatedBlocksCount = new AtomicLong(0L);
+   
+   /** Used by metrics */
+   public long getPendingReplicationBlocksCount() {
+@@ -132,11 +133,11 @@ public long getPendingDeletionBlocksCount() {
+   }
+   /** Used by metrics */
+   public long getExcessBlocksCount() {
+-    return excessBlocksCount;
++    return excessBlocksCount.get();
+   }
+   /** Used by metrics */
+   public long getPostponedMisreplicatedBlocksCount() {
+-    return postponedMisreplicatedBlocksCount;
++    return postponedMisreplicatedBlocksCount.get();
+   }
+   /** Used by metrics */
+   public int getPendingDataNodeMessageCount() {
+@@ -1066,7 +1067,7 @@ public void setPostponeBlocksFromFuture(boolean postpone) {
+ 
+   private void postponeBlock(Block blk) {
+     if (postponedMisreplicatedBlocks.add(blk)) {
+-      postponedMisreplicatedBlocksCount++;
++      postponedMisreplicatedBlocksCount.incrementAndGet();
+     }
+   }
+   
+@@ -1598,7 +1599,7 @@ private void rescanPostponedMisreplicatedBlocks() {
+               "in block map.");
+         }
+         it.remove();
+-        postponedMisreplicatedBlocksCount--;
++        postponedMisreplicatedBlocksCount.decrementAndGet();
+         continue;
+       }
+       MisReplicationResult res = processMisReplicatedBlock(bi);
+@@ -1608,7 +1609,7 @@ private void rescanPostponedMisreplicatedBlocks() {
+       }
+       if (res != MisReplicationResult.POSTPONE) {
+         it.remove();
+-        postponedMisreplicatedBlocksCount--;
++        postponedMisreplicatedBlocksCount.decrementAndGet();
+       }
+     }
+   }
+@@ -2445,7 +2446,7 @@ private void addToExcessReplicate(DatanodeInfo dn, Block block) {
+       excessReplicateMap.put(dn.getStorageID(), excessBlocks);
+     }
+     if (excessBlocks.add(block)) {
+-      excessBlocksCount++;
++      excessBlocksCount.incrementAndGet();
+       if(blockLog.isDebugEnabled()) {
+         blockLog.debug("BLOCK* addToExcessReplicate:"
+             + " (" + dn + ", " + block
+@@ -2493,7 +2494,7 @@ public void removeStoredBlock(Block block, DatanodeDescriptor node) {
+           .getStorageID());
+       if (excessBlocks != null) {
+         if (excessBlocks.remove(block)) {
+-          excessBlocksCount--;
++          excessBlocksCount.decrementAndGet();
+           if(blockLog.isDebugEnabled()) {
+             blockLog.debug("BLOCK* removeStoredBlock: "
+                 + block + " is removed from excessBlocks");
+@@ -2838,7 +2839,7 @@ public void removeBlock(Block block) {
+     // Remove the block from pendingReplications
+     pendingReplications.remove(block);
+     if (postponedMisreplicatedBlocks.remove(block)) {
+-      postponedMisreplicatedBlocksCount--;
++      postponedMisreplicatedBlocksCount.decrementAndGet();
+     }
+   }
+ 
