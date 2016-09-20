@@ -24,6 +24,8 @@ public final int getAndAddInt(Object var1, long var2, int var4) {
   return var5;
 }
 
+public final native boolean compareAndSwapInt(Object var1, long var2, int var4, int var5);
+
 private final byte[] lock = new byte[0];
 
 private int i;
