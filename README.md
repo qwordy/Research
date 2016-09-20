@@ -3,7 +3,9 @@ Some replacements are between user-defined classes.
 
 There are many fix messages about concurrent issues.
 
-It is common that the keyword volatile is replaced with atomic class.
+It is common that the keyword volatile is replaced with thread-safe class.
+
+No fixed directions of revision of concurrent issues. Remove, add, change synchronization.
 
 Mine relationships between virables using commit histories.
 
