@@ -1,0 +1,47 @@
+commit 24fcbf4a95b3635c48d7a9858dce2494f109fbd3
+Author: Jonathan Ellis <jbellis@apache.org>
+Date:   Mon Jun 15 13:42:30 2009 +0000
+
+    switch singleton implementation from double-checked-locking to synchronized (code is not performance-sensitive).  patch by Edward Ribeiro; reviewed by jbellis for CASSANDRA-228
+
+diff --git a/src/java/org/apache/cassandra/db/DBManager.java b/src/java/org/apache/cassandra/db/DBManager.java
+index 48d8f41..5b7a3f0 100644
+--- a/src/java/org/apache/cassandra/db/DBManager.java
++++ b/src/java/org/apache/cassandra/db/DBManager.java
+@@ -19,10 +19,7 @@
+ package org.apache.cassandra.db;
+ 
+ import java.io.IOException;
+-import java.util.Map;
+ import java.util.Set;
+-import java.util.concurrent.locks.Lock;
+-import java.util.concurrent.locks.ReentrantLock;
+ 
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.dht.IPartitioner;
+@@ -39,22 +36,12 @@ import org.apache.cassandra.utils.FBUtilities;
+ public class DBManager
+ {
+     private static DBManager dbMgr_;
+-    private static Lock lock_ = new ReentrantLock();
+ 
+-    public static DBManager instance() throws IOException
++    public static synchronized DBManager instance() throws IOException
+     {
+-        if ( dbMgr_ == null )
++        if (dbMgr_ == null)
+         {
+-            lock_.lock();
+-            try
+-            {
+-                if ( dbMgr_ == null )
+-                    dbMgr_ = new DBManager();
+-            }
+-            finally
+-            {
+-                lock_.unlock();
+-            }
++           dbMgr_ = new DBManager();
+         }
+         return dbMgr_;
+     }
