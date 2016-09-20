@@ -6,5 +6,9 @@ Mine relationships between virables using commit histories.
 
 Some papers:
 What Change History Tells Us about Thread Synchronization, icse15
-Lock Elision for Read-Only Critical Sections in Java, pldi10
+> This in-depth study shows that tool support is needed to help developers tackle
+over-synchronization  problems;  it  also  shows  that  concur-
+rency bug avoidance, detection, and testing can be improved
+through better awareness of code revision history.
+
 Transforming Java programs for concurrency using Double-Checked Locking pattern, water
