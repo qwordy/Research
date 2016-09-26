@@ -16,8 +16,9 @@ import java.util.Iterator;
 public class GitLogParser {
 
   public void parseAll() throws Exception {
-    //parse("hadoop");
-    parse("netty");
+//    parse("hadoop");
+//    parse("tomcat");
+    parse("cassandra");
   }
 
   public void parse(String project) throws Exception {
@@ -46,7 +47,8 @@ public class GitLogParser {
     Collection<String> keywords = Arrays.asList(
         "Concurren", "concurren",
         "Synchroniz", "synchroniz",
-        "Atomic", "atomic");
+        "Atomic", "atomic",
+        "Lock", " lock");
     for (String keyword : keywords)
       if (msg.contains(keyword)) return true;
     return false;
