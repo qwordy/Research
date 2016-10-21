@@ -21,7 +21,7 @@ public class GitLogParser {
 
   private String projectDir;
 
-  private int crFileCount;
+  private int crFileCount, fileCount;
 
   public void parseAll() throws Exception {
 //    parse("hadoop");
@@ -53,6 +53,7 @@ public class GitLogParser {
       }
     }
     Util.log(count);
+    Util.log(fileCount);
     Util.log(crFileCount);
   }
 
@@ -76,6 +77,7 @@ public class GitLogParser {
           line.substring(line.length() - 5).equals(".java")) {
         String filename = line.substring(2);
         Util.log(filename);
+        fileCount++;
         checkoutCommitId(commitId, filename);
       }
     }

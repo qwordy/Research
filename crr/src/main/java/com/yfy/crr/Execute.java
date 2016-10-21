@@ -52,11 +52,10 @@ public class Execute {
 
   public static void exec(String cmd, String dir) {
     try {
-      Process process;
       if (dir == null)
-        process = Runtime.getRuntime().exec(cmd);
+        Runtime.getRuntime().exec(cmd);
       else
-        process = Runtime.getRuntime().exec(cmd, null, new File(dir));
+        Runtime.getRuntime().exec(cmd, null, new File(dir)).waitFor();
 //      return new BufferedReader(
 //          new InputStreamReader(process.getInputStream()));
     } catch (Exception e) {
