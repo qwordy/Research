@@ -15,7 +15,7 @@ public class Execute {
    * @param task deal with output
    * @return 0 on success, -1 otherwise
    */
-  public static int exec(String cmd, String dir, ITaskAfterRun task) {
+  public static int execTask(String cmd, String dir, ITaskAfterRun task) {
     try {
       Process process;
       if (dir == null)
@@ -33,5 +33,34 @@ public class Execute {
       return -1;
     }
     return 0;
+  }
+
+  public static BufferedReader execWithOutput(String cmd, String dir) {
+    try {
+      Process process;
+      if (dir == null)
+        process = Runtime.getRuntime().exec(cmd);
+      else
+        process = Runtime.getRuntime().exec(cmd, null, new File(dir));
+      return new BufferedReader(
+          new InputStreamReader(process.getInputStream()));
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
+  public static void exec(String cmd, String dir) {
+    try {
+      Process process;
+      if (dir == null)
+        process = Runtime.getRuntime().exec(cmd);
+      else
+        process = Runtime.getRuntime().exec(cmd, null, new File(dir));
+//      return new BufferedReader(
+//          new InputStreamReader(process.getInputStream()));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 }
