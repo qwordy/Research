@@ -2,6 +2,7 @@ package com.yfy.crr;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 
 /**
@@ -35,14 +36,13 @@ public class Execute {
     return 0;
   }
 
-  public static BufferedReader exec(String cmd, String dir) {
+  public static BufferedReader execWithOutput(String cmd, String dir) {
     try {
       Process process;
       if (dir == null)
         process = Runtime.getRuntime().exec(cmd);
       else
         process = Runtime.getRuntime().exec(cmd, null, new File(dir));
-      process.waitFor();
       return new BufferedReader(
           new InputStreamReader(process.getInputStream()));
     } catch (Exception e) {
@@ -51,14 +51,19 @@ public class Execute {
     }
   }
 
-//  public static void exec(String cmd, String dir) {
-//    try {
-//      if (dir == null)
-//        Runtime.getRuntime().exec(cmd).waitFor();
-//      else
-//        Runtime.getRuntime().exec(cmd, null, new File(dir)).waitFor();
-//    } catch (Exception e) {
-//      e.printStackTrace();
-//    }
-//  }
+  private static byte[] buf = new byte[4096];
+
+  public static void execIgnoreOutput(String cmd, String dir) {
+    try {
+      InputStream is;
+      if (dir == null)
+        is = Runtime.getRuntime().exec(cmd).getInputStream();
+      else
+        is = Runtime.getRuntime().exec(cmd, null, new File(dir))
+            .getInputStream();
+      while (is.read(buf) != -1);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 }

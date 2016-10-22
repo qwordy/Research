@@ -24,15 +24,19 @@ public class GitLogParser {
   private int crFileCount, fileCount;
 
   public void parseAll() throws Exception {
-//    parse("hadoop");
-//    parse("tomcat");
-    parse("cassandra");
+//    parse("hadoop"); // 21m
+//    parse("flink"); // 18m
+//    parse("tomcat"); // 5m
+//    parse("mahout"); // 2m
+//    parse("cassandra"); // 9m
+//    parse("lucene-solr"); // 40m
+    parse("netty"); // 4m
   }
 
   private void parse(String project) throws Exception {
     System.out.println(new File("..").getAbsolutePath());
     FileRepositoryBuilder builder = new FileRepositoryBuilder();
-    projectDir = "../../" + project;
+    projectDir = Config.projectsDir + '/' + project;
     Repository repo = builder.setGitDir(new File(projectDir + "/.git"))
         .setMustExist(true)
         .build();
@@ -40,21 +44,24 @@ public class GitLogParser {
     Iterable<RevCommit> log = git.log().call();
     Iterator<RevCommit> it = log.iterator();
 
-    int count = 0;
+    int commitCount = 0;
+    crFileCount = fileCount = 0;
     while (it.hasNext()) {
       RevCommit commit = it.next();
       String msg = commit.getFullMessage();
       if (filter(msg)) {
-        count++;
-        System.out.println(commit.getId());
+        commitCount++;
+//        if (commitCount == 300) break;
+//        System.out.println(commit.getId());
 //        System.out.println(commit.name());
 //        System.out.println(msg);
         getModifiedFiles(commit.name());
       }
     }
-    Util.log(count);
-    Util.log(fileCount);
-    Util.log(crFileCount);
+    Util.log("Project:             " + project);
+    Util.log("Commit count:        " + commitCount);
+    Util.log("Modified file count: " + fileCount);
+    Util.log("Selected file count: " + crFileCount);
   }
 
   /**
@@ -64,9 +71,11 @@ public class GitLogParser {
    */
   private void getModifiedFiles(String commitId)
       throws Exception {
+    //if (!commitId.equals("813ca77250db29116812bc949e2a466a70f969a3")) return;
+
     String cmd = "git diff-tree --no-commit-id --name-status -r " + commitId;
-    //Execute.exec(cmd, dir, new EchoTask());
-    BufferedReader br = Execute.exec(cmd, projectDir);
+    Util.log(cmd);
+    BufferedReader br = Execute.execWithOutput(cmd, projectDir);
     if (br == null) {
       Util.log("[Error] get modified files");
       return;
@@ -76,7 +85,7 @@ public class GitLogParser {
       if (line.length() > 5 && line.charAt(0) == 'M' &&
           line.substring(line.length() - 5).equals(".java")) {
         String filename = line.substring(2);
-        Util.log(filename);
+        //Util.log(filename);
         fileCount++;
         checkoutCommitId(commitId, filename);
       }
@@ -86,7 +95,7 @@ public class GitLogParser {
   private void checkoutCommitId(String commitId, String filename)
       throws Exception {
     String cmd = "git checkout " + commitId + "^ -- " + filename;
-    Execute.exec(cmd, projectDir);
+    Execute.execIgnoreOutput(cmd, projectDir);
 
     String fullFilename = projectDir + '/' + filename;
     String content = new String(Files.readAllBytes(Paths.get(fullFilename)));
