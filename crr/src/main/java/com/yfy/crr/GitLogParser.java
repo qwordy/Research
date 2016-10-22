@@ -31,7 +31,7 @@ public class GitLogParser {
 //    parse("cassandra"); // 9m
 //    parse("lucene-solr"); // 40m
 //    parse("netty"); // 4m
-    parse("guava");
+    parse("guava"); // 2m
   }
 
   private void parse(String project) throws Exception {
