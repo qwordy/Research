@@ -66,7 +66,7 @@ public class GitLogParser {
       throws Exception {
     String cmd = "git diff-tree --no-commit-id --name-status -r " + commitId;
     //Execute.exec(cmd, dir, new EchoTask());
-    BufferedReader br = Execute.execWithOutput(cmd, projectDir);
+    BufferedReader br = Execute.exec(cmd, projectDir);
     if (br == null) {
       Util.log("[Error] get modified files");
       return;
@@ -87,6 +87,7 @@ public class GitLogParser {
       throws Exception {
     String cmd = "git checkout " + commitId + "^ -- " + filename;
     Execute.exec(cmd, projectDir);
+
     String fullFilename = projectDir + '/' + filename;
     String content = new String(Files.readAllBytes(Paths.get(fullFilename)));
     List<String> keywords = ConcurrentKeywords.list;
@@ -100,7 +101,7 @@ public class GitLogParser {
 //    Execute.exec(cmd, projectDir);
   }
 
-  private boolean filter(String msg) {
+  private boolean filter2(String msg) {
     Collection<String> keywords = Arrays.asList(
         "Concurren", "concurren",
         "Synchroniz", "synchroniz",
@@ -109,6 +110,10 @@ public class GitLogParser {
     for (String keyword : keywords)
       if (msg.contains(keyword)) return true;
     return false;
+  }
+
+  private boolean filter(String msg) {
+    return true;
   }
 
   public static void main(String[] args) {

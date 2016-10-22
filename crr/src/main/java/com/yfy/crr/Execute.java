@@ -35,13 +35,14 @@ public class Execute {
     return 0;
   }
 
-  public static BufferedReader execWithOutput(String cmd, String dir) {
+  public static BufferedReader exec(String cmd, String dir) {
     try {
       Process process;
       if (dir == null)
         process = Runtime.getRuntime().exec(cmd);
       else
         process = Runtime.getRuntime().exec(cmd, null, new File(dir));
+      process.waitFor();
       return new BufferedReader(
           new InputStreamReader(process.getInputStream()));
     } catch (Exception e) {
@@ -50,16 +51,14 @@ public class Execute {
     }
   }
 
-  public static void exec(String cmd, String dir) {
-    try {
-      if (dir == null)
-        Runtime.getRuntime().exec(cmd);
-      else
-        Runtime.getRuntime().exec(cmd, null, new File(dir)).waitFor();
-//      return new BufferedReader(
-//          new InputStreamReader(process.getInputStream()));
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
+//  public static void exec(String cmd, String dir) {
+//    try {
+//      if (dir == null)
+//        Runtime.getRuntime().exec(cmd).waitFor();
+//      else
+//        Runtime.getRuntime().exec(cmd, null, new File(dir)).waitFor();
+//    } catch (Exception e) {
+//      e.printStackTrace();
+//    }
+//  }
 }
