@@ -27,7 +27,7 @@ public class GitLogParser {
 //    parse("hadoop"); // 21m
 //    parse("flink"); // 18m
 //    parse("tomcat"); // 5m
-//    parse("mahout"); // 2m
+//    parse("mahout"); // 4m
 //    parse("cassandra"); // 9m
 //    parse("lucene-solr"); // 40m
 //    parse("netty"); // 4m

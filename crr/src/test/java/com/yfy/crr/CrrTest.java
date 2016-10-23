@@ -1,7 +1,6 @@
 package com.yfy.crr;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  * Created by yfy on 10/22/16.
@@ -11,5 +10,11 @@ public class CrrTest {
   public void gitLogParser() throws Exception {
     GitLogParser parser = new GitLogParser();
     parser.parseAll();
+  }
+
+  @Test
+  public void initTable() throws Exception {
+    Db db = new Db();
+    db.createTable("guava");
   }
 }
