@@ -18,4 +18,10 @@ public class CrrTest {
     db.createTable("guava");
     db.commit();
   }
+
+  @Test
+  public void readDb() throws Exception {
+    Analyser analyser = new Analyser();
+    analyser.compareAll();
+  }
 }

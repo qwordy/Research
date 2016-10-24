@@ -32,17 +32,18 @@ public class GitLogParser {
   }
 
   public void parseAll() throws Exception {
-//    parse("hadoop"); // 21m
+//    parse("hadoop"); // 21m 35m
 //    parse("flink"); // 18m
 //    parse("tomcat"); // 5m
 //    parse("mahout"); // 4m
 //    parse("cassandra"); // 9m
-//    parse("lucene-solr"); // 40m
-    parse("netty"); // 4m 9m
+    parse("luceneSolr"); // 40m 1h
+//    parse("netty"); // 4m 9m
 //    parse("guava"); // 2m 4m
   }
 
   private void parse(String project) throws Exception {
+    Util.log(project);
     this.project = project;
     db.createTable(project);
 
@@ -86,7 +87,7 @@ public class GitLogParser {
     //if (!commitId.equals("813ca77250db29116812bc949e2a466a70f969a3")) return;
 
     String cmd = "git diff-tree --no-commit-id --name-status -r " + commitId;
-    Util.log(cmd);
+    //Util.log(cmd);
     BufferedReader br = Execute.execWithOutput(cmd, projectDir);
     if (br == null) {
       Util.log("[Error] get modified files");

@@ -11,6 +11,6 @@ public class Config {
   public static String projectsDir = "/home/yfy/stap/projects";
 
   public static List<String> projects = Arrays.asList("hadoop", "flink",
-      "tomcat", "mahout", "cassandra", "lucene-solr", "netty", "guava");
+      "tomcat", "mahout", "cassandra", "luceneSolr", "netty", "guava");
 
 }

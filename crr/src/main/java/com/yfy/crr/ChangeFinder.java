@@ -1,14 +1,15 @@
 package com.yfy.crr;
 
-import java.io.File;
-import java.util.List;
-
 import ch.uzh.ifi.seal.changedistiller.ChangeDistiller;
 import ch.uzh.ifi.seal.changedistiller.distilling.FileDistiller;
 import ch.uzh.ifi.seal.changedistiller.model.entities.SourceCodeChange;
-//import org.apache.log4j.BasicConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.List;
+
+//import org.apache.log4j.BasicConfigurator;
 
 /**
  * Created by yfy on 10/20/16.
