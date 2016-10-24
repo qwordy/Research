@@ -7,6 +7,8 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -19,9 +21,15 @@ import java.util.List;
  */
 public class GitLogParser {
 
-  private String projectDir;
+  private Db db;
+
+  private String project, projectDir;
 
   private int crFileCount, fileCount;
+
+  public GitLogParser() throws Exception {
+    db = new Db();
+  }
 
   public void parseAll() throws Exception {
 //    parse("hadoop"); // 21m
@@ -30,12 +38,14 @@ public class GitLogParser {
 //    parse("mahout"); // 4m
 //    parse("cassandra"); // 9m
 //    parse("lucene-solr"); // 40m
-//    parse("netty"); // 4m
-    parse("guava"); // 2m
+    parse("netty"); // 4m 9m
+//    parse("guava"); // 2m 4m
   }
 
   private void parse(String project) throws Exception {
-    System.out.println(new File("..").getAbsolutePath());
+    this.project = project;
+    db.createTable(project);
+
     FileRepositoryBuilder builder = new FileRepositoryBuilder();
     projectDir = Config.projectsDir + '/' + project;
     Repository repo = builder.setGitDir(new File(projectDir + "/.git"))
@@ -63,6 +73,7 @@ public class GitLogParser {
     Util.log("Commit count:        " + commitCount);
     Util.log("Modified file count: " + fileCount);
     Util.log("Selected file count: " + crFileCount);
+    db.commit();
   }
 
   /**
@@ -97,13 +108,22 @@ public class GitLogParser {
       throws Exception {
     String cmd = "git checkout " + commitId + "^ -- " + filename;
     Execute.execIgnoreOutput(cmd, projectDir);
-
     String fullFilename = projectDir + '/' + filename;
-    String content = new String(Files.readAllBytes(Paths.get(fullFilename)));
+    //Reader reader1 = new FileReader(fullFilename);
+    String content1 = new String(Files.readAllBytes(Paths.get(fullFilename)));
+
     List<String> keywords = ConcurrentKeywords.list;
     for (String keyword : keywords) {
-      if (content.contains(keyword)) {
+      if (content1.contains(keyword)) {
         crFileCount++;
+        cmd = "git checkout " + commitId + " -- " + filename;
+        Execute.execIgnoreOutput(cmd, projectDir);
+        fullFilename = projectDir + '/' + filename;
+        //Reader reader2 = new FileReader(fullFilename);
+        String content2 = new String(
+            Files.readAllBytes(Paths.get(fullFilename)));
+        //db.addPairs(project, reader1, reader2);
+        db.addPairs(project, content1, content2);
         break;
       }
     }
@@ -127,8 +147,8 @@ public class GitLogParser {
   }
 
   public static void main(String[] args) {
-    GitLogParser parser = new GitLogParser();
     try {
+      GitLogParser parser = new GitLogParser();
       parser.parseAll();
     } catch (Exception e) {
       e.printStackTrace();

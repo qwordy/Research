@@ -16,5 +16,6 @@ public class CrrTest {
   public void initTable() throws Exception {
     Db db = new Db();
     db.createTable("guava");
+    db.commit();
   }
 }
