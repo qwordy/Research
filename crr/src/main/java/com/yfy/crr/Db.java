@@ -46,7 +46,9 @@ public class Db {
     ps.execute();
   }
 
-  public void 
+  public void getPair() {
+    
+  }
 
   /**
    * Must call it
