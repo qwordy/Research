@@ -13,7 +13,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.sql.ResultSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by yfy on 10/24/16.
@@ -22,8 +24,11 @@ public class Analyser {
 
   private Db db;
 
+  private Map<String, Integer> changeTypeCountMap;
+
   public Analyser() throws Exception {
     db = new Db();
+    changeTypeCountMap = new HashMap<>();
   }
 
   public void compareAll() throws Exception {
@@ -34,11 +39,18 @@ public class Analyser {
         String file1 = rs.getString(1);
         String file2 = rs.getString(2);
         //getEdit(file1, file2);
-        //getChange(file1, file2);
+        getChange(file1, file2);
         //Util.log(file1.length() + " " + file2.length());
       }
       rs.close();
+
+      // statistic result
+      for (Map.Entry<String, Integer> e : changeTypeCountMap.entrySet())
+        Util.log(e.getKey() + ' ' + e.getValue());
     }
+    // statistic result
+    for (Map.Entry<String, Integer> e : changeTypeCountMap.entrySet())
+      Util.log(e.getKey() + ' ' + e.getValue());
   }
 
   public void getEdit(String code1, String code2) {
@@ -68,14 +80,18 @@ public class Analyser {
       e.printStackTrace();
     }
     List<SourceCodeChange> changes = distiller.getSourceCodeChanges();
-    Util.log(changes.size());
-    if (changes != null) {
-      for (SourceCodeChange change : changes) {
-//        Util.log(change.getChangeType().toString());
-//        Util.log(change.getLabel());
-//        Util.log(change.getChangedEntity().toString());
-//        Util.log(change.toString());
-      }
+    //Util.log(changes.size());
+    for (SourceCodeChange change : changes) {
+      String label = change.getLabel();
+      Integer count = changeTypeCountMap.get(label);
+      if (count == null)
+        changeTypeCountMap.put(label, 1);
+      else
+        changeTypeCountMap.put(label, count + 1);
+      //Util.log(change.getChangeType().toString());
+//      Util.log(change.getLabel());
+//      Util.log(change.getChangedEntity().toString());
+//      Util.log(change.toString());
     }
   }
 
