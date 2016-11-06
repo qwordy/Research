@@ -62,7 +62,41 @@ public class Db {
     //sm.setFetchSize(9999);
     String sql = "select * from " + table + ";";
     return sm.executeQuery(sql);
+  }
 
+  public void moveToMysql() throws Exception {
+    int count = 0;
+    Connection myConn = DriverManager.getConnection("jdbc:mysql://localhost/crr?user=root");
+    myConn.setAutoCommit(false);
+    Statement mySm = myConn.createStatement();
+    for (String project: Config.projects) {
+      try {
+        mySm.execute("insert into project(name) values(\"" + project + "\");");
+      } catch (Exception e) {}
+      ResultSet myRs = mySm.executeQuery(
+          "select id from project where name=\"" + project + "\";");
+      myRs.next();
+      int pid = myRs.getInt("id");  // project id
+      //Util.log(pid);
+
+      Statement sm = conn.createStatement();
+      String sql = "select * from " + project + ";";
+      ResultSet rs = sm.executeQuery(sql);
+      sql = "insert into pair(file1, file2, pid) values(?, ?, ?);";
+      PreparedStatement myPs = myConn.prepareStatement(sql);
+      while (rs.next()) {
+        myPs.setString(1, rs.getString("file1"));
+        myPs.setString(2, rs.getString("file2"));
+        myPs.setInt(3, pid);
+        myPs.execute();
+
+        count++;
+        Util.log(count);
+        if (count % 999 == 0)
+          myConn.commit();
+      }
+    }
+    myConn.commit();
   }
 
   /**

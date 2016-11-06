@@ -24,4 +24,20 @@ public class CrrTest {
     Analyser analyser = new Analyser();
     analyser.compareAll();
   }
+
+  @Test
+  public void moveToMysql() throws Exception {
+    new Db().moveToMysql();
+  }
+
+  @Test
+  public void mysql() throws Exception {
+    new MysqlDb().read();
+  }
+
+  @Test
+  public void cluster() throws Exception {
+    new Cluster().run();
+  }
+
 }

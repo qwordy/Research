@@ -21,8 +21,17 @@ repositories {
 dependencies {
     compile fileTree(dir: 'lib', include: '*.jar')
 
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.5'
+
     // https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka/weka-dev
     compile group: 'nz.ac.waikato.cms.weka', name: 'weka-dev', version: '3.9.0'
+
+    // https://mvnrepository.com/artifact/mysql/mysql-connector-java
+    compile group: 'mysql', name: 'mysql-connector-java', version: '6.0.5'
+
+    // https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client
+    //compile group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '1.5.4'
 
     // https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc
     compile group: 'org.xerial', name: 'sqlite-jdbc', version: '3.14.2.1'

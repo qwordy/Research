@@ -9,32 +9,6 @@ import java.io.InputStreamReader;
  * Created by yfy on 10/20/16.
  */
 public class Execute {
-  /**
-   * Execute cmd
-   * @param cmd command
-   * @param dir directory to execute in
-   * @param task deal with output
-   * @return 0 on success, -1 otherwise
-   */
-  public static int execTask(String cmd, String dir, ITaskAfterRun task) {
-    try {
-      Process process;
-      if (dir == null)
-        process = Runtime.getRuntime().exec(cmd);
-      else
-        process = Runtime.getRuntime().exec(cmd, null, new File(dir));
-      BufferedReader br =
-          new BufferedReader(new InputStreamReader(process.getInputStream()));
-      if (task == null)
-        while (br.readLine() != null);
-      else
-        task.run(br);
-    } catch (Exception e) {
-      e.printStackTrace();
-      return -1;
-    }
-    return 0;
-  }
 
   public static BufferedReader execWithOutput(String cmd, String dir) {
     try {
@@ -51,8 +25,6 @@ public class Execute {
     }
   }
 
-  private static byte[] buf = new byte[4096];
-
   public static void execIgnoreOutput(String cmd, String dir) {
     try {
       InputStream is;
@@ -61,6 +33,7 @@ public class Execute {
       else
         is = Runtime.getRuntime().exec(cmd, null, new File(dir))
             .getInputStream();
+      byte[] buf = new byte[4096];
       while (is.read(buf) != -1);
     } catch (Exception e) {
       e.printStackTrace();
