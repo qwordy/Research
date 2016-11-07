@@ -1,0 +1,8 @@
+1. Introduction
+Concurrent programs are known hard to write and debug. Programmers struggle with different usages of APIs and subtle concurrent bugs. 
+
+Prepare
+We selected concurrent related program from github.
+
+Cluster
+We believe that similar program pieces tend to have some similar changes in commit histories. Program pieces are clustered into several group based on concurrent keywords. Each 
