@@ -15,6 +15,6 @@ public class Config {
   public static String tmp2 = projectsDir + "/tmp2";
 
   public static List<String> projects = Arrays.asList("hadoop", "flink",
-      "tomcat", "mahout", "cassandra", "luceneSolr", "netty", "guava");
+      "tomcat", "mahout", "cassandra", "lucene-solr", "netty", "guava");
 
 }
