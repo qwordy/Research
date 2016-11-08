@@ -3,11 +3,11 @@ Concurrent programs are known hard to write and debug. Programmers struggle with
 
 2. Example
 Figure 1 shows an commit example from tomcat(tomcat.0). Developer switched to ConcurrentHashMap and removed synchronizations. The original code used 'synchronize' keyword to synchronize the access to a hashmap and the new code used a thread-safe collection ConcurrentHashMap and no longer needed synchronize block.
+Figure 2 shows an commit example from hadoop(hadoop.1). The commit message is HADOOP-9691. RPC clients can generate call ID using AtomicInteger instead of synchronizing on the Client instance. Contributed by Chris Nauroth. Developer used an atomic type instead of the original primitive type, then the synchronize block is omitted.
 
 3. Approach
-
-Prepare
+3.1 Prepare snippet pairs
 Java concurrent package is a common-used concurrent libirary which provide many practical features. We use class name and interface name of the package to selected more than 100000+ concurrent related program snippets modification pairs from 8 popular projects from github. If a program snippet contains any class or interface from java concurrent package, it is considered as a concurrent related program snippet. The projects are hadoop, flink, tomcat, mahout, cassandra, lucene-solr, netty, guava. 
 
-Cluster
-We believe that similar program pieces tend to have some similar changes in commit histories. Program pieces are clustered into several group based on concurrent keywords which are class name and interface name from the java concurrent package and 'synchronize'
+3.1 Cluster
+We believe that similar program pieces tend to have some similar changes in commit histories. Program pieces are clustered into several group based on concurrent keywords which are class name and interface name from the java concurrent package and 'synchronize'. We use a tfidf model to build a numeric vector for each snippet then employ weka clustering tools including kmeans and em algorithms to cluster the extracted snippets.
