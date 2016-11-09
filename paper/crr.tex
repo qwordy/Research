@@ -78,7 +78,7 @@
 %\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
 % --- End of Author Metadata ---
 
-\title{An empirical study on concurrent API usage evolution\titlenote{(Produces the permission block, and
+\title{An empirical study on concurrent related code evolution\titlenote{(Produces the permission block, and
 copyright information). For use with
 SIG-ALTERNATE.CLS. Supported by ACM.}}
 \subtitle{[Extended Abstract]
@@ -226,7 +226,15 @@ is available on the web page to help you with the
 \keywords{ACM proceedings; \LaTeX; text tagging}
 
 \section{Introduction}
-Concurrent programs are known hard to write and debug. Developers struggle with various of concurrent related APIs and subtle concurrent bugs. 
+Concurrent programs are known hard to write and debug. Developers struggle with various of concurrent APIs and subtle concurrent bugs.
+We proposed 3 research questions:
+
+\textbf{RQ1.} How frequent do concurrent related code appear in popular open-source project?
+
+\textbf{RQ2.} How often does developer use new concurrent libraries instead of the old ones?
+
+\textbf{RQ3.} Is there any cross-project change routine about concurrent API usage?
+ 
 
 \section{Methodology}
 \textbf{Project Source} Concurrent programs are pervasive among Java software projects. We investigate some famous and representative Java open-source projects including hadoop, tomcat, lucene and so on.
