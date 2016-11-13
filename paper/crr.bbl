@@ -27,6 +27,11 @@ L.~Lamport.
 \newblock {\em LaTeX User's Guide and Document Reference Manual}.
 \newblock Addison-Wesley Publishing Company, Reading, Massachusetts, 1986.
 
+\bibitem{DBLP:journals/corr/Onuoha16}
+O.~Onuoha.
+\newblock Detecting code clones: {A} review.
+\newblock {\em CoRR}, abs/1605.02661, 2016.
+
 \bibitem{salas:calculus}
 S.~Salas and E.~Hille.
 \newblock {\em Calculus: One and Several Variable}.
