@@ -78,7 +78,7 @@
 %\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
 % --- End of Author Metadata ---
 
-\title{Detecting similar changes of concurrent code\titlenote{(Produces the permission block, and
+\title{Detecting similar changes of concurrent related code\titlenote{(Produces the permission block, and
 copyright information). For use with
 SIG-ALTERNATE.CLS. Supported by ACM.}}
 \subtitle{[Extended Abstract]
@@ -229,21 +229,55 @@ is available on the web page to help you with the
 Concurrent programs are known hard to write and debug. Developers struggle with various of concurrent APIs and subtle concurrent bugs.
 We proposed 3 research questions:
 
-\textbf{RQ1.} How frequent do concurrent related code appear in popular open-source project?
+\textbf{RQ1.} How frequent do concurrent related code appear in popular open-source projects?
 
 \textbf{RQ2.} How often does developer use new concurrent libraries instead of the old ones?
 
-\textbf{RQ3.} Is there any cross-project change routine about concurrent API usage?
+\textbf{RQ3.} Is there any common changes about concurrent related code?
  
 
 \section{Methodology}
-\textbf{Project Source} Concurrent programs are pervasive among Java software projects. We investigate some famous and representative Java open-source projects including hadoop, tomcat, lucene and so on.
+This section presents the methodology of our study. 
+\subsection{Project Sources} We investigate 8 Java open-source projects from Github including Hadoop, Tomcat, Cassandra, Lucene-solr, Netty, Flink, Guava and Mahout. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. Table 1 shows the LOC in Java, the number of Java files and the number of commits of each project.
+
+\begin{table}
+\centering
+\caption{Projects information}
+\begin{tabular}{|c|c|c|c|}
+\hline
+Project&LOC&\#Files&\#Commits\\\hline
+Hadoop&1202764&7701&14930\\\hline
+Tomcat&301173&2192&17731\\\hline
+Cassandra&387980&2143&21982\\\hline
+Lucene-solr&918398&6310&26152\\\hline
+Netty&218131&2054&7759\\\hline
+Flink&414264&4068&9771\\\hline
+Guava&251205&1672&3850\\\hline
+Mahout&109584&1215&3703\\\hline
+\end{tabular}
+\end{table}
+
+\subsection{Collecting code snippets}
+\textbf{Checking out versions}
+All the projects selected are under git which is one of the most popular version control systems in the world.
+
+\subsection{Calculating context similarity}
+
+\subsection{Extracting changes}
+
+\subsection{Calculating change similarity}
 
 \textbf{Prepare snippet pairs}
 Java concurrent package is a common-used concurrent libirary which provide many practical features. We use class name and interface name of the package to selected more than 100000+ concurrent related program snippets modification pairs from 8 popular projects from github. If a program snippet contains any class or interface from java concurrent package, it is considered as a concurrent related program snippet.
 
 \textbf{Clustering}
 We believe that similar program pieces tend to have some similar changes in commit histories. Program pieces are clustered into several group based on concurrent keywords which are class name and interface name from the java concurrent package and 'synchronize'. We use a tfidf model to build a numeric vector for each snippet then employ weka clustering tools including kmeans and em algorithms to cluster the extracted snippets.
+
+\section{Evaluation}
+
+\section{Related work}
+
+\section{Conclusion}
 
 \section{Introduction}
 
