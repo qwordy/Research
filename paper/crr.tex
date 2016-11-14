@@ -78,7 +78,7 @@
 %\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
 % --- End of Author Metadata ---
 
-\title{Detecting similar changes of concurrent related code\titlenote{(Produces the permission block, and
+\title{Detecting(Understading) similar changes of concurrent related code\titlenote{(Produces the permission block, and
 copyright information). For use with
 SIG-ALTERNATE.CLS. Supported by ACM.}}
 \subtitle{[Extended Abstract]
@@ -228,23 +228,23 @@ is available on the web page to help you with the
 \section{Introduction}
 Concurrent programs are known hard to write and debug. Developers struggle with various of concurrent APIs and subtle concurrent bugs.
 
-We proposed 3 research questions:
+In order to understand the We proposed 3 research questions:
 
 \textbf{RQ1.} How frequent do concurrent related codes appear in Java open-source projects?
 
-Concurrent programming is very popular in today's Java development with the rapid developments of multi-core techniques which help exploit the power of concurrent programming. 
-Java programming language provides built-in concurrent libraries
+Concurrent programming is very popular in today's Java development with the rapid developments of multi-core techniques which help exploit the power of concurrent programming. Java programming language provides convenient built-in concurrent libraries and users can also invoke third-party libraries. We want to know how frequent do concurrent related codes appear in code repositories.
 
-\textbf{RQ2.} How often does developer use new concurrent libraries instead of the old ones?
+\textbf{RQ2.} Is there any similar changes about concurrent related code?
 
-\textbf{RQ3.} Is there any common changes about concurrent related code?
+\textbf{RQ3.} What is the relationship between similar code changes and similar contexts?
 
-This rest of paper is organized as follows: Section 2 
- 
+\textbf{RQ4.} How can similar code changes in history guide the new change in development?
+
+The rest of paper is organized as follows: Section 2 presents the methodology of our study. Section 3 presents our result and discussion. Section 4 presents related work. Section 5 presents future work and Section 6 concludes.
 
 \section{Methodology}
-This section presents the methodology of our study. The basic steps are 
-\subsection{Project Sources} We investigate 8 Java open-source projects from Github including Hadoop, Tomcat, Cassandra, Lucene-solr, Netty, Flink, Guava and Mahout. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. Table 1 shows the LOC in Java, the number of Java files and the number of commits of each project.
+This section presents the methodology of our study. The basic steps are collecting code snippets, extracting changes and calculating similarity.
+\subsection{Project Sources} We investigate 8 Java open-source projects from Github including Hadoop, Tomcat, Cassandra, Lucene-solr, Netty, Flink, Guava and Mahout. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. For example, the Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Table 1 shows the LOC in Java, the number of Java files and the number of commits of each project.
 
 \begin{table}
 \centering
@@ -264,20 +264,26 @@ Mahout&109584&1215&3703\\\hline
 
 \subsection{Collecting code snippets}
 \subsubsection{Checking out versions}
-All the projects of our study are under git which is one of the most popular version control systems in the world. We first use 'git diff-tree --no-commit-id --name-status -r <commitId>' command to get changed file list of each commit. For each Java source file in the list, we use 'git checkout <commitId>\^ -- <filename>' and 'git checkout <commitId> -- <filename>' command to check out the old version before the commit and the new version after the commit. Then we extract matched methods of two files base on method name and list of its arguments. Method-level unit is chosen as the unit of code snippets in our study because file-level unit is too large, whose intrinsic code correlation is not as compact as smaller code unit and which probably contains noises of multiple uncorrelated modifications. More fine-grained level of unit like a group of continuous statements has higher precision and correlation with the modification but is more difficult to handle and identify. Therefore, method-level unit is a practical choose. 
+All the projects of our study are under git which is one of the most popular version control systems in the world. We first use "git diff-tree --no-commit-id --name-status -r <commitId>" command to get changed file list of each commit. For each Java source file in the list, we use "git checkout <commitId> -- <filename>" and "git checkout <commitId> \^ -- <filename>" command to check out the old version before the commit and the new version after the commit. Then we extract matching methods of two files base on method name and list of its arguments.
 
-\subsubsection{Selecting concurrent related code}
-We now have pairs of code snippets to be further analysed. 
-Concurrent related code is a semantic concept. There are too many third-party libraries and user-defined classes that have concurrent related functionalities. So it is hard to select concurrent related code precisely.
+Method-level unit is chosen as the unit of code snippets in our study because file-level unit is too large, whose intrinsic code correlation is not as compact as smaller code unit and which probably contains noises of multiple uncorrelated modifications. More fine-grained level of unit like a group of continuous statements has higher precision and correlation with the modification but is more difficult to identify and implement. Therefore, method-level unit is a practical choice. 
 
-\subsection{Context similarity}
-We employ a tree based code clone detecting approach to detect similar code snippets. Code clone detection approaches can be categorised into four main categories \cite{DBLP:journals/corr/Onuoha16}, namely, text or string based approach, lexical or token based approach, tree based approach and semantic approach.
-We apply machine learning techniques to classify code snippets.
+\subsubsection{Preprocessing}
+Noticing that a Java class usually has more codes which are mostly class variable declarations outside method definitions, we rewrite the methods to make them more complete without losing the type information defined in the class. We copy a variable declaration into a method if it is referenced in this method. If a local variable in method and a class variable have the same identifiers, one of them will be renamed to solve the conflict problem.
+
+\subsubsection{Selecting concurrent related snippets}
+We now have pairs of code snippets to be further analysed, but some of them are not . 
+Concurrent related code is a semantic concept. There are too many third-party libraries and user-defined classes that have concurrent related functionalities. So it is hard to select concurrent related code precisely. We use a naive but effective keyword matching method.
 
 \subsection{Extracting changes}
-We employ a tree based differencing algorithm to extract code changes of matched methods.
+We employ a tree based differencing algorithm to extract code changes of matching methods. For a matching pair of methods before and after a modification, the differencing algorithm generates a sequence of edit operations. An edit operation is one of the following types:
 
-\subsection{Change similarity}
+
+\subsection{Calculating similarity}
+\subsubsection{Context similarity}
+We employ a tree based code clone detecting approach to detect similar code snippets. Code clone detection approaches can be categorised into four main categories \cite{DBLP:journals/corr/Onuoha16}, namely, text or string based approach, lexical or token based approach, tree based approach and semantic approach.
+We apply machine learning techniques to classify code snippets.
+\subsubsection{Change similarity}
 
 \textbf{Prepare snippet pairs}
 Java concurrent package is a common-used concurrent libraries which provide many practical features. We use class name and interface name of the package to selected more than 100000+ concurrent related program snippets modification pairs from 8 popular projects from github. If a program snippet contains any class or interface from java concurrent package, it is considered as a concurrent related program snippet.
@@ -290,8 +296,9 @@ We believe that similar program pieces tend to have some similar changes in comm
 \section{Related work}
 
 \section{Future work}
-
+We have learned that similar code changes of concurrent related code are common in history of software evolution.
 \section{Conclusion}
+We conduct a study on similar code changes of concurrent related code.
 
 \section{Introduction}
 
