@@ -249,16 +249,16 @@ This section presents the methodology of our study. The basic steps are collecti
 \begin{table}
 \centering
 \caption{Projects information (LOC and \#Files are both of Java files)}
-\begin{tabular}{|c|c|c|c|}\hline
-Project&LOC&\#Files&\#Commits\\\hline
-Hadoop&1202764&7701&14930\\\hline
-Tomcat&301173&2192&17731\\\hline
-Cassandra&387980&2143&21982\\\hline
-Lucene-solr&918398&6310&26152\\\hline
-Netty&218131&2054&7759\\\hline
-Flink&414264&4068&9771\\\hline
-Guava&251205&1672&3850\\\hline
-Mahout&109584&1215&3703\\\hline
+\begin{tabular}{|c|c|c|c|c|}\hline
+Project&LOC&\#Files&\#Commits&\#Contributors\\\hline
+Hadoop&1202764&7701&14930&83\\\hline
+Tomcat&301173&2192&17731&11\\\hline
+Cassandra&387980&2143&21982&191\\\hline
+Lucene-solr&918398&6310&26152&51\\\hline
+Netty&218131&2054&7759&234\\\hline
+Flink&414264&4068&9771&246\\\hline
+Guava&251205&1672&3850&89\\\hline
+Mahout&109584&1215&3703&23\\\hline
 \end{tabular}
 \end{table}
 
@@ -269,11 +269,14 @@ All the projects of our study are under git which is one of the most popular ver
 Method-level unit is chosen as the unit of code snippets in our study because file-level unit is too large, whose intrinsic code correlation is not as compact as smaller code unit and which probably contains noises of multiple uncorrelated modifications. More fine-grained level of unit like a group of continuous statements has higher precision and correlation with the modification but is more difficult to identify and implement. Therefore, method-level unit is a practical choice. 
 
 \subsubsection{Preprocessing}
-Noticing that a Java class usually has more codes which are mostly class variable declarations outside method definitions, we rewrite the methods to make them more complete without losing the type information defined in the class. We copy a variable declaration into a method if it is referenced in this method. If a local variable in method and a class variable have the same identifiers, one of them will be renamed to solve the conflict problem.
+Pairs of methods extracted need to be preprocessed. Noticing that a Java class usually has more codes which are mostly class variable declarations outside method definitions, we rewrite the methods to make them more complete without losing the type information defined in the class. We copy a variable declaration into a method if it is referenced in this method. If a local variable in method and a class variable have the same identifiers, the class variable will be renamed to solve the conflict problem. Figure 1 shows an example from .
 
 \subsubsection{Selecting concurrent related snippets}
-We now have pairs of code snippets to be further analysed, but some of them are not . 
-Concurrent related code is a semantic concept. There are too many third-party libraries and user-defined classes that have concurrent related functionalities. So it is hard to select concurrent related code precisely. We use a naive but effective keyword matching method.
+After we have pairs of code snippets to be further analysed, we present how we select concurrent related snippets. Concurrent related code is a semantic concept. There are too many third-party libraries and user-defined classes that have concurrent related functionalities. So it is hard to select concurrent related code precisely. We use a naive but effective keyword matching method.
+
+A concurrent keyword here is defined as one of the class names or interface names of Java concurrent package and some other concurrent related keywords in Java like 'synchronize' and 'Thread'. Java concurrent package is a common-used concurrent libraries which provide many useful features. It is introduced into Java standard library since Java 1.5. We define a concurrent related snippet as a snippet which contains a concurrent keyword. A pair of snippets is concurrent related if any snippet of the pair is concurrent related. We traverse all the pairs of snippets and reserve those which are concurrent related.
+
+This method might omit some snippets that are concurrent related, but the selected ones are mostly concurrent related snippets indeed.
 
 \subsection{Extracting changes}
 We employ a tree based differencing algorithm to extract code changes of matching methods. For a matching pair of methods before and after a modification, the differencing algorithm generates a sequence of edit operations. An edit operation is one of the following types:
@@ -281,7 +284,11 @@ We employ a tree based differencing algorithm to extract code changes of matchin
 
 \subsection{Calculating similarity}
 \subsubsection{Context similarity}
-We employ a tree based code clone detecting approach to detect similar code snippets. Code clone detection approaches can be categorised into four main categories \cite{DBLP:journals/corr/Onuoha16}, namely, text or string based approach, lexical or token based approach, tree based approach and semantic approach.
+A context is several neighbour statements of change locations. We take the original code that will be changed into consideration. Detecting similar code snippets can use code clone detection techniques. 
+ Code clone detection approaches can be categorised into four main categories \cite{DBLP:journals/corr/Onuoha16}, namely, text or string based approach, lexical or token based approach, tree based approach and semantic approach. 
+ 
+We employ a tree based code clone detecting approach to detect similar code snippets.
+
 We apply machine learning techniques to classify code snippets.
 \subsubsection{Change similarity}
 
@@ -296,7 +303,7 @@ We believe that similar program pieces tend to have some similar changes in comm
 \section{Related work}
 
 \section{Future work}
-We have learned that similar code changes of concurrent related code are common in history of software evolution.
+We have learned that similar code changes of concurrent related code are common in history of software evolution. This indicates some automatic tools may help developers maintain their code. 
 \section{Conclusion}
 We conduct a study on similar code changes of concurrent related code.
 
