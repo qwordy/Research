@@ -226,13 +226,13 @@ is available on the web page to help you with the
 \keywords{ACM proceedings; \LaTeX; text tagging}
 
 \section{Introduction}
-Concurrent programs are known hard to write and debug. Developers struggle with various of concurrent APIs and subtle concurrent bugs.
+Concurrent programs are known hard to write and debug. Developers struggle with various of concurrent APIs and subtle concurrent bugs. Research shows that software modifications are usually similar but not identical. One reason is when code clone need to change, the changes have similarities.
 
 In order to understand the We proposed 3 research questions:
 
 \textbf{RQ1.} How frequent do concurrent related codes appear in Java open-source projects?
 
-Concurrent programming is very popular in today's Java development with the rapid developments of multi-core techniques which help exploit the power of concurrent programming. Java programming language provides convenient built-in concurrent libraries and users can also invoke third-party libraries. We want to know how frequent do concurrent related codes appear in code repositories.
+Concurrent programming is very popular in today's Java development with the rapid developments of multi-core techniques which help exploit the power of concurrent programming. Java programming language provides convenient built-in concurrent libraries and users can also invoke third-party libraries. We want to know how frequent do concurrent related codes appear in code repositories. How to define concurrent related code is a big question.
 
 \textbf{RQ2.} Is there any similar changes about concurrent related code?
 
@@ -240,25 +240,34 @@ Concurrent programming is very popular in today's Java development with the rapi
 
 \textbf{RQ4.} How can similar code changes in history guide the new change in development?
 
+Our main contributions are:
+
 The rest of paper is organized as follows: Section 2 presents the methodology of our study. Section 3 presents our result and discussion. Section 4 presents related work. Section 5 presents future work and Section 6 concludes.
 
 \section{Methodology}
-This section presents the methodology of our study. The basic steps are collecting code snippets, extracting changes and calculating similarity.
+This section presents the methodology of our study. The basic phases are collecting code snippets, extracting changes and calculating similarity. 
+
+\textbf{Collecting code snippets} Prepare a database of concurrent related pair of code snippets. A pair means the original code and modified code.
+
+\textbf{Extracting changes} Extract changes of pair of code snippets. Changes consist of a sequence of edit operations like insert, delete and update.
+
+\textbf{Calculating similarity} 
+
 \subsection{Project Sources} We investigate 8 Java open-source projects from Github including Hadoop, Tomcat, Cassandra, Lucene-solr, Netty, Flink, Guava and Mahout. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. For example, the Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Table 1 shows the LOC in Java, the number of Java files and the number of commits of each project.
 
 \begin{table}
 \centering
 \caption{Projects information (LOC and \#Files are both of Java files)}
-\begin{tabular}{|c|c|c|c|c|}\hline
-Project&LOC&\#Files&\#Commits&\#Contributors\\\hline
-Hadoop&1202764&7701&14930&83\\\hline
-Tomcat&301173&2192&17731&11\\\hline
-Cassandra&387980&2143&21982&191\\\hline
-Lucene-solr&918398&6310&26152&51\\\hline
-Netty&218131&2054&7759&234\\\hline
-Flink&414264&4068&9771&246\\\hline
-Guava&251205&1672&3850&89\\\hline
-Mahout&109584&1215&3703&23\\\hline
+\begin{tabular}{|c|c|c|c|}\hline
+Project&LOC&\#Files&\#Commits\\\hline
+Hadoop&1202764&7701&14930\\\hline
+Tomcat&301173&2192&17731\\\hline
+Cassandra&387980&2143&21982\\\hline
+Lucene-solr&918398&6310&26152\\\hline
+Netty&218131&2054&7759\\\hline
+Flink&414264&4068&9771\\\hline
+Guava&251205&1672&3850\\\hline
+Mahout&109584&1215&3703\\\hline
 \end{tabular}
 \end{table}
 
@@ -276,16 +285,38 @@ After we have pairs of code snippets to be further analysed, we present how we s
 
 A concurrent keyword here is defined as one of the class names or interface names of Java concurrent package and some other concurrent related keywords in Java like 'synchronize' and 'Thread'. Java concurrent package is a common-used concurrent libraries which provide many useful features. It is introduced into Java standard library since Java 1.5. We define a concurrent related snippet as a snippet which contains a concurrent keyword. A pair of snippets is concurrent related if any snippet of the pair is concurrent related. We traverse all the pairs of snippets and reserve those which are concurrent related.
 
-This method might omit some snippets that are concurrent related, but the selected ones are mostly concurrent related snippets indeed.
+A string matching algorithm is used to check if a snippet contains a concurrent keyword. A keyword sometimes is not at the position which it should be. For example, a type name occurs in a string or a comment. But now that the keyword exists in the code for some reasons, the code tend to has some relationships with concurrency more or less. This method might omit some snippets that are concurrent related, but the selected ones are mostly concurrent related snippets indeed. So, string matching algorithm is acceptable and practical.
 
 \subsection{Extracting changes}
 We employ a tree based differencing algorithm to extract code changes of matching methods. For a matching pair of methods before and after a modification, the differencing algorithm generates a sequence of edit operations. An edit operation is one of the following types:
 
+\textbf{Insert}
+
+\textbf{Delete}
+
+\textbf{Update}
+
+We give some definitions first.
+
+\newdef{def1}{Definition}
+\begin{def1}
+Two nodes are exact matching if their 
+\end{def1}
+
+We traverse the two ASTs of a pair of snippets using a pre-order search and compare the corresponding nodes.
+
 
 \subsection{Calculating similarity}
+The code similarity has two aspects: context similarity and change similarity. Detecting similar code snippets can use code clone detection techniques. Code clone detection approaches can be categorised into four main categories \cite{DBLP:journals/corr/Onuoha16}, namely, text or string based approach, lexical or token based approach, tree based approach and semantic approach.
+
+\subsubsection{Grouping}
+Comparing each code snippet with each other cost too much time which is in an order of \begin{math}O(n^2) \end{math} where n is the number of snippets. We narrow the search space of clone detection by grouping snippets fast by keyword. The groups are not orthometric. It is not classification. A pair snippet may belong to multiple groups. For example, a group consists of all pairs which contain keyword $k$.
+
+\subsubsection{Extracting change-related context}
+We use data dependency analysis to keep only nearly code which has relationship with the changes.
+
 \subsubsection{Context similarity}
-A context is several neighbour statements of change locations. We take the original code that will be changed into consideration. Detecting similar code snippets can use code clone detection techniques. 
- Code clone detection approaches can be categorised into four main categories \cite{DBLP:journals/corr/Onuoha16}, namely, text or string based approach, lexical or token based approach, tree based approach and semantic approach. 
+A context is several neighbour statements of change locations. We take the original code that will be changed into consideration.  
  
 We employ a tree based code clone detecting approach to detect similar code snippets.
 

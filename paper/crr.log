@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=pdflatex 2016.11.11)  14 NOV 2016 23:47
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=pdflatex 2016.11.11)  15 NOV 2016 13:27
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -347,31 +347,27 @@ Overfull \hbox (2.15843pt too wide) in paragraph at lines 235--236
  []
 
 
-Overfull \hbox (1.65413pt too wide) in paragraph at lines 243--244
+Overfull \hbox (1.65413pt too wide) in paragraph at lines 245--246
 []\T1/aer/m/n/9 The rest of pa-per is or-ga-nized as fol-lows: Sec-tion 2 prese
 nts
- []
-
-
-Overfull \hbox (22.41843pt too wide) in paragraph at lines 252--263
- [][] 
  []
 
 [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}
 
 
 ]
-Overfull \hbox (1.85188pt too wide) in paragraph at lines 272--273
+Overfull \hbox (1.85188pt too wide) in paragraph at lines 281--282
 []\T1/aer/m/n/9 Pairs of meth-ods ex-tracted need to be pre-pro-cessed. Notic-
  []
 
 
-Overfull \hbox (5.76721pt too wide) in paragraph at lines 277--278
+Overfull \hbox (5.76721pt too wide) in paragraph at lines 286--287
 \T1/aer/m/n/9 chro-nize' and 'Thread'. Java con-cur-rent pack-age is a common-
  []
 
+\c@def1=\count117
 [2]
-Underfull \hbox (badness 1360) in paragraph at lines 329--329
+Underfull \hbox (badness 1360) in paragraph at lines 360--360
 [][]\T1/aer/m/n/9 Two of these, the \T1/aett/m/n/9 \num-bero-fau-thors \T1/aer/
 m/n/9 and \T1/aett/m/n/9 \alig-nau-
  []
@@ -385,13 +381,13 @@ Package epstopdf Info: Source file: <fly.eps>
 (epstopdf)                    size: 4243 bytes
 (epstopdf)             Command: <repstopdf --outfile=fly-eps-converted-to.pdf f
 ly.eps>
-(epstopdf)             \includegraphics on input line 523.
+(epstopdf)             \includegraphics on input line 554.
 Package epstopdf Info: Output file is already uptodate.
- <fly-eps-converted-to.pdf, id=31, 34.1275pt x 32.12pt>
+ <fly-eps-converted-to.pdf, id=30, 34.1275pt x 32.12pt>
 File: fly-eps-converted-to.pdf Graphic file (type pdf)
 
 <use fly-eps-converted-to.pdf>
-Package pdftex.def Info: fly-eps-converted-to.pdf used on input line 523.
+Package pdftex.def Info: fly-eps-converted-to.pdf used on input line 554.
 (pdftex.def)             Requested size: 34.1274pt x 32.1199pt.
 Package epstopdf Info: Source file: <fly.eps>
 (epstopdf)                    date: 2016-11-12 12:38:55
@@ -401,16 +397,16 @@ Package epstopdf Info: Source file: <fly.eps>
 (epstopdf)                    size: 4243 bytes
 (epstopdf)             Command: <repstopdf --outfile=fly-eps-converted-to.pdf f
 ly.eps>
-(epstopdf)             \includegraphics on input line 529.
+(epstopdf)             \includegraphics on input line 560.
 Package epstopdf Info: Output file is already uptodate.
 File: fly-eps-converted-to.pdf Graphic file (type pdf)
  <use fly-eps-converted-to.pdf>
-Package pdftex.def Info: fly-eps-converted-to.pdf used on input line 529.
+Package pdftex.def Info: fly-eps-converted-to.pdf used on input line 560.
 (pdftex.def)             Requested size: 72.27492pt x 72.27565pt.
 
 
 LaTeX Font Warning: Font shape `T1/aett/bx/n' undefined
-(Font)              using `T1/aett/m/n' instead on input line 531.
+(Font)              using `T1/aett/m/n' instead on input line 562.
 
 Package epstopdf Info: Source file: <flies.eps>
 (epstopdf)                    date: 2016-11-12 12:38:55
@@ -420,13 +416,13 @@ Package epstopdf Info: Source file: <flies.eps>
 (epstopdf)                    size: 9687 bytes
 (epstopdf)             Command: <repstopdf --outfile=flies-eps-converted-to.pdf
  flies.eps>
-(epstopdf)             \includegraphics on input line 544.
+(epstopdf)             \includegraphics on input line 575.
 Package epstopdf Info: Output file is already uptodate.
-<flies-eps-converted-to.pdf, id=32, 307.1475pt x 114.4275pt>
+<flies-eps-converted-to.pdf, id=31, 307.1475pt x 114.4275pt>
 File: flies-eps-converted-to.pdf Graphic file (type pdf)
 
 <use flies-eps-converted-to.pdf>
-Package pdftex.def Info: flies-eps-converted-to.pdf used on input line 544.
+Package pdftex.def Info: flies-eps-converted-to.pdf used on input line 575.
 (pdftex.def)             Requested size: 307.14674pt x 114.42722pt.
 Package epstopdf Info: Source file: <rosette.eps>
 (epstopdf)                    date: 2016-11-12 12:38:55
@@ -436,44 +432,42 @@ Package epstopdf Info: Source file: <rosette.eps>
 (epstopdf)                    size: 2932 bytes
 (epstopdf)             Command: <repstopdf --outfile=rosette-eps-converted-to.p
 df rosette.eps>
-(epstopdf)             \includegraphics on input line 552.
+(epstopdf)             \includegraphics on input line 583.
 Package epstopdf Info: Output file is already uptodate.
 
-<rosette-eps-converted-to.pdf, id=33, 364.59212pt x 364.59212pt>
+<rosette-eps-converted-to.pdf, id=32, 364.59212pt x 364.59212pt>
 File: rosette-eps-converted-to.pdf Graphic file (type pdf)
 
 <use rosette-eps-converted-to.pdf>
-Package pdftex.def Info: rosette-eps-converted-to.pdf used on input line 552.
+Package pdftex.def Info: rosette-eps-converted-to.pdf used on input line 583.
 (pdftex.def)             Requested size: 72.26622pt x 72.26622pt.
-\c@theorem=\count117
-\c@definition=\count118
-
-Overfull \hbox (15.60826pt too wide) detected at line 608
+\c@theorem=\count118
+\c@definition=\count119
+ [4 <./fly-eps-converted-to.pdf>]
+Overfull \hbox (15.60826pt too wide) detected at line 639
 \OML/cmm/m/it/9 l \OT1/cmr/m/n/9 = [] \OML/cmm/m/it/9 f\OT1/cmr/m/n/9 (\OML/cmm
 /m/it/9 x\OT1/cmr/m/n/9 ) = [] [] = [] \OML/cmm/m/it/9 g\OT1/cmr/m/n/9 (\OML/cm
 m/m/it/9 x\OT1/cmr/m/n/9 ) \OMS/cmsy/m/n/9 ^^A [] [] \OT1/cmr/m/n/9 = 0 \OMS/cm
 sy/m/n/9 ^^A \OML/cmm/m/it/9 L \OT1/cmr/m/n/9 = 0\OML/cmm/m/it/9 ;
  []
 
-[4 <./fly-eps-converted-to.pdf>] (./crr.bbl
+(./crr.bbl
 Overfull \hbox (21.02989pt too wide) in paragraph at lines 1--1
 \T1/aer/m/n/9 (The Kumquat Con-sor-tium, email: \T1/aett/bx/n/9 jp-kumquat@cons
 ortium.net\T1/aer/m/n/9 ). 
  []
 
-) [5 <./flies-eps-converted-to.pdf> <./rosette-eps-converted-to.pdf>] [6
-
-]
+[5 <./flies-eps-converted-to.pdf> <./rosette-eps-converted-to.pdf>]) [6]
 (./crr.aux)
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
  ) 
 Here is how much of TeX's memory you used:
- 3303 strings out of 493029
- 42246 string characters out of 6136233
- 119804 words of memory out of 5000000
- 6696 multiletter control sequences out of 15000+600000
+ 3309 strings out of 493029
+ 42283 string characters out of 6136233
+ 117804 words of memory out of 5000000
+ 6702 multiletter control sequences out of 15000+600000
  68493 words of font info for 97 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  41i,10n,35p,688b,466s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -496,7 +490,7 @@ w/helvetic/uhvr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb
 8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/s
 hare/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/te
 xmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on crr.pdf (6 pages, 265347 bytes).
+Output written on crr.pdf (6 pages, 268721 bytes).
 PDF statistics:
  114 PDF objects out of 1000 (max. 8388607)
  81 compressed objects within 1 object stream
