@@ -92,18 +92,19 @@ public class GitLogParser {
       }
     }
     // double keyword
-    boolean find1, find2;
+    boolean find1, find2, isJava;
     List<String> list = ConcurrentKeywords.list;
     for (int i = 0; i < list.size() - 1; i++) {
       for (int j = i + 1; j < list.size(); j++) {
         String keyword1 = list.get(i);
         String keyword2 = list.get(j);
-        find1 = find2 = false;
+        find1 = find2 = isJava = false;
         for (String line : lines) {
           if (line.startsWith("diff --git ")) {
-            
+            isJava = line.endsWith(".java");
+            find1 = find2 = false;
           }
-          if (line.startsWith("+") || line.startsWith("-")) {
+          if (isJava && (line.startsWith("+") || line.startsWith("-"))) {
             if (line.contains(keyword1)) find1 = true;
             if (line.contains(keyword2)) find2 = true;
             if (find1 && find2) {
