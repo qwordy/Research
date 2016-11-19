@@ -5,16 +5,14 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.Reader;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by yfy on 9/24/16.
@@ -32,20 +30,20 @@ public class GitLogParser {
   }
 
   public void parseAll() throws Exception {
-//    parse("hadoop"); // 21m 35m
-//    parse("flink"); // 18m
-//    parse("tomcat"); // 5m
-//    parse("mahout"); // 4m
-//    parse("cassandra"); // 9m
-    parse("luceneSolr"); // 40m 1h
-//    parse("netty"); // 4m 9m
-//    parse("guava"); // 2m 4m
+    parse("hadoop"); // 21m 35m
+    parse("flink"); // 18m
+    parse("tomcat"); // 5m
+    parse("mahout"); // 4m
+    parse("cassandra"); // 9m
+    parse("lucene-solr"); // 40m 1h
+    parse("netty"); // 4m 9m
+    parse("guava"); // 2m 4m
   }
 
   private void parse(String project) throws Exception {
     Util.log(project);
     this.project = project;
-    db.createTable(project);
+    //db.createTable(project);
 
     FileRepositoryBuilder builder = new FileRepositoryBuilder();
     projectDir = Config.projectsDir + '/' + project;
@@ -67,7 +65,8 @@ public class GitLogParser {
 //        System.out.println(commit.getId());
 //        System.out.println(commit.name());
 //        System.out.println(msg);
-        getModifiedFiles(commit.name());
+        //getModifiedFiles(commit.name());
+        showDiff(commit.name());
       }
     }
     Util.log("Project:             " + project);
@@ -77,8 +76,59 @@ public class GitLogParser {
     db.commit();
   }
 
+  private void showDiff(String commitId) throws Exception {
+    String cmd = "git show " + commitId;
+    BufferedReader br = Execute.execWithOutput(cmd, projectDir);
+    List<String> lines = br.lines().collect(Collectors.toList());
+    // single keyword
+    for (String keyword : ConcurrentKeywords.list) {
+      for (String line : lines) {
+        if ((line.startsWith("+") || line.startsWith("-")) &&
+            line.contains(keyword)) {
+          writeDiff(lines, Config.projectsDir + "/diff/single/" + keyword,
+              project + '_' + commitId);
+          break;
+        }
+      }
+    }
+    // double keyword
+    boolean find1, find2;
+    List<String> list = ConcurrentKeywords.list;
+    for (int i = 0; i < list.size() - 1; i++) {
+      for (int j = i + 1; j < list.size(); j++) {
+        String keyword1 = list.get(i);
+        String keyword2 = list.get(j);
+        find1 = find2 = false;
+        for (String line : lines) {
+          if (line.startsWith("diff --git ")) {
+            
+          }
+          if (line.startsWith("+") || line.startsWith("-")) {
+            if (line.contains(keyword1)) find1 = true;
+            if (line.contains(keyword2)) find2 = true;
+            if (find1 && find2) {
+              writeDiff(lines, Config.projectsDir + "/diff/double/" + keyword1 +
+                  '_' + keyword2, project + '_' + commitId);
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private void writeDiff(List<String> lines, String dir, String filename)
+      throws Exception {
+    File dirFile = new File(dir);
+    if (!dirFile.exists()) dirFile.mkdirs();
+    PrintWriter pw = new PrintWriter(new File(dirFile, filename));
+    lines.forEach(pw::println);
+    pw.close();
+  }
+
   /**
    * Get modified java files of commitId
+   *
    * @param commitId
    * @throws Exception
    */
