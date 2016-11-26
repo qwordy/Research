@@ -31,13 +31,13 @@ public class GitLogParser {
 
   public void parseAll() throws Exception {
     parse("hadoop"); // 21m 35m
-    parse("flink"); // 18m
+    //parse("flink"); // 18m
     parse("tomcat"); // 5m
     parse("mahout"); // 4m
     parse("cassandra"); // 9m
     parse("lucene-solr"); // 40m 1h
     parse("netty"); // 4m 9m
-    parse("guava"); // 2m 4m
+    //parse("guava"); // 2m 4m
   }
 
   private void parse(String project) throws Exception {
@@ -66,7 +66,8 @@ public class GitLogParser {
 //        System.out.println(commit.name());
 //        System.out.println(msg);
         //getModifiedFiles(commit.name());
-        showDiff(commit.name());
+        //showDiff(commit.name());
+        feature(commit);
       }
     }
     Util.log("Project:             " + project);
@@ -74,6 +75,56 @@ public class GitLogParser {
     Util.log("Modified file count: " + fileCount);
     Util.log("Selected file count: " + crFileCount);
     db.commit();
+  }
+
+  private void feature(RevCommit commit) throws Exception {
+    String message = commit.getFullMessage();
+    String[] words = message.split("\\s");
+    codeFeature(commit.name());
+  }
+
+  private void codeFeature(String commitId) throws Exception {
+    String cmd = "git show " + commitId;
+    BufferedReader br = Execute.execWithOutput(cmd, projectDir);
+    List<String> lines = br.lines().collect(Collectors.toList());
+    int fileNum = 0, hunkNum = 0, lineAdd = 0, lineRemove = 0,
+        keyAdd = 0, keyRemove = 0;
+    boolean isJava = false, isHunk = false;
+    for (String line : lines) {
+      if (line.startsWith("diff --git ")) {
+        isJava = line.endsWith(".java");
+        if (isJava) fileNum++;
+        isHunk = false;
+      } else if (isJava) {
+        if (line.startsWith("@@ -")) {
+          hunkNum++;
+          isHunk = true;
+        }
+        if (isHunk) {
+          String[] words = line.split("\\b");
+          //Util.log(words.length);
+          int keyNum = 0;
+          for (String word : words) {
+            for (String key : ConcurrentKeywords.list)
+              if (word.equals(key)) keyNum++;
+          }
+          if (line.startsWith("+")) {
+            lineAdd++;
+            keyAdd += keyNum;
+          }
+          else if (line.startsWith("-")) {
+            lineRemove++;
+            keyRemove += keyNum;
+          }
+        }
+      }
+    }
+    int lineSub = Math.abs(lineAdd - lineRemove);
+    int lineSum = lineAdd + lineRemove;
+    int keySub = Math.abs(keyAdd - keyRemove);
+    int keySum = keyAdd + keyRemove;
+    System.out.printf("fileNum:%d hunkNum:%d lineAdd:%d lineRemove:%d keyAdd:%d keyRemove:%d\n",
+        fileNum, hunkNum, lineAdd, lineRemove, keyAdd, keyRemove);
   }
 
   private void showDiff(String commitId) throws Exception {
