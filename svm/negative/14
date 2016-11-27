@@ -1,0 +1,33 @@
+commit a31e0164912236630c485e5aeb908b43e3a67c61
+Author: Harsh J <harsh@cloudera.com>
+Date:   Thu Dec 4 03:16:08 2014 +0530
+
+    YARN-2891. Failed Container Executor does not provide a clear error message. Contributed by Dustin Cote. (harsh)
+
+diff --git a/hadoop-yarn-project/CHANGES.txt b/hadoop-yarn-project/CHANGES.txt
+index d44f46d..91151ad 100644
+--- a/hadoop-yarn-project/CHANGES.txt
++++ b/hadoop-yarn-project/CHANGES.txt
+@@ -59,6 +59,9 @@ Release 2.7.0 - UNRELEASED
+ 
+   IMPROVEMENTS
+ 
++    YARN-2891. Failed Container Executor does not provide a clear error
++    message. (Dustin Cote via harsh)
++
+     YARN-1979. TestDirectoryCollection fails when the umask is unusual.
+     (Vinod Kumar Vavilapalli and Tsuyoshi OZAWA via junping_du)
+ 
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/src/main/native/container-executor/impl/container-executor.c b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/src/main/native/container-executor/impl/container-executor.c
+index 9af9161..4fc78b6 100644
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/src/main/native/container-executor/impl/container-executor.c
++++ b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/src/main/native/container-executor/impl/container-executor.c
+@@ -526,7 +526,7 @@ int check_dir(char* npath, mode_t st_mode, mode_t desired, int finalComponent) {
+     int filePermInt = st_mode & (S_IRWXU | S_IRWXG | S_IRWXO);
+     int desiredInt = desired & (S_IRWXU | S_IRWXG | S_IRWXO);
+     if (filePermInt != desiredInt) {
+-      fprintf(LOGFILE, "Path %s does not have desired permission.\n", npath);
++      fprintf(LOGFILE, "Path %s has permission %o but needs permission %o.\n", npath, filePermInt, desiredInt);
+       return -1;
+     }
+   }

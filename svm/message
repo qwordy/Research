@@ -1,0 +1,3726 @@
+/home/yfy/Downloads/jdk1.8.0_102/bin/java -ea -Didea.launcher.port=7535 -Didea.launcher.bin.path=/home/yfy/Downloads/idea-IC-162.2032.8/bin -Didea.junit.sm_runner -Dfile.encoding=UTF-8 -classpath /home/yfy/Downloads/idea-IC-162.2032.8/lib/idea_rt.jar:/home/yfy/Downloads/idea-IC-162.2032.8/plugins/junit/lib/junit-rt.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/charsets.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/deploy.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/cldrdata.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/dnsns.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/jaccess.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/jfxrt.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/localedata.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/nashorn.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/sunec.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/sunjce_provider.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/sunpkcs11.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/zipfs.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/javaws.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/jce.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/jfr.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/jfxswt.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/jsse.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/management-agent.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/plugin.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/resources.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/rt.jar:/home/yfy/stap/research/crr/build/classes/test:/home/yfy/stap/research/crr/build/classes/main:/home/yfy/stap/research/crr/lib/changedistiller-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/home/yfy/stap/research/crr/lib/changedistiller-0.0.1-SNAPSHOT-sources.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-lang3/3.5/6c6c702c89bfff3cd9e80b04d668c5e190d588c6/commons-lang3-3.5.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka/weka-dev/3.9.0/a3380fa7c68dae495682d968f358cd47aa54eb2b/weka-dev-3.9.0.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/mysql/mysql-connector-java/6.0.5/9d8df5a1f3273110f2a9ad304961bdd03d696d86/mysql-connector-java-6.0.5.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.xerial/sqlite-jdbc/3.14.2.1/66b8075784131f578ef893fd7674273f709b9a4c/sqlite-jdbc-3.14.2.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/1.7.21/139535a69a4239db087de9bab0bee568bf8e0b70/slf4j-api-1.7.21.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-jdk14/1.7.21/168ee1e516a458bd80fb23caf2e512ed41e1e865/slf4j-jdk14-1.7.21.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.eclipse.jgit/org.eclipse.jgit/4.5.0.201609210915-r/3e3d0b73dcf4ad649f37758ea8502d92f3d299de/org.eclipse.jgit-4.5.0.201609210915-r.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/junit/junit/4.12/2973d150c0dc1fefe998f834810d68f278ea58ec/junit-4.12.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka.thirdparty/java-cup-11b/2015.03.26/6e97c5abd2e76d83220f09f72de0b89b6de18dc1/java-cup-11b-2015.03.26.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka.thirdparty/java-cup-11b-runtime/2015.03.26/5466fad5c5866f33e3230c30ca623e7e8deff1f8/java-cup-11b-runtime-2015.03.26.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka.thirdparty/bounce/0.18/d774f9a0aa5cbe08dea8907720c64c417aed861/bounce-0.18.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.googlecode.matrix-toolkits-java/mtj/1.0.4/e14ed840ff5e15de92dba2d1af29201fa70a0f35/mtj-1.0.4.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/net.sourceforge.f2j/arpack_combined_all/0.1/225619a060b42605b4d9fd4af11815664abf26eb/arpack_combined_all-0.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.googlecode.netlib-java/netlib-java/1.1/4a9c3b55b23430e5a6ad86101a88aea500ba8086/netlib-java-1.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.jcraft/jsch/0.1.53/658b682d5c817b27ae795637dfec047c63d29935/jsch-0.1.53.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.googlecode.javaewah/JavaEWAH/0.7.9/eceaf316a8faf0e794296ebe158ae110c7d72a5a/JavaEWAH-0.7.9.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.apache.httpcomponents/httpclient/4.3.6/4c47155e3e6c9a41a28db36680b828ced53b8af4/httpclient-4.3.6.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/all/1.1.2/f235011206ac009adad2d6607f222649aba5ca9e/all-1.1.2.pom:/home/yfy/.gradle/caches/modules-2/files-2.1/org.apache.httpcomponents/httpcore/4.3.3/f91b7a4aadc5cf486df6e4634748d7dd7a73f06d/httpcore-4.3.3.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/commons-logging/commons-logging/1.1.3/f6f66e966c70a83ffbdb6f17a0919eaf7c8aca7f/commons-logging-1.1.3.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/commons-codec/commons-codec/1.6/b7f0fc8f61ecadeb3695f0b9464755eee44374d4/commons-codec-1.6.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-osx-x86_64/1.1/80da53ec862f283dc3b191b9dbd3166ea6671831/netlib-native_ref-osx-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-linux-x86_64/1.1/5a3e5787d03c39790d5ae08cce189dd1ccc4a38/netlib-native_ref-linux-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-linux-i686/1.1/eedd845b214aea560bce317d778ebb52f8f46038/netlib-native_ref-linux-i686-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-win-x86_64/1.1/4ab54511c2844546279d9f8e427c73953b794686/netlib-native_ref-win-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-win-i686/1.1/167fb794a26cb0bfc74890c704c7137b1d5b50fd/netlib-native_ref-win-i686-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-linux-armhf/1.1/ec467162f74710fd8897cff6888534ceaf297d9a/netlib-native_ref-linux-armhf-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-osx-x86_64/1.1/d724e33675dc8eaa5c8fcb05a3aaca6f3339afa7/netlib-native_system-osx-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-linux-x86_64/1.1/163e88facabe7fa29952890dc2d3429e28501120/netlib-native_system-linux-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-linux-i686/1.1/dd43225560dbd9115d306f9be3ca195aed236b78/netlib-native_system-linux-i686-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-linux-armhf/1.1/27ae9f6a9c88b3f8d12ffa52d62941615f8ed416/netlib-native_system-linux-armhf-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-win-x86_64/1.1/222c7915be1daf1c26a4206f375d4957ae5f9d81/netlib-native_system-win-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-win-i686/1.1/c25fd1881cf93f7716f47b7deec859f6b6b7be50/netlib-native_system-win-i686-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/native_ref-java/1.1/408c71ffbc3646dda7bee1e22bf19101e5e9ee90/native_ref-java-1.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/native_system-java/1.1/3c6a2455f96b354a6940dce1393abb35ed7641da/native_system-java-1.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil/jniloader/1.1/4840f897eeb54d67ee14e478f8a45cc9937f3ce1/jniloader-1.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/core/1.1.2/574b480eca62f535fad6d259e144fee3ef24b66e/core-1.1.2.jar com.intellij.rt.execution.application.AppMain com.intellij.rt.execution.junit.JUnitStarter -ideVersion5 com.yfy.crr.CrrTest,gitLogParser
+hadoop
+fad9609d13e76e9e3a4e01c96f698bb60b03807e
+
+    YARN-5825. ProportionalPreemptionalPolicy should use readLock over LeafQueue instead of synchronized block. Contributed by Sunil G
+
+
+ae8bccd5090d8b42dae9a8e0c13a9766a7c42ecb
+
+    HADOOP-13702. Add instrumented ReadWriteLock. Contributed by Jingcheng Du
+
+
+fe9ebe20ab113567f0777c11cb48ce0d3ce587a8
+
+    Revert "HDFS-10923. Make InstrumentedLock require ReentrantLock."
+    
+    This reverts commit c7ce6fdc20fe053f0bb3bcf900ffc0e1db6feee5.
+
+
+c7ce6fdc20fe053f0bb3bcf900ffc0e1db6feee5
+
+    HDFS-10923. Make InstrumentedLock require ReentrantLock.
+
+
+47f80922dc7cb2fa6d084e6fb1f354c4ec1d4c69
+
+    HADOOP-13599. s3a close() to be non-synchronized, so avoid risk of deadlock on shutdown. Contributed by Steve Loughran.
+
+
+7f3c306e2ed9e865171324898decb9b587d90e73
+
+    YARN-5432. Lock already held by another process while LevelDB cache store creation for dag. Contributed by Li Lu.
+
+
+2bbc3ea1b54c25c28eb04caa48dece5cfc19d613
+
+    HDFS-10617. PendingReconstructionBlocks.size() should be synchronized. Contributed by Eric Badger.
+
+
+574dcd34c0da1903d25e37dc5757642a584dc3d0
+
+    Revert "Revert "HADOOP-13168. Support Future.get with timeout in ipc async calls.""
+    
+    This reverts commit e4450d47f19131818e1c040b6bd8d85ae8250475.
+
+
+e4450d47f19131818e1c040b6bd8d85ae8250475
+
+    Revert "HADOOP-13168. Support Future.get with timeout in ipc async calls."
+    
+    This reverts commit 42c22f7e3d6e88bf1115f617f6e803288886d1ac.
+
+
+42c22f7e3d6e88bf1115f617f6e803288886d1ac
+
+    HADOOP-13168. Support Future.get with timeout in ipc async calls.
+
+
+6e565780315469584c47515be6bd189f07840f1b
+
+    HADOOP-10694. Remove synchronized input streams from Writable deserialization. Contributed by Gopal V and Rajesh Balamohan.
+
+
+4bd7cbc29d142fc56324156333b9a8a7d7b68042
+
+    HDFS-10267. Extra "synchronized" on FsDatasetImpl#recoverAppend and FsDatasetImpl#recoverClose
+
+
+d8736eb9ca351b82854601ea3b1fbc3c9fab44e4
+
+    HDFS-9305. Delayed heartbeat processing causes storm of subsequent heartbeats. (Contributed by Arpit Agarwal)
+
+
+cb282d5b89fdece4719cc4ad37a6e27f13371534
+
+    HADOOP-12484. Single File Rename Throws Incorrectly In Potential Race Condition Scenarios. Contributed by Gaurav Kanade.
+
+
+8d2d3eb7bb938cc06ea3cc74040cfe0be13a2ba8
+
+    HADOOP-12475. Replace guava Cache with ConcurrentHashMap for caching Connection in ipc Client (Walter Su via sjlee)
+
+
+5b43db47a313decccdcca8f45c5708aab46396df
+
+    HDFS-8676. Delayed rolling upgrade finalization can cause heartbeat expiration. Contributed by Walter Su.
+
+
+fb6b38d67d8b997eca498fc5010b037e3081ace7
+
+    HADOOP-11772. RPC Invoker relies on static ClientCache which has synchronized(this) blocks. Contributed by Haohui Mai.
+
+
+470c87dbc6c24dd3b370f1ad9e7ab1f6dabd2080
+
+    HADOOP-11970. Replace uses of ThreadLocal<Random> with JDK7 ThreadLocalRandom (Sean Busbey via Colin P. McCabe)
+
+
+3836ad6c0b3331cf60286d134157c13985908230
+
+    HADOOP-11639. Clean up Windows native code compilation warnings related to Windows Secure Container Executor. Contributed by Remus Rusanu.
+
+
+7b10ef0c3bfec9cdf20d6e2385b6d218809a37b9
+
+    HDFS-7741. Remove unnecessary synchronized in FSDataInputStream and HdfsDataInputStream. (yliu)
+
+
+3472e3bd6c50558870b86c9ccfea5072385fa991
+
+    HADOOP-11494. Lock acquisition on WrappedInputStream#unwrappedRpcBuffer may race with another thread. Contributed by Ted Yu.
+
+
+a31e0164912236630c485e5aeb908b43e3a67c61
+
+    YARN-2891. Failed Container Executor does not provide a clear error message. Contributed by Dustin Cote. (harsh)
+
+
+3b12fd6cfbf4cc91ef8e8616c7aafa9de006cde5
+
+    YARN-2198. Remove the need to run NodeManager as privileged account for Windows Secure Container Executor. Contributed by Remus Rusanu
+
+
+6b2e615f5fa034d679be0de8fb300b878a2d801a
+
+    HDFS-6433. Replace BytesMoved class with AtomicLong. Contributed by Benoy Antony.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1596742 13f79535-47bb-0310-9956-ffa450edef68
+
+
+b2dd9d74c20844a589263a8ac40a736dbb92be7e
+
+    HBASE-10143 replace WritableFactories's hashmap with ConcurrentHashMap (Liang Xie via Stack)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1559923 13f79535-47bb-0310-9956-ffa450edef68
+
+
+71b4903ea41a17c9305b25d24be786aed5b6e82f
+
+    HADOOP-10169. Remove the unnecessary synchronized in JvmMetrics class. Contributed by Liang Xie.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1552820 13f79535-47bb-0310-9956-ffa450edef68
+
+
+4a1acfc96fb7d418ff3fe538a3942834948f6d1c
+
+    HDFS-5548. Use ConcurrentHashMap in portmap. Contributed by Haohui Mai
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1545756 13f79535-47bb-0310-9956-ffa450edef68
+
+
+0a5f16a89e3942953d7d6c2d26542764298c6430
+
+    HADOOP-9691. RPC clients can generate call ID using AtomicInteger instead of synchronizing on the Client instance. Contributed by Chris Nauroth.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1501615 13f79535-47bb-0310-9956-ffa450edef68
+
+
+ef9f251679d7e87698eecd6a119652900274a172
+
+    YARN-514.Delayed store operations should not result in RM unavailability for app submission (Zhijie Shen via bikas)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1469059 13f79535-47bb-0310-9956-ffa450edef68
+
+
+d27291842605555f6727faa4454211f55da28cca
+
+    YARN-357. App submission should not be synchronized (daryn)
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1443016 13f79535-47bb-0310-9956-ffa450edef68
+
+
+7e56bfe40589a1aa9b5ef20b342e421823cd0592
+
+    HDFS-4200. Reduce the size of synchronized sections in PacketResponder. Contributed by Suresh Srinivas.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1413826 13f79535-47bb-0310-9956-ffa450edef68
+
+
+a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
+
+    HDFS-4029. GenerationStamp should use an AtomicLong. Contributed by Eli Collins
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1399096 13f79535-47bb-0310-9956-ffa450edef68
+
+
+dd8b7ae9d884ea22a68800fb0f8a1a991ac80834
+
+    HDFS-3350. In INode, add final to compareTo(..), equals(..) and hashCode(), and remove synchronized from updatePermissionStatus(..).
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1333679 13f79535-47bb-0310-9956-ffa450edef68
+
+
+1177d4edc29f839b8df1038c4fbf37f56f56a2a0
+
+    HDFS-3005. FSVolume.decDfsUsed(..) should be synchronized.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1301127 13f79535-47bb-0310-9956-ffa450edef68
+
+
+04f685ea76a085a83aa2eb5a52f920a16df2b300
+
+    MAPREDUCE-3827. Changed Counters to use ConcurrentSkipListMap for performance. Contributed by Vinod K V.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1241711 13f79535-47bb-0310-9956-ffa450edef68
+
+
+b3f28dbb3d1ab6b2f686efdd7bdb064426177f21
+
+    HDFS-2626. BPOfferService.verifyAndSetNamespaceInfo needs to be synchronized. Contributed by Todd Lipcon.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/branches/HDFS-1623@1210340 13f79535-47bb-0310-9956-ffa450edef68
+
+
+efc83da2a0d8d881904250fb896d45b383a3adf6
+
+    HADOOP-7854. UGI getCurrentUser is not synchronized. Contributed by Daryn Sharp.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1208926 13f79535-47bb-0310-9956-ffa450edef68
+
+
+7b1ac5ac13f5af483065788e59807fe08d2299f3
+
+    HADOOP-6640. FileSystem.get() does RPC retries within a static synchronized block. Contributed by Hairong Kuang.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@930096 13f79535-47bb-0310-9956-ffa450edef68
+
+
+Project:             hadoop
+Commit count:        14930
+Related commit count 2016
+flink
+d3908241323f5de3d454c7daf560faed49b3c779
+
+    [FLINK-5022] Suppress RejectedExecutionExceptions if the ExecutorService has been shut down
+    
+    This PR suppresses occurring RejectedExecutionExceptions if an ExecutorService has been shut
+    down. This only works for ExecutorServices at the moment. All other exceptions are logged.
+    
+    This closes #2757
+
+
+90902914ac4b11f9554b67ad49e0d697a0d02f93
+
+    [FLINK-4543] [network] Fix potential deadlock in SpilledSubpartitionViewAsyncIO.
+    
+    The deadlock could occur in cases where the SpilledSubpartitionViewAsyncIO would simultaneously try to
+    release a buffer and encounter an error in another thread.
+    
+    The field of congestion was the listener, which is now replaced by an AtomicReference, removing the
+    necessity to lock in the case of reporting the error.
+    
+    This closes #2444
+
+
+f8138f4b74332ecb4ef0d28a09e8549708118ca6
+
+    [FLINK-4361] Introduce Flink's own future abstraction
+    
+    Flink's future abstraction whose API is similar to Java 8's CompletableFuture.
+    That's in order to ease a future transition to this class once we ditch Java 7.
+    The current set of operations comprises:
+    
+    - isDone to check the completion of the future
+    - get/getNow to obtain the future's value
+    - cancel to cancel the future (best effort basis)
+    - thenApplyAsync to transform the future's value into another value
+    - thenAcceptAsync to register a callback for a successful completion of the future
+    - exceptionallyAsync to register a callback for an exception completion of the future
+    - thenComposeAsync to transform the future's value and flatten the returned future
+    - handleAsync to register a callback which is called either with the regular result
+    or the exceptional result
+    
+    Additionally, Flink offers a CompletableFuture which can be completed with a regular
+    value or an exception:
+    
+    - complete/completeExceptionally
+    
+    Complete FlinkCompletableFuture exceptionally with a CanellationException upon cancel
+    
+    Add convenience functions for FlinkCompletableFutures
+    
+    This closes #2554.
+
+
+4809f5367b08a9734fc1bd4875be51a9f3bb65aa
+
+    [FLINK-3761] Refactor State Backends/Make Keyed State Key-Group Aware
+    
+    The biggest change in this is that functionality that used to be in
+    AbstractStateBackend is now moved to CheckpointStreamFactory and
+    KeyedStateBackend. The former is responsible for providing streams that
+    can be used to checkpoint data while the latter is responsible for
+    keeping keyed state. A keyed backend can checkpoint the state that it
+    keeps by using a CheckpointStreamFactory.
+    
+    This also refactors how asynchronous keyed state snapshots work. They
+    are not implemented using a Future/RunnableFuture.
+    
+    Also, this changes the keyed state backends to be key-group aware and to
+    snapshot the state in key-groups with an index for restoring.
+
+
+46b427fac9cfceca7839fc93f06ba758101f4fee
+
+    [FLINK-4212] [scripts] Lock PID file when starting daemons
+
+
+74b09ce0db4d24a0ac25de2ecac391fdf8bd5a90
+
+    [FLINK-4123] [cassandra] Fix concurrency issue in CassandraTupleWriteAheadSink
+    
+    The updatesCount variable in the CassandraTupleWriteAheadSink.sendValues did not have
+    guaranteed visibility. Thus, it was possible that the callback thread would read an
+    outdated value for updatesCount, resulting in a deadlock. Replacing IntValue updatesCount
+    with AtomicInteger updatesCount fixes this issue.
+    
+    Furthermore, the PR hardens the CassandraTupleWriteAheadSinkTest which could have failed
+    with a NPE if the callback runnable was not set in time.
+
+
+5c2da21f25741502dd8ca64ce9d314a1ebea1441
+
+    [FLINK-4123] Cassandra sink checks for exceptions in ack phase
+    
+    add serialVersionUID
+    
+    switch to AtomicReference
+    
+    wait-notify
+    
+    disable logging
+    
+    add test case for leaving ackPhaseLoopOnException
+    
+    prevent infinite loop in test
+    
+    This closes #2183.
+
+
+5b9872492394026f3e6ac31b9937141ebedb1481
+
+    [FLINK-3963] AbstractReporter uses wrong ConcurrentHashMap
+    
+    We should use java.util.concurrent.ConcurrentHashMap because Netty's
+    ConcurrentHashMap is not available for Hadoop 1. Also, Netty's ConcurrentHashMap
+    is merely a copy of Java's to support Java versions prior 1.5.
+
+
+d739ee2532e0fd49ef37508b1c2e4a355473aaa5
+
+    [FLINK-2976] [runtime, tests] Add SavepointCoordinator
+    
+    [comments] Rename config keys
+    
+    [comments] Fix docs and don't overload savepoint backend configuration with checkpoint backend configuration
+    
+    [comments] Use ConcurrentMap in HeapStateStore
+    
+    [comments] Fix typo and add missing serialVersionUID
+    
+    [comments] Fix Scala style
+    
+    [comments] Fix Scala style
+    
+    [docs] Emphasize dangers and recommended approaches
+    
+    Add test to show inf restart loop on submission with unknown savepoint path
+    
+    [comments] Suppress resart of savepoint recovery failure
+    
+    This closes #1434.
+
+
+efca79cfb7b496b4bec70561cc94af069c644ef2
+
+    [FLINK-2384] [runtime] Move blocking I/O call outside of synchronized block
+    
+    Problem: Waiting on asynchronous write requests with the partition lock can
+    result in a deadlock, because all other operations on the same partition are
+    blocked. It is possible that the I/O writer itself needs to access the
+    partition, in which cases the whole program blocks.
+    
+    Solution: Move the wait outside the synchronized block. This was not necessary
+    before, because no operation assumes the spilling to be finished when the
+    finish call has returned.
+
+
+0f589aad899ca2ee230ff21655a38842928005f1
+
+    [FLINK-2371] improve AccumulatorLiveITCase
+    
+    Instead of using Thread.sleep() to synchronize the checks of the
+    accumulator values, we rely on message passing here to synchronize the
+    task process.
+    
+    Therefore, we let the task process signal to the task manager that it
+    has updated its accumulator values. The task manager lets the job
+    manager know and sends out the heartbeat which contains the
+    accumulators. When the job manager receives the accumulators and has
+    been notified previously, it sends a message to the subscribed test case
+    with the current accumulators.
+    
+    This assures that all processes are always synchronized correctly and we
+    can verify the live accumulator results correctly.
+    
+    In the course of rewriting the test, I had to change two things in the
+    implementation:
+    
+    a) User accumulators are now immediately serialized as well. Otherwise,
+    Akka does not serialize in local one VM setups and passes the live
+    accumulator map through.
+    
+    b) The asynchronous update of the accumulators is disabled for
+    tests (via the dispatcher flag of the TestingCluster). This was
+    necessary because we cannot guarantee when the Future for updating the
+    accumulators is executed. In real setups this is neglectable.
+    
+    This closes #925.
+
+
+563e546236217dace58a8031d56d08a27e08160b
+
+    [FLINK-1419] [runtime] Fix: distributed cache properly synchronized
+    
+    This closes #339
+
+
+c93d9eaf363a535dff25cc4e7db400d879e73bb1
+
+    Add option to use single actor system for local execution. Use local connection manager if a single task manager is used for local execution. Remove synchronized blcok in getReceiverList of ChannelManager which effectively serialized the connection lookup calls of a single task manager.
+    
+    Fix Java6 problem that File has no method toPath
+
+
+ac58ccbc9deb59efcaf51652ed64cdeeba6d5d4c
+
+    [streaming] replaced synchronized methods with concurrent collections
+
+
+52512636444902497e47ccbfb1cabaffb3e23343
+
+    [FLINK-998] Close network connections when idle
+    
+    1. Close idle TCP connections
+    
+    Tasks enqueue envelopes to be dispatched via NettyConnectionManager. The
+    first task to enqueue an envelope triggers the establishment of a new
+    TCP connection to the target task manager. Usually, there are multiple
+    connections between the same task managers in order to avoid deadlocks.
+    
+    This commit addresses the following problem: idle connections were never
+    closed. This meant that the number of TCP connections was monotonically
+    increasing over time. Idling connections are now closed after a
+    configured amount of time, see 'taskmanager.net.closeAfterIdleForMs'.
+    
+    2. Enqueue envelopes directly
+    
+    TCP connections are handled by Netty's IO loop. Every enqueue operation
+    needs to ensure that the envelope to be enqueued is handed over to the
+    respective IO thread in a thread-safe manner. Previously, this was done
+    via Netty's user events.
+    
+    This commit addresses the following problem: every enqueue operation
+    resulted in the creation of an IO event loop task to hand over the
+    envelope. Envelopes are now directly added to a ConcurrentLinkedQueue,
+    which drastically improves the throughput of enqueue operations. The
+    user event is now only fired to trigger the processing if the queue was
+    empty.
+    
+    3. Added unit tests for OutboundConnectionQueue and adapted existing
+    tests to test concurrent enqueue and close
+    
+    4. Removed unused arguments to NettyConnectionManager (low and high
+    water mark)
+    
+    This closes #76.
+
+
+9306beb181fcb218f44d7a9a50e4bbb3258c1b79
+
+    Executor services use daemon threads which prevents lingering threads at job end.
+
+
+37d4afea5380803e14a30f5d1272b5a6f39fc159
+
+    Reworked Nephele Mini Cluster to start more reliably.
+    Fixed Local Executor.
+    Fixed Bug in Delimited Input Formats.
+    Reworked KMeans tests (both single step and iterative).
+    
+    Removed Pact Testing Framework for now.
+
+
+21db751647abc0d65fb428be361e28a69bbcda54
+
+    Refactored Job Manager Execution Modes.
+    Reworked Nephele Mini Cluster.
+    Added Local Executor.
+
+
+e26170dcfc8fc8d9298bf43ce688eeae3ca430ec
+
+    Changed configuration implementation to use java concurrency classes instead of synchronized statement
+
+
+e6c037d9a6e63ff24857b4dcd71b05c6de7d6610
+
+    Replaced synchronized block in lookup structure by java concurrent data structure
+
+
+d451da79dca8496191435d0dc5557090eb5029a9
+
+    Replaced synchronized HashMap by ConcurrentHashMap to improve performance
+
+
+3bb054db526aa07dcd88fd563dd705fabb35472f
+
+    Sorter closing is synchronized.
+
+
+Project:             flink
+Commit count:        9771
+Related commit count 1129
+tomcat
+c0384f0363f51f77987cf519489056908b9e4731
+
+    Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=60319
+    When using an Executor, disconnect it from the Connector attributes maxThreads minSpareThreads and threadPriority to enable the configuration settings to be consistently reported. These Connector attributes will be reported as -1 when an Executor is in use. The values used by the executor may be set and obtained via the Executor.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1767328 13f79535-47bb-0310-9956-ffa450edef68
+
+
+850bddb7d9f4ad5cd4b47ae8ef509724353636fa
+
+    Ensure that Semaphore.release is called in all cases. Even when there is an exception.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1756778 13f79535-47bb-0310-9956-ffa450edef68
+
+
+b914d9892de88bfd3045333b1719186211dc3be6
+
+    Review of Map / ConcurrentMap / ConcurrentHashMap
+    Declare field using interface rather than implementation.
+    Also:
+    - Use final
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1741232 13f79535-47bb-0310-9956-ffa450edef68
+
+
+a6d2be956d0b18c84c50bedbb94957da9df75c46
+
+    Review of Map / ConcurrentMap / ConcurrentHashMap
+    Declare field using interface rather than implementation.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1741225 13f79535-47bb-0310-9956-ffa450edef68
+
+
+cb819ef6bf5f50547fff0f9390be5760636e057e
+
+    Review of Map / ConcurrentMap / ConcurrentHashMap
+    Declare that functions must be thread-safe
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1741221 13f79535-47bb-0310-9956-ffa450edef68
+
+
+321ebb010ae5e8a75b6e8ced5463040bcfb96c95
+
+    Review of Map / ConcurrentMap / ConcurrentHashMap
+    Simplify. These fields are only used internally so they can be declared as Map with Java 8.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1741213 13f79535-47bb-0310-9956-ffa450edef68
+
+
+1b7f06005659b4ceef0a5fcde374c66b72c8c129
+
+    Review of Map / ConcurrentMap / ConcurrentHashMap
+    Declare field using interface rather than implementation.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1741208 13f79535-47bb-0310-9956-ffa450edef68
+
+
+6bf3b77f35628af5ebbbadcabab855de2b28c39d
+
+    Review of Map / ConcurrentMap / ConcurrentHashMap
+    Declare field using interface rather than implementation.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1741202 13f79535-47bb-0310-9956-ffa450edef68
+
+
+64dc5ad6667ef094fa117e99ddb465267c321903
+
+    Review of Map / ConcurrentMap / ConcurrentHashMap
+    Declare field using interface rather than implementation.
+    Also:
+    - Use final
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1741190 13f79535-47bb-0310-9956-ffa450edef68
+
+
+cf1a31a8ea464cf5e5189e0a5ee04792a8172ff3
+
+    Review of Map / ConcurrentMap / ConcurrentHashMap
+    attributes is non-final so it can be replaced. Define the field as ConcurrentMap to ensure that thread-safety is maintained if this happens.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1741181 13f79535-47bb-0310-9956-ffa450edef68
+
+
+cec3b501ad37ff893efdda72d779f3a8bc8ec507
+
+    Review of Map / ConcurrentMap / ConcurrentHashMap
+    Simplify. These fields are only used internally so they can be declared as Map with Java 8.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1741173 13f79535-47bb-0310-9956-ffa450edef68
+
+
+e5168242ad7600e19ac14eef87aced2cd6ab7325
+
+    Review of Map / ConcurrentMap / ConcurrentHashMap
+    Simplify. These fields are only used internally so they can be declared as Map with Java 8.
+    Reduce visibility of internal field.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1741164 13f79535-47bb-0310-9956-ffa450edef68
+
+
+28625ec68638d65d16331cc60175ad8374e6c64a
+
+    Review of Map / ConcurrentMap / ConcurrentHashMap
+    Simplify. sessionKeys is only used internally so it can be declared as Map with Java 8.
+    Also:
+    - Reduce visibility of fields.
+    - Use final where possible.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1741159 13f79535-47bb-0310-9956-ffa450edef68
+
+
+08353f264f67cdeb6088bd4f87f4c83817b4247f
+
+    Review of Map / ConcurrentMap / ConcurrentHashMap
+    Simplify. These fields are only used internally so they can be declared as Map with Java 8.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1741157 13f79535-47bb-0310-9956-ffa450edef68
+
+
+27ce704dfe7ff49417b412c0917647b379c25be0
+
+    Use ConcurrentMap as interface instead of Map.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1734799 13f79535-47bb-0310-9956-ffa450edef68
+
+
+774db55df12e53ad4effbeb541cf7e32d9a7ab71
+
+    Use ConcurrentMap as interface instead of simple Map.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1734785 13f79535-47bb-0310-9956-ffa450edef68
+
+
+2cf2bf0ee0afc93203658b4d006713309d000537
+
+    Move instance variables packageTriggersDeny and
+    packageTriggersPermit from "Static Variables"
+    code block to "Instance Variables" block.
+    
+    Make packageTriggersDeny and packageTriggersPermit
+    private. They are only used in our filter() method
+    which is already protected. People wanting to
+    overwrite filter() should not make their code
+    dependent on the implementation details
+    packageTriggersDeny and packageTriggersPermit.
+    
+    Switch filter() from being synchronized on the
+    class loader instance to being synchronized
+    on a separate object packageTriggerLock which
+    synchronizes only access to the non-thread safe
+    Matchers packageTriggersDeny and
+    packageTriggersPermit.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1726639 13f79535-47bb-0310-9956-ffa450edef68
+
+
+f5fab1f64ba11e04e52bd6251ca62fc854e9578c
+
+    Whoops. Fix regression in r1724015.
+    Code was used although I can't see why a simple AtomicInteger wasn't sufficient.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1724094 13f79535-47bb-0310-9956-ffa450edef68
+
+
+d8736c87ffe329c9603a36cdd85d617ed85796e1
+
+    More deprecation now an Executor is used to send messages.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1723371 13f79535-47bb-0310-9956-ffa450edef68
+
+
+e8c5a8f996040d1baa9568052341a7d18083b991
+
+    Mark ReadWriteLock in modeler classes as final. (In review of r1722660/r1722661/r1722663 of Tomcat 7).
+    
+    The lock itself is accessed by multiple threads, thus it is better to mark such field as final to ensure consistency.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1722996 13f79535-47bb-0310-9956-ffa450edef68
+
+
+e78fdbead699b9b51166c0f93abcb1bbf0b84dc3
+
+    Remove unused code. unloading can never be true here since it is only true during the execution of unload() and that, like loadServlet(), is synchronized.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1718700 13f79535-47bb-0310-9956-ffa450edef68
+
+
+17206cc8c21c439d121a66d7c9934cdfa4791a35
+
+    Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58386
+    On the basis that access() and finish() are synchronized, extend synchronization to other methods that access same fields.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1703408 13f79535-47bb-0310-9956-ffa450edef68
+
+
+3bba35b2a312a5834d05baf0f184ad6c847a8ca6
+
+    Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58255
+    Document the Semaphore valve.
+    Patch provided by Kyohei Nakamura.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1696378 13f79535-47bb-0310-9956-ffa450edef68
+
+
+d5b26daab40e5984a86ab7da8094c18f15e88386
+
+    Remove volatile from variables, as it is misleading. All
+    variables, that are mutable and read/written from different threads are only
+    modified/read within a synchronized block. All other variables are immutable
+    and are now declared final. Issue identified by Coverity Scan.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1654851 13f79535-47bb-0310-9956-ffa450edef68
+
+
+88e639150e19ecb4558f1035ec57d8d5e9b96666
+
+    Switch to ConcurrentHashMap and remove syncs
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1646099 13f79535-47bb-0310-9956-ffa450edef68
+
+
+8aa443abb377a47980c07649a2bb96869b2de092
+
+    Clean-up
+     - Consistent whitespace
+     - Fix Java8 Javadoc warnings
+     - Remove unnecessary synchronized
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1637890 13f79535-47bb-0310-9956-ffa450edef68
+
+
+7fa4af3891dedbea4631a92161f04b07e274608e
+
+    Simplify code that waits for threads to finish. This allows to shorten wait time if threads finish earlier.
+    A subtle difference is that Thread.join() is a synchronized method while Thread.isAlive() is not one.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1634312 13f79535-47bb-0310-9956-ffa450edef68
+
+
+5c3385cd73d0d53b5968955986e88f0b36dc9cee
+
+    For https://issues.apache.org/bugzilla/show_bug.cgi?id=56739
+    )reviewing r1627401)
+    Mark the AtomicInteger field as final.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1627525 13f79535-47bb-0310-9956-ffa450edef68
+
+
+8eeed6413e8266d0a54e2c07c4ae1206502eef9a
+
+    Followup to r1601583:
+    Use Collections.newSetFromMap to convert ConcurrentHashMap into a Set.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1603266 13f79535-47bb-0310-9956-ffa450edef68
+
+
+a41c0422bce74cae3ff0d7c5b3f9fbda3f3d37bf
+
+    Pull up waitingRequests.
+    NIO2 used a ConcurrentHashMap whereas BIO and APR/native used a Queue. Switch to ConcurrentHashMap for all since what we really want here is a Set (and there isn't a ConcurrentHashSet implementation).
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1601583 13f79535-47bb-0310-9956-ffa450edef68
+
+
+303fdec50464517ce8694fd53dc72f6ccedb76c6
+
+    Lock outside try/catch/finally
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1581576 13f79535-47bb-0310-9956-ffa450edef68
+
+
+0894712f90c018675503010e0e3a6648c8b3e1b6
+
+    Lock ouside try/catch/finally
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1581575 13f79535-47bb-0310-9956-ffa450edef68
+
+
+3330bbb3e68e253922e392b79aa6bdafc63ec47c
+
+    Lock outside try/catch/finally
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1581574 13f79535-47bb-0310-9956-ffa450edef68
+
+
+86dfadad13ae3f3917e48272061a3ad20f4ccb02
+
+    Observed strange lock-up on OSX when two threads were writing concurrently to this Map. Switch to ConcurrentHashMap in an attempt to avoid the lock-up in future.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1551428 13f79535-47bb-0310-9956-ffa450edef68
+
+
+076024bfc68e67995bd4198c2b313ad0cd6d86cc
+
+    Add a dispatch parameter to the newly renamed processSocket() method and align BIO and APR with NIO that executes the SocketProcessor in-line if no Executor is available
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1529132 13f79535-47bb-0310-9956-ffa450edef68
+
+
+e6261dadc99dcea07b4c889324bea9d0fd2e93bb
+
+    Make the messages list synchronized as a whole, instead of just using a volatile reference to it.
+    I am still observing random failures with TestWsWebSocketContainer, so an issue is not here.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1438747 13f79535-47bb-0310-9956-ffa450edef68
+
+
+3e4b1ae6dc786b268505aa2e64067432519c2bcf
+
+    FRom kkolinko:
+    A ReadWriteLock cannot be used to guard a WeakHashMap.  The
+    WeakHashMap may modify itself on get(), as it processes the reference
+    queue of items removed by GC.
+    
+    Either a plain old lock / synchronization is needed, or some other solution
+    (e.g.  org.apache.tomcat.util.collections.ManagedConcurrentWeakHashMap )
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1414150 13f79535-47bb-0310-9956-ffa450edef68
+
+
+44803529574cff92082c6d828adb7c1d2b5fa2d4
+
+    Type-safety for the Mapper - Part 2/2
+    
+    Use generics for MapElement and specialize MappedHost,
+    MapedContext and MappedWrapper to host, Context and Wrapper.
+    
+    Remove unneeded casts in all code using the Mapper.
+    
+    Use real Host, Context and Wrapper objects in TestMapper.
+    
+    Future possible work: restrict Context parents to Host.
+    Otherwise MapperListener can't register a new Context.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1410896 13f79535-47bb-0310-9956-ffa450edef68
+
+
+b9164aaaf1c8db568a90c558e4341830a08c4e1b
+
+    A slightly different alternative to ConcurrentLinkedQueue. This one is also largely GC free and has similar performance to the Stack version.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1390599 13f79535-47bb-0310-9956-ffa450edef68
+
+
+8638075497f5270437eb500bd6650f802f2df112
+
+    ConcurrentLinkedQueue is currently the biggest contributor to garbage in the load test so this is intended as a replacement.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1389076 13f79535-47bb-0310-9956-ffa450edef68
+
+
+3883c752d7b3047956800fab99cde75499dbde23
+
+    Fix Findbugs warnings. Sync only on setter. Use ReadWriteLock instead.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1361213 13f79535-47bb-0310-9956-ffa450edef68
+
+
+ea8e036989fc9ef2c0ab857ceb87d513ca694963
+
+    Review of r1349300:
+    Make ReadWriteLock fields final (the new one and an old private one as well).
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1349410 13f79535-47bb-0310-9956-ffa450edef68
+
+
+be365e5418d929760bdfed57404eb313fe9dba4b
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=53063
+    When using an Executor with BIO, use the executor's maxThreads as the default for maxConnections
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1336884 13f79535-47bb-0310-9956-ffa450edef68
+
+
+de82eab025005b522b2338a2b72c7fb2bc2fbcd2
+
+    For https://issues.apache.org/bugzilla/show_bug.cgi?id=53085
+    Implement ConcurrentHashMap with weak keys.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1327915 13f79535-47bb-0310-9956-ffa450edef68
+
+
+4377d3349398a47a7ebd359db4f43f025f1cd2b4
+
+    Update AbstractReplicatedMap and sub-classes to use generics
+    The key change is that it now implements Map<K,V> rather than extends ConcurrentMap. There are several reasons for this:
+    - The interface is K,V but K,MapEntry<K,V> was placed in the extended ConcurrentMap so generics simply couldn't work. Hence the switch from extending ConcurrentMap to using a private ConcurrentMap instance
+    - The API contract for ConcurrentMap can't be met as currently written (and without a lot of extra code) o switching to Map was the obvious approach.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1222329 13f79535-47bb-0310-9956-ffa450edef68
+
+
+50d35d4f319ea976ad8d28455663fe968fe4f01f
+
+    Remove synchronization from write(byte[]), because it is not needed there,
+    as write(byte[],int,int) that it delegates to is synchronized.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1198604 13f79535-47bb-0310-9956-ffa450edef68
+
+
+a87ab3f011a14d53b0e4098802b8de6ffd0587c6
+
+    Reviewing r1166576...
+    Improve performance of Http11Processor.disableKeepAlive(): call getMaxThreads() first and do not call getCurrentThreadsBusy() twice,
+    because ThreadPoolExecutor.getActiveCount() in JRE is implemented as a loop that counts threads and that should be expensive.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1167368 13f79535-47bb-0310-9956-ffa450edef68
+
+
+e20ff80b31d07ef9b34a15e3ffa9f295056a6a09
+
+    Avoid IllegalArgumentException when setting maxActive less than or equal to 0.
+    ArrayBlockingQueue doesn't allow capacity of 0 or less.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1163986 13f79535-47bb-0310-9956-ffa450edef68
+
+
+5b8e25a31b1b95af0dd834a2fccb90803b9660ab
+
+    No need for a ConcurrentHashMap now pre-population is used.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1140461 13f79535-47bb-0310-9956-ffa450edef68
+
+
+7a040d89a1648ccc4dc0b4f7e19493fe7f46296a
+
+    Session attributes were only partially changed from Hashtable to ConcurrentHashMap.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1079891 13f79535-47bb-0310-9956-ffa450edef68
+
+
+d5792072b3d4cfe5dbcd47b4f1469c022c80c45b
+
+    Followup to r1055975
+    Move string calculation out of synchronized block
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1056828 13f79535-47bb-0310-9956-ffa450edef68
+
+
+ff0d9a8f15e1b9da41065b5cc4af9b5a66d68cda
+
+    Improve the fix for https://issues.apache.org/bugzilla/show_bug.cgi?id=50201
+    - Use AtomicReference to guard against possible duplicate registration of
+      listeners when logAccess() is called by several threads at the same time.
+    - Added install() and uninstall() method to AccessLogListener
+      to help register/unregister the listeners.
+    - When defaultAccessLog is nulled, always unregister the listener as well.
+      The listener does not need to be reused, because now we do create a listener
+      when there is no log and it will take care of things.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1045003 13f79535-47bb-0310-9956-ffa450edef68
+
+
+167829ccf6fdbafb36cd7ebd5d3722e140452514
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=49856
+    Add an executorName attribute to Connectors so it is possible to trace ThreadPool to Connector to Executor via JMX.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1003304 13f79535-47bb-0310-9956-ffa450edef68
+
+
+ca5d6850a0c36e389c38679b96495ba6e6738cc5
+
+    Register and deregister Executors in JMX
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1003299 13f79535-47bb-0310-9956-ffa450edef68
+
+
+3d53b8ecbe7f84712f2333dfbe22823681cec7f9
+
+    More re-factoring: expose the Executor
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@996861 13f79535-47bb-0310-9956-ffa450edef68
+
+
+d10b38913e1edaab05436a34ff8df0f5d7c02dd5
+
+    Add a setDomain() method to LifecycleMBeanRegistration since not all components (eg Exectutor) retain a reference to their parent.
+    Implement this new method where required.
+    Implement MBean (de)registration for Executors using the new interface.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@940305 13f79535-47bb-0310-9956-ffa450edef68
+
+
+51e5f6ce0f127e587af6f8d91dd369058b3cb5d4
+
+    Add LifecycleMBeanRegistration
+    Align init() and destroy()
+    Executors and Connectors need to handle their own (de)registration
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@940298 13f79535-47bb-0310-9956-ffa450edef68
+
+
+6ab18d70118e72aafe6a1ca6f81079d45fd4fd2e
+
+    Get the shutdown hook working again.
+    Now LifecycleBase uses synchronized methods, Catalina can't extend it else the shutdown hook can't function.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@940036 13f79535-47bb-0310-9956-ffa450edef68
+
+
+4df6f0e4779af8e110110db1f05ac835330486dd
+
+    Address various class-loader deadlock / sync issues
+    https://issues.apache.org/bugzilla/show_bug.cgi?id=44041
+    https://issues.apache.org/bugzilla/show_bug.cgi?id=48694
+    https://issues.apache.org/bugzilla/show_bug.cgi?id=48903
+    
+    Whilst parallel class-loading would be a nice feature, the various issues that have emerged have demonstrated that anything other than synchronized(this) is likely to cause issues.
+    
+    Parallel class-loading will be explored for Tomcat 7 (disabled by default) and ported back to 6.0.x when proven to be stable.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@927565 13f79535-47bb-0310-9956-ffa450edef68
+
+
+6a4f9e56273865a500bf7d81b0b2e940acaad36e
+
+    Lifecycle refactoring - Executor
+    The LifecycleState.STARTING event was being fired too early
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@919730 13f79535-47bb-0310-9956-ffa450edef68
+
+
+68b2ba9bcc3d7930d915c5f1e8c24522a699e22f
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=48831
+    Address issues 1 & 2 by using a ReadWriteLock to control access to the writer. This ensures messages won't be written while the writer is null. Note there is no (easy) way to not close the handler.
+    Address issue 3 by re-enabling the JULI shutdown hook if JULI is being used and Tomcat isn't stopped via a shutdown hook.
+    Address issue 4 by making ClassLoaderLogManager#useShutdownHook volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@918594 13f79535-47bb-0310-9956-ffa450edef68
+
+
+600443618ad003148e754035ae9bfa0d17220ba3
+
+    Mark JspCompilationContext#removed as volatile,
+    because JspCompilationContext#isRemoved() is called from JspServletWrapper#service,
+    and that access is not synchronized.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@831850 13f79535-47bb-0310-9956-ffa450edef68
+
+
+6534cf381977be0a6c46f8aa0bc9d1d369587d43
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=44041
+    Remove previous sync that didn't fix the issue
+    Make loadClass synchronized like java.lang.ClassLoader
+    I was concerned about possible performance implications but I saw no detectable change in start-up time with this change.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@805182 13f79535-47bb-0310-9956-ffa450edef68
+
+
+1ce59fe30727fa2e0b3c6efe9430a813e62f825c
+
+    Refactored the thread pooling when using an executor, this gets rid of duplicate code in the NIO connector as well as in the org.apache.catalina.core.StandardThreadExecutor package.
+    I provided a ThreadPoolExecutor with a small extension to the java.util.concurrent
+    The connector method setExecutor still take a java.util.concurrent.Executor as an argument to provide the most flexibility
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@724886 13f79535-47bb-0310-9956-ffa450edef68
+
+
+82ba76c711234cd8d41cff915dfce1371aea4ad0
+
+    Fix NPE to use Http11NioProtocol handler with default parameters!
+    # example:
+    <Executor name="tomcatThreadPool" namePrefix="catalina-exec-"
+            maxThreads="150" minSpareThreads="4"/>
+    <Connector executor="tomcatThreadPool"
+                   port="8080" protocol="org.apache.coyote.http11.Http11NioProtocol"
+                   connectionTimeout="20000"
+                   redirectPort="8443" />
+    
+    Used at MAC OS X with "-Djava.net.preferIPv4Stack=true"
+    
+    I am not sure that default returns are correct!
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@712278 13f79535-47bb-0310-9956-ffa450edef68
+
+
+0e9f0f696e4b3beadeca25277b84d51e7f003aa7
+
+    Move curUserPattern from a global variable to
+    a method variable.
+    
+    Not necessary at the moment, because the realm
+    is mostly synchronized, but being global doesn't
+    help and will hurt once we implement connection
+    pooling and concurrent usage for the realm.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@712024 13f79535-47bb-0310-9956-ffa450edef68
+
+
+a0dbde5f9847cbe8f92958ac7a7d5440ebe6287b
+
+    Added a different fairness option, since ArrayBlockingQueue with fair=true is really bad for performance
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@708652 13f79535-47bb-0310-9956-ffa450edef68
+
+
+816ecb89da36b07374cf8bb777579808a616b460
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=45608
+    Use AtomicInteger for countAllocated to prevent race conditions.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@685177 13f79535-47bb-0310-9956-ffa450edef68
+
+
+1f41c3d2b38d48707e6d1d05c8251747737aa423
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=44408
+    Avoid bottleneck by calling the synchronized method only once.
+    Patch provided by Robert Andersson.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@646889 13f79535-47bb-0310-9956-ffa450edef68
+
+
+8f388782a60666f7fd2672d0420dea55368120ee
+
+    Remove synchronization on the DeltaRequest object, and let the object that manages the delta request (session/manager) to handle the locking properly, using the session lock
+    There is a case with a non sticky load balancer where using synchronized and a lock (essentially two locks) can end up in a dead lock
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@618823 13f79535-47bb-0310-9956-ffa450edef68
+
+
+2c9f79ca84cfd47f97bdec91f626fbba2ecc7aa7
+
+    improve the executor, keep a count on active thread, as Executor.getActiveCount loops through all of them each time
+    
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@571562 13f79535-47bb-0310-9956-ffa450edef68
+
+
+1190c62297713261d53f4df7e6a328179fac6e58
+
+    Add locks instead of synchronized statements to avoid issues between receiving and sending
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@538920 13f79535-47bb-0310-9956-ffa450edef68
+
+
+bcf5aa009de1e303ec3f4c2e09bbb79708094353
+
+    This write has to be synchronized since comet can write to the buffer and cause a buffer overflow if more than one thread is writing
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@528524 13f79535-47bb-0310-9956-ffa450edef68
+
+
+c7c8bd647790194ca4aea787c2b20f62d65170ba
+
+    Fix NPE when using Executor
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@521342 13f79535-47bb-0310-9956-ffa450edef68
+
+
+6671933df6f31cecf5799ca1b14b334d8898fe5f
+
+    Make sure that we don't need to use any locks or synchronized statements to get our executor to work properly.
+    If the task gets executed, means that the threadpool just reached max threads when we were about to add this one in.
+    a simple race condition that we can take care of easily
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@521068 13f79535-47bb-0310-9956-ffa450edef68
+
+
+d846a35d1dacc83fe87391fd62af7ca18934c0bf
+
+    Documented the Executor element
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@521062 13f79535-47bb-0310-9956-ffa450edef68
+
+
+ae1af956306d7f230e6b2093698a469a5aa2e066
+
+    Added in the Executor skeleton. the executor gets created in the service, so that the connectors can reference it.
+    Feel free to hack away on improvements or yell at me if this is completely not what was intended and I will pull it out
+    
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@520968 13f79535-47bb-0310-9956-ffa450edef68
+
+
+fafa6adcf8cbbf73faf9a74dd25df5e7690c2643
+
+    Name change in preparation of pluggable Executors and thread fairness
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@487409 13f79535-47bb-0310-9956-ffa450edef68
+
+
+c297903abadf6f67a316afd3bdd6195f643f0ad6
+
+    refactor, name change, in preparation of having a pluggable Executor and more thread fairness on receiving data
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@487408 13f79535-47bb-0310-9956-ffa450edef68
+
+
+3f70e463c56cc4eb287d4938a2b4d409d4436881
+
+    Refactor, name change in preparation to swap in Executor, and to make increase thread fairness when receiving data
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@487407 13f79535-47bb-0310-9956-ffa450edef68
+
+
+ebb9c521b561d19ae14eb053656cba9cde20f4f8
+
+    don't cancel, only do that within the selector thread, as this is a synchronized call
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@467514 13f79535-47bb-0310-9956-ffa450edef68
+
+
+bd8122700c2e70e5adbaddcd289fb1a974f981fe
+
+    Fix so that we don't do a busy read, instead we are properly doing a NIO poller wait
+    This way, we can achieve blocking read, without wasting CPU cycles.
+    Since we are using Java 5, I will be changing this implementation from using synchronized to using the Exchanger, this is also to avoid anyi locks that can happen. For example, in the current implementation the poller can call notify before we have had a chance to call wait
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@416444 13f79535-47bb-0310-9956-ffa450edef68
+
+
+060c4e45c290b5f920cd2dc958f9d1750096e137
+
+    - Add support for using an Executor (the idea in that case is to define one executor for the whole
+      server, with an appropriate queue, etc). By default, I think it is good to continue using the
+      dumb stack, though.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@396185 13f79535-47bb-0310-9956-ffa450edef68
+
+
+Project:             tomcat
+Commit count:        17731
+Related commit count 1313
+mahout
+Project:             mahout
+Commit count:        3703
+Related commit count 168
+cassandra
+615945d275efe1899634f7db6f240f4c1f90b495
+
+    Aggregate with Initial Condition fails with C* 3.0
+    
+    patch by Robert Stupp; reviewed by Sylvain Lebresne for CASSANDRA-10367
+
+
+4b4d69f7786549f33cfd5f71c34b00fef3d6fc91
+
+    ninja fix ScheduledExecutorService spinning CPU consumption with 0 corePoolSize
+
+
+7c5fc40b8b644e05c32479f2581309f75f981421
+
+    Fix memory leak in Ref due to ConcurrentLinkedQueue behaviour
+    
+    patch by benedict; reviewed by marcus for CASSANDRA-9549
+
+
+304eae3b799759d334fcc50cbc3439608e1a2647
+
+    Switch SSTableDeletingTask.failingTasks to a ConcurrentLinkedQueue
+    
+    patch by benedict; reviewed by aleksey for CASSANDRA-9447
+
+
+5cff788efcc63ac738e16ca8cd912e1108d5c1be
+
+    ninja remove synchronized from MappedFileDataInput.readBytes
+
+
+c26a7e767a22687fa5c47d759a7a32acbbaa8ec6
+
+    Make HHOM.compact synchronized to avoid compacting the same sstables
+    
+    Patch by marcuse; reviewed by Aleksey Yeschenko for CASSANDRA-8416
+
+
+028880e74ceef57b33b858fbd78d8aa9ac3b9680
+
+    Use ThreadLocalRandom and remove FBUtilities.threadLocalRandom
+    
+    patch by benedict; reviewed by tjake for CASSANDRA-7934
+
+
+f66689db9705fe5ebb0a6d2fe5063e23b0c2af0c
+
+    fix cast guard to be of the c* FutureTask type
+
+
+38db6e44640982feb6397936eafecfee68fa3552
+
+    Lock counter cells, not partitions
+    
+    patch by Aleksey Yeschenko; reviewed by Benedict Elliott Smith for
+    CASSANDRA-6880
+
+
+9a62ef339c2fc7f25cde102a052899438ef08927
+
+    Replace differencers set with AtomicInteger
+    
+    to track sync complete
+
+
+7918718c8ce53c6d0958aa969fc813e586463d08
+
+    Use AtomicIntegerFieldUpdater in RefCountedMemory to save memory in row cache.
+    
+    Patch by marcuse, reviewed by jbellis for CASSANDRA-6278
+
+
+f022354cb44a15d034b3a28dec5d38cc97084faf
+
+    replace volatile regionCount w/ AtomicInteger
+
+
+65daaf9d6ae90c1cd01cdbe23e36998411f0f2ed
+
+    Future-proof inter-major-version schema migrations
+    
+    patch by Aleksey Yeschenko; reviewed by Jonathan Ellis for
+    CASSANDRA-5845
+
+
+86081fa78ce2e3346db77fb55df93c550cf3f57a
+
+    make TokenMetadata.relocatingTokens a ConcurrentMap
+    patch by jbellis; reviewed by brandonwilliams for CASSANDRA-5634
+
+
+5b525c1fc3cca4ae8884593b83c89546d317cd49
+
+    make TokenMetadata.relocatingTokens a ConcurrentMap
+    patch by jbellis; reviewed by brandonwilliams for CASSANDRA-5634
+
+
+c22c685ffa7da67b7ee069b37e7b3c770ee23263
+
+    Replace ArrayBlockingQuery by LinkedBlockingQueue in binary protocol RequestThreadPoolExecutor
+
+
+2e271233ffeaef9881fdc38704051d4879879021
+
+    switch from Callable-returns-null to Runnable
+
+
+d222de26747e2b6bde3323dc1f8755d36c8c9174
+
+    Use a SynchronousQueue instead of LBQ so when memtable_flush_writers is > 1, it will allow actual parallel flushes.
+    patch by goffinet reviewed by jbellis for CASSANDRA-2178
+    
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/branches/cassandra-0.7@1071482 13f79535-47bb-0310-9956-ffa450edef68
+
+
+93126cb17960a5dce1e98983f122a26267d631f4
+
+    replace ExecutorService.submit with .execute where a Future is not required
+    patch by jbellis
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/branches/cassandra-0.7@1064808 13f79535-47bb-0310-9956-ffa450edef68
+
+
+569feedfe9f49e1de0c176431d11f5d0dc9045fe
+
+    replace ExecutorService.submit with .execute where a Future is not required
+    patch by jbellis
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/branches/cassandra-0.7@1064807 13f79535-47bb-0310-9956-ffa450edef68
+
+
+fcf61a8c0ecb7c589f7ad97c53591a0fe20ca24e
+
+    make RC.results a ConcurrentMap to emphasize that remove-while-iterating is OK
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/branches/cassandra-0.7@1055324 13f79535-47bb-0310-9956-ffa450edef68
+
+
+55db0394d16dca24c090ea870e9636679108d241
+
+    replace one-off Timers with a central ScheduledExecutorService.  patch by jbellis; reviewed by Stu Hood for CASSANDRA-1288
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/trunk@1004259 13f79535-47bb-0310-9956-ffa450edef68
+
+
+2e36c660b0f210d54a0d715d7a793551f606673f
+
+    make cassandra.genavro the canonical proto schema
+    
+    cassandra.avpr has been removed from version control is now generated
+    from cassandra.genavro by ant. Future changes to the protocol schema
+    should take place in cassandra.genavro; do not hand-edit the .avpr
+    
+    Patch by eevans
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/trunk@955358 13f79535-47bb-0310-9956-ffa450edef68
+
+
+fcba8b889750d25fffc045b86936f5f98967caa5
+
+    replace ExpiringMap in ConsistencyChecker with ScheduledExecutorService
+    patch by jbellis; reviewed by gdusbabek for CASSANDRA-1077
+    
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/trunk@943344 13f79535-47bb-0310-9956-ffa450edef68
+
+
+0967566af3321900ff704ed89cb3d0775038b700
+
+    move size, count updates outside of synchronized block since they are already atomic.  patch by jbellis
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@889500 13f79535-47bb-0310-9956-ffa450edef68
+
+
+23dd57230d9ef539a622291d92d92e4e4dfc9f01
+
+    add synchronized to register/unregister methods and remove unused code.  patch by Stu Hood and jbellis for CASSANDRA-527
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@833046 13f79535-47bb-0310-9956-ffa450edef68
+
+
+09269836f60fb26d8493bb41d1da0103dcef9405
+
+    replace one-shot lock w/ synchronized block.  patch by jbellis
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@822459 13f79535-47bb-0310-9956-ffa450edef68
+
+
+de8318315f51a1cc5d8d0e7c7535c0290870a742
+
+    Replace DebuggableScheduledThreadPoolExecutor with non-Scheduled Executors and Timers.  This allows logging exceptions from repeated tasks, which is basically impossible with STPE.
+    patch by jbellis; reviewed by Jun Rao for CASSANDRA-455
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@819665 13f79535-47bb-0310-9956-ffa450edef68
+
+
+24fcbf4a95b3635c48d7a9858dce2494f109fbd3
+
+    switch singleton implementation from double-checked-locking to synchronized (code is not performance-sensitive).  patch by Edward Ribeiro; reviewed by jbellis for CASSANDRA-228
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@784780 13f79535-47bb-0310-9956-ffa450edef68
+
+
+3bc3e4c3352b9c0065c20484e63e6980086dbda1
+
+    add constructor to DTPE for most commonly used values (single thread, no timeout, LinkedBlockingQueue)
+    patch by jbellis; reviewed by nk11 for CASSANDRA-120
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@771399 13f79535-47bb-0310-9956-ffa450edef68
+
+
+2b4a0e426631a5899c35066e516839f6c05fba43
+
+    Move from ExecutorService per ColumnFamily to ES per Memtable.  This allows us to
+    wait for the ES to quiesce completely before flushing, preventing the possibility
+    of ConcurrentModificationException when a get scheduled before the switch executes
+    concurrently with flush.  It also provides a simpler mental model (only one thread
+    touches memtable at a time, period) which is a valuable property.  Finally, it is
+    slightly more performant since it avoids hashing the CF name for each operation.
+    
+    Patch by jbellis; reviewed by Todd Lipcon for #9
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@765343 13f79535-47bb-0310-9956-ffa450edef68
+
+
+50c1987265f8ddaf5032a7ace07b2462aba4f09b
+
+    fix getCompactionBuckets -- something is broken in NonBlockingHashMap when removing and re-adding the same collection mid-iteration; it ends up with multiple references to that collection.  going back to ConcurrentHashMap fixes the problem.  (any additional overhead from CHM is negligible here.)  patch by jbellis; reviewed by Eric Evans for #57
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@764004 13f79535-47bb-0310-9956-ffa450edef68
+
+
+238758b32a4ae47887844880870f9033453831d0
+
+    expunge ConcurrentHashMap in favor of NonBlockingHashMap.  patch by jbellis, review by johano.  see #50
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@761804 13f79535-47bb-0310-9956-ffa450edef68
+
+
+58fce86d31cf0ada9c79c9d7b736a711227d179e
+
+    use ConcurrentHashMap to simplify ugly loop (normal HashMap you cannot delete from during iteration)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@761451 13f79535-47bb-0310-9956-ffa450edef68
+
+
+Project:             cassandra
+Commit count:        21982
+Related commit count 1423
+lucene-solr
+f906862afe2ba4ef7ac521555ee59a86ef0b2a75
+
+    SOLR-9335: Switch Solr cache/search/update stats counters to use LongAdder
+
+
+8b0b0c934063c773b124cdcd560d7824de9ae5af
+
+    sequence numbers: removed synchronized in DocumentsWriterDeleteQueue.add
+
+
+a38a69a979f2c1828ba987b3ef48125a054796e9
+
+    SOLR-8371: The Future field should now be a local variable.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1721158 13f79535-47bb-0310-9956-ffa450edef68
+
+
+bc7215b5f4dc7647fb033341f20469f6f0b3aed3
+
+    LUCENE-6909: remove unnecessary synchronized keyword
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1716476 13f79535-47bb-0310-9956-ffa450edef68
+
+
+b9ac587c3271396496b56dbfbe9a24d74e00fa8c
+
+    SOLR-8189: Use WeakIdentityMap.newConcurrentHashMap instead of a synchronized WeakHashMap for better concurrency
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1710366 13f79535-47bb-0310-9956-ffa450edef68
+
+
+a64266193ad0b08575fc2bd854057bc0ad01568d
+
+    SOLR-7381: Usages of Executors#newFixedThreadPool, #newSingleThreadExecutor, #newCachedThreadPool as well as ThreadPoolExecutor directly is now forbidden in Solr
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1673372 13f79535-47bb-0310-9956-ffa450edef68
+
+
+4297e28f7ade9ea9deb4f0538bd97e393ffb5f3c
+
+    defensively switch to AtomicLong for IndexWriter's changeCount; make failing test a bit more evil
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1671258 13f79535-47bb-0310-9956-ffa450edef68
+
+
+fa90270c4d8f7a271936ff26471ede6c0fb703b8
+
+    LUCENE-5257: Lock down centralized versioning of ivy dependencies
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1529243 13f79535-47bb-0310-9956-ffa450edef68
+
+
+fcc0fea1f374717f97fccb4ab5e9615c2b009109
+
+    LUCENE-4163: Improve concurrency of MMapIndexInput.clone() by using the new WeakIdentityMap on top of a ConcurrentHashMap to manage the cloned instances. WeakIdentityMap was extended to support iterating over its keys
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1353101 13f79535-47bb-0310-9956-ffa450edef68
+
+
+10a35f85e53e80cb221cfe434db8c69f18dcbce0
+
+    Remove volatile from IR.closed variable (its only used in already synchronized close() method)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1291097 13f79535-47bb-0310-9956-ffa450edef68
+
+
+d1ea4f76f193a258a659ea611d8906bc7c274c54
+
+    LUCENE-3656: Change data type used for Core-/ReaderClosedListener from ConcurrentHashMap to simple synchronized HashSet
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1221369 13f79535-47bb-0310-9956-ffa450edef68
+
+
+3ccd4f4e033d61e33c635593136c1c85a3ea08c6
+
+    LUCENE-3653:  Improve the sophisticated™ backwards layers (VirtualMethod) and instantiation cost in AttributeSource/AttributeFactory (new reflection cache using ConcurrentHashMap has lockless get)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1220458 13f79535-47bb-0310-9956-ffa450edef68
+
+
+63097d1bd8a7051f9b5b2f450eaab6e162e2b337
+
+    LUCENE-2474: cutover to MapBackedSet(ConcurrentHashMap) instead of Collections.syncSet(HashSet)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1063897 13f79535-47bb-0310-9956-ffa450edef68
+
+
+9aefaf7b2b31fc1c889604579e70b47b295da31b
+
+    synchronized contrib/CHANGES.txt
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1059936 13f79535-47bb-0310-9956-ffa450edef68
+
+
+9b83aa6dedca6f46988d2d311d639bb263aae014
+
+    LUCENE-2324: make newThreadState synchronized
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/branches/realtime_search@1058470 13f79535-47bb-0310-9956-ffa450edef68
+
+
+9557559df07057b292ff5fd3023a8f6bcab05c1a
+
+    LUCENE-2831: use int[] instead of AtomicInteger
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1055638 13f79535-47bb-0310-9956-ffa450edef68
+
+
+87274d00ac17cbee79da2b162f8f169abdd61cd7
+
+    LUCENE-2837: collapse Searcher/Searchable into IndexSearcher; remove contrib/remote, MultiSearcher; absorb ParallelMultiSearcher into IndexSearcher as optional ExecutorService to ctor
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1055416 13f79535-47bb-0310-9956-ffa450edef68
+
+
+7f443f67eaa588323f912f3922cff9b699b38fbd
+
+    LUCENE-2779: Use ConcurrentHashMap in RAMDirectory
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1040138 13f79535-47bb-0310-9956-ffa450edef68
+
+
+64bdf38619cf04c029532b46ac84c50942317f2b
+
+    Make compileAutomaton synchronized, as it can break for queries that are shared constants (like a drop down list in a web interface that provides predefined query constraints. These types of queries are in most places somewhere predefined in your code and then used by different threads/servlets/whatever). As the three transient vars cannot be set atomically, a parallel running thread may see half of the fields assigned and will get NPE).
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@987118 13f79535-47bb-0310-9956-ffa450edef68
+
+
+db1cb0bcb5f392a8b017d66c04f9fec567accf2f
+
+    LUCENE-2494: use CompletionService in ParallelMultiSearcher instead of simple polling
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@953407 13f79535-47bb-0310-9956-ffa450edef68
+
+
+28a153babc42c6b27d102f0f3282e0bb5f2090d2
+
+    LUCENE-2440: add custom ExecutorService to ParallelMultiSearcher
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@946338 13f79535-47bb-0310-9956-ffa450edef68
+
+
+dc3f92e6e58c788227b9cfe82d584cbe10e5e5bb
+
+    LUCENE-2156: switch to AtomicInteger for IR's ref count; remove sync from IW's ensureOpen (it's only 'best effort')
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@891202 13f79535-47bb-0310-9956-ffa450edef68
+
+
+3df3ab8e9fcc5de8804b8f3f777e4332fc47cc0c
+
+    LUCENE-2137: switch to AtomicInteger for some ref counts
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@888621 13f79535-47bb-0310-9956-ffa450edef68
+
+
+2ffc3bacd84df7e8867e0c5b77a60da97322f232
+
+    LUCENE-2030: Fix locks in CachingWrapperFilter and CachingSpanFilter (make members private, also synchronize on WeakHashMap build, use new Java5 ReentrantLock)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@833934 13f79535-47bb-0310-9956-ffa450edef68
+
+
+8be6749a7e6201bcbd462ffb25b17ac0e73df95e
+
+    add CHANGES entry for oal.Lock.isLocked now throwing ioe
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@831699 13f79535-47bb-0310-9956-ffa450edef68
+
+
+15bda7eb1af912cb9f4bb71c7d7a7e6da6d65458
+
+    allow Lock.isLocked to throw IOException
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@831662 13f79535-47bb-0310-9956-ffa450edef68
+
+
+f34f5ef9873909df51f105e8f10ceb247420f35a
+
+    SOLR-1399.  Lock settings are ignored
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/solr/trunk@810788 13f79535-47bb-0310-9956-ffa450edef68
+
+
+0a828c2f9ddb54578512176af51216d1845f698d
+
+    LUCENE-1573: add missing synchronized in test case
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@766440 13f79535-47bb-0310-9956-ffa450edef68
+
+
+9e9432702563ae3cb5664d26ff132e112c5291b5
+
+    SOLR-1055 -- Make DIH JdbcDataSource easily extensible by making the createConnectionFactory method protected and return a Callable<Connection> object
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/solr/trunk@756407 13f79535-47bb-0310-9956-ffa450edef68
+
+
+c6f6f016433ffe8450e4b2f202c9ac5b848305ec
+
+    LUCENE-1316: don't call synchronized IndexReader.isDeleted when scoring MatchAllDocsQuery
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@737513 13f79535-47bb-0310-9956-ffa450edef68
+
+
+d495237c0e7b3405e107cca1348b5d91b6588ae1
+
+    SOLR-917 followup.  improve handling of null handler name to make semantics closer to what they were before ConcurrentHashMap, and cleanup some now superfulous null checks
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/solr/trunk@727934 13f79535-47bb-0310-9956-ffa450edef68
+
+
+c11997b456e39a726049c5542adedd44aa700fdf
+
+    SOLR-917 -- Change RequestHandlers#handlers from a synchronizedMap to a ConcurrentHashMap
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/solr/trunk@727372 13f79535-47bb-0310-9956-ffa450edef68
+
+
+151d8c4f040abac3388f187e47f345b2bbcd3214
+
+    SOLR-918 -- Store SolrInfoMBean in a ConcurrentHashMap instead of a LinkedHashMap
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/solr/trunk@727370 13f79535-47bb-0310-9956-ffa450edef68
+
+
+6125bd15e6f34a224c578910d58eb600a99ecb33
+
+    SOLR-667 -- A LRU cache implementation based upon ConcurrentHashMap and other techniques to reduce contention and synchronization overhead, to utilize multiple CPU cores more effectively.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/solr/trunk@708656 13f79535-47bb-0310-9956-ffa450edef68
+
+
+12e4e674037adfaf51b6c17d2fa5f12c2877022a
+
+    add missing synchronized to PerfRunData.getQueryMaker()
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@677555 13f79535-47bb-0310-9956-ffa450edef68
+
+
+eaaf6236da9fd69e4ad03db9444218e2271412c5
+
+    SOLR-536: use ConcurrentHashMap
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/solr/trunk@663686 13f79535-47bb-0310-9956-ffa450edef68
+
+
+37a060c15c99c0275a941bca3fa817e839b1d9a4
+
+    Additional thread safety around filter creation - old code could create duplicate CachingWrapperFilter if thread1 gets cache miss and thread 2 has a cache miss before thread1 populates cache with new CachingWrapperFilter.
+    Synchronization cost around whole method is OK here because Filter object construction should be a lightweight call.
+    Note: CachingWrapperFilter currently has a similar bug in bits() method but adding "synchronized" around that whole method would not be a solution there because of the cost of evaluating filter.bits and the unnecessary blocking effect this would have on threads using different readers to the thread with the lock.
+    
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@628921 13f79535-47bb-0310-9956-ffa450edef68
+
+
+f69f98c0e4690d5ed4dc556b1affb32f2d2708b3
+
+    LUCENE-1048: fix Lock.obtain(...) to work properly on very large timeouts, eg Long.MAX_VALUE
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@593774 13f79535-47bb-0310-9956-ffa450edef68
+
+
+96ea45d1938504550bba7ec1349622db8a569b19
+
+    LUCENE-952: force synchronized access to writer instance variable to fix infinite spin loop in TestGdataIndexer
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@554189 13f79535-47bb-0310-9956-ffa450edef68
+
+
+4db9625e28b59228a71f14fb92f726dfe14cc4df
+
+    LUCENE-843: add missing 'synchronized' to allThreadsIdle() method
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@553854 13f79535-47bb-0310-9956-ffa450edef68
+
+
+b5a0c0c3deaff378bdb622941ae24685df5dc045
+
+    LUCENE-710: make IndexWriter.abort() synchronized
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@518781 13f79535-47bb-0310-9956-ffa450edef68
+
+
+25d317acaf8e495966ec097eff48691d2292c179
+
+    remove synchronized from fakeNorms (private & set omitNorms flag on field
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@329524 13f79535-47bb-0310-9956-ffa450edef68
+
+
+07d7d0701f7fef103ad181b294491aecd876846e
+
+    remove synchronized from fakeNorms (private & always called within sync context)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@329523 13f79535-47bb-0310-9956-ffa450edef68
+
+
+e5dfadde8e682d0b52fa2fc64bba8883bbdff1cb
+
+    Method of acquiring and releasing index lock could have resulted in a deadlock (thanks to Otis for pointing it out).
+    Made the acquire and release lock methods synchronized and centralized the point of access of the lock.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@150777 13f79535-47bb-0310-9956-ffa450edef68
+
+
+9ed56d3d04ad1cdc3853988c3e97d9abe33ee200
+
+    We can just use Lock.toString() to show lock file, no?
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@150326 13f79535-47bb-0310-9956-ffa450edef68
+
+
+7e5763e5ca7c02fc51214633283590000387547e
+
+    switch Lock to use a String instead of File
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@150321 13f79535-47bb-0310-9956-ffa450edef68
+
+
+66601f515cec8782c8cd553169e52d751fbddbef
+
+    note change to Lock error message
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@150319 13f79535-47bb-0310-9956-ffa450edef68
+
+
+9f5d7feafba5d6ce714d0a9dc4c420d088077ef6
+
+    Additional Optimize Condition:
+    Merge a 1-segment index if compound file is used and
+    norms have been changed by IndexReader.setNorm
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@150289 13f79535-47bb-0310-9956-ffa450edef68
+
+
+b22cd7789009557c10718d470c16bc6b09e443ff
+
+    added ability to wait on any Lock. changed write.lock wait to 1 sec from none.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@150005 13f79535-47bb-0310-9956-ffa450edef68
+
+
+Project:             lucene-solr
+Commit count:        26152
+Related commit count 1758
+netty
+42fba015ce82ab4ab30e547c888db82fe74094e9
+
+    reduce lock contention in resource leak
+    
+    Motivation:
+    ResourceLeakDetector shows two main problems, racy access and heavy lock contention.
+    
+    Modifications:
+    This PR fixes this by doing two things:
+    1.  Replace the sampling counter with a ThreadLocalRandom.  This has two benefits.
+        First, it makes the sampling ration no longer have to be a power of two.  Second,
+        it de-noises the continuous races that fight over this single value.  Instead,
+        this change uses slightly more CPU to decide if it should sample by using TLR.
+    2.  DefaultResourceLeaks need to be kept alive in order to catch leaks.  The means
+        by which this happens is by a singular, doubly-linked list.  This creates a
+        large amount of contention when allocating quickly.  This is noticeable when
+        running on a multi core machine.
+    
+        Instead, this uses a concurrent hash map to keep track of active resources
+        which has much better contention characteristics.
+    
+    Results:
+    Better concurrent hygiene.  Running the gRPC QPS benchmark showed RLD taking about
+    3 CPU seconds for every 1 wall second when runnign with 12 threads.
+    
+    There are some minor perks to this as well.  DefaultResourceLeak accounting is
+    moved to a central place which probably has better caching behavior.
+
+
+b604a22395f64bca52d155127e2453aa3178af6c
+
+    Expose the ChannelHandlerContext from SniHandler's select() step to the user.
+    
+    Motivation
+    
+    I'm looking to harden our SSL impl. a little bit and add some guards agaist certain types of abuse. One can think of invalid hostname strings in the SNI extenstion or invalid SNI handshakes altogether. This will require measuring, velocity tracking and other things.
+    
+    Modifications
+    
+    Adding a protected `lookup(ctx, hostname)` method that is called from SniHandler's `select(...)` method which users can override and implement custom behaviour. The default implementation will simply call the AsyncMapper.
+    
+    Result
+    
+    It's possible to get a hold onto the ChannelHandlerContext. Users can override that method and do something with it right there or they can delegate it to something else. SniHandler is happy as long as a `Future<SslContext>` is being returned.
+
+
+6fd8bb8c630d3e43e35fd34f6277a1a4dd0daca9
+
+    [#5763] DefaultEventLoopGroup doesn't expose ctor variant that accepts custom Executor
+    
+    Motivation:
+    
+    The DefaultEventLoopGroup class extends MultithreadEventExecutorGroup but doesn't expose the ctor variants that accept a custom Executor like NioEventLoopGroup and EpollEventLoopGroup do.
+    
+    Modifications:
+    
+    Add missing constructor.
+    
+    Result:
+    
+    Be able to use custom Executor with DefaultEventLoopGroup.
+
+
+e4154bcb0b91acfe5cf041208fc255aff16143be
+
+    [#5720] Static initializers can cause deadlock
+    
+    Motivation:
+    
+    SystemPropertyUtil requires InternalLoggerFactory requires ThreadLocalRandom requires SystemPropertyUtil. This can lead to a dead-lock.
+    
+    Modifications:
+    
+    Ensure ThreadLocalRandom does not require SystemPropertyUtil during initialization.
+    
+    Result:
+    
+    No more deadlock possible.
+
+
+c6a13e28b93b7b4d1f99f556cc894765a4c8e2f1
+
+    Improvement : constant pool now less concurrent
+    
+    Current constant pool holds all data within HashMap and all access to this HashMap is done via synchronized blocks. Thus CuncurrentHashMap will be here more efficient as it designed for higher throughput and will use less locks. Also valueOf method was not very efficient as it performed get operation 2 times.
+    
+    Modifications :
+    
+    HashMap -> PlatformDependent.newConcurrentHashMap().
+    ValueOf is more efficient now, threadsafe and uses less locks. Downside is that final T tempConstant = newConstant(nextId(), name); could be called more than 1 time during high contention.
+    
+    Result :
+    
+    Less contention, cleaner code.
+
+
+a06afe8b7745a4e9b49ea86ae4650117cdc01981
+
+    Improvement: simplified AbstractConstant compareTo.
+    
+    Motivation:
+    
+    AbstractConstant.compareTo seems complex and hard to understand. Also it allocates unnecessary 1 byte in direct buffer and holds unnecessary pointer to this byte butter.
+    
+    Modifications:
+    
+    uniquifier (id) variable now initialized during Constant creation and thus no need in volatile and no need in uniquifier() method as it could be easily replaced with AtomicLong.
+    
+    Result:
+    
+    Every Constant instance now consumes less bytes for pointer, don't consume anything in direct buffer.
+
+
+ce95c50444cc2507769574b3e39fdbffccb7fc1b
+
+    [#5507] SingleThreadEventExecutor should reject call invoke*() from within the EventLoop.
+    
+    Motivation:
+    
+    ExecutorService.invoke*(...) methods may block by API definition. This can lead to deadlocks if called from inside the EventLoop in SingleThreadEventExecutor as it only has one Thread that does all the work.
+    
+    Modifications:
+    
+    Throw a RejectedExectionException if someone tries to call SingleThreadEventExecutor.invoke*(...) while in the EventLoop.
+    
+    Result:
+    
+    No more deadlock possible.
+
+
+b0a5d4c266ed4117282decf06dc5053190423230
+
+    Fix improper synchronization in DefaultPromise. Fixes #5489
+    
+    Motivation:
+    
+    A race detector found that DefaultPromise.listeners is improperly synchronized [1].
+    Worst case a listener will not be executed when the promise is completed.
+    
+    Modifications:
+    
+    Make DefaultPromise.listeners a volatile.
+    
+    Result:
+    
+    Hopefully, DefaultPromise is more correct under concurrent execution.
+    
+    [1] https://github.com/grpc/grpc-java/issues/2015
+
+
+731f52fdf73852a8fc597b1f08ed86b63caee375
+
+    Allow to inject RejectedExecutionHandler for different EventLoops and EventExecutors
+    
+    Motiviation:
+    
+    Sometimes it is useful to allow to specify a custom strategy to handle rejected tasks. For example if someone tries to add tasks from outside the eventloop it may make sense to try to backoff and retries and so give the executor time to recover.
+    
+    Modification:
+    
+    Add RejectedEventExecutor interface and implementations and allow to inject it.
+    
+    Result:
+    
+    More flexible handling of executor overload.
+
+
+9687d77b5ab1ca6b3bfd57dab8b71b796ad45b52
+
+    Move validation of arguments out of synchronized block
+    
+    Motivation:
+    
+    There is no need already use synchronized when validate the args of the methods.
+    
+    Modifications:
+    
+    First validate arguments and then use synchronized
+    
+    Result:
+    
+    Less code executed in synchronized block.
+
+
+3288cacf8dee818a7432b3baae41d617ba168b96
+
+    Pluggable resource leak detector
+    
+    Allow users of Netty to plug in their own leak detector for the purpose
+    of instrumentation.
+    
+    Motivation:
+    
+    We are rolling out a large Netty deployment and want to be able to
+    track the amount of leaks we're seeing in production via custom
+    instrumentation. In order to achieve this today, I had to plug in a
+    custom `ByteBufAllocator` into the bootstrap and have it initialize a
+    custom `ResourceLeakDetector`. Due to these classes mostly being marked
+    `final` or having private or static methods, a lot of the code had to
+    be copy-pasted and it's quite ugly.
+    
+    Modifications:
+    
+    * I've added a static loader method for the `ResourceLeakDetector` in
+    `AbstractByteBuf` that tries to instantiate the class passed in via the
+    `-Dio.netty.customResourceLeakDetector`, otherwise falling back to the
+    default one.
+    * I've modified `ResourceLeakDetector` to be non-final and to have the
+    reporting broken out in to methods that can be overridden.
+    
+    Result:
+    
+    You can instrument leaks in your application by just adding something
+    like the following:
+    
+    ```java
+    public class InstrumentedResourceLeakDetector<T> extends
+    ResourceLeakDetector<T> {
+    
+        @Monitor("InstanceLeakCounter")
+        private final AtomicInteger instancesLeakCounter;
+    
+        @Monitor("LeakCounter")
+        private final AtomicInteger leakCounter;
+    
+        public InstrumentedResourceLeakDetector(Class<T> resource) {
+            super(resource);
+            this.instancesLeakCounter = new AtomicInteger();
+            this.leakCounter = new AtomicInteger();
+        }
+    
+        @Override
+        protected void reportTracedLeak(String records) {
+            super.reportTracedLeak(records);
+            leakCounter.incrementAndGet();
+        }
+    
+        @Override
+        protected void reportUntracedLeak() {
+            super.reportUntracedLeak();
+            leakCounter.incrementAndGet();
+        }
+    
+        @Override
+        protected void reportInstancesLeak() {
+            super.reportInstancesLeak();
+            instancesLeakCounter.incrementAndGet();
+        }
+    }
+    ```
+
+
+a7496ed83df3cf13c24fa9b5ce9494914fcd07ec
+
+    FlowControlHandlerTest synchronization issues
+    
+    Motivation:
+    2b6525856868ab1788db957ff8af8eb22b42c774 only partially addressed the synchronization issues that are present in FlowControlHandlerTest. A few tests are attempting to validate state changes made across an EventLoop thread and the JUnit thread but are not properly synchronized.
+    
+    Modifications:
+    - Ensure that conditions which verify expectations set in another thread have synchronization gates to ensure the event has actually occurred.
+    - Remove the message counter verification in favor of using individual CountDownLatch objects
+    
+    Result:
+    FLowControlHanderTest has less race conditions which may lead to test failures.
+
+
+56a2f64665494ee0d52fba7f391de0bea6144e29
+
+    Clarify Future.removeListener[s] javaDocs
+    
+    Motivation:
+    The javaDocs for Future.removeListener do not clarify that only the first occurrence of the listener is guaranteed to be removed.
+    
+    Modifications:
+    - Clarify the javaDocs for Future.removeListener[s] so it is known that the only the first occurrence of the listener will be removed.
+    
+    Result:
+    Fixes https://github.com/netty/netty/issues/5351
+
+
+584fbac6ed7a0b58068bd0acf8ac784a572274ad
+
+    [#3419] Only use SecureRandom to generate initialSeed if requested
+    
+    Motivation:
+    
+    We tried to always use SecureRandom to generate the initialSeed for our ThreadLocalRandom, this can sometimes give warnings under normal usage. We should better not use SecureRandom as default (just as the implementation in jsr166y does) and only try if the user specified -Djava.util.secureRandomSeed=true .
+    
+    Modifications:
+    
+    Only try to use SecureRandom when -Djava.util.secureRandomSeed=true is used.
+    
+    Result:
+    
+    Less likely to see entropy warnings.
+
+
+3d29bcfc8ddeda50e0bff0234d0c5240f404ddb5
+
+    Allow to create Unsafe ByteBuf implementations that not use a Cleaner to clean the native memory.
+    
+    Motivation:
+    
+    Using the Cleaner to release the native memory has a few drawbacks:
+    
+    - Cleaner.clean() uses static synchronized internally which means it can be a performance bottleneck
+    - It put more load on the GC
+    
+    Modifications:
+    
+    Add new buffer implementations that can be enabled with a system flag as optimizations. In this case no Cleaner is used at all and the user must ensure everything is always released.
+    
+    Result:
+    
+    Less performance impact by direct buffers when need to be allocated and released.
+
+
+f5d58e2e1ae8f3eae8e69fb67aff4544bab50ee3
+
+    DefaultPromise concurrency bug
+    
+    Motivation:
+    If the executor changes while listeners are added and notification of listeners is being done then listeners can be notified out of order and concurrently. We should ensure that only one executor is used at any given time to notify listeners and ensure the listeners are notified in FIFO order.
+    
+    Modifications:
+    - Move the notifyingListeners member variable from DefaultPromise into the synchronized block to prevent concurrent notification of listeners and preserve FIFO notification order
+    
+    Result:
+    If the executor is changed for a DefaultPromise the listener notification order should be FIFO.
+
+
+b83ffcc4471ce5cc68b39fc3545853ac5e2a5f1b
+
+    Add timeout to PooledByteBufAllocatorTest
+    
+    Motivation:
+    
+    Some tests in PooledByteBufAllocatorTest are blocking on a CountDownLatch. We should use a timeout on these tests so these will not block forever on a failure.
+    
+    Modifications:
+    
+    Add timeout param to @Test annotation
+    
+    Result:
+    
+    Have sane timeouts on tests.
+
+
+55dd7d035fad00ef8681b0007eade6232f832e3a
+
+    Fix a class loader leak in ForkJoinPool
+    
+    Motivation:
+    
+    As reported in #4211, when using Netty in Tomcat (or other container based deployment), ForkJoinPool leaks an instance of `Submitter` so that the class loader of `Submitter` won't be GCed. However, since `Submitter` is just a wrapper of `int`, we can replace it with `int[1]`.
+    
+    Modifications:
+    
+    Replace `Submitter` with `int[1]`.
+    
+    Result:
+    
+    No class loader leak in ForkJoinPool when using in a container.
+
+
+8fe3c83e4ca9a64c03f5adcb9f056d9e9440a389
+
+    [#5104] Fix possible deadlock in DefaultChannelPipeline
+    
+    Motivation:
+    
+    When a user has multiple EventLoops in an EventLoopGroup and calls pipeline.add* / remove* / replace from an EventLoop that belongs to another Channel it is possible to deadlock if the other EventLoop does the same.
+    
+    Modification:
+    
+    - Only ensure the actual modification takes place in a synchronized block and not wait until the handlerAdded(...) / handlerRemoved(...) method is called. This is ok as we submit the task to the executor while still holding the look and so ensure correct order of pipeline modifications.
+    - Ensure if an AbstractChannelHandlerContext is put in the linked-list structure but the handlerAdded(...) method was not called we skip it until handlerAdded(...) was called. This is needed to ensure handlerAdded(...) is always called first.
+    
+    Result:
+    
+    Its not possible to deadlock when modify the DefaultChannelPipeline.
+
+
+30bb3094c16f8c3bf0f570f34f62a4a098cdb9b6
+
+    [#5227] Fix race-condition in PooledByteBufAllocatorTest
+    
+    Motivation:
+    
+    PooledByteBufAllocatorTest.testNumThreadCachesWithNoDirrectArenas() had a race as it just used LockSupport.parkNanos(). We should better use a CountdownLatch and so be sure we really have init everything.
+    
+    Modifications:
+    
+    Replace LockSupport.parkNanos(...) with CountdownLatch usage
+    
+    Result:
+    
+    No more race in test.
+
+
+f2ed3e6ce8039d142e4c047fcc9cf09409105243
+
+    DefaultPromise LateListener Logic Issues
+    
+    Motivation:
+    The LateListener logic is prone to infinite loops and relies on being processed in the EventExecutor's thread for synchronization, but this EventExecutor may not be constant. An infinite loop can occur if the EventExecutor's execute method does not introduce a context switch in LateListener.run. The EventExecutor can be changed by classes which inherit from DefaultPromise. For example the DefaultChannelPromise will return w/e EventLoop the channel is registered to, but this EventLoop can change (re-registration).
+    
+    Modifications:
+    - Remove the LateListener concept and instead use a single Object to maintain the listeners while still preserving notification order
+    - Make the result member variable an atomic variable so it can be outside the synchronized(this) blocks
+    - Cleanup/simplify existing state management code
+    
+    Result:
+    Fixes https://github.com/netty/netty/issues/5185
+
+
+2b6525856868ab1788db957ff8af8eb22b42c774
+
+    FlowControlHandlerTest invalid condition
+    
+    Motivation:
+    FlowControlHandlerTest attempts to validate the expected contents of the underlying queue in FlowControlHandler. However the condition which triggers the check is too early and the queue contents may not yet contain all expected objects. For example a CountDownLatch is counted down in a handler's channelRead which is  after the FlowControlHandler in the pipeline. At this point if there is a thread context switch the queue may not yet contain all the expected objects and checking the queue contents is not valid.
+    
+    Modifications:
+    - Remove checking the queues contents in FLowControlHandlerTest and instead only check the empty condition at the end of the tests
+    
+    Result:
+    FlowControlHandlerTest won't fail due to invalid checks of the contents of the queue.
+
+
+f60698a538e007e1e31c2fa16fa5fd7e4ccda293
+
+    EpollEventLoopGroup support Executor
+    
+    Motivation:
+    NioEventLoopGroup supports constructors which take an executor but EpollEventLoopGroup does not. EPOLL should be consistent with NIO where ever possible.
+    
+    Modifications:
+    - Add constructors to EpollEventLoopGroup which accept an Executor as a parameter
+    
+    Result:
+    EpollEventLoopGroup is more consistent with NioEventLoopGroup
+    Fixes https://github.com/netty/netty/issues/5161
+
+
+050ac709ba3db2a1c2df27f558bdcb348c4ac6f2
+
+    PromiseNotifier does not propagate cancel events
+    
+    Motivation:
+    If the Future that the PromiseNotifier is listening to is cancelled, it does not propagate the cancel to all the promises it is expected to notify.
+    
+    Modifications:
+    - If the future is cancelled then all the promises should be cancelled
+    - Add a UnaryPromiseNotifier if a collection of promises is not necessary
+    
+    Result:
+    PromiseNotifier propagates cancel events to all promises
+
+
+0f3d47199b95098b04ee774eb2730c2812bf4dd0
+
+    [#4834] Fix race in AddressResolverGroup
+    
+    Motivation:
+    
+    We miss to use synchronized when remove the executor from the map.
+    
+    Modifications:
+    
+    Add synchronized(...) keyword
+    
+    Result:
+    
+    No more race.
+
+
+bf2a99518c3ebc484464fc35279452ddd24c0ea9
+
+    Simplify synchronized syntax
+    
+    Motivation:
+    
+    We often used synchronized(this) while the whole method was synchronized, which can be simplified by just mark the whole method as synchronized.
+    
+    Modifications:
+    
+    Replace synchronized(this) with synchronized on the method
+    
+    Result:
+    
+    Cleaner code
+
+
+32933821bb488c683e6bf8acad54be7f9a7b033b
+
+    AbstractFuture should not wrap CancellationException
+    
+    Motivation:
+    AbstractFuture currently wraps CancellationException in a ExecutionException. However the interface of Future says that this exception should be directly thrown.
+    
+    Modifications:
+    - Throw CancellationException from AbstractFuture.get
+    
+    Result:
+    Interface contract for CancellationException is honored in AbstractFuture.
+
+
+1f3fc983c050a011546d75587f47e02566174f95
+
+    DefaultPromise LateListener notification order
+    
+    Motivation:
+    There is a notification ordering issue in DefaultPromise when the lateListener collection is in use. The ordering issue can be observed in situations where a late listener is added to a Future returned from a write operation. It is possible that this future will run after a read operation scheduled on the I/O thread, even if the late listener is added on the I/O thread. This can lead to unexpected ordering where a listener for a write operation which must complete in order for the read operation to happen is notified after the read operation is done.
+    
+    Modifications:
+    - If the lateListener collection becomes empty, it should be treated as though it was null when checking if lateListeners can be notified immediatley (instead of executing a task on the executor)
+    
+    Result:
+    Ordering is more natural and will not be perceived as being out of order relative to other tasks on the same executor.
+
+
+1b2e43e70ceb11b1188d4cc8dc05f506a3a5bee8
+
+    Correctly construct Executor in microbenchmarks.
+    
+    Motivation:
+    
+    We should allow our custom Executor to shutdown quickly.
+    
+    Modifications:
+    
+    Call super constructor which correct arguments.
+    
+    Result:
+    
+    Custom Executor can be shutdown quickly.
+
+
+41ee9148e585bda0d6d55ea5b10abe691a2d1332
+
+    HTTP/2 InboundHttp2ToHttpAdapterTest serverChannel NPE
+    
+    Motivation:
+    InboundHttp2ToHttpAdapterTest.bootstrapEnv does not wait for the serverConnectedChannel to be initialized before returning. Some methods rely only this behavior and throw a NPE because it may not be set.
+    
+    Modifications:
+    - Add a CountDownLatch to ensure the serverConnectedChannel is initialized
+    
+    Result:
+    No more NPE.
+
+
+d9d488e477c302481bb8fa5028e5bb469eefd492
+
+    [#2677] Remove unnessary synchronized in SpdySessionHandler
+    
+    Motivation:
+    
+    As all methods in the ChannelHandler are executed by the same thread there is no need to use synchronized.
+    
+    Modifications:
+    
+    Remove synchronized keyword.
+    
+    Result:
+    
+    No more unnessary synchronized in SpdySessionHandler.
+
+
+08b73bf9145d60d862b9faf11b95bee60ee061bd
+
+    Unhealthy channel is not offered back to the pool.
+    
+    Motivation:
+    When releasing unhealthy channel back to a pool we don't have to offer it since on acquire it will be discarded anyways.
+     Also checking healthiness at release is a good idea so we don't end up having tons of unhealthy channels in the pool(unless they became unhealthy after being offered)
+    
+    Modifications:
+    private SimpleChannelPool.offerIfHealthy() method added that is called from SimpleChannelPool.doReleaseChannel(). SimpleChannelPool.offerIfHealthy() offers channel back to pool only if channel is healthy.
+    Otherwise it throws setFailure exception to the promise.
+    
+     Result:
+    The pool is now much cleaner and not spammed with unhealthy channels.
+    
+    Added ability to choose if channel health has to be validated on release by passing boolean flag.
+    
+    Motivation:
+    Depending on performance preferences and individual use cases sometimes we would like to be able force health check of a channel at release time and do not offer it back to the pool. Other times we would want to just release channel and offer it back to the pool and check health only when we try to acquire that channel from the pool. See more details here: https://github.com/netty/netty/issues/4077#issuecomment-130461684
+    
+    Modifications:
+    Future<Void> release(Channel channel, Promise<Void> promise, boolean offerHealthyOnly);
+    The offerHealthyOnly boolean flag allows developers to choose whether to do channel validation before offering it back to pool or not.
+    Appropriate modifications made to hierarchy of implementations of ChannelPool. offerHealthyOnly=true will force channel health to be checked before offering back to pool. offerHealthyOnly=false  will ignore channel health check and will just try just offer it back to the pool
+     offerHealthyOnly=true by default.
+    
+    Result:
+    Channel health check before offer back to pool is controlled by a flag now.
+    
+    Code changed to satisfy checkstyle requirements.
+    
+    Motivation:
+    Code needs to satisfy checkstyle requirements.
+    
+    Modifications:
+     SimpleChannelPool.java:279 line split to be less then 120 characters.
+     SimpleChannelPool.java:280:31 space added after '{'
+     SimpleChannelPool.java:282:17 space added after '{'
+     SimpleChannelPoolTest.java:198 - extra white space line removed.
+    
+    Result:
+    Code satisfies checkstyle requirements.
+    
+     offerHealthyOnly is passed as a constructor parameter now.
+    
+    Motivation:
+    Instead of passing offerHealthyOnly as a method parameter it is better to pass it in as SimpleChannelPool or FixedChannelPool constructor.
+    
+    Modifications:
+     Redundant release method that takes offerHealthyOnly removed from ChannelPool.
+     offerHealthyOnly parameter added to constructor for FixedChannelPool and SimpleChannelPool.
+    
+    Result:
+    SimpleChannelPool and FixedChannelPool are now take offerHealthyOnly as a constructor parameter. Default behavior is: offerHealthyOnly=true.
+    
+    Code changed to satisfy checkstyle requirements.
+    
+    Motivation:
+    Code needs to satisfy checkstyle requirements.
+    
+    Modifications:
+     SimpleChannelPool.java:84: line made to be no longer then 120 characters.
+     SimpleChannelPool.java:237: extra white space line removed.
+    
+    Result:
+    Code satisfies checkstyle requirements.
+    
+    Tests do not need to be too  copled to the code. Exception message should not be validated
+    
+    Motivation:
+    We don't need our tests to be too coupled to the code. Exception type validation in tests is just good enough.
+    
+    Modifications:
+    Exception validation message removed from SimpleChannelPoolTest.testUnhealthyChannelIsNotOffered() test.
+    
+    Result:
+    The SimpleChannelPoolTest test is less coupled to the code now.
+    
+    Stack trace set to empty for UNHEALTHY_NON_OFFERED_TO_POOL.
+    
+    Motivation:
+    We don't need stack trace for UNHEALTHY_NON_OFFERED_TO_POOL.
+    
+    Modifications:
+    Added  UNHEALTHY_NON_OFFERED_TO_POOL.setStackTrace(EmptyArrays.EMPTY_STACK_TRACE) to static init block.
+    
+    Result:
+    UNHEALTHY_NON_OFFERED_TO_POOL's stack trace set to empty.
+    
+    Minor code re-factorings.
+    
+    Motivation:
+    For better code readability we need to apply several minor code re-factorings.
+    
+    Modifications:
+    javadocs true -> {@code true}
+    offerHealthyOnly variable name changed to releaseHeathCheck
+    <p/> -> <p> in javadocs
+    offerHealthyOnly removed from doReleaseChannel as it not needed there.
+    
+    Result:
+    Code quality is improved.
+    
+    Code changed to satisfy checkstyle requirements.
+    
+    Motivation:
+    Code needs to satisfy checkstyle requirements.
+    
+    Modifications:
+    SimpleChannelPool.java:87: line made to be no longer then 120 characters.
+    
+    Result:
+    Code satisfies checkstyle requirements.
+    
+    Pull request needs to contain only necessary changes
+    
+    Motivation:
+    The pull request should not contain unnecessary changes that are not needed as part of required functionality of pull request.
+    
+    Modifications:
+    private void doReleaseChannel(final Channel channel, final Promise<Void> promise) - >  private void doReleaseChannel(Channel channel, Promise<Void> promise)
+    
+    Result:
+    Pull request contains less unnecessary modifications.
+
+
+e0ef01cf9300f940ff432ab3f4e902c4976bae02
+
+    [#3888] Use 2 * cores as default minimum for pool arenas.
+    
+    Motivation:
+    
+    At the moment we use 1 * cores as default mimimum for pool arenas. This can easily lead to conditions as we use 2 * cores as default for EventLoop's when using NIO or EPOLL. If we choose a smaller number we will run into hotspots as allocation and deallocation needs to be synchronized on the PoolArena.
+    
+    Modifications:
+    
+    Change the default number of arenas to 2 * cores.
+    
+    Result:
+    
+    Less conditions when using the default settings.
+
+
+311532feb01d0c635684f358060fe562ca2d8b01
+
+    Fix IllegalReferenceCountException in DnsNameResolver
+    
+    Related: #3797
+    
+    Motivation:
+    
+    There is a race condition where DnsNameResolver.query() can attempt to
+    increase the reference count of the DNS response which was released
+    already by other thread.
+    
+    Modifications:
+    
+    - Make DnsCacheEntry a top-level class for clear access control
+    - Use 'synchronized' to avoid the race condition
+      - Add DnsCacheEntry.retainedResponse() to make sure that the response
+        is never released while it is retained
+      - Make retainedResponse() return null when the response has been
+        released already, so that DnsNameResolver.query() knows that the
+        cached entry has been released
+    
+    Result:
+    
+    The forementioned race condition has been fixed.
+
+
+dce0dd9b78106e26e77d83e89bc5ad76a64cc65f
+
+    [#3654] No need to hold lock while destroy a chunk
+    
+    Motiviation:
+    
+    At the moment we sometimes hold the lock on the PoolArena during destroy a PoolChunk. This is not needed.
+    
+    Modification:
+    
+    - Ensure we not hold the lock during destroy a PoolChunk
+    - Move all synchronized usage in PoolArena
+    - Cleanup
+    
+    Result:
+    
+    Less condition.
+
+
+92bfeeca1bdc71cada715993f669e2c1a5693b74
+
+    No need to release lock and acquire again when allocate normal size.
+    
+    Motiviation:
+    
+    When tried to allocate tiny and small sized and failed to serve these out of the PoolSubPage we exit the synchronization
+    block just to enter it again when call allocateNormal(...).
+    
+    Modification:
+    
+    Not exit the synchronized block until allocateNormal(...) is done.
+    
+    Result:
+    
+    Better performance.
+
+
+a5c8e145ee3f927f5d1793d34188f2ca86b3cbe8
+
+    Remove the condition which is always true when reached
+    
+    Motivation:
+    Condition 'isNextCharDoubleQuote' is always 'true' when reached.
+    
+    Motification:
+    - Removed Condition 'isNextCharDoubleQuote'.
+    - Additionally fixed typo in javadoc
+    
+    Result:
+    Cleaner code.
+
+
+a7d1dc362ae0ab5998723aae120b36d606a31425
+
+    [#3652] Improve performance of StringUtil.simpleClassName()
+    
+    Motivation:
+    
+    static Package getPackage(Class<?> c) uses synchronized block internally.
+    Thanks to @jingene for the hint and initial report of the issue.
+    
+    Modifications:
+    
+    -Use simple lastIndexOf(...) and substring for a faster implementation
+    
+    Result:
+    
+    No more lock condition.
+
+
+a69fbaeed9505f017b144050bd0e1cc49f6585c6
+
+    Not execute shutdownOutput(...) and close(...) in the EventLoop if SO_LINGER is used.
+    
+    Motivation:
+    
+    If SO_LINGER is used shutdownOutput() and close() syscalls will block until either all data was send or until the timeout exceed. This is a problem when we try to execute them on the EventLoop as this means the EventLoop may be blocked and so can not process any other I/O.
+    
+    Modifications:
+    
+    - Add AbstractUnsafe.closeExecutor() which returns null by default and use this Executor for close if not null.
+    - Override the closeExecutor() in NioSocketChannel and EpollSocketChannel and return GlobalEventExecutor.INSTANCE if getSoLinger() > 0
+    - use closeExecutor() in shutdownInput(...) in NioSocketChannel and EpollSocketChannel
+    
+     Result:
+    
+    No more blocking of the EventLoop if SO_LINGER is used and shutdownOutput() or close() is called.
+
+
+268111208007b1336dc1bbdcb0b9c15427e14e1f
+
+    Fix big transfer and Write traffic shaping issues
+    
+    Motivation:
+    
+    Several issues were shown by various ticket (#2900 #2956).
+    Also use the improvement on writability user management from #3036.
+    And finally add a mixte handler, both for Global and Channels, with
+    the advantages of being uniquely created and using less memory and
+    less shaping.
+    
+    Issue #2900
+    
+    When a huge amount of data are written, the current behavior of the
+    TrafficShaping handler is to limit the delay to 15s, whatever the delay
+    the previous write has. This is wrong, and when a huge amount of writes
+    are done in a short time, the traffic is not correctly shapened.
+    
+    Moreover, there is a high risk of OOM if one is not using in his/her own
+    handler for instance ChannelFuture.addListener() to handle the write
+    bufferisation in the TrafficShapingHandler.
+    
+    This fix use the "user-defined writability flags" from #3036 to
+    allow the TrafficShapingHandlers to "user-defined" managed writability
+    directly, as for reading, thus using the default isWritable() and
+    channelWritabilityChanged().
+    This allows for instance HttpChunkedInput to be fully compatible.
+    
+    The "bandwidth" compute on write is only on "acquired" write orders, not
+    on "real" write orders, which is wrong from statistic point of view.
+    
+    Issue #2956
+    
+    When using GlobalTrafficShaping, every write (and read) are
+    synchronized, thus leading to a drop of performance.
+    ChannelTrafficShaping is not touched by this issue since synchronized is
+    then correct (handler is per channel, so the synchronized).
+    
+    Modifications:
+    The current write delay computation takes into account the previous
+    write delay and time to check is the 15s delay (maxTime) is really
+    exceeded or not (using last scheduled write time). The algorithm is
+    simplified and in the same time more accurate.
+    
+    This proposal uses the #3036 improvement on user-defined writability
+    flags.
+    
+    When the real write occurs, the statistics are update accordingly on a
+    new attribute (getRealWriteThroughput()).
+    
+    To limit the synchronisations, all synchronized on
+    GlobalTrafficShapingHandler on submitWrite were removed. They are
+    replaced with a lock per channel (since synchronization is still needed
+    to prevent unordered write per channel), as in the sendAllValid method
+    for the very same reason.
+    Also all synchronized on TrafficCounter on read/writeTimeToWait() are
+    removed as they are unnecessary since already locked before by the
+    caller.
+    Still the creation and remove operations on lock per channel (PerChannel
+    object) are synchronized to prevent concurrency issue on this critical
+    part, but then limited.
+    
+    Additionnal changes:
+    1) Use System.nanoTime() instead of System.currentTimeMillis() and
+    minimize calls
+    2) Remove / 10 ° 10 since no more sleep usage
+    3) Use nanoTime instead of currentTime such that time spend is computed,
+    not real time clock. Therefore the "now" relative time (nanoTime based)
+    is passed on all sub methods.
+    4) Take care of removal of the handler to force write all pending writes
+    and release read too
+    8) Review Javadoc to explicit:
+    
+    - recommandations to take into account isWritable
+    
+    - recommandations to provide reasonable message size according to
+    traffic shaping limit
+    
+    - explicit "best effort" traffic shaping behavior when changing
+    configuration dynamically
+    
+    Add a MixteGlobalChannelTrafficShapingHandler which allows to use only one
+    handler for mixing Global and Channel TSH. I enables to save more memory and
+    tries to optimize the traffic among various channels.
+    
+    Result:
+    The traffic shaping is more stable, even with a huge number of writes in
+    short time by taking into consideration last scheduled write time.
+    
+    The current implementation of TrafficShapingHandler using user-defined
+    writability flags and default isWritable() and
+    fireChannelWritabilityChanged works as expected.
+    
+    The statistics are more valuable (asked write vs real write).
+    
+    The Global TrafficShapingHandler should now have less "global"
+    synchronization, hoping to the minimum, but still per Channel as needed.
+    
+    The GlobalChannel TrafficShapingHandler allows to have only one handler for all channels while still offering per channel in addition to global traffic shaping.
+    
+    And finally maintain backward compatibility.
+
+
+87eca066da16ba848d0f069835c706ecabd5ca74
+
+    More complete OpenSslEngine SSLSession implementation
+    
+    Motivation:
+    
+    The current SSLSession implementation used by OpenSslEngine does not support various operations and so may not be a good replacement by the SSLEngine provided by the JDK implementation.
+    
+    Modifications:
+    
+    - Add SSLSession.getCreationTime()
+    - Add SSLSession.getLastAccessedTime()
+    - Add SSLSession.putValue(...), getValue(...), removeValue(...), getValueNames()
+    - Add correct SSLSession.getProtocol()
+    - Ensure OpenSSLEngine.getSession() is thread-safe
+    - Use optimized AtomicIntegerFieldUpdater when possible
+    
+    Result:
+    
+    More complete OpenSslEngine SSLSession implementation
+
+
+46576fd2ff8f7069cdaf7eb1479bde7fb3811c74
+
+    Fix a race condition where handler is removed before unregistration
+    
+    Related: #3156
+    
+    Motivation:
+    
+    Let's say we have a channel with the following pipeline configuration:
+    
+      HEAD --> [E1] H1 --> [E2] H2 --> TAIL
+    
+    when the channel is deregistered, the channelUnregistered() methods of
+    H1 and H2 will be invoked from the executor thread of E1 and E2
+    respectively. To ensure that the channelUnregistered() methods are
+    invoked from the correct thread, new one-time tasks will be created
+    accordingly and be scheduled via Executor.execute(Runnable).
+    
+    As soon as the one-time tasks are scheduled,
+    DefaultChannelPipeline.fireChannelUnregistered() will start to remove
+    all handlers from the pipeline via teardownAll(). This process is
+    performed in reversed order of event propagation. i.e. H2 is removed
+    first, and then H1 is removed.
+    
+    If the channelUnregistered() event has been passed to H2 before H2 is
+    removed, a user does not see any problem.
+    
+    If H2 has been removed before channelUnregistered() event is passed to
+    H2, a user will often see the following confusing warning message:
+    
+      An exceptionCaught() event was fired, and it reached at the tail of
+      the pipeline. It usually means the last handler in the pipeline did
+      not handle the exception.
+    
+    Modifications:
+    
+    To ensure that the handlers are removed *after* all events are
+    propagated, traverse the pipeline in ascending order before performing
+    the actual removal.
+    
+    Result:
+    
+    A user does not get the confusing warning message anymore.
+
+
+a64484249c86c282532f9d53d09465b2a4bf98c8
+
+    Access autoRead via an AtomicIntegerFieldUpdater.
+    
+    Motiviation:
+    
+    Before this change, autoRead was a volatile boolean accessed directly.  Any thread that invoked the DefaultChannelConfig#setAutoRead(boolean) method would read the current value of autoRead, and then set a new value.  If the old value did not match the new value, some action would be immediately taken as part of the same method call.
+    
+    As volatile only provides happens-before consistency, there was no guarantee that the calling thread was actually the thread mutating the state of the autoRead variable (such that it should be the one to invoke the follow-up actions).  For example, with 3 threads:
+     * Thread 1: get = false
+     * Thread 1: set = true
+     * Thread 1: invokes read()
+     * Thread 2: get = true
+     * Thread 3: get = true
+     * Thread 2: set = false
+     * Thread 2: invokes autoReadCleared()
+     * Event Loop receives notification from the Selector that data is available, but as autoRead has been cleared, cancels the operation and removes read interest
+     * Thread 3: set = true
+    
+    This results in a livelock - autoRead is set true, but no reads will happen even if data is available (as readyOps).  The only way around this livelock currently is to set autoRead to false, and then back to true.
+    
+    Modifications:
+    
+    Write access to the autoRead variable is now made using the getAndSet() method of an AtomicIntegerFieldUpdater, AUTOREAD_UPDATER.  This also changed the type of the underlying autoRead variable to be an integer, as no AtomicBooleanFieldUpdater class exists.  Boolean logic is retained by assuming that 1 is true and 0 is false.
+    
+    Result:
+    
+    There is no longer a race condition between retrieving the old value of the autoRead variable and setting a new value.
+
+
+af2682634857281157b4f372a8bf0ee64f655978
+
+    SPDY: fix SpdySessionHandler::updateSendWindowSize
+    
+    In Netty 3, downstream writes of SPDY data frames and upstream reads of
+    SPDY window udpate frames occur on different threads.
+    
+    When receiving a window update frame, we synchronize on a java object
+    (SpdySessionHandler::flowControlLock) while sending any pending writes
+    that are now able to complete.
+    
+    When writing a data frame, we check the send window size to see if we
+    are allowed to write it to the socket, or if we have to enqueue it as a
+    pending write. To prevent races with the window update frame, this is
+    also synchronized on the same SpdySessionHandler::flowControlLock.
+    
+    In Netty 4, upstream and downstream operations on any given channel now
+    occur on the same thread. Since java locks are re-entrant, this now
+    allows downstream writes to occur while processing window update frames.
+    
+    In particular, when we receive a window update frame that unblocks a
+    pending write, this write completes which triggers an event notification
+    on the response, which in turn triggers a write of a data frame. Since
+    this is on the same thread it re-enters the lock and modifies the send
+    window. When the write completes, we continue processing pending writes
+    without knowledge that the window size has been decremented.
+
+
+c85319213a7d3fb35729ce4e75448a3c10f91b71
+
+    [#2675] Replace synchronization performed on util.concurrent instance in TrafficCounter
+    
+    Motivation:
+    
+    Message from FindBugs:
+    This method performs synchronization an object that is an instance of a class from the java.util.concurrent package (or its subclasses). Instances of these classes have their own concurrency control mechanisms that are orthogonal to the synchronization provided by the Java keyword synchronized. For example, synchronizing on an AtomicBoolean will not prevent other threads from modifying the AtomicBoolean.
+    Such code may be correct, but should be carefully reviewed and documented, and may confuse people who have to maintain the code at a later date.
+    
+    Modification:
+    
+    Use synchronized(this)
+    
+    Result:
+    
+    Less confusing code
+
+
+8b0bc7f33dc4a303916a08f414cb5815b3912181
+
+    [#2651] Fix possible infinite-loop when cancel tasks
+    
+    Motivations:
+    In our new version of HWT we used some kind of lazy cancelation of timeouts by put them back in the queue and let them pick up on the next tick. This  multiple problems:
+     - we may corrupt the MpscLinkedQueue if the task is used as tombstone
+     - this sometimes lead to an uncessary delay especially when someone did executed some "heavy" logic in the TimeTask
+    
+    Modifications:
+    Use a Lock per HashedWheelBucket for save and fast removal.
+    
+    Modifications:
+    Cancellation of tasks can be done fast and so stuff can be GC'ed and no more infinite-loop possible
+
+
+5b87cdc8bdbeea22b6c5a39e8454a9c46c3c6665
+
+    Reduce the perceived time taken to retrieve initialSeedUniquifier
+    
+    Motivation:
+    
+    When system is in short of entrophy, the initialization of
+    ThreadLocalRandom can take at most 3 seconds.  The initialization occurs
+    when ThreadLocalRandom.current() is invoked first time, which might be
+    much later than the moment when the application has started.  If we
+    start the initialization of ThreadLocalRandom as early as possible, we
+    can reduce the perceived time taken for the retrieval.
+    
+    Modification:
+    
+    Begin the initialization of ThreadLocalRandom in InternalLoggerFactory,
+    potentially one of the firstly initialized class in a Netty application.
+    
+    Make DefaultChannelId retrieve the current process ID before retrieving
+    the current machine ID, because retrieval of a machine ID is more likely
+    to use ThreadLocalRandom.current().
+    
+    Use a dummy channel ID for EmbeddedChannel, which prevents many unit
+    tests from creating a ThreadLocalRandom instance.
+    
+    Result:
+    
+    We gain extra 100ms at minimum for initialSeedUniquifier generation.  If
+    an application has its own initialization that takes long enough time
+    and generates good amount of entrophy, it is very likely that we will
+    gain a lot more.
+
+
+fbf1bdbef15a21aa31b01119003190a55e88eb6b
+
+    Fix the build timeout when 'leak' profile is active
+    
+    Motivation:
+    
+    AbstractByteBufTest.testInternalBuffer() uses writeByte() operations to
+    populate the sample data.  Usually, this isn't a problem, but it starts
+    to take a lot of time when the resource leak detection level gets
+    higher.
+    
+    In our CI machine, testInternalBuffer() takes more than 30 minutes,
+    causing the build timeout when the 'leak' profile is active (paranoid
+    level resource detection.)
+    
+    Modification:
+    
+    Populate the sample data using ThreadLocalRandom.nextBytes() instead of
+    using millions of writeByte() operations.
+    
+    Result:
+    
+    Test runs much faster when leak detection level is high.
+
+
+32aab3b0b321be5e050bcbba540c81fd661124c0
+
+    Fix false sharing between head and tail reference in MpscLinkedQueue
+    
+    Motivation:
+    
+    The tail node reference writes (by producer threads) are very likely to
+    invalidate the cache line holding the headRef which is read by the
+    consumer threads in order to access the padded reference to the head
+    node. This is because the resulting layout for the object is:
+    
+    - header
+    - Object AtomicReference.value -> Tail node
+    - Object MpscLinkedQueue.headRef -> PaddedRef -> Head node
+    
+    This is 'passive' false sharing where one thread reads and the other
+    writes.  The current implementation suffers from further passive false
+    sharing potential from any and all neighbours to the queue object as no
+    pre/post padding is provided for the class fields.
+    
+    Modifications:
+    
+    Fix the memory layout by adding pre-post padding for the head node and
+    putting the tail node reference in the same object.
+    
+    Result:
+    
+    Fixed false sharing
+
+
+061cb216899f1c091afe81b0906a22e9937096e7
+
+    Make use of AtomicLongFieldUpdater.addAndGet(...) for cleaner code
+    
+    Motivation:
+    
+    The code in ChannelOutboundBuffer can be simplified by using AtomicLongFieldUpdater.addAndGet(...)
+    
+    Modification:
+    
+    Replace our manual looping with AtomicLongFieldUpdater.addAndGet(...)
+    
+    Result:
+    
+    Cleaner code
+
+
+d1b90774bc591225688902a3e5209b6509d74380
+
+    Clean up MpscLinkedQueue, fix its leak, and make it work without Unsafe
+    
+    Motivation:
+    
+    MpscLinkedQueue has various issues:
+    - It does not work without sun.misc.Unsafe.
+    - Some field names are confusing.
+      - Node.tail does not refer to the tail node really.
+      - The tail node is the starting point of iteration. I think the tail
+        node should be the head node and vice versa to reduce confusion.
+    - Some important methods are not implemented (e.g. iterator())
+    - Not serializable
+    - Potential false cache sharing problem due to lack of padding
+    - MpscLinkedQueue extends AtomicReference and thus exposes various
+      operations that mutates the internal state of the queue directly.
+    
+    Modifications:
+    
+    - Use AtomicReferenceFieldUpdater wherever possible so that we do not
+      use Unsafe directly. (e.g. use lazySet() instead of putOrderedObject)
+    - Extend AbstractQueue to implement most operations
+    - Implement serialization and iterator()
+    - Rename tail to head and head to tail to reduce confusion.
+    - Rename Node.tail to Node.next.
+    - Fix a leak where the references in the removed head are not cleared
+      properly.
+    - Add Node.clearMaybe() method so that the value of the new head node
+      is cleared if possible.
+    - Add some comments for my own educational purposes
+    - Add padding to the head node
+      - Add FullyPaddedReference and RightPaddedReference for future reuse
+    - Make MpscLinkedQueue package-local so that a user cannot access the
+      dangerous yet public operations exposed by the superclass.
+      - MpscLinkedQueue.Node becomes MpscLinkedQueueNode, a top level class
+    
+    Result:
+    
+    - It's more like a drop-in replacement of ConcurrentLinkedQueue for the
+      MPSC case.
+    - Works without sun.misc.Unsafe
+    - Code potentially easier to understand
+    - Fixed leak (related: #2372)
+
+
+a79b69adf5abf90250f44ccf0d9645bf30cdff62
+
+    ChannelFlushPromiseNotifier should allow long value for pendingDataSize
+    
+    Motivation:
+    At the moment ChannelFlushPromiseNotifier.add(....) takes an int value for pendingDataSize, which may be too small as a user may need to use a long. This can for example be useful when a user writes a FileRegion etc. Beside this the notify* method names are kind of missleading as these should not contain *Future* because it is about ChannelPromises.
+    
+    Modification:
+    Add a new add(...) method that takes a long for pendingDataSize and @deprecated the old method. Beside this also @deprecated all *Future* methods and add methods that have *Promise* in the method name to better reflect usage.
+    
+    Result:
+    ChannelFlushPromiseNotifier can be used with bigger data.
+
+
+5ce410c69e9b2aed881693b41c5583105b004b9f
+
+    Future compatibility with TLS ALPN
+    
+    Motivation:
+    
+    According to TLS ALPN draft-05, a client sends the list of the supported
+    protocols and a server responds with the selected protocol, which is
+    different from NPN.  Therefore, ApplicationProtocolSelector won't work
+    with ALPN
+    
+    Modifications:
+    
+    - Use Iterable<String> to list the supported protocols on the client
+      side, rather than using ApplicationProtocolSelector
+    - Remove ApplicationProtocolSelector
+    
+    Result:
+    
+    Future compatibility with TLS ALPN
+
+
+2d9e0f53a5059765f5f5976472440c0a2fec848d
+
+    Better implementation of AttributeMap and also add hasAttr(...). See [#2439]
+    
+    Motivation:
+    The old DefaultAttributeMap impl did more synchronization then needed and also did not expose a efficient way to check if an attribute exists with a specific key.
+    
+    Modifications:
+    * Rewrite DefaultAttributeMap to not use IdentityHashMap and synchronization on the map directly. The new impl uses a combination of AtomicReferenceArray and synchronization per chain (linked-list). Also access the first Attribute per bucket can be done without any synchronization at all and just uses atomic operations. This should fit for most use-cases pretty weel.
+    * Add hasAttr(...) implementation
+    
+    Result:
+    It's now possible to check for the existence of a attribute without create one. Synchronization is per linked-list and the first entry can even be added via atomic operation.
+
+
+d8d822fddd34dedbeec5a78a9b880a90080a4db4
+
+    Eliminate unnecessary extra synchronization in DefaultChannelPipeline
+    
+    Motivation:
+    At the moment whenever we add/remove a ChannelHandler with an EventExecutorGroup we have two synchronization points in the execution path. One to find the childInvoker and one for add/remove itself. We can eliminate the former by call findIInvoker in the synchronization block, as we need to synchronize anyway.
+    
+    Modification:
+    Remove the usage of AtomicFieldUpdater and the extra synchronization in findInvoker by moving the call of the method in the synchronized(this) block.
+    
+    Result:
+    Less synchronization points and volatile reads/writes
+
+
+a31f36d9331abac1125f397cde8cdcdf6c2cbcf8
+
+    Stop ThreadLocalRandom's initial seed generation immediately on interruption
+    
+    Motivation:
+    
+    ThreadLocalRandomTest reveals that ThreadLocalRandom's initial seed generation loop becomes tight if the thread is interrupted.
+    We currently interrupt ourselves inside the wait loop, which will raise an InterruptedException again in the next iteration, resulting in infinite (up to 3 seconds) exception construction and thread interruptions.
+    
+    Modification:
+    
+    - When the initial seed generator thread is interrupted, break out of the wait loop immediately.
+    - Log properly when the initial seed generation failed due to interruption.
+    - When failed to generate the initial seed, interrupt the generator thread just in case the SecureRandom implementation handles it properly.
+    - Make the initial seed generator thread daemon and handle potential exceptions raised due to the interruption.
+    
+    Result:
+    
+    No more tight loop on interruption.  More robust generator thread termination. Fixes #2412
+
+
+110878fe2c86cf07100dfbb3e97701e94107c915
+
+    Fixing CorsConfigTest failure under Java 8.
+    
+    Motivation:
+    When running the build with Java 8 the following error occurred:
+    
+    java: reference to preflightResponseHeader is ambiguous
+      both method
+      <T>preflightResponseHeader(java.lang.CharSequence,java.lang.Iterable<T>)
+      in io.netty.handler.codec.http.cors.CorsConfig.Builder and method
+      <T>preflightResponseHeader(java.lang.String,java.util.concurrent.Callable<T>)
+      in io.netty.handler.codec.http.cors.CorsConfig.Builder match
+    
+    The offending class was CorsConfigTest and its shouldThrowIfValueIsNull
+    which contained the following line:
+    withOrigin("*").preflightResponseHeader("HeaderName", null).build();
+    
+    Modifications:
+    Updated the offending method with to supply a type, and object array, to
+    avoid the error.
+    
+    Result:
+    After this I was able to build with Java 7 and Java 8
+
+
+74f418bace1bb905ddeff3256c0553d21f884f98
+
+    Adding support for specifying preflight response headers.
+    
+    Motivation:
+    
+    An intermediary like a load balancer might require that a Cross Origin
+    Resource Sharing (CORS) preflight request have certain headers set.
+    As a concrete example the Elastic Load Balancer (ELB) requires the
+    'Date' and 'Content-Length' header to be set or it will fail with a 502
+    error code.
+    
+    This works is an enhancement of https://github.com/netty/netty/pull/2290
+    
+    Modifications:
+    
+    CorsConfig has been extended to make additional HTTP response headers
+    configurable for preflight responses. Since some headers, like the
+    'Date' header need to be generated each time, m0wfo suggested using a
+    Callable.
+    
+    Result:
+    
+    By default, the 'Date' and 'Content-Lenght' headers will be sent in a
+    preflight response. This can be overriden and users can specify
+    any headers that might be required by different intermediaries.
+
+
+2215ed0a353f8a63b8962a911f507d2dbb0969b5
+
+    Use SecureRandom.generateSeed() to generate ThreadLocalRandom's initialSeedUniquifier
+    
+    Motivation:
+    
+    Previously, we used SecureRandom.nextLong() to generate the initialSeedUniquifier.  This required more entrophy than necessary because it has to 1) generate the seed of SecureRandom first and then 2) generate a random long integer.  Instead, we can use generateSeed() to skip the step (2)
+    
+    Modifications:
+    
+    Use generateSeed() instead of nextLong()
+    
+    Result:
+    
+    ThreadLocalRandom requires less amount of entrphy to start up
+
+
+16a85e6cca46cfdcfe07c9e76a3b935c72c5ec1d
+
+    [#2307] Remove synchronized bottleneck in SingleThreadEventExecutor.execute(...)
+    
+    Motivation:
+    Remove the synchronization bottleneck in startThread() which is called by each execute(..) call from outside the EventLoop.
+    
+    Modifications:
+    Replace the synchronized block with the use of AtomicInteger and compareAndSet loops.
+    
+    Result:
+    Less conditions during SingleThreadEventExecutor.execute(...)
+
+
+69d3cf5539587554af76e100b75b9976b16b7941
+
+    [#2308] Use SelectorProvider.open*() to open NIO channels and so remove condition when create new NIO channels.
+    
+    Motivation:
+    At the moment we use SocketChannel.open(), ServerSocketChannel.open() and DatagramSocketChannel.open(...) within the constructor of our
+    NIO channels. This introduces a bottleneck if you create a lot of connections as these calls delegate to SelectorProvider.provider() which
+    uses synchronized internal. This change removed the bottleneck.
+    
+    Modifications:
+    Obtain a static instance of the SelectorProvider and use SelectorProvider.openSocketChannel(), SelectorProvider.openServerSocketChannel() and
+    SelectorProvider.openDatagramChannel(). This eliminates the bottleneck as SelectorProvider.provider() is not called on every channel creation.
+    
+    Result:
+    Less conditions when create new channels.
+
+
+eb308cfff66a6264d3eaf81aca28b918cb8fce1e
+
+    ability to use Executor instead of ThreadFactory
+
+
+9bee78f91c46bfe7f7e4049b568dc13675d4b611
+
+    Provide an optimized AtomicIntegerFieldUpdater, AtomicLongFieldUpdater and AtomicReferenceFieldUpdater
+
+
+bc21443ea904ba37f46c1fb3b9ab99322e3bbb0d
+
+    Fix a regression in SslHandler where delegated tasks run in a different executor makes the session hang
+    
+    - Fixes #2098
+    - Deprecate specifying an alternative Executor for delegated tasks for SslHandler
+
+
+8142aae765b74ba7934b363b562a5ffe4a01a12c
+
+    Improve the randomness of ThreadLocalRandom for all platform
+    
+    - Fixes #1765
+    Java 6 did a poor job of generating seedUniquifier unlike 7, so I implemented platform-independent seedUniquifier generator with configurability
+
+
+4222610b2aae92414eed176fe39989cbb5c4515f
+
+    Remove synchronized in SPDY code
+
+
+6ce8571df3eeae593fd71e53354c04edc023b66c
+
+    [#1668] Remove synchronized usage in JZlibEncoder and JdkZlibEncoder
+
+
+2b2f8db5d2555ce359f0b47c1680590cf37b9f9e
+
+    Use ThreadLocalRandom where possible
+
+
+70df5a6f63a89c6de4afbf64774a5ddb66557985
+
+    Add ThreadLocalRandom back because it's used by ForkJoinPool now.
+
+
+79e236dfc2eebbe025b80bc7b410609c548c8bad
+
+    Make EventExecutor.shutdownGracefully() return Future
+    
+    - Also added EventExecutor.terminationFuture()
+    - Also fixed type signature problem with Future.add/removeListener()
+    - Related issue: #1389
+
+
+7a5cf48b8decf2a37a4b2de685e1101bb79c222a
+
+    Implement Promise/Future cancellation properly for outbound traffic
+    
+    - Related issue: #1432
+    - Make sure the Promise of a write operation is not cancellable before writing out
+
+
+41af9a1eb3f9e5c814cc668736a006ee2593b325
+
+    Implement cancellation properly for Promise/Future
+    
+    - Related issue: #1432
+    - Add Future.isCancellable()
+    - Add Promise.setUncancellable() which is meant to be used for the party that runs the task uncancellable once started
+    - Implement Future.isCancelled() and Promise.cancel(boolean) properly
+
+
+e1a378aa03034541c1269eab4077743f02ec845f
+
+    Clean up DefaultChannelPipelineTest
+    
+    - Use the local transport in a correct way (i.e. no need to trigger channelActive et al by ourselves)
+    - Use Promise/Future instead of CountDownLatch where they simplifies
+
+
+96bf71e814c2d7024d38cdeb8dc05a627670f09a
+
+    Let EventExecutorGroup extend ScheduledExecutorService as it shares quite some semantic
+
+
+ce87b627be941e3dc56e85164088ab68f80188db
+
+    Let EventExecutor return our Future to allow the user to work also with FutureListener here. Also add a special ScheduledFuture that extends our Future for this purpose.
+
+
+88cc8c17392502e037cd1d893a8b74c222d4a287
+
+    [#1065] Provide Future/Promise without channel reference
+
+
+1eafffbec57dded19909fb83b7a17e91cb648f4c
+
+    Use thread-local map instead of ConcurrentHashMap for faster instantiation of handler adapters
+
+
+1bb003d9ae31ca0fa52cc115feb9116b5f78b401
+
+    [#995] Replace AtomicReference usage with AtomicReferenceFieldUpdater
+    
+    This will safe as an example 2gb mem when have 10 DefaultHandlerContext instances per connection and the connection count is 1000000.
+    Also kind of related to [#920]
+
+
+54af70f0674f93d76d399701da1a0f03647d4bac
+
+    Bootstrap thread safety
+    
+    Changed options and attrs from LinkedHashMap to ConcurrentHashMap to
+    avoid a possible ConcurrentModificationException if a thread was
+    adding/removing options/attrs while another was calling Bootstrap.init()
+    or Bootstrap.duplicate()
+
+
+94dc09c33d41135c62ad524fd88ff580ff5b7639
+
+    Tighten up visibility as the user should use Channel.new*Future
+
+
+11c742f392d9168a095f2bee2068f249b2ea539e
+
+    [#59] Make ChannelFuture implement Future<Void>
+
+
+f75ba72aeb4f21f5f39215c0900b261b9f22a9fa
+
+    Allow using non-BlockingQueue
+    
+    - NioEventLoop never uses takeTask(), and ConcurrentLinkedList is faster
+      than LinkedBlockingQueue
+
+
+421eabe666f5eb3c760c757e991e4f37213f7333
+
+    [#473] Fix elevated context switching in SingleThreadEventExecutor
+    
+    - Remove polling in SingleThreadEventExecutor
+    - Create a dedicated scheduled task scheduler called 'TaskScheduler'
+    - TaskScheduler is created per EventLoopGroup / EventExecutorGroup
+    - SingleThreadEventExecutor delegates all scheduled execution requests
+      to TaskScheduler provided as a constructor parameter
+    - TaskScheduler is a specialized form of single threaded
+      ScheduledExecutorService which requires an EventExecutor as a
+      parameter for all requests.
+
+
+d2987071982a9f54c03a67cab780320cbf72763a
+
+    [#502] Split EventLoop/EventExecutor into parent and children
+    
+    - Add EventExecutorGroup and EventLoopGroup
+    - EventExecutor and EventLoop extends EventExecutorGroup and
+      EventLoopGroup
+      - They form their own group so that .next() returns itself.
+    - Rename Bootstrap.eventLoop() to group()
+    - Rename parameter names such as executor to group
+    - Rename *EventLoop/Executor to *EventLoop/ExecutorGroup
+    - Rename *ChildEventLoop/Executor to *EventLoop/Executor
+
+
+ba1c7c5c550fec36b37d2d8bac1674620ab30c99
+
+    Replace usage of QueueFactory with ConcurrentLinkedQueue and LinkedBlockingQueue. See #477
+
+
+31cebd7ce28764e0c519a8298c71b2bad3333ef0
+
+    No need for AtomicBoolean as we run in the eventloop. See #396
+
+
+ecea558e0378c780c0e7a8a92ee0650ece6cddd0
+
+    Add missing synchronized
+
+
+ba4736f33b9c553d161b1e4e78d44a9eccd4e24d
+Date:   Sun May 20 08:36:28 2012 -0700
+
+    Merge pull request #350 from fredericBregier/master
+    
+    Change Executor to Timer from Netty, in reference to Issue #345 in master branch
+
+
+83026f29a41f6f1feb4047ea51d390738674e1a8
+
+    Make EventLoop a ScheduledExecutorService
+    
+    - SingleThreadEventLoop now implements ScheduledExecutorService
+      - Scheduled tasks are automatically fetched into taskQueue by
+        pollTask() and takeTask()
+    - Removed MapBackedSet because Java 6 provides it
+
+
+b3b5fb1de66fd1290015998d7d4d836bce3e8594
+
+    Fallback to LegacyLinkedTransferQueue if using LinkedTransferQueue fails. See #268
+
+
+33c085b9b9a27f442e762a0234a27bd6afe5169e
+
+    Make sure Future get notified before event is fired. See #254
+
+
+778f4a3cbcb203a47fb5400c268481809e20770d
+
+    Make sure Future get notified before event is fired. See #254
+
+
+549546f944a6cdb0cfe03b1d7fa8aad0dafd7e15
+
+    Remove the child Executor with the right method so it will also work
+    when the channel is not the key.See #175
+
+
+af730c11f97d0baa321ea8fa782adfab577e5a59
+
+    Merge seda implementation with "generic" Executor. See #111
+
+
+75a641463922a15e54471bb760b2ed8c190f155f
+
+    Add FineGrainedSedaExecutor which makes it easy to use different
+    Executors for different events. The idea is the same is in
+    SimpleChannelHandler. See #111
+
+
+5c4702245c5c5eb4aca27595fb077627324e7e66
+
+    Start to add handler for simple SEDA support. This handler supports to
+    offload upstream and downstream events. The SedaExecutor is responsible
+    for offload the events to different Executors. See #111
+
+
+5cb865c4ce265b0a573965315a2b0c37ff024145
+
+    Use AtomicInteger.class ClassLoader for Unsafe dection. See #102
+
+
+766525431dc34cc5634ad76412b0780f5051addf
+
+    Rename the old LinkedTransferQueue to LegacyLinkedTransferQueue and fork
+    the "current" implementation of LinkedTransferQueue (from Doug Lea).
+    Introduce a QueueFactory which will load the right implementation
+    depending on the JVM version. This will make sure that the one with the
+    best performance is choosen and the code also works with java 5. See
+    #102
+
+
+2a0a63e1bb4627c2f503c43cf524c68565c0b205
+
+    Remove the usage of AtomicLong as this only confuse users. The Handler
+    is not suited for re-use anyway. See #93
+
+
+9d3828bbe91d7bc7aad6e34c719c4591593be84d
+
+    Use LinkedTransferQueue for OMATPE
+
+
+d1919d0e142208f7251815bdf06b188697fa4efd
+
+    Fixed NETTY-336 Fine-grained control over thread renaming
+    
+    Removed ThreadNameDeterminer and ThreadRenamingRunnable completely and let user specify the Executor with one's own ThreadFactory
+
+
+a2ef43cf3dea5c555a4c709932bee5b8766a5fbb
+
+    Streamline LinkedTransferQueue.isEmpty()
+
+
+a462d0e85e9f0712fc750856bf3946900505d0eb
+
+    Removed volatile from some internal state member variables in decoders because they are always either:
+    1) modified from the same threads or
+    2) protected by happens-before condition that is met by Executor's internal synchronization constructs
+
+
+aa8e48df9ff26ff5b81bdbdb53b29f80494b288b
+
+    Removed 'volatile' from the member variables that are protected by ThreadPoolExecutor's BlockingQueue operations
+
+
+e8c320c6c31237d0c930ea1c6d77d4bd5f691e4f
+
+    * Removed 'volatile' from the member variables that are protected by synchronized (this) block
+    * Updated comments regarding thread safety
+
+
+686ef795f904da5ec4a8be063852ceaf9b099b86
+
+    * Added NonReentrantLock
+    * Replaced ReentrantLock or monitor object with NonReentrantLock
+
+
+397107adc0ee34c07df76003033244e5168c7e52
+
+    * Removed unused methods in ThreadLocalRandom
+    * Hide ThreadLocalRandom because it's used by LinkedTransferQueue only
+
+
+3ff8cd46c99f92beca4573111293a22e32ef65bf
+
+    * Backported LinkedTransferQueue from the latest upstream revision (1.71)
+    ** Replaced the use of sun.misc.Unsafe with Atomic*FieldUpdater
+    ** Added ThreadLocalRandom
+
+
+974a18568ab5f5680da376c5ea109a5a39054739
+
+    Backported the changes (~ 1.44) in LinkedTransferQueue from the upstream
+
+
+d963f4c0467d6a5f059365e1d7735c05de499c14
+
+    Backported upstream updates for LinkedTransferQueue (NETTY-181)
+
+
+06d5f5264ee315e573148cf92daf158fcf13aba7
+
+    LocalChannelREgistry should use ConcurrentHashMap
+
+
+67d90615e142c6b9af487cf47b6f0f375c66c836
+
+    Wishful fix for NETTY-115 AccessControlException when running Netty from an Applet
+    * AtomicReferenceFieldUpdater is used only when it's permitted to be used.
+
+
+75d9358c03d354d3efa404fc50734eba56369aa6
+
+    Removed unnecessary synchronized modifier
+
+
+78f8e5b0c921a32d1856c9a3d00f5b6c61206ac6
+
+    * Changed HashedWheelTimer to accept ThreadFactory instead of Executor - this change simplifies the code significantly
+    * Added Timer.stop() method
+    * Timer does not implement ExternalResourceReleasable anymore
+
+
+a176ae4f3cad3d817e632d626a94ee2f880104f4
+
+    Replaced ConcurrentHashMap with ConcurrentIdentityHashMap wherever possible
+
+
+b2d27d3b69e6d9d879ec7922128be49abdf8347c
+
+    * Added alternative implementations of ConcurrentHashMap and replaced existing references to java.util.concurrent.ConcurrentHashMap with them
+    * Added ReusableIterator to avoid Iterator creation overhead
+    * Optimized HashedWheelTimer
+
+
+5a2491576cba2f4f9fac69869c628d823fd2478f
+
+    * Introduced a common interface 'ExternalResourceReleasable'
+    * All types that depend on an external resource (e.g. Executor specified in the constructor) implements ExternalResourceReleasable now
+    * EmbeddedChannelFactory.releaseExternalResources() shouldn't throw an exception.
+
+
+f7e7d8f52417eac4b379df67daaa925de9a91c97
+
+    Workaround for NPE on ExecutorService.shutdownNow()
+
+
+57b2d9a443d52a20777d92998af81f25281010c4
+
+    Fixed issue: NETTY-65 (Intermittent high CPU consumption in LinkedTransferQueue)
+    * Applied the latest upstream fix
+
+
+b876bd8cec3d6f403a577e0094e992b8ab0a9687
+
+    Added a potential fix for infinite loop in LinkedTransferQueue.clean()
+
+
+dae3b05ebb6c5ebd188c2dcb5d485967504c0900
+
+    Replaced FastQueue with LinkedTransferQueue
+
+
+6d372c367b400be5455744e184eb3858e5048781
+
+    Added LinkedTransferQueue
+
+
+22d79a501d85a1a0d6e22859c335fa09c0a11c9b
+
+    Replaced ConcurrentLinkedQueue with LinkedBlockingQueue in NioSocketChannel
+
+
+Project:             netty
+Commit count:        7759
+Related commit count 1009
+
+Process finished with exit code 0
+

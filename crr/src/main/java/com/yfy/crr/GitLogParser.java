@@ -21,9 +21,9 @@ public class GitLogParser {
 
   private Db db;
 
-  private String project, projectDir;
+  private String project, projectDir, commitId;
 
-  private int crFileCount, fileCount;
+  private int crFileCount, fileCount, relatedCommitCount;
 
   public GitLogParser() throws Exception {
     db = new Db();
@@ -31,7 +31,7 @@ public class GitLogParser {
 
   public void parseAll() throws Exception {
     parse("hadoop"); // 21m 35m
-    //parse("flink"); // 18m
+    parse("flink"); // 18m
     parse("tomcat"); // 5m
     parse("mahout"); // 4m
     parse("cassandra"); // 9m
@@ -41,6 +41,7 @@ public class GitLogParser {
   }
 
   private void parse(String project) throws Exception {
+    relatedCommitCount = 0;
     Util.log(project);
     this.project = project;
     //db.createTable(project);
@@ -67,28 +68,54 @@ public class GitLogParser {
 //        System.out.println(msg);
         //getModifiedFiles(commit.name());
         //showDiff(commit.name());
-        feature(commit);
+        feature(commit.name());
       }
     }
     Util.log("Project:             " + project);
     Util.log("Commit count:        " + commitCount);
-    Util.log("Modified file count: " + fileCount);
-    Util.log("Selected file count: " + crFileCount);
+    Util.log("Related commit count " + relatedCommitCount);
+//    Util.log("Modified file count: " + fileCount);
+//    Util.log("Selected file count: " + crFileCount);
     db.commit();
   }
 
-  private void feature(RevCommit commit) throws Exception {
-    String message = commit.getFullMessage();
-    String[] words = message.split("\\s");
-    codeFeature(commit.name());
-  }
-
-  private void codeFeature(String commitId) throws Exception {
+  private void feature(String commitId) throws Exception {
+    this.commitId = commitId;
     String cmd = "git show " + commitId;
     BufferedReader br = Execute.execWithOutput(cmd, projectDir);
     List<String> lines = br.lines().collect(Collectors.toList());
+
+    Feature f = new Feature();
+    textFeature(lines, f);
+    codeFeature(lines, f);
+    if (f.related()) relatedCommitCount++;
+  }
+
+  private void textFeature(List<String> lines, Feature feature) {
+    int i, j;
+    for (i = 0; i < lines.size(); i++)
+      if (lines.get(i).startsWith("diff --")) break;
+    String message = "";
+    for (j = 3; j < i; j++)
+      message += lines.get(j) + '\n';
+
+    String[] words = message.split("\\b");
+    int keyNum = 0;
+    for (String word : words) {
+      for (String key : ConcurrentKeywords.list)
+        if (word.equals(key)) keyNum++;
+    }
+    feature.msgKey = keyNum;
+    if (keyNum > 0) {
+      //Util.log(keyNum);
+      Util.log(commitId);
+      Util.log(message);
+    }
+  }
+
+  private void codeFeature(List<String> lines, Feature feature) throws Exception {
     int fileNum = 0, hunkNum = 0, lineAdd = 0, lineRemove = 0,
-        keyAdd = 0, keyRemove = 0;
+        keyAdd = 0, keyRemove = 0, contextKey = 0;
     boolean isJava = false, isHunk = false;
     for (String line : lines) {
       if (line.startsWith("diff --git ")) {
@@ -101,20 +128,25 @@ public class GitLogParser {
           isHunk = true;
         }
         if (isHunk) {
-          String[] words = line.split("\\b");
+          String[] words;
+          if (line.length() == 0) continue;
+          words = line.substring(1, line.length()).split("\\b|\\s");
+          if (isIgnore(words)) continue;
           //Util.log(words.length);
           int keyNum = 0;
           for (String word : words) {
             for (String key : ConcurrentKeywords.list)
               if (word.equals(key)) keyNum++;
           }
-          if (line.startsWith("+")) {
+          if (line.charAt(0) == '+') {
             lineAdd++;
             keyAdd += keyNum;
           }
-          else if (line.startsWith("-")) {
+          else if (line.charAt(0) == '-') {
             lineRemove++;
             keyRemove += keyNum;
+          } else {
+            contextKey += keyNum;
           }
         }
       }
@@ -123,8 +155,34 @@ public class GitLogParser {
     int lineSum = lineAdd + lineRemove;
     int keySub = Math.abs(keyAdd - keyRemove);
     int keySum = keyAdd + keyRemove;
-    System.out.printf("fileNum:%d hunkNum:%d lineAdd:%d lineRemove:%d keyAdd:%d keyRemove:%d\n",
-        fileNum, hunkNum, lineAdd, lineRemove, keyAdd, keyRemove);
+//    System.out.printf("fileNum:%d hunkNum:%d lineAdd:%d lineRemove:%d keyAdd:%d keyRemove:%d contextKey: %d\n",
+//        fileNum, hunkNum, lineAdd, lineRemove, keyAdd, keyRemove, contextKey);
+    feature.file = fileNum;
+    feature.hunk = hunkNum;
+    feature.lineAdd = lineAdd;
+    feature.lineRemove = lineRemove;
+    feature.lineSub = lineSub;
+    feature.lineSum = lineSum;
+    feature.keyAdd = keyAdd;
+    feature.keyRemove = keyRemove;
+    feature.keySub = keySub;
+    feature.keySum = keySum;
+    feature.contextKey = contextKey;
+  }
+
+  private boolean isIgnore(String[] words) {
+    for (String word : words) {
+      if (isEmpty(word)) continue;
+      return word.equals("//") || word.equals("*") || word.equals("import");
+    }
+    return false;
+  }
+
+  private boolean isEmpty(String word) {
+    for (int i = 0; i < word.length(); i++)
+      if (word.charAt(i) != ' ' || word.charAt(i) != '\t')
+        return false;
+    return true;
   }
 
   private void showDiff(String commitId) throws Exception {

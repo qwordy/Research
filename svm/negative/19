@@ -1,0 +1,138 @@
+commit dd8b7ae9d884ea22a68800fb0f8a1a991ac80834
+Author: Tsz-wo Sze <szetszwo@apache.org>
+Date:   Thu May 3 23:33:44 2012 +0000
+
+    HDFS-3350. In INode, add final to compareTo(..), equals(..) and hashCode(), and remove synchronized from updatePermissionStatus(..).
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1333679 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+index 913684a..7d53324 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
++++ b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+@@ -594,6 +594,9 @@ Release 2.0.0 - UNRELEASED
+ 
+     HDFS-3359. DFSClient.close should close cached sockets. (todd)
+ 
++    HDFS-3350. In INode, add final to compareTo(..), equals(..) and hashCode(),
++    and remove synchronized from updatePermissionStatus(..).  (szetszwo)
++
+   BREAKDOWN OF HDFS-1623 SUBTASKS
+ 
+     HDFS-2179. Add fencing framework and mechanisms for NameNode HA. (todd)
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/INode.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/INode.java
+index cdad315..2bc049d 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/INode.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/INode.java
+@@ -30,6 +30,8 @@
+ import org.apache.hadoop.hdfs.server.blockmanagement.BlockInfo;
+ import org.apache.hadoop.util.StringUtils;
+ 
++import com.google.common.primitives.SignedBytes;
++
+ /**
+  * We keep an in-memory representation of the file/block hierarchy.
+  * This is a base INode class containing common fields for file and 
+@@ -143,8 +145,7 @@ protected void setPermissionStatus(PermissionStatus ps) {
+   protected PermissionStatus getPermissionStatus() {
+     return new PermissionStatus(getUserName(),getGroupName(),getFsPermission());
+   }
+-  private synchronized void updatePermissionStatus(
+-      PermissionStatusFormat f, long n) {
++  private void updatePermissionStatus(PermissionStatusFormat f, long n) {
+     permission = f.combine(n, permission);
+   }
+   /** Get user name */
+@@ -400,48 +401,30 @@ boolean removeNode() {
+     }
+   }
+ 
+-  //
+-  // Comparable interface
+-  //
+-  public int compareTo(byte[] o) {
+-    return compareBytes(name, o);
++  private static final byte[] EMPTY_BYTES = {};
++
++  @Override
++  public final int compareTo(byte[] bytes) {
++    final byte[] left = name == null? EMPTY_BYTES: name;
++    final byte[] right = bytes == null? EMPTY_BYTES: bytes;
++    return SignedBytes.lexicographicalComparator().compare(left, right);
+   }
+ 
+-  public boolean equals(Object o) {
+-    if (!(o instanceof INode)) {
++  @Override
++  public final boolean equals(Object that) {
++    if (this == that) {
++      return true;
++    }
++    if (that == null || !(that instanceof INode)) {
+       return false;
+     }
+-    return Arrays.equals(this.name, ((INode)o).name);
++    return Arrays.equals(this.name, ((INode)that).name);
+   }
+ 
+-  public int hashCode() {
++  @Override
++  public final int hashCode() {
+     return Arrays.hashCode(this.name);
+   }
+-
+-  //
+-  // static methods
+-  //
+-  /**
+-   * Compare two byte arrays.
+-   * 
+-   * @return a negative integer, zero, or a positive integer 
+-   * as defined by {@link #compareTo(byte[])}.
+-   */
+-  static int compareBytes(byte[] a1, byte[] a2) {
+-    if (a1==a2)
+-        return 0;
+-    int len1 = (a1==null ? 0 : a1.length);
+-    int len2 = (a2==null ? 0 : a2.length);
+-    int n = Math.min(len1, len2);
+-    byte b1, b2;
+-    for (int i=0; i<n; i++) {
+-      b1 = a1[i];
+-      b2 = a2[i];
+-      if (b1 != b2)
+-        return b1 - b2;
+-    }
+-    return len1 - len2;
+-  }
+   
+   /**
+    * Create an INode; the inode's name is not set yet
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/INodeDirectory.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/INodeDirectory.java
+index 0f1a8a2..72f7b44 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/INodeDirectory.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/INodeDirectory.java
+@@ -173,9 +173,9 @@ INode getNode(String path, boolean resolveLink)
+    */
+   int getExistingPathINodes(byte[][] components, INode[] existing, 
+       boolean resolveLink) throws UnresolvedLinkException {
+-    assert compareBytes(this.name, components[0]) == 0 :
+-      "Incorrect name " + getLocalName() + " expected " + 
+-      DFSUtil.bytes2String(components[0]);
++    assert this.compareTo(components[0]) == 0 :
++        "Incorrect name " + getLocalName() + " expected "
++        + (components[0] == null? null: DFSUtil.bytes2String(components[0]));
+ 
+     INode curNode = this;
+     int count = 0;
+@@ -317,8 +317,7 @@ INodeDirectory addToParent( byte[] localname,
+                               INode newNode,
+                               INodeDirectory parent,
+                               boolean propagateModTime
+-                              ) throws FileNotFoundException, 
+-                                       UnresolvedLinkException {
++                              ) throws FileNotFoundException {
+     // insert into the parent children list
+     newNode.name = localname;
+     if(parent.addChild(newNode, propagateModTime) == null)

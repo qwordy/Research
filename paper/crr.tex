@@ -329,6 +329,14 @@ Java concurrent package is a common-used concurrent libraries which provide many
 \textbf{Clustering}
 We believe that similar program pieces tend to have some similar changes in commit histories. Program pieces are clustered into several group based on concurrent keywords which are class name and interface name from the java concurrent package and 'synchronize'. We use a tfidf model to build a numeric vector for each snippet then employ weka clustering tools including kmeans and em algorithms to cluster the extracted snippets.
 
+\section{Results}
+use readlock instead of synchronized block
+use new class in jdk7 ThreadLocalRandom
+guava cache or jdk concurrenthashmap
+atomicinteger, atomiclong, synchronized
+concurrentskiplistmap for performance
+atomicreference
+
 \section{Evaluation}
 
 \section{Related work}
