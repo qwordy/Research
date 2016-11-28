@@ -9,6 +9,7 @@ import java.util.List;
 public class ConcurrentKeywords {
   public static List<String> list = Arrays.asList(
       "synchronized",
+      "volatile",
 
       "BlockingDeque",
       "BlockingQueue",

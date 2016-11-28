@@ -42,7 +42,7 @@ public class CrrTest {
 
   @Test
   public void train() throws Exception {
-    new Train().train();
+    new Train();
   }
 
 }

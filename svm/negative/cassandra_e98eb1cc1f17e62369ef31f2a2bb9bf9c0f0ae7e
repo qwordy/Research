@@ -1,0 +1,4817 @@
+commit e98eb1cc1f17e62369ef31f2a2bb9bf9c0f0ae7e
+Author: Jonathan Ellis <jbellis@apache.org>
+Date:   Thu Dec 23 19:14:53 2010 +0000
+
+    organize imports according to code style
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/trunk@1052360 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/java/org/apache/cassandra/auth/AllowAllAuthority.java b/src/java/org/apache/cassandra/auth/AllowAllAuthority.java
+index 5677013..267b610 100644
+--- a/src/java/org/apache/cassandra/auth/AllowAllAuthority.java
++++ b/src/java/org/apache/cassandra/auth/AllowAllAuthority.java
+@@ -22,10 +22,8 @@ package org.apache.cassandra.auth;
+ 
+ import java.util.EnumSet;
+ import java.util.List;
+-import java.util.Map;
+ 
+ import org.apache.cassandra.config.ConfigurationException;
+-import org.apache.cassandra.thrift.AuthorizationException;
+ 
+ public class AllowAllAuthority implements IAuthority
+ {
+diff --git a/src/java/org/apache/cassandra/auth/Resources.java b/src/java/org/apache/cassandra/auth/Resources.java
+index d905376..6b64708 100644
+--- a/src/java/org/apache/cassandra/auth/Resources.java
++++ b/src/java/org/apache/cassandra/auth/Resources.java
+@@ -21,7 +21,6 @@
+ 
+ package org.apache.cassandra.auth;
+ 
+-import java.nio.ByteBuffer;
+ import java.util.List;
+ 
+ import org.apache.cassandra.utils.FBUtilities;
+diff --git a/src/java/org/apache/cassandra/auth/SimpleAuthenticator.java b/src/java/org/apache/cassandra/auth/SimpleAuthenticator.java
+index a8bfc5f..8e74afe 100644
+--- a/src/java/org/apache/cassandra/auth/SimpleAuthenticator.java
++++ b/src/java/org/apache/cassandra/auth/SimpleAuthenticator.java
+@@ -21,11 +21,14 @@ package org.apache.cassandra.auth;
+  */
+ 
+ 
+-import java.io.*;
++import java.io.BufferedInputStream;
++import java.io.FileInputStream;
++import java.io.IOException;
++import java.io.InputStream;
+ import java.security.MessageDigest;
+ import java.security.NoSuchAlgorithmException;
+-import java.util.Properties;
+ import java.util.Map;
++import java.util.Properties;
+ 
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.io.util.FileUtils;
+diff --git a/src/java/org/apache/cassandra/auth/SimpleAuthority.java b/src/java/org/apache/cassandra/auth/SimpleAuthority.java
+index d085d4c..ad218d6 100644
+--- a/src/java/org/apache/cassandra/auth/SimpleAuthority.java
++++ b/src/java/org/apache/cassandra/auth/SimpleAuthority.java
+@@ -21,7 +21,8 @@ package org.apache.cassandra.auth;
+  */
+ 
+ 
+-import java.io.*;
++import java.io.FileInputStream;
++import java.io.IOException;
+ import java.util.EnumSet;
+ import java.util.List;
+ import java.util.Properties;
+diff --git a/src/java/org/apache/cassandra/avro/AvroValidation.java b/src/java/org/apache/cassandra/avro/AvroValidation.java
+index d60854f..ffd4391 100644
+--- a/src/java/org/apache/cassandra/avro/AvroValidation.java
++++ b/src/java/org/apache/cassandra/avro/AvroValidation.java
+@@ -29,8 +29,8 @@ import java.util.Set;
+ import org.apache.avro.util.Utf8;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.db.ColumnFamily;
+-import org.apache.cassandra.db.IColumn;
+ import org.apache.cassandra.db.ColumnFamilyType;
++import org.apache.cassandra.db.IColumn;
+ import org.apache.cassandra.db.Table;
+ import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.db.marshal.MarshalException;
+diff --git a/src/java/org/apache/cassandra/avro/CassandraDaemon.java b/src/java/org/apache/cassandra/avro/CassandraDaemon.java
+index 280a0ea..460e1b0 100644
+--- a/src/java/org/apache/cassandra/avro/CassandraDaemon.java
++++ b/src/java/org/apache/cassandra/avro/CassandraDaemon.java
+@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
+ 
+ import org.apache.avro.ipc.ResponderServlet;
+ import org.apache.avro.specific.SpecificResponder;
+-import org.apache.cassandra.utils.Mx4jTool;
+ import org.mortbay.jetty.servlet.Context;
+ import org.mortbay.jetty.servlet.ServletHolder;
+ 
+diff --git a/src/java/org/apache/cassandra/avro/CassandraServer.java b/src/java/org/apache/cassandra/avro/CassandraServer.java
+index e926448..6ad1803 100644
+--- a/src/java/org/apache/cassandra/avro/CassandraServer.java
++++ b/src/java/org/apache/cassandra/avro/CassandraServer.java
+@@ -24,14 +24,7 @@ import java.io.ByteArrayOutputStream;
+ import java.io.IOException;
+ import java.io.UnsupportedEncodingException;
+ import java.nio.ByteBuffer;
+-import java.util.ArrayList;
+-import java.util.Arrays;
+-import java.util.Collection;
+-import java.util.Collections;
+-import java.util.HashMap;
+-import java.util.List;
+-import java.util.Map;
+-import java.util.Set;
++import java.util.*;
+ import java.util.concurrent.Callable;
+ import java.util.concurrent.ExecutionException;
+ import java.util.concurrent.Future;
+@@ -39,45 +32,34 @@ import java.util.concurrent.TimeoutException;
+ import java.util.zip.DataFormatException;
+ import java.util.zip.Inflater;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.antlr.runtime.RecognitionException;
+ import org.apache.avro.Schema;
+ import org.apache.avro.generic.GenericArray;
+ import org.apache.avro.generic.GenericData;
+ import org.apache.avro.ipc.AvroRemoteException;
+ import org.apache.avro.util.Utf8;
+-import org.apache.cassandra.concurrent.Stage;
+-import org.apache.cassandra.db.migration.DropKeyspace;
+-import org.apache.cassandra.db.migration.UpdateColumnFamily;
+-import org.apache.cassandra.db.migration.UpdateKeyspace;
+-import org.apache.cassandra.dht.*;
+-
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+ import org.apache.cassandra.auth.AllowAllAuthenticator;
+ import org.apache.cassandra.auth.Permission;
++import org.apache.cassandra.concurrent.Stage;
+ import org.apache.cassandra.concurrent.StageManager;
+-import org.apache.cassandra.config.CFMetaData;
+-import org.apache.cassandra.config.ColumnDefinition;
+-import org.apache.cassandra.config.ConfigurationException;
+-import org.apache.cassandra.config.DatabaseDescriptor;
+-import org.apache.cassandra.config.KSMetaData;
++import org.apache.cassandra.config.*;
+ import org.apache.cassandra.cql.QueryProcessor;
+ import org.apache.cassandra.db.*;
+ import org.apache.cassandra.db.filter.QueryPath;
+ import org.apache.cassandra.db.marshal.MarshalException;
+-import org.apache.cassandra.db.migration.AddColumnFamily;
+-import org.apache.cassandra.db.migration.AddKeyspace;
+-import org.apache.cassandra.db.migration.DropColumnFamily;
+-import org.apache.cassandra.db.migration.Migration;
++import org.apache.cassandra.db.migration.*;
++import org.apache.cassandra.dht.*;
+ import org.apache.cassandra.locator.AbstractReplicationStrategy;
+ import org.apache.cassandra.scheduler.IRequestScheduler;
+ import org.apache.cassandra.service.ClientState;
+ import org.apache.cassandra.service.StorageProxy;
+ import org.apache.cassandra.service.StorageService;
+ 
+-import static org.apache.cassandra.avro.AvroRecordFactory.*;
+ import static org.apache.cassandra.avro.AvroErrorFactory.*;
++import static org.apache.cassandra.avro.AvroRecordFactory.*;
+ 
+ public class CassandraServer implements Cassandra {
+     private static Logger logger = LoggerFactory.getLogger(CassandraServer.class);
+diff --git a/src/java/org/apache/cassandra/cache/InstrumentedCache.java b/src/java/org/apache/cassandra/cache/InstrumentedCache.java
+index 4443574..6f924ca 100644
+--- a/src/java/org/apache/cassandra/cache/InstrumentedCache.java
++++ b/src/java/org/apache/cassandra/cache/InstrumentedCache.java
+@@ -24,8 +24,8 @@ package org.apache.cassandra.cache;
+ import java.util.Set;
+ import java.util.concurrent.atomic.AtomicLong;
+ 
+-import com.googlecode.concurrentlinkedhashmap.Weighers;
+ import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
++import com.googlecode.concurrentlinkedhashmap.Weighers;
+ 
+ public class InstrumentedCache<K, V>
+ {
+diff --git a/src/java/org/apache/cassandra/cli/CliClient.java b/src/java/org/apache/cassandra/cli/CliClient.java
+index 2d29f54..7bd99fe 100644
+--- a/src/java/org/apache/cassandra/cli/CliClient.java
++++ b/src/java/org/apache/cassandra/cli/CliClient.java
+@@ -17,6 +17,9 @@
+  */
+ package org.apache.cassandra.cli;
+ 
++import java.nio.ByteBuffer;
++import java.util.*;
++
+ import com.google.common.base.Charsets;
+ 
+ import org.antlr.runtime.tree.Tree;
+@@ -31,10 +34,6 @@ import org.apache.thrift.TBaseHelper;
+ import org.apache.thrift.TException;
+ import org.safehaus.uuid.UUIDGenerator;
+ 
+-import java.math.BigInteger;
+-import java.nio.ByteBuffer;
+-import java.util.*;
+-
+ // Cli Client Side Library
+ public class CliClient extends CliUserHelp
+ {
+diff --git a/src/java/org/apache/cassandra/cli/CliCompiler.java b/src/java/org/apache/cassandra/cli/CliCompiler.java
+index 1f38a0c..cc7fd0c 100644
+--- a/src/java/org/apache/cassandra/cli/CliCompiler.java
++++ b/src/java/org/apache/cassandra/cli/CliCompiler.java
+@@ -18,13 +18,15 @@
+ 
+ package org.apache.cassandra.cli;
+ 
+-import org.antlr.runtime.*;
+-import org.antlr.runtime.tree.*;
+-import org.apache.cassandra.thrift.KsDef;
+-import org.apache.cassandra.thrift.CfDef;
+-
+ import java.util.List;
+ 
++import org.antlr.runtime.ANTLRStringStream;
++import org.antlr.runtime.CharStream;
++import org.antlr.runtime.CommonTokenStream;
++import org.antlr.runtime.tree.Tree;
++import org.apache.cassandra.thrift.CfDef;
++import org.apache.cassandra.thrift.KsDef;
++
+ 
+ public class CliCompiler
+ {
+diff --git a/src/java/org/apache/cassandra/cli/CliMain.java b/src/java/org/apache/cassandra/cli/CliMain.java
+index 1ca095e..18fbd69 100644
+--- a/src/java/org/apache/cassandra/cli/CliMain.java
++++ b/src/java/org/apache/cassandra/cli/CliMain.java
+@@ -18,6 +18,12 @@
+ 
+ package org.apache.cassandra.cli;
+ 
++import java.io.BufferedReader;
++import java.io.File;
++import java.io.FileReader;
++import java.io.IOException;
++import java.util.*;
++
+ import jline.ConsoleReader;
+ import jline.History;
+ import org.apache.cassandra.auth.SimpleAuthenticator;
+@@ -28,13 +34,6 @@ import org.apache.thrift.transport.TFramedTransport;
+ import org.apache.thrift.transport.TSocket;
+ import org.apache.thrift.transport.TTransport;
+ 
+-import java.io.*;
+-import java.util.Arrays;
+-import java.util.HashMap;
+-import java.util.HashSet;
+-import java.util.Map;
+-import java.util.Set;
+-
+ /**
+  * Cassandra Command Line Interface (CLI) Main
+  */
+diff --git a/src/java/org/apache/cassandra/cli/CliUserHelp.java b/src/java/org/apache/cassandra/cli/CliUserHelp.java
+index 3f3406b..6b1a32e 100644
+--- a/src/java/org/apache/cassandra/cli/CliUserHelp.java
++++ b/src/java/org/apache/cassandra/cli/CliUserHelp.java
+@@ -17,10 +17,10 @@
+  */
+ package org.apache.cassandra.cli;
+ 
+-import org.antlr.runtime.tree.Tree;
+-
+ import java.util.EnumMap;
+ 
++import org.antlr.runtime.tree.Tree;
++
+ /**
+  * @author Pavel A. Yaskevich
+  */
+diff --git a/src/java/org/apache/cassandra/cli/CliUtils.java b/src/java/org/apache/cassandra/cli/CliUtils.java
+index fe82def..1f646d6 100644
+--- a/src/java/org/apache/cassandra/cli/CliUtils.java
++++ b/src/java/org/apache/cassandra/cli/CliUtils.java
+@@ -1,11 +1,11 @@
+ package org.apache.cassandra.cli;
+ 
++import java.util.LinkedHashSet;
++import java.util.Set;
++
+ import org.apache.cassandra.thrift.CfDef;
+ import org.apache.cassandra.thrift.IndexOperator;
+ import org.apache.cassandra.thrift.KsDef;
+-
+-import java.util.LinkedHashSet;
+-import java.util.Set;
+ /*
+  * 
+  * Licensed to the Apache Software Foundation (ASF) under one
+diff --git a/src/java/org/apache/cassandra/client/RingCache.java b/src/java/org/apache/cassandra/client/RingCache.java
+index a37d260..5b01838 100644
+--- a/src/java/org/apache/cassandra/client/RingCache.java
++++ b/src/java/org/apache/cassandra/client/RingCache.java
+@@ -25,6 +25,11 @@ import java.util.HashSet;
+ import java.util.List;
+ import java.util.Set;
+ 
++import com.google.common.collect.ArrayListMultimap;
++import com.google.common.collect.Multimap;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.dht.IPartitioner;
+ import org.apache.cassandra.dht.Range;
+ import org.apache.cassandra.dht.Token;
+@@ -35,11 +40,6 @@ import org.apache.thrift.TException;
+ import org.apache.thrift.protocol.TBinaryProtocol;
+ import org.apache.thrift.transport.TFramedTransport;
+ import org.apache.thrift.transport.TSocket;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-import com.google.common.collect.ArrayListMultimap;
+-import com.google.common.collect.Multimap;
+ 
+ /**
+  * A class for caching the ring map at the client. For usage example, see
+diff --git a/src/java/org/apache/cassandra/concurrent/AIOExecutorService.java b/src/java/org/apache/cassandra/concurrent/AIOExecutorService.java
+index 1679dfa..f265564 100644
+--- a/src/java/org/apache/cassandra/concurrent/AIOExecutorService.java
++++ b/src/java/org/apache/cassandra/concurrent/AIOExecutorService.java
+@@ -20,17 +20,7 @@ package org.apache.cassandra.concurrent;
+ 
+ import java.util.Collection;
+ import java.util.List;
+-import java.util.concurrent.BlockingQueue;
+-import java.util.concurrent.Callable;
+-import java.util.concurrent.ExecutionException;
+-import java.util.concurrent.ExecutorService;
+-import java.util.concurrent.Executors;
+-import java.util.concurrent.Future;
+-import java.util.concurrent.RejectedExecutionException;
+-import java.util.concurrent.ThreadFactory;
+-import java.util.concurrent.ThreadPoolExecutor;
+-import java.util.concurrent.TimeUnit;
+-import java.util.concurrent.TimeoutException;
++import java.util.concurrent.*;
+ 
+ public class AIOExecutorService implements ExecutorService
+ {
+diff --git a/src/java/org/apache/cassandra/concurrent/JMXEnabledThreadPoolExecutor.java b/src/java/org/apache/cassandra/concurrent/JMXEnabledThreadPoolExecutor.java
+index 09f0a69..3ea9b20 100644
+--- a/src/java/org/apache/cassandra/concurrent/JMXEnabledThreadPoolExecutor.java
++++ b/src/java/org/apache/cassandra/concurrent/JMXEnabledThreadPoolExecutor.java
+@@ -23,7 +23,8 @@ import java.util.List;
+ import java.util.concurrent.BlockingQueue;
+ import java.util.concurrent.LinkedBlockingQueue;
+ import java.util.concurrent.TimeUnit;
+-import javax.management.*;
++import javax.management.MBeanServer;
++import javax.management.ObjectName;
+ 
+ /**
+  * This is a wrapper class for the <i>ScheduledThreadPoolExecutor</i>. It provides an implementation
+diff --git a/src/java/org/apache/cassandra/concurrent/NamedThreadFactory.java b/src/java/org/apache/cassandra/concurrent/NamedThreadFactory.java
+index 76f8223..4cee8dc 100644
+--- a/src/java/org/apache/cassandra/concurrent/NamedThreadFactory.java
++++ b/src/java/org/apache/cassandra/concurrent/NamedThreadFactory.java
+@@ -18,8 +18,8 @@
+ 
+ package org.apache.cassandra.concurrent;
+ 
+-import java.util.concurrent.*;
+-import java.util.concurrent.atomic.*;
++import java.util.concurrent.ThreadFactory;
++import java.util.concurrent.atomic.AtomicInteger;
+ 
+ /**
+  * This class is an implementation of the <i>ThreadFactory</i> interface. This 
+diff --git a/src/java/org/apache/cassandra/concurrent/StageManager.java b/src/java/org/apache/cassandra/concurrent/StageManager.java
+index 699539d..fc9f8ca 100644
+--- a/src/java/org/apache/cassandra/concurrent/StageManager.java
++++ b/src/java/org/apache/cassandra/concurrent/StageManager.java
+@@ -23,9 +23,7 @@ import java.util.concurrent.LinkedBlockingQueue;
+ import java.util.concurrent.ThreadPoolExecutor;
+ import java.util.concurrent.TimeUnit;
+ 
+-import static org.apache.cassandra.config.DatabaseDescriptor.getConcurrentReaders;
+-import static org.apache.cassandra.config.DatabaseDescriptor.getConcurrentWriters;
+-import static org.apache.cassandra.config.DatabaseDescriptor.getConcurrentReplicators;
++import static org.apache.cassandra.config.DatabaseDescriptor.*;
+ 
+ 
+ /**
+diff --git a/src/java/org/apache/cassandra/config/CFMetaData.java b/src/java/org/apache/cassandra/config/CFMetaData.java
+index a19dc4a..24fceb9 100644
+--- a/src/java/org/apache/cassandra/config/CFMetaData.java
++++ b/src/java/org/apache/cassandra/config/CFMetaData.java
+@@ -19,18 +19,16 @@
+ package org.apache.cassandra.config;
+ 
+ import java.nio.ByteBuffer;
+-import java.util.ArrayList;
+-import java.util.Collections;
+-import java.util.HashMap;
+-import java.util.HashSet;
+-import java.util.List;
+-import java.util.Map;
+-import java.util.Set;
+-import java.util.TreeMap;
++import java.util.*;
+ import java.util.concurrent.atomic.AtomicInteger;
+ 
++import com.google.common.collect.BiMap;
++import com.google.common.collect.HashBiMap;
++import org.apache.commons.lang.builder.EqualsBuilder;
++import org.apache.commons.lang.builder.HashCodeBuilder;
++import org.apache.commons.lang.builder.ToStringBuilder;
++
+ import org.apache.avro.util.Utf8;
+-import org.apache.cassandra.avro.CfDef;
+ import org.apache.cassandra.avro.ColumnDef;
+ import org.apache.cassandra.db.ColumnFamilyType;
+ import org.apache.cassandra.db.HintedHandOffManager;
+@@ -45,12 +43,6 @@ import org.apache.cassandra.io.SerDeUtils;
+ import org.apache.cassandra.utils.ByteBufferUtil;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.Pair;
+-import org.apache.commons.lang.builder.EqualsBuilder;
+-import org.apache.commons.lang.builder.HashCodeBuilder;
+-import org.apache.commons.lang.builder.ToStringBuilder;
+-
+-import com.google.common.collect.BiMap;
+-import com.google.common.collect.HashBiMap;
+ 
+ 
+ public final class CFMetaData
+diff --git a/src/java/org/apache/cassandra/config/KSMetaData.java b/src/java/org/apache/cassandra/config/KSMetaData.java
+index 04e0f8d..ca6e732 100644
+--- a/src/java/org/apache/cassandra/config/KSMetaData.java
++++ b/src/java/org/apache/cassandra/config/KSMetaData.java
+@@ -18,19 +18,18 @@
+ 
+ package org.apache.cassandra.config;
+ 
+-import org.apache.cassandra.locator.AbstractReplicationStrategy;
+-import org.apache.cassandra.locator.SimpleStrategy;
+-import org.apache.cassandra.io.SerDeUtils;
+-
+ import java.util.Collections;
+ import java.util.HashMap;
+ import java.util.Iterator;
+ import java.util.Map;
+ 
+-import org.apache.avro.util.Utf8;
+-
+ import org.apache.commons.lang.ObjectUtils;
+ 
++import org.apache.avro.util.Utf8;
++import org.apache.cassandra.io.SerDeUtils;
++import org.apache.cassandra.locator.AbstractReplicationStrategy;
++import org.apache.cassandra.locator.SimpleStrategy;
++
+ public final class KSMetaData
+ {
+     public final String name;
+diff --git a/src/java/org/apache/cassandra/cql/QueryProcessor.java b/src/java/org/apache/cassandra/cql/QueryProcessor.java
+index 047e666..495ca74 100644
+--- a/src/java/org/apache/cassandra/cql/QueryProcessor.java
++++ b/src/java/org/apache/cassandra/cql/QueryProcessor.java
+@@ -23,33 +23,19 @@ package org.apache.cassandra.cql;
+ 
+ import java.io.IOException;
+ import java.nio.ByteBuffer;
+-import java.util.ArrayList;
+-import java.util.Collection;
+-import java.util.Collections;
+-import java.util.List;
+-import java.util.Map;
+-import java.util.Set;
++import java.util.*;
+ import java.util.concurrent.TimeoutException;
+ 
+-import org.antlr.runtime.ANTLRStringStream;
+-import org.antlr.runtime.CharStream;
+-import org.antlr.runtime.CommonTokenStream;
+-import org.antlr.runtime.RecognitionException;
+-import org.antlr.runtime.TokenStream;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
++import org.antlr.runtime.*;
+ import org.apache.cassandra.avro.Column;
+-import org.apache.cassandra.avro.CqlResult;
+-import org.apache.cassandra.avro.CqlResultType;
+-import org.apache.cassandra.avro.CqlRow;
++import org.apache.cassandra.avro.*;
+ import org.apache.cassandra.avro.InvalidRequestException;
+ import org.apache.cassandra.avro.TimedOutException;
+ import org.apache.cassandra.avro.UnavailableException;
+-import org.apache.cassandra.db.IColumn;
+-import org.apache.cassandra.db.RangeSliceCommand;
+-import org.apache.cassandra.db.ReadCommand;
+-import org.apache.cassandra.db.RowMutation;
+-import org.apache.cassandra.db.SliceByNamesReadCommand;
+-import org.apache.cassandra.db.SliceFromReadCommand;
+-import org.apache.cassandra.db.Table;
++import org.apache.cassandra.db.*;
+ import org.apache.cassandra.db.filter.QueryPath;
+ import org.apache.cassandra.dht.AbstractBounds;
+ import org.apache.cassandra.dht.Bounds;
+@@ -63,13 +49,11 @@ import org.apache.cassandra.thrift.IndexExpression;
+ import org.apache.cassandra.thrift.IndexOperator;
+ import org.apache.cassandra.thrift.SlicePredicate;
+ import org.apache.cassandra.thrift.SliceRange;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+-import static org.apache.cassandra.avro.AvroValidation.validateKey;
+-import static org.apache.cassandra.avro.AvroValidation.validateColumnFamily;
+ import static org.apache.cassandra.avro.AvroErrorFactory.newInvalidRequestException;
+ import static org.apache.cassandra.avro.AvroErrorFactory.newUnavailableException;
++import static org.apache.cassandra.avro.AvroValidation.validateColumnFamily;
++import static org.apache.cassandra.avro.AvroValidation.validateKey;
+ 
+ public class QueryProcessor
+ {
+diff --git a/src/java/org/apache/cassandra/cql/Term.java b/src/java/org/apache/cassandra/cql/Term.java
+index 4460d42..9780dcf 100644
+--- a/src/java/org/apache/cassandra/cql/Term.java
++++ b/src/java/org/apache/cassandra/cql/Term.java
+@@ -21,6 +21,7 @@
+ package org.apache.cassandra.cql;
+ 
+ import java.nio.ByteBuffer;
++
+ import org.apache.cassandra.utils.FBUtilities;
+ 
+ /**
+diff --git a/src/java/org/apache/cassandra/db/BinaryMemtable.java b/src/java/org/apache/cassandra/db/BinaryMemtable.java
+index 4a288b0..54aa6d7 100644
+--- a/src/java/org/apache/cassandra/db/BinaryMemtable.java
++++ b/src/java/org/apache/cassandra/db/BinaryMemtable.java
+@@ -31,6 +31,9 @@ import java.util.concurrent.locks.Condition;
+ import java.util.concurrent.locks.Lock;
+ import java.util.concurrent.locks.ReentrantLock;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.dht.IPartitioner;
+ import org.apache.cassandra.io.sstable.SSTableReader;
+@@ -38,8 +41,6 @@ import org.apache.cassandra.io.sstable.SSTableWriter;
+ import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.utils.WrappedRunnable;
+ import org.cliffc.high_scale_lib.NonBlockingHashMap;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ public class BinaryMemtable implements IFlushable
+ {
+diff --git a/src/java/org/apache/cassandra/db/BinaryVerbHandler.java b/src/java/org/apache/cassandra/db/BinaryVerbHandler.java
+index 9470d86..b1d19ea 100644
+--- a/src/java/org/apache/cassandra/db/BinaryVerbHandler.java
++++ b/src/java/org/apache/cassandra/db/BinaryVerbHandler.java
+@@ -21,13 +21,13 @@ package org.apache.cassandra.db;
+ import java.io.ByteArrayInputStream;
+ import java.io.DataInputStream;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.net.IVerbHandler;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.net.MessagingService;
+ 
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+ public class BinaryVerbHandler implements IVerbHandler
+ {
+     private static Logger logger_ = LoggerFactory.getLogger(BinaryVerbHandler.class);
+diff --git a/src/java/org/apache/cassandra/db/Column.java b/src/java/org/apache/cassandra/db/Column.java
+index 38abb15..04346a5 100644
+--- a/src/java/org/apache/cassandra/db/Column.java
++++ b/src/java/org/apache/cassandra/db/Column.java
+@@ -23,12 +23,13 @@ import java.nio.ByteBuffer;
+ import java.security.MessageDigest;
+ import java.util.Collection;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.io.util.DataOutputBuffer;
+ import org.apache.cassandra.utils.ByteBufferUtil;
+ import org.apache.cassandra.utils.FBUtilities;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ 
+ /**
+diff --git a/src/java/org/apache/cassandra/db/ColumnFamily.java b/src/java/org/apache/cassandra/db/ColumnFamily.java
+index 3c75fe6..3c8014f 100644
+--- a/src/java/org/apache/cassandra/db/ColumnFamily.java
++++ b/src/java/org/apache/cassandra/db/ColumnFamily.java
+@@ -29,16 +29,17 @@ import java.util.concurrent.ConcurrentSkipListMap;
+ import java.util.concurrent.atomic.AtomicInteger;
+ import java.util.concurrent.atomic.AtomicLong;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.db.filter.QueryPath;
+-import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.db.marshal.AbstractCommutativeType;
++import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.io.ICompactSerializer2;
+ import org.apache.cassandra.io.util.IIterableColumns;
+ import org.apache.cassandra.utils.FBUtilities;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ public class ColumnFamily implements IColumnContainer, IIterableColumns
+ {
+diff --git a/src/java/org/apache/cassandra/db/ColumnFamilySerializer.java b/src/java/org/apache/cassandra/db/ColumnFamilySerializer.java
+index 6dba76e..b4961e9 100644
+--- a/src/java/org/apache/cassandra/db/ColumnFamilySerializer.java
++++ b/src/java/org/apache/cassandra/db/ColumnFamilySerializer.java
+@@ -21,9 +21,9 @@ package org.apache.cassandra.db;
+  */
+ 
+ 
++import java.io.DataInput;
+ import java.io.DataOutput;
+ import java.io.IOException;
+-import java.io.DataInput;
+ import java.util.Collection;
+ 
+ import org.slf4j.Logger;
+diff --git a/src/java/org/apache/cassandra/db/ColumnFamilyStore.java b/src/java/org/apache/cassandra/db/ColumnFamilyStore.java
+index 286dec2..c46a511 100644
+--- a/src/java/org/apache/cassandra/db/ColumnFamilyStore.java
++++ b/src/java/org/apache/cassandra/db/ColumnFamilyStore.java
+@@ -25,7 +25,6 @@ import java.util.*;
+ import java.util.concurrent.*;
+ import java.util.concurrent.atomic.AtomicInteger;
+ import java.util.concurrent.atomic.AtomicReference;
+-import java.util.concurrent.locks.ReentrantReadWriteLock;
+ import java.util.regex.Pattern;
+ import javax.management.MBeanServer;
+ import javax.management.ObjectName;
+diff --git a/src/java/org/apache/cassandra/db/ColumnFamilyStoreMBean.java b/src/java/org/apache/cassandra/db/ColumnFamilyStoreMBean.java
+index e717cb3..0c3a654 100644
+--- a/src/java/org/apache/cassandra/db/ColumnFamilyStoreMBean.java
++++ b/src/java/org/apache/cassandra/db/ColumnFamilyStoreMBean.java
+@@ -18,10 +18,8 @@
+ 
+ package org.apache.cassandra.db;
+ 
+-import java.util.concurrent.ExecutionException;
+-import java.util.concurrent.Future;
+ import java.io.IOException;
+-import java.util.concurrent.atomic.AtomicLongArray;
++import java.util.concurrent.ExecutionException;
+ 
+ /**
+  * The MBean interface for ColumnFamilyStore
+diff --git a/src/java/org/apache/cassandra/db/ColumnIndexer.java b/src/java/org/apache/cassandra/db/ColumnIndexer.java
+index ff67982..8b2dc1c 100644
+--- a/src/java/org/apache/cassandra/db/ColumnIndexer.java
++++ b/src/java/org/apache/cassandra/db/ColumnIndexer.java
+@@ -18,15 +18,15 @@
+ 
+ package org.apache.cassandra.db;
+ 
++import java.io.DataOutput;
+ import java.io.IOError;
+ import java.io.IOException;
+-import java.io.DataOutput;
+ import java.util.ArrayList;
+ import java.util.List;
+ 
+ import org.apache.cassandra.config.DatabaseDescriptor;
+-import org.apache.cassandra.io.util.DataOutputBuffer;
+ import org.apache.cassandra.io.sstable.IndexHelper;
++import org.apache.cassandra.io.util.DataOutputBuffer;
+ import org.apache.cassandra.io.util.IIterableColumns;
+ import org.apache.cassandra.utils.BloomFilter;
+ 
+diff --git a/src/java/org/apache/cassandra/db/CompactionManager.java b/src/java/org/apache/cassandra/db/CompactionManager.java
+index 1010038..a9b7ec4 100644
+--- a/src/java/org/apache/cassandra/db/CompactionManager.java
++++ b/src/java/org/apache/cassandra/db/CompactionManager.java
+@@ -19,19 +19,14 @@
+ package org.apache.cassandra.db;
+ 
+ import java.io.File;
+-import java.io.IOError;
+ import java.io.IOException;
+ import java.lang.management.ManagementFactory;
+ import java.net.InetAddress;
+ import java.util.*;
+ import java.util.Map.Entry;
+-import java.util.concurrent.Callable;
+-import java.util.concurrent.ExecutionException;
+-import java.util.concurrent.Future;
+-import java.util.concurrent.TimeUnit;
+-import java.util.concurrent.TimeoutException;
+-import java.util.concurrent.locks.ReentrantLock;
++import java.util.concurrent.*;
+ import java.util.concurrent.locks.Lock;
++import java.util.concurrent.locks.ReentrantLock;
+ import javax.management.MBeanServer;
+ import javax.management.ObjectName;
+ 
+diff --git a/src/java/org/apache/cassandra/db/CounterColumn.java b/src/java/org/apache/cassandra/db/CounterColumn.java
+index bfe52e6..f1d109a 100644
+--- a/src/java/org/apache/cassandra/db/CounterColumn.java
++++ b/src/java/org/apache/cassandra/db/CounterColumn.java
+@@ -18,7 +18,6 @@
+ 
+ package org.apache.cassandra.db;
+ 
+-import java.io.IOException;
+ import java.net.InetAddress;
+ import java.nio.ByteBuffer;
+ import java.security.MessageDigest;
+@@ -29,7 +28,6 @@ import org.apache.log4j.Logger;
+ import org.apache.cassandra.db.context.CounterContext;
+ import org.apache.cassandra.db.context.IContext.ContextRelationship;
+ import org.apache.cassandra.db.marshal.AbstractType;
+-import org.apache.cassandra.io.util.DataOutputBuffer;
+ import org.apache.cassandra.utils.ByteBufferUtil;
+ import org.apache.cassandra.utils.FBUtilities;
+ 
+diff --git a/src/java/org/apache/cassandra/db/DefinitionsAnnounceVerbHandler.java b/src/java/org/apache/cassandra/db/DefinitionsAnnounceVerbHandler.java
+index 62619d6..2610929 100644
+--- a/src/java/org/apache/cassandra/db/DefinitionsAnnounceVerbHandler.java
++++ b/src/java/org/apache/cassandra/db/DefinitionsAnnounceVerbHandler.java
+@@ -18,12 +18,12 @@
+ 
+ package org.apache.cassandra.db;
+ 
++import java.util.UUID;
++
+ import org.apache.cassandra.net.IVerbHandler;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.service.MigrationManager;
+ 
+-import java.util.UUID;
+-
+ public class DefinitionsAnnounceVerbHandler implements IVerbHandler
+ {
+     
+diff --git a/src/java/org/apache/cassandra/db/DefinitionsUpdateResponseVerbHandler.java b/src/java/org/apache/cassandra/db/DefinitionsUpdateResponseVerbHandler.java
+index c28cb03..77a0ae3 100644
+--- a/src/java/org/apache/cassandra/db/DefinitionsUpdateResponseVerbHandler.java
++++ b/src/java/org/apache/cassandra/db/DefinitionsUpdateResponseVerbHandler.java
+@@ -18,6 +18,14 @@
+ 
+ package org.apache.cassandra.db;
+ 
++import java.io.IOError;
++import java.io.IOException;
++import java.util.Collection;
++import java.util.UUID;
++
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.concurrent.Stage;
+ import org.apache.cassandra.concurrent.StageManager;
+ import org.apache.cassandra.config.ConfigurationException;
+@@ -28,13 +36,6 @@ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.service.MigrationManager;
+ import org.apache.cassandra.utils.UUIDGen;
+ import org.apache.cassandra.utils.WrappedRunnable;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-import java.io.IOError;
+-import java.io.IOException;
+-import java.util.Collection;
+-import java.util.UUID;
+ 
+ public class DefinitionsUpdateResponseVerbHandler implements IVerbHandler
+ {
+diff --git a/src/java/org/apache/cassandra/db/DefsTable.java b/src/java/org/apache/cassandra/db/DefsTable.java
+index f5a09b1..aa174e2 100644
+--- a/src/java/org/apache/cassandra/db/DefsTable.java
++++ b/src/java/org/apache/cassandra/db/DefsTable.java
+@@ -18,18 +18,11 @@
+ 
+ package org.apache.cassandra.db;
+ 
+-import static com.google.common.base.Charsets.UTF_8;
+-
+ import java.io.File;
+ import java.io.FileFilter;
+ import java.io.IOException;
+ import java.nio.ByteBuffer;
+-import java.util.ArrayList;
+-import java.util.Arrays;
+-import java.util.Collection;
+-import java.util.HashSet;
+-import java.util.Set;
+-import java.util.UUID;
++import java.util.*;
+ 
+ import org.apache.avro.Schema;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+@@ -39,8 +32,10 @@ import org.apache.cassandra.db.filter.QueryPath;
+ import org.apache.cassandra.db.migration.Migration;
+ import org.apache.cassandra.io.SerDeUtils;
+ import org.apache.cassandra.service.StorageService;
+-import org.apache.cassandra.utils.UUIDGen;
+ import org.apache.cassandra.utils.ByteBufferUtil;
++import org.apache.cassandra.utils.UUIDGen;
++
++import static com.google.common.base.Charsets.UTF_8;
+ 
+ public class DefsTable
+ {
+diff --git a/src/java/org/apache/cassandra/db/DeletedColumn.java b/src/java/org/apache/cassandra/db/DeletedColumn.java
+index 8d64c8f..0fc04d2 100644
+--- a/src/java/org/apache/cassandra/db/DeletedColumn.java
++++ b/src/java/org/apache/cassandra/db/DeletedColumn.java
+@@ -20,11 +20,12 @@ package org.apache.cassandra.db;
+ 
+ import java.nio.ByteBuffer;
+ 
+-import org.apache.cassandra.utils.ByteBufferUtil;
+-import org.apache.cassandra.utils.FBUtilities;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
++import org.apache.cassandra.utils.ByteBufferUtil;
++import org.apache.cassandra.utils.FBUtilities;
++
+ public class DeletedColumn extends Column
+ {
+     private static Logger logger = LoggerFactory.getLogger(DeletedColumn.class);
+diff --git a/src/java/org/apache/cassandra/db/ExpiringColumn.java b/src/java/org/apache/cassandra/db/ExpiringColumn.java
+index e587618..7b5cd53 100644
+--- a/src/java/org/apache/cassandra/db/ExpiringColumn.java
++++ b/src/java/org/apache/cassandra/db/ExpiringColumn.java
+@@ -22,10 +22,11 @@ import java.io.IOException;
+ import java.nio.ByteBuffer;
+ import java.security.MessageDigest;
+ 
++import org.apache.log4j.Logger;
++
+ import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.io.util.DataOutputBuffer;
+ import org.apache.cassandra.utils.ByteBufferUtil;
+-import org.apache.log4j.Logger;
+ 
+ /**
+  * Alternative to Column that have an expiring time.
+diff --git a/src/java/org/apache/cassandra/db/HintedHandOffManager.java b/src/java/org/apache/cassandra/db/HintedHandOffManager.java
+index c83bb64..30b01ac 100644
+--- a/src/java/org/apache/cassandra/db/HintedHandOffManager.java
++++ b/src/java/org/apache/cassandra/db/HintedHandOffManager.java
+@@ -18,8 +18,6 @@
+ 
+ package org.apache.cassandra.db;
+ 
+-import static com.google.common.base.Charsets.UTF_8;
+-
+ import java.io.IOException;
+ import java.net.InetAddress;
+ import java.net.UnknownHostException;
+@@ -29,6 +27,10 @@ import java.util.Collection;
+ import java.util.concurrent.ExecutorService;
+ import java.util.concurrent.TimeoutException;
+ 
++import org.apache.commons.lang.ArrayUtils;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.concurrent.JMXEnabledThreadPoolExecutor;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.db.filter.QueryFilter;
+@@ -44,10 +46,9 @@ import org.apache.cassandra.service.WriteResponseHandler;
+ import org.apache.cassandra.thrift.InvalidRequestException;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.WrappedRunnable;
+-import org.apache.commons.lang.ArrayUtils;
+ import org.cliffc.high_scale_lib.NonBlockingHashSet;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
++
++import static com.google.common.base.Charsets.UTF_8;
+ 
+ 
+ /**
+diff --git a/src/java/org/apache/cassandra/db/IFlushable.java b/src/java/org/apache/cassandra/db/IFlushable.java
+index 8dfa403..f2e19f2 100644
+--- a/src/java/org/apache/cassandra/db/IFlushable.java
++++ b/src/java/org/apache/cassandra/db/IFlushable.java
+@@ -23,7 +23,6 @@ package org.apache.cassandra.db;
+ 
+ import java.util.concurrent.CountDownLatch;
+ import java.util.concurrent.ExecutorService;
+-import java.util.concurrent.locks.Condition;
+ 
+ public interface IFlushable
+ {
+diff --git a/src/java/org/apache/cassandra/db/IndexScanCommand.java b/src/java/org/apache/cassandra/db/IndexScanCommand.java
+index f536e04..02a4ad9 100644
+--- a/src/java/org/apache/cassandra/db/IndexScanCommand.java
++++ b/src/java/org/apache/cassandra/db/IndexScanCommand.java
+@@ -22,8 +22,6 @@ package org.apache.cassandra.db;
+ import java.io.*;
+ import java.util.Arrays;
+ 
+-import org.apache.cassandra.concurrent.Stage;
+-import org.apache.cassandra.concurrent.StageManager;
+ import org.apache.cassandra.dht.AbstractBounds;
+ import org.apache.cassandra.io.ICompactSerializer2;
+ import org.apache.cassandra.io.util.DataOutputBuffer;
+diff --git a/src/java/org/apache/cassandra/db/Memtable.java b/src/java/org/apache/cassandra/db/Memtable.java
+index 0fe14b2..c8b2c3f 100644
+--- a/src/java/org/apache/cassandra/db/Memtable.java
++++ b/src/java/org/apache/cassandra/db/Memtable.java
+@@ -31,6 +31,11 @@ import java.util.concurrent.CountDownLatch;
+ import java.util.concurrent.ExecutorService;
+ import java.util.concurrent.atomic.AtomicInteger;
+ 
++import com.google.common.collect.Iterators;
++import com.google.common.collect.PeekingIterator;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.db.columniterator.IColumnIterator;
+ import org.apache.cassandra.db.columniterator.SimpleAbstractColumnIterator;
+ import org.apache.cassandra.db.filter.AbstractColumnIterator;
+@@ -40,11 +45,6 @@ import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.io.sstable.SSTableReader;
+ import org.apache.cassandra.io.sstable.SSTableWriter;
+ import org.apache.cassandra.utils.WrappedRunnable;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-import com.google.common.collect.Iterators;
+-import com.google.common.collect.PeekingIterator;
+ 
+ public class Memtable implements Comparable<Memtable>, IFlushable
+ {
+diff --git a/src/java/org/apache/cassandra/db/RangeSliceReply.java b/src/java/org/apache/cassandra/db/RangeSliceReply.java
+index 05ecde5..7a74d2a 100644
+--- a/src/java/org/apache/cassandra/db/RangeSliceReply.java
++++ b/src/java/org/apache/cassandra/db/RangeSliceReply.java
+@@ -18,15 +18,18 @@
+ 
+ package org.apache.cassandra.db;
+ 
+-import org.apache.cassandra.io.util.DataOutputBuffer;
+-import org.apache.cassandra.net.Message;
+-import org.apache.cassandra.utils.FBUtilities;
+-import org.apache.commons.lang.StringUtils;
+-
+ import java.io.ByteArrayInputStream;
+ import java.io.DataInputStream;
+ import java.io.IOException;
+-import java.util.*;
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.List;
++
++import org.apache.commons.lang.StringUtils;
++
++import org.apache.cassandra.io.util.DataOutputBuffer;
++import org.apache.cassandra.net.Message;
++import org.apache.cassandra.utils.FBUtilities;
+ 
+ public class RangeSliceReply
+ {
+diff --git a/src/java/org/apache/cassandra/db/ReadRepairVerbHandler.java b/src/java/org/apache/cassandra/db/ReadRepairVerbHandler.java
+index 8dbc06c..105126d 100644
+--- a/src/java/org/apache/cassandra/db/ReadRepairVerbHandler.java
++++ b/src/java/org/apache/cassandra/db/ReadRepairVerbHandler.java
+@@ -18,14 +18,17 @@
+ 
+ package org.apache.cassandra.db;
+ 
+-import java.io.*;
+-
+-import org.apache.cassandra.net.IVerbHandler;
+-import org.apache.cassandra.net.Message;
++import java.io.ByteArrayInputStream;
++import java.io.DataInputStream;
++import java.io.IOError;
++import java.io.IOException;
+ 
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
++import org.apache.cassandra.net.IVerbHandler;
++import org.apache.cassandra.net.Message;
++
+ public class ReadRepairVerbHandler implements IVerbHandler
+ {
+     private static Logger logger_ = LoggerFactory.getLogger(ReadRepairVerbHandler.class);    
+diff --git a/src/java/org/apache/cassandra/db/ReadResponse.java b/src/java/org/apache/cassandra/db/ReadResponse.java
+index c7a0ca5..adf7fc9 100644
+--- a/src/java/org/apache/cassandra/db/ReadResponse.java
++++ b/src/java/org/apache/cassandra/db/ReadResponse.java
+@@ -25,7 +25,6 @@ import java.nio.ByteBuffer;
+ 
+ import org.apache.cassandra.io.ICompactSerializer;
+ import org.apache.cassandra.utils.FBUtilities;
+-import org.apache.commons.lang.ArrayUtils;
+ 
+ 
+ /*
+diff --git a/src/java/org/apache/cassandra/db/ReadVerbHandler.java b/src/java/org/apache/cassandra/db/ReadVerbHandler.java
+index 864c404..1697892 100644
+--- a/src/java/org/apache/cassandra/db/ReadVerbHandler.java
++++ b/src/java/org/apache/cassandra/db/ReadVerbHandler.java
+@@ -21,22 +21,17 @@ package org.apache.cassandra.db;
+ import java.io.ByteArrayInputStream;
+ import java.io.DataInputStream;
+ import java.io.IOException;
+-import java.util.List;
+ 
+-import org.apache.cassandra.config.DatabaseDescriptor;
+-import org.apache.cassandra.io.util.DataOutputBuffer;
+-import java.net.InetAddress;
+-import java.nio.ByteBuffer;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ 
++import org.apache.cassandra.io.util.DataOutputBuffer;
+ import org.apache.cassandra.net.IVerbHandler;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.net.MessagingService;
+ import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.utils.FBUtilities;
+ 
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+ public class ReadVerbHandler implements IVerbHandler
+ {
+     protected static class ReadContext
+diff --git a/src/java/org/apache/cassandra/db/ReplicateOnWriteTask.java b/src/java/org/apache/cassandra/db/ReplicateOnWriteTask.java
+index 5cad412..4bc9054 100644
+--- a/src/java/org/apache/cassandra/db/ReplicateOnWriteTask.java
++++ b/src/java/org/apache/cassandra/db/ReplicateOnWriteTask.java
+@@ -1,18 +1,18 @@
+ package org.apache.cassandra.db;
+ 
+ import java.io.IOException;
++import java.net.InetAddress;
++import java.nio.ByteBuffer;
+ import java.util.Collection;
+ import java.util.HashSet;
+ import java.util.LinkedList;
+ import java.util.List;
+-import java.net.InetAddress;
+-import java.nio.ByteBuffer;
+ 
+ import org.apache.log4j.Logger;
+ 
+ import org.apache.cassandra.db.filter.QueryPath;
+-import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.db.marshal.AbstractCommutativeType;
++import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.net.MessagingService;
+ import org.apache.cassandra.service.StorageService;
+diff --git a/src/java/org/apache/cassandra/db/ReplicateOnWriteVerbHandler.java b/src/java/org/apache/cassandra/db/ReplicateOnWriteVerbHandler.java
+index e9897fe..f34a0ec 100644
+--- a/src/java/org/apache/cassandra/db/ReplicateOnWriteVerbHandler.java
++++ b/src/java/org/apache/cassandra/db/ReplicateOnWriteVerbHandler.java
+@@ -18,14 +18,17 @@
+ 
+ package org.apache.cassandra.db;
+ 
+-import java.io.*;
++import java.io.ByteArrayInputStream;
++import java.io.DataInputStream;
++import java.io.IOError;
++import java.io.IOException;
++
++import org.apache.log4j.Logger;
+ 
+ import org.apache.cassandra.net.IVerbHandler;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.utils.FBUtilities;
+ 
+-import org.apache.log4j.Logger;
+-
+ public class ReplicateOnWriteVerbHandler implements IVerbHandler
+ {
+     private static Logger logger = Logger.getLogger(ReplicateOnWriteVerbHandler.class);
+diff --git a/src/java/org/apache/cassandra/db/Row.java b/src/java/org/apache/cassandra/db/Row.java
+index abe9e6d..9aa5ae5 100644
+--- a/src/java/org/apache/cassandra/db/Row.java
++++ b/src/java/org/apache/cassandra/db/Row.java
+@@ -21,9 +21,6 @@ package org.apache.cassandra.db;
+ import java.io.DataInputStream;
+ import java.io.DataOutputStream;
+ import java.io.IOException;
+-import java.util.Collection;
+-import java.security.MessageDigest;
+-import java.security.NoSuchAlgorithmException;
+ 
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+diff --git a/src/java/org/apache/cassandra/db/RowIteratorFactory.java b/src/java/org/apache/cassandra/db/RowIteratorFactory.java
+index 97e5f16..c857620 100644
+--- a/src/java/org/apache/cassandra/db/RowIteratorFactory.java
++++ b/src/java/org/apache/cassandra/db/RowIteratorFactory.java
+@@ -20,25 +20,20 @@ package org.apache.cassandra.db;
+ import java.io.Closeable;
+ import java.io.IOError;
+ import java.io.IOException;
+-import java.util.ArrayList;
+-import java.util.Collection;
+-import java.util.Comparator;
+-import java.util.Iterator;
+-import java.util.List;
+-import java.util.Map;
++import java.util.*;
+ import java.util.Map.Entry;
+ 
++import com.google.common.base.Function;
++import com.google.common.base.Predicate;
++import com.google.common.collect.Iterators;
++import org.apache.commons.collections.IteratorUtils;
++
+ import org.apache.cassandra.db.columniterator.IColumnIterator;
+ import org.apache.cassandra.db.filter.QueryFilter;
+ import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.io.sstable.SSTableReader;
+ import org.apache.cassandra.io.sstable.SSTableScanner;
+ import org.apache.cassandra.utils.ReducingIterator;
+-import org.apache.commons.collections.IteratorUtils;
+-
+-import com.google.common.base.Function;
+-import com.google.common.base.Predicate;
+-import com.google.common.collect.Iterators;
+ 
+ public class RowIteratorFactory
+ {
+diff --git a/src/java/org/apache/cassandra/db/RowMutation.java b/src/java/org/apache/cassandra/db/RowMutation.java
+index a3958aa..92532cf 100644
+--- a/src/java/org/apache/cassandra/db/RowMutation.java
++++ b/src/java/org/apache/cassandra/db/RowMutation.java
+@@ -18,27 +18,20 @@
+ 
+ package org.apache.cassandra.db;
+ 
+-import java.io.ByteArrayInputStream;
+-import java.io.ByteArrayOutputStream;
+-import java.io.DataInputStream;
+-import java.io.DataOutputStream;
+-import java.io.IOException;
++import java.io.*;
+ import java.net.InetAddress;
+-import java.net.UnknownHostException;
+-import java.util.*;
+ import java.nio.ByteBuffer;
+-import java.util.ArrayList;
+-import java.util.Collection;
+-import java.util.HashMap;
+-import java.util.List;
+-import java.util.Map;
++import java.util.*;
+ import java.util.concurrent.ExecutionException;
+ 
++import org.apache.commons.lang.StringUtils;
++
+ import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.db.filter.QueryPath;
++import org.apache.cassandra.db.marshal.AbstractCommutativeType;
++import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.io.ICompactSerializer;
+-import org.apache.cassandra.io.util.DataOutputBuffer;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.thrift.ColumnOrSuperColumn;
+@@ -46,10 +39,6 @@ import org.apache.cassandra.thrift.Deletion;
+ import org.apache.cassandra.thrift.Mutation;
+ import org.apache.cassandra.utils.ByteBufferUtil;
+ import org.apache.cassandra.utils.FBUtilities;
+-import org.apache.cassandra.db.marshal.AbstractType;
+-import org.apache.cassandra.db.marshal.AbstractCommutativeType;
+-import org.apache.commons.lang.ArrayUtils;
+-import org.apache.commons.lang.StringUtils;
+ 
+ public class RowMutation
+ {
+diff --git a/src/java/org/apache/cassandra/db/RowMutationMessage.java b/src/java/org/apache/cassandra/db/RowMutationMessage.java
+index d29d1a7..a4f5785 100644
+--- a/src/java/org/apache/cassandra/db/RowMutationMessage.java
++++ b/src/java/org/apache/cassandra/db/RowMutationMessage.java
+@@ -22,15 +22,12 @@ import java.io.ByteArrayOutputStream;
+ import java.io.DataInputStream;
+ import java.io.DataOutputStream;
+ import java.io.IOException;
+-
+ import javax.xml.bind.annotation.XmlElement;
+ 
+-import org.apache.cassandra.concurrent.Stage;
+ import org.apache.cassandra.io.ICompactSerializer;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.utils.FBUtilities;
+-import org.apache.cassandra.concurrent.StageManager;
+ 
+ public class RowMutationMessage
+ {   
+diff --git a/src/java/org/apache/cassandra/db/RowMutationVerbHandler.java b/src/java/org/apache/cassandra/db/RowMutationVerbHandler.java
+index 926cd0c..f6ba745 100644
+--- a/src/java/org/apache/cassandra/db/RowMutationVerbHandler.java
++++ b/src/java/org/apache/cassandra/db/RowMutationVerbHandler.java
+@@ -31,7 +31,9 @@ import org.slf4j.LoggerFactory;
+ 
+ import org.apache.cassandra.concurrent.Stage;
+ import org.apache.cassandra.concurrent.StageManager;
+-import org.apache.cassandra.net.*;
++import org.apache.cassandra.net.IVerbHandler;
++import org.apache.cassandra.net.Message;
++import org.apache.cassandra.net.MessagingService;
+ import org.apache.cassandra.utils.ByteBufferUtil;
+ import org.apache.cassandra.utils.FBUtilities;
+ 
+diff --git a/src/java/org/apache/cassandra/db/SchemaCheckVerbHandler.java b/src/java/org/apache/cassandra/db/SchemaCheckVerbHandler.java
+index 8dddcb1..8e0eacf 100644
+--- a/src/java/org/apache/cassandra/db/SchemaCheckVerbHandler.java
++++ b/src/java/org/apache/cassandra/db/SchemaCheckVerbHandler.java
+@@ -1,12 +1,12 @@
+ package org.apache.cassandra.db;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.net.IVerbHandler;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.net.MessagingService;
+-import org.apache.cassandra.utils.FBUtilities;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ /**
+  * Licensed to the Apache Software Foundation (ASF) under one
+diff --git a/src/java/org/apache/cassandra/db/SliceByNamesReadCommand.java b/src/java/org/apache/cassandra/db/SliceByNamesReadCommand.java
+index 93ab759..6ec22d7 100644
+--- a/src/java/org/apache/cassandra/db/SliceByNamesReadCommand.java
++++ b/src/java/org/apache/cassandra/db/SliceByNamesReadCommand.java
+@@ -21,11 +21,7 @@ import java.io.DataInputStream;
+ import java.io.DataOutputStream;
+ import java.io.IOException;
+ import java.nio.ByteBuffer;
+-import java.util.ArrayList;
+-import java.util.Collection;
+-import java.util.List;
+-import java.util.SortedSet;
+-import java.util.TreeSet;
++import java.util.*;
+ 
+ import org.apache.cassandra.db.filter.QueryFilter;
+ import org.apache.cassandra.db.filter.QueryPath;
+diff --git a/src/java/org/apache/cassandra/db/SuperColumn.java b/src/java/org/apache/cassandra/db/SuperColumn.java
+index 503a5fd..0dcaa43 100644
+--- a/src/java/org/apache/cassandra/db/SuperColumn.java
++++ b/src/java/org/apache/cassandra/db/SuperColumn.java
+@@ -29,13 +29,14 @@ import java.util.concurrent.ConcurrentSkipListMap;
+ import java.util.concurrent.atomic.AtomicInteger;
+ import java.util.concurrent.atomic.AtomicLong;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.io.ICompactSerializer2;
+ import org.apache.cassandra.io.util.DataOutputBuffer;
+ import org.apache.cassandra.utils.ByteBufferUtil;
+ import org.apache.cassandra.utils.FBUtilities;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ 
+ public class SuperColumn implements IColumn, IColumnContainer
+diff --git a/src/java/org/apache/cassandra/db/SystemTable.java b/src/java/org/apache/cassandra/db/SystemTable.java
+index 090ce52..642ffd1 100644
+--- a/src/java/org/apache/cassandra/db/SystemTable.java
++++ b/src/java/org/apache/cassandra/db/SystemTable.java
+@@ -18,8 +18,6 @@
+ 
+ package org.apache.cassandra.db;
+ 
+-import static com.google.common.base.Charsets.UTF_8;
+-
+ import java.io.File;
+ import java.io.FilenameFilter;
+ import java.io.IOError;
+@@ -32,6 +30,9 @@ import java.util.SortedSet;
+ import java.util.TreeSet;
+ import java.util.concurrent.ExecutionException;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.db.filter.QueryFilter;
+@@ -43,8 +44,7 @@ import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.utils.ByteBufferUtil;
+ import org.apache.cassandra.utils.FBUtilities;
+ 
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
++import static com.google.common.base.Charsets.UTF_8;
+ 
+ public class SystemTable
+ {
+diff --git a/src/java/org/apache/cassandra/db/Table.java b/src/java/org/apache/cassandra/db/Table.java
+index ddfbe3b..49667bd 100644
+--- a/src/java/org/apache/cassandra/db/Table.java
++++ b/src/java/org/apache/cassandra/db/Table.java
+@@ -30,6 +30,11 @@ import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.locks.Lock;
+ import java.util.concurrent.locks.ReentrantReadWriteLock;
+ 
++import com.google.common.base.Function;
++import com.google.common.collect.Iterables;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+@@ -47,11 +52,6 @@ import org.apache.cassandra.locator.AbstractReplicationStrategy;
+ import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.cliffc.high_scale_lib.NonBlockingHashMap;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-import com.google.common.base.Function;
+-import com.google.common.collect.Iterables;
+ 
+ public class Table
+ {
+diff --git a/src/java/org/apache/cassandra/db/TruncateVerbHandler.java b/src/java/org/apache/cassandra/db/TruncateVerbHandler.java
+index d3a126d..7c1ee37 100644
+--- a/src/java/org/apache/cassandra/db/TruncateVerbHandler.java
++++ b/src/java/org/apache/cassandra/db/TruncateVerbHandler.java
+@@ -23,11 +23,12 @@ import java.io.DataInputStream;
+ import java.io.IOException;
+ import java.util.concurrent.ExecutionException;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.net.IVerbHandler;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.net.MessagingService;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ /**
+  * Handles the TRUNCATE verb
+diff --git a/src/java/org/apache/cassandra/db/Truncation.java b/src/java/org/apache/cassandra/db/Truncation.java
+index aa6b5a0..3621133 100644
+--- a/src/java/org/apache/cassandra/db/Truncation.java
++++ b/src/java/org/apache/cassandra/db/Truncation.java
+@@ -23,10 +23,7 @@ import java.io.DataInputStream;
+ import java.io.DataOutputStream;
+ import java.io.IOException;
+ 
+-import org.apache.cassandra.concurrent.Stage;
+-import org.apache.cassandra.concurrent.StageManager;
+ import org.apache.cassandra.io.ICompactSerializer;
+-import org.apache.cassandra.io.util.DataOutputBuffer;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.utils.FBUtilities;
+diff --git a/src/java/org/apache/cassandra/db/columniterator/IColumnIterator.java b/src/java/org/apache/cassandra/db/columniterator/IColumnIterator.java
+index 879f43e..409332d 100644
+--- a/src/java/org/apache/cassandra/db/columniterator/IColumnIterator.java
++++ b/src/java/org/apache/cassandra/db/columniterator/IColumnIterator.java
+@@ -21,12 +21,12 @@ package org.apache.cassandra.db.columniterator;
+  */
+ 
+ 
+-import java.util.Iterator;
+ import java.io.IOException;
++import java.util.Iterator;
+ 
++import org.apache.cassandra.db.ColumnFamily;
+ import org.apache.cassandra.db.DecoratedKey;
+ import org.apache.cassandra.db.IColumn;
+-import org.apache.cassandra.db.ColumnFamily;
+ 
+ public interface IColumnIterator extends Iterator<IColumn>
+ {
+diff --git a/src/java/org/apache/cassandra/db/columniterator/IndexedSliceReader.java b/src/java/org/apache/cassandra/db/columniterator/IndexedSliceReader.java
+index beb398c..2378016 100644
+--- a/src/java/org/apache/cassandra/db/columniterator/IndexedSliceReader.java
++++ b/src/java/org/apache/cassandra/db/columniterator/IndexedSliceReader.java
+@@ -28,6 +28,8 @@ import java.util.ArrayDeque;
+ import java.util.Deque;
+ import java.util.List;
+ 
++import com.google.common.collect.AbstractIterator;
++
+ import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.db.ColumnFamily;
+ import org.apache.cassandra.db.DecoratedKey;
+@@ -37,8 +39,6 @@ import org.apache.cassandra.io.sstable.IndexHelper;
+ import org.apache.cassandra.io.util.FileDataInput;
+ import org.apache.cassandra.io.util.FileMark;
+ 
+-import com.google.common.collect.AbstractIterator;
+-
+ /**
+  *  This is a reader that finds the block for a starting column and returns
+  *  blocks before/after it for each next call. This function assumes that
+diff --git a/src/java/org/apache/cassandra/db/columniterator/SSTableNamesIterator.java b/src/java/org/apache/cassandra/db/columniterator/SSTableNamesIterator.java
+index 1e4e403..bb135ff 100644
+--- a/src/java/org/apache/cassandra/db/columniterator/SSTableNamesIterator.java
++++ b/src/java/org/apache/cassandra/db/columniterator/SSTableNamesIterator.java
+@@ -23,11 +23,10 @@ package org.apache.cassandra.db.columniterator;
+ import java.io.IOError;
+ import java.io.IOException;
+ import java.nio.ByteBuffer;
+-import java.util.ArrayList;
+-import java.util.Iterator;
+-import java.util.List;
+-import java.util.SortedSet;
+-import java.util.TreeSet;
++import java.util.*;
++
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ 
+ import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+@@ -42,8 +41,6 @@ import org.apache.cassandra.io.util.FileMark;
+ import org.apache.cassandra.io.util.FileUtils;
+ import org.apache.cassandra.utils.BloomFilter;
+ import org.apache.cassandra.utils.FBUtilities;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ public class SSTableNamesIterator extends SimpleAbstractColumnIterator implements IColumnIterator
+ {
+diff --git a/src/java/org/apache/cassandra/db/columniterator/SimpleAbstractColumnIterator.java b/src/java/org/apache/cassandra/db/columniterator/SimpleAbstractColumnIterator.java
+index 9a038ca..8a4cbf8 100644
+--- a/src/java/org/apache/cassandra/db/columniterator/SimpleAbstractColumnIterator.java
++++ b/src/java/org/apache/cassandra/db/columniterator/SimpleAbstractColumnIterator.java
+@@ -23,10 +23,10 @@ package org.apache.cassandra.db.columniterator;
+ 
+ import java.io.IOException;
+ 
+-import org.apache.cassandra.db.IColumn;
+-
+ import com.google.common.collect.AbstractIterator;
+ 
++import org.apache.cassandra.db.IColumn;
++
+ public abstract class SimpleAbstractColumnIterator extends AbstractIterator<IColumn> implements IColumnIterator
+ {
+     public void close() throws IOException {}
+diff --git a/src/java/org/apache/cassandra/db/columniterator/SimpleSliceReader.java b/src/java/org/apache/cassandra/db/columniterator/SimpleSliceReader.java
+index 3879b5b..12dae96 100644
+--- a/src/java/org/apache/cassandra/db/columniterator/SimpleSliceReader.java
++++ b/src/java/org/apache/cassandra/db/columniterator/SimpleSliceReader.java
+@@ -33,7 +33,6 @@ import org.apache.cassandra.db.DecoratedKey;
+ import org.apache.cassandra.db.IColumn;
+ import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.io.sstable.IndexHelper;
+-import org.apache.cassandra.io.sstable.SSTableReader;
+ import org.apache.cassandra.io.util.FileDataInput;
+ import org.apache.cassandra.io.util.FileMark;
+ 
+diff --git a/src/java/org/apache/cassandra/db/commitlog/CommitLog.java b/src/java/org/apache/cassandra/db/commitlog/CommitLog.java
+index af00d86..ec6ef88 100644
+--- a/src/java/org/apache/cassandra/db/commitlog/CommitLog.java
++++ b/src/java/org/apache/cassandra/db/commitlog/CommitLog.java
+@@ -18,11 +18,24 @@
+ 
+ package org.apache.cassandra.db.commitlog;
+ 
++import java.io.*;
++import java.util.*;
++import java.util.concurrent.Callable;
++import java.util.concurrent.ExecutionException;
++import java.util.concurrent.Future;
++import java.util.concurrent.atomic.AtomicInteger;
++import java.util.zip.CRC32;
++import java.util.zip.Checksum;
++
++import org.apache.commons.lang.StringUtils;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.concurrent.Stage;
+-import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.concurrent.StageManager;
+-import org.apache.cassandra.config.DatabaseDescriptor;
++import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.config.Config;
++import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.db.ColumnFamily;
+ import org.apache.cassandra.db.RowMutation;
+ import org.apache.cassandra.db.Table;
+@@ -32,18 +45,6 @@ import org.apache.cassandra.io.util.BufferedRandomAccessFile;
+ import org.apache.cassandra.io.util.FileUtils;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.WrappedRunnable;
+-import org.apache.commons.lang.StringUtils;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-import java.io.*;
+-import java.util.*;
+-import java.util.concurrent.Callable;
+-import java.util.concurrent.ExecutionException;
+-import java.util.concurrent.Future;
+-import java.util.concurrent.atomic.AtomicInteger;
+-import java.util.zip.CRC32;
+-import java.util.zip.Checksum;
+ 
+ /*
+  * Commit Log tracks every write operation into the system. The aim
+diff --git a/src/java/org/apache/cassandra/db/commitlog/CommitLogSegment.java b/src/java/org/apache/cassandra/db/commitlog/CommitLogSegment.java
+index eca22a9..203c926 100644
+--- a/src/java/org/apache/cassandra/db/commitlog/CommitLogSegment.java
++++ b/src/java/org/apache/cassandra/db/commitlog/CommitLogSegment.java
+@@ -34,7 +34,6 @@ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.db.ColumnFamily;
+ import org.apache.cassandra.db.RowMutation;
+ import org.apache.cassandra.io.util.BufferedRandomAccessFile;
+-import org.apache.cassandra.io.util.DataOutputBuffer;
+ 
+ public class CommitLogSegment
+ {
+diff --git a/src/java/org/apache/cassandra/db/commitlog/PeriodicCommitLogExecutorService.java b/src/java/org/apache/cassandra/db/commitlog/PeriodicCommitLogExecutorService.java
+index 24608a9..f44bf5e 100644
+--- a/src/java/org/apache/cassandra/db/commitlog/PeriodicCommitLogExecutorService.java
++++ b/src/java/org/apache/cassandra/db/commitlog/PeriodicCommitLogExecutorService.java
+@@ -21,13 +21,8 @@ package org.apache.cassandra.db.commitlog;
+  */
+ 
+ 
+-import java.io.IOException;
+-import java.util.ArrayList;
+-import java.util.Collection;
+-import java.util.List;
+ import java.util.concurrent.*;
+ 
+-import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.utils.WrappedRunnable;
+ 
+ class PeriodicCommitLogExecutorService implements ICommitLogExecutorService, PeriodicCommitLogExecutorServiceMBean
+diff --git a/src/java/org/apache/cassandra/db/context/CounterContext.java b/src/java/org/apache/cassandra/db/context/CounterContext.java
+index f3719d4..b21b0a4 100644
+--- a/src/java/org/apache/cassandra/db/context/CounterContext.java
++++ b/src/java/org/apache/cassandra/db/context/CounterContext.java
+@@ -19,17 +19,12 @@ package org.apache.cassandra.db.context;
+ 
+ import java.net.InetAddress;
+ import java.net.UnknownHostException;
+-import java.util.ArrayList;
+-import java.util.Collections;
+-import java.util.Comparator;
+-import java.util.HashMap;
+-import java.util.List;
+-import java.util.Map;
++import java.util.*;
++
++import org.apache.commons.lang.ArrayUtils;
+ 
+ import org.apache.cassandra.db.DBConstants;
+-import org.apache.cassandra.db.context.IContext;
+ import org.apache.cassandra.utils.FBUtilities;
+-import org.apache.commons.lang.ArrayUtils;
+ 
+ /**
+  * An implementation of a partitioned counter context.
+diff --git a/src/java/org/apache/cassandra/db/context/IContext.java b/src/java/org/apache/cassandra/db/context/IContext.java
+index 6b4bfff..8403b51 100644
+--- a/src/java/org/apache/cassandra/db/context/IContext.java
++++ b/src/java/org/apache/cassandra/db/context/IContext.java
+@@ -17,9 +17,6 @@
+  */
+ package org.apache.cassandra.db.context;
+ 
+-import java.net.InetAddress;
+-import java.util.List;
+-
+ /**
+  * An opaque commutative context.
+  *
+diff --git a/src/java/org/apache/cassandra/db/filter/NamesQueryFilter.java b/src/java/org/apache/cassandra/db/filter/NamesQueryFilter.java
+index b929515..b30cd43 100644
+--- a/src/java/org/apache/cassandra/db/filter/NamesQueryFilter.java
++++ b/src/java/org/apache/cassandra/db/filter/NamesQueryFilter.java
+@@ -27,12 +27,7 @@ import java.util.Iterator;
+ import java.util.SortedSet;
+ 
+ import org.apache.cassandra.config.CFMetaData;
+-import org.apache.cassandra.db.ColumnFamily;
+-import org.apache.cassandra.db.DecoratedKey;
+-import org.apache.cassandra.db.IColumn;
+-import org.apache.cassandra.db.IColumnContainer;
+-import org.apache.cassandra.db.Memtable;
+-import org.apache.cassandra.db.SuperColumn;
++import org.apache.cassandra.db.*;
+ import org.apache.cassandra.db.columniterator.IColumnIterator;
+ import org.apache.cassandra.db.columniterator.SSTableNamesIterator;
+ import org.apache.cassandra.db.marshal.AbstractType;
+diff --git a/src/java/org/apache/cassandra/db/filter/QueryFilter.java b/src/java/org/apache/cassandra/db/filter/QueryFilter.java
+index 1a7a3fd..6f704c8 100644
+--- a/src/java/org/apache/cassandra/db/filter/QueryFilter.java
++++ b/src/java/org/apache/cassandra/db/filter/QueryFilter.java
+@@ -27,12 +27,10 @@ import java.util.Iterator;
+ import java.util.SortedSet;
+ import java.util.TreeSet;
+ 
+-import org.apache.cassandra.db.ColumnFamily;
+-import org.apache.cassandra.db.DecoratedKey;
+-import org.apache.cassandra.db.IColumn;
+-import org.apache.cassandra.db.IColumnContainer;
+-import org.apache.cassandra.db.Memtable;
+-import org.apache.cassandra.db.SuperColumn;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
++import org.apache.cassandra.db.*;
+ import org.apache.cassandra.db.columniterator.IColumnIterator;
+ import org.apache.cassandra.db.columniterator.IdentityQueryFilter;
+ import org.apache.cassandra.db.marshal.AbstractType;
+@@ -41,8 +39,6 @@ import org.apache.cassandra.io.util.FileDataInput;
+ import org.apache.cassandra.thrift.SlicePredicate;
+ import org.apache.cassandra.thrift.SliceRange;
+ import org.apache.cassandra.utils.ReducingIterator;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ public class QueryFilter
+ {
+diff --git a/src/java/org/apache/cassandra/db/filter/QueryPath.java b/src/java/org/apache/cassandra/db/filter/QueryPath.java
+index 5be8aed..349a59d 100644
+--- a/src/java/org/apache/cassandra/db/filter/QueryPath.java
++++ b/src/java/org/apache/cassandra/db/filter/QueryPath.java
+@@ -29,7 +29,6 @@ import java.nio.ByteBuffer;
+ import org.apache.cassandra.thrift.ColumnParent;
+ import org.apache.cassandra.thrift.ColumnPath;
+ import org.apache.cassandra.utils.FBUtilities;
+-import org.apache.commons.lang.ArrayUtils;
+ 
+ public class QueryPath
+ {
+diff --git a/src/java/org/apache/cassandra/db/filter/SliceQueryFilter.java b/src/java/org/apache/cassandra/db/filter/SliceQueryFilter.java
+index d2bc7c4..7de9954 100644
+--- a/src/java/org/apache/cassandra/db/filter/SliceQueryFilter.java
++++ b/src/java/org/apache/cassandra/db/filter/SliceQueryFilter.java
+@@ -27,23 +27,19 @@ import java.util.Comparator;
+ import java.util.Iterator;
+ import java.util.List;
+ 
++import org.apache.commons.collections.IteratorUtils;
++import org.apache.commons.collections.comparators.ReverseComparator;
++import org.apache.commons.collections.iterators.ReverseListIterator;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.config.CFMetaData;
+-import org.apache.cassandra.db.ColumnFamily;
+-import org.apache.cassandra.db.DecoratedKey;
+-import org.apache.cassandra.db.IColumn;
+-import org.apache.cassandra.db.IColumnContainer;
+-import org.apache.cassandra.db.Memtable;
+-import org.apache.cassandra.db.SuperColumn;
++import org.apache.cassandra.db.*;
+ import org.apache.cassandra.db.columniterator.IColumnIterator;
+ import org.apache.cassandra.db.columniterator.SSTableSliceIterator;
+ import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.io.sstable.SSTableReader;
+ import org.apache.cassandra.io.util.FileDataInput;
+-import org.apache.commons.collections.IteratorUtils;
+-import org.apache.commons.collections.comparators.ReverseComparator;
+-import org.apache.commons.collections.iterators.ReverseListIterator;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ public class SliceQueryFilter implements IFilter
+ {
+diff --git a/src/java/org/apache/cassandra/db/marshal/CounterColumnType.java b/src/java/org/apache/cassandra/db/marshal/CounterColumnType.java
+index 3334b9f..cd10f04 100644
+--- a/src/java/org/apache/cassandra/db/marshal/CounterColumnType.java
++++ b/src/java/org/apache/cassandra/db/marshal/CounterColumnType.java
+@@ -23,15 +23,8 @@ package org.apache.cassandra.db.marshal;
+ import java.net.InetAddress;
+ import java.nio.ByteBuffer;
+ 
+-import org.apache.cassandra.db.ColumnFamily;
+-import org.apache.cassandra.db.CounterColumn;
+-import org.apache.cassandra.db.Column;
+-import org.apache.cassandra.db.DeletedColumn;
+-import org.apache.cassandra.db.IColumn;
+-import org.apache.cassandra.db.IColumnContainer;
+-import org.apache.cassandra.db.SuperColumn;
++import org.apache.cassandra.db.*;
+ import org.apache.cassandra.utils.ByteBufferUtil;
+-import org.apache.cassandra.utils.FBUtilities;
+ 
+ public class CounterColumnType extends AbstractCommutativeType
+ {
+diff --git a/src/java/org/apache/cassandra/db/marshal/LocalByPartionerType.java b/src/java/org/apache/cassandra/db/marshal/LocalByPartionerType.java
+index 1bf822f..7717510 100644
+--- a/src/java/org/apache/cassandra/db/marshal/LocalByPartionerType.java
++++ b/src/java/org/apache/cassandra/db/marshal/LocalByPartionerType.java
+@@ -21,10 +21,11 @@ package org.apache.cassandra.db.marshal;
+ 
+ import java.nio.ByteBuffer;
+ 
++import org.apache.commons.lang.NotImplementedException;
++
+ import org.apache.cassandra.dht.IPartitioner;
+ import org.apache.cassandra.dht.Token;
+ import org.apache.cassandra.utils.FBUtilities;
+-import org.apache.commons.lang.NotImplementedException;
+ 
+ /** for sorting columns representing row keys in the row ordering as determined by a partitioner.
+  * Not intended for user-defined CFs, and will in fact error out if used with such. */
+diff --git a/src/java/org/apache/cassandra/db/marshal/TimeUUIDType.java b/src/java/org/apache/cassandra/db/marshal/TimeUUIDType.java
+index 4f95327..75445a1 100644
+--- a/src/java/org/apache/cassandra/db/marshal/TimeUUIDType.java
++++ b/src/java/org/apache/cassandra/db/marshal/TimeUUIDType.java
+@@ -25,7 +25,6 @@ import java.nio.ByteBuffer;
+ import java.util.UUID;
+ 
+ import org.apache.cassandra.utils.UUIDGen;
+-import org.safehaus.uuid.UUIDGenerator;
+ 
+ public class TimeUUIDType extends AbstractType
+ {
+diff --git a/src/java/org/apache/cassandra/db/marshal/UTF8Type.java b/src/java/org/apache/cassandra/db/marshal/UTF8Type.java
+index 8cb747b..aea3b64 100644
+--- a/src/java/org/apache/cassandra/db/marshal/UTF8Type.java
++++ b/src/java/org/apache/cassandra/db/marshal/UTF8Type.java
+@@ -25,6 +25,7 @@ import java.nio.charset.CharacterCodingException;
+ import java.util.Arrays;
+ 
+ import com.google.common.base.Charsets;
++
+ import org.apache.cassandra.utils.FBUtilities;
+ 
+ public class UTF8Type extends BytesType
+diff --git a/src/java/org/apache/cassandra/db/migration/AddColumnFamily.java b/src/java/org/apache/cassandra/db/migration/AddColumnFamily.java
+index 0337603..fd95f93 100644
+--- a/src/java/org/apache/cassandra/db/migration/AddColumnFamily.java
++++ b/src/java/org/apache/cassandra/db/migration/AddColumnFamily.java
+@@ -1,21 +1,17 @@
+ package org.apache.cassandra.db.migration;
+ 
+-import org.apache.avro.Schema;
++import java.io.IOException;
++import java.util.ArrayList;
++import java.util.List;
+ 
+ import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.config.KSMetaData;
+ import org.apache.cassandra.db.Table;
+-import org.apache.cassandra.db.commitlog.CommitLog;
+-import org.apache.cassandra.io.SerDeUtils;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.UUIDGen;
+ 
+-import java.io.IOException;
+-import java.util.ArrayList;
+-import java.util.List;
+-
+ /**
+  * Licensed to the Apache Software Foundation (ASF) under one
+  * or more contributor license agreements.  See the NOTICE file
+diff --git a/src/java/org/apache/cassandra/db/migration/AddKeyspace.java b/src/java/org/apache/cassandra/db/migration/AddKeyspace.java
+index f98e17e..655ac8f 100644
+--- a/src/java/org/apache/cassandra/db/migration/AddKeyspace.java
++++ b/src/java/org/apache/cassandra/db/migration/AddKeyspace.java
+@@ -18,20 +18,16 @@
+ 
+ package org.apache.cassandra.db.migration;
+ 
+-import org.apache.avro.Schema;
++import java.io.IOException;
+ 
+ import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.config.KSMetaData;
+ import org.apache.cassandra.db.Table;
+-import org.apache.cassandra.db.commitlog.CommitLog;
+-import org.apache.cassandra.io.SerDeUtils;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.UUIDGen;
+ 
+-import java.io.IOException;
+-
+ public class AddKeyspace extends Migration
+ {
+     private KSMetaData ksm;
+diff --git a/src/java/org/apache/cassandra/db/migration/DropColumnFamily.java b/src/java/org/apache/cassandra/db/migration/DropColumnFamily.java
+index 0a3cb90..89e0f84 100644
+--- a/src/java/org/apache/cassandra/db/migration/DropColumnFamily.java
++++ b/src/java/org/apache/cassandra/db/migration/DropColumnFamily.java
+@@ -1,20 +1,18 @@
+ package org.apache.cassandra.db.migration;
+ 
++import java.io.IOException;
++import java.util.ArrayList;
++import java.util.List;
++
+ import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.config.KSMetaData;
+ import org.apache.cassandra.db.ColumnFamilyStore;
+-import org.apache.cassandra.db.SystemTable;
+ import org.apache.cassandra.db.Table;
+-import org.apache.cassandra.db.commitlog.CommitLog;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.UUIDGen;
+ 
+-import java.io.IOException;
+-import java.util.ArrayList;
+-import java.util.List;
+-
+ /**
+  * Licensed to the Apache Software Foundation (ASF) under one
+  * or more contributor license agreements.  See the NOTICE file
+diff --git a/src/java/org/apache/cassandra/db/migration/DropKeyspace.java b/src/java/org/apache/cassandra/db/migration/DropKeyspace.java
+index e761527..5b1c284 100644
+--- a/src/java/org/apache/cassandra/db/migration/DropKeyspace.java
++++ b/src/java/org/apache/cassandra/db/migration/DropKeyspace.java
+@@ -18,19 +18,17 @@
+ 
+ package org.apache.cassandra.db.migration;
+ 
++import java.io.IOException;
++
+ import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.config.KSMetaData;
+ import org.apache.cassandra.db.HintedHandOffManager;
+-import org.apache.cassandra.db.SystemTable;
+ import org.apache.cassandra.db.Table;
+-import org.apache.cassandra.db.commitlog.CommitLog;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.UUIDGen;
+ 
+-import java.io.IOException;
+-
+ public class DropKeyspace extends Migration
+ {
+     private String name;
+diff --git a/src/java/org/apache/cassandra/db/migration/Migration.java b/src/java/org/apache/cassandra/db/migration/Migration.java
+index 6ae736c..b0d1e4f 100644
+--- a/src/java/org/apache/cassandra/db/migration/Migration.java
++++ b/src/java/org/apache/cassandra/db/migration/Migration.java
+@@ -18,7 +18,7 @@
+ 
+ package org.apache.cassandra.db.migration;
+ 
+-import java.io.*;
++import java.io.IOException;
+ import java.lang.reflect.Constructor;
+ import java.nio.ByteBuffer;
+ import java.util.ArrayList;
+@@ -37,14 +37,13 @@ import org.apache.cassandra.config.KSMetaData;
+ import org.apache.cassandra.db.*;
+ import org.apache.cassandra.db.filter.QueryFilter;
+ import org.apache.cassandra.db.filter.QueryPath;
+-import org.apache.cassandra.gms.ApplicationState;
+ import org.apache.cassandra.gms.Gossiper;
+ import org.apache.cassandra.io.SerDeUtils;
+ import org.apache.cassandra.io.util.DataOutputBuffer;
+ import org.apache.cassandra.service.MigrationManager;
+ import org.apache.cassandra.service.StorageService;
+-import org.apache.cassandra.utils.UUIDGen;
+ import org.apache.cassandra.utils.ByteBufferUtil;
++import org.apache.cassandra.utils.UUIDGen;
+ 
+ import static com.google.common.base.Charsets.UTF_8;
+ 
+diff --git a/src/java/org/apache/cassandra/db/migration/RenameColumnFamily.java b/src/java/org/apache/cassandra/db/migration/RenameColumnFamily.java
+index 30a73d4..abe92b0 100644
+--- a/src/java/org/apache/cassandra/db/migration/RenameColumnFamily.java
++++ b/src/java/org/apache/cassandra/db/migration/RenameColumnFamily.java
+@@ -1,21 +1,17 @@
+ package org.apache.cassandra.db.migration;
+ 
++import java.io.IOException;
++import java.util.ArrayList;
++import java.util.List;
++
+ import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.config.KSMetaData;
+-import org.apache.cassandra.db.DefsTable;
+ import org.apache.cassandra.db.Table;
+-import org.apache.cassandra.db.commitlog.CommitLog;
+-import org.apache.cassandra.io.util.FileUtils;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.UUIDGen;
+ 
+-import java.io.File;
+-import java.io.IOException;
+-import java.util.ArrayList;
+-import java.util.List;
+-
+ /**
+  * Licensed to the Apache Software Foundation (ASF) under one
+  * or more contributor license agreements.  See the NOTICE file
+diff --git a/src/java/org/apache/cassandra/db/migration/RenameKeyspace.java b/src/java/org/apache/cassandra/db/migration/RenameKeyspace.java
+index 453dbc2..2f357ee 100644
+--- a/src/java/org/apache/cassandra/db/migration/RenameKeyspace.java
++++ b/src/java/org/apache/cassandra/db/migration/RenameKeyspace.java
+@@ -18,26 +18,22 @@
+ 
+ package org.apache.cassandra.db.migration;
+ 
++import java.io.File;
++import java.io.IOException;
++import java.util.ArrayList;
++import java.util.List;
++
++import org.apache.commons.lang.StringUtils;
++
+ import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.config.KSMetaData;
+-import org.apache.cassandra.db.DefsTable;
+ import org.apache.cassandra.db.HintedHandOffManager;
+ import org.apache.cassandra.db.Table;
+-import org.apache.cassandra.db.commitlog.CommitLog;
+-import org.apache.cassandra.io.util.FileUtils;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.UUIDGen;
+ 
+-import java.io.File;
+-import java.io.IOException;
+-import java.util.ArrayList;
+-import java.util.List;
+-import java.util.Set;
+-
+-import org.apache.commons.lang.StringUtils;
+-
+ /** Deprecated until we can figure out how to rename on a live node without complicating flushing and compaction. */
+ @Deprecated
+ public class RenameKeyspace extends Migration
+diff --git a/src/java/org/apache/cassandra/db/migration/UpdateColumnFamily.java b/src/java/org/apache/cassandra/db/migration/UpdateColumnFamily.java
+index 74de803..a256d95 100644
+--- a/src/java/org/apache/cassandra/db/migration/UpdateColumnFamily.java
++++ b/src/java/org/apache/cassandra/db/migration/UpdateColumnFamily.java
+@@ -1,20 +1,13 @@
+ package org.apache.cassandra.db.migration;
+ 
+ import java.io.IOException;
+-import java.nio.ByteBuffer;
+-import java.util.ArrayList;
+-import java.util.List;
+-import java.util.Map;
+ 
+ import org.apache.cassandra.config.CFMetaData;
+-import org.apache.cassandra.config.ColumnDefinition;
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.config.KSMetaData;
+ import org.apache.cassandra.db.ColumnFamilyStore;
+-import org.apache.cassandra.db.SystemTable;
+ import org.apache.cassandra.db.Table;
+-import org.apache.cassandra.thrift.CfDef;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.UUIDGen;
+ 
+diff --git a/src/java/org/apache/cassandra/db/migration/UpdateKeyspace.java b/src/java/org/apache/cassandra/db/migration/UpdateKeyspace.java
+index ba6059e..ee54c52 100644
+--- a/src/java/org/apache/cassandra/db/migration/UpdateKeyspace.java
++++ b/src/java/org/apache/cassandra/db/migration/UpdateKeyspace.java
+@@ -1,16 +1,15 @@
+ package org.apache.cassandra.db.migration;
+ 
++import java.io.IOException;
++
+ import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.config.KSMetaData;
+ import org.apache.cassandra.db.Table;
+-import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.UUIDGen;
+ 
+-import java.io.IOException;
+-
+ /**
+  * Licensed to the Apache Software Foundation (ASF) under one
+  * or more contributor license agreements.  See the NOTICE file
+diff --git a/src/java/org/apache/cassandra/dht/AbstractByteOrderedPartitioner.java b/src/java/org/apache/cassandra/dht/AbstractByteOrderedPartitioner.java
+index be5da01..6af2d01 100644
+--- a/src/java/org/apache/cassandra/dht/AbstractByteOrderedPartitioner.java
++++ b/src/java/org/apache/cassandra/dht/AbstractByteOrderedPartitioner.java
+@@ -23,10 +23,11 @@ import java.nio.ByteBuffer;
+ import java.util.Arrays;
+ import java.util.Random;
+ 
++import org.apache.commons.lang.ArrayUtils;
++
+ import org.apache.cassandra.db.DecoratedKey;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.Pair;
+-import org.apache.commons.lang.ArrayUtils;
+ 
+ public abstract class AbstractByteOrderedPartitioner implements IPartitioner<BytesToken>
+ {
+diff --git a/src/java/org/apache/cassandra/dht/BootStrapper.java b/src/java/org/apache/cassandra/dht/BootStrapper.java
+index fb0a12f..fff79e6 100644
+--- a/src/java/org/apache/cassandra/dht/BootStrapper.java
++++ b/src/java/org/apache/cassandra/dht/BootStrapper.java
+@@ -21,8 +21,8 @@ package org.apache.cassandra.dht;
+  import java.io.IOException;
+  import java.net.InetAddress;
+  import java.util.*;
+- import java.util.concurrent.locks.Condition;
+  import java.util.concurrent.CountDownLatch;
++ import java.util.concurrent.locks.Condition;
+ 
+  import com.google.common.base.Charsets;
+  import com.google.common.collect.ArrayListMultimap;
+@@ -33,12 +33,12 @@ package org.apache.cassandra.dht;
+  import org.slf4j.Logger;
+  import org.slf4j.LoggerFactory;
+ 
++ import org.apache.cassandra.config.ConfigurationException;
+  import org.apache.cassandra.config.DatabaseDescriptor;
+  import org.apache.cassandra.db.Table;
+  import org.apache.cassandra.gms.FailureDetector;
+  import org.apache.cassandra.gms.IFailureDetector;
+  import org.apache.cassandra.locator.AbstractReplicationStrategy;
+- import org.apache.cassandra.config.ConfigurationException;
+  import org.apache.cassandra.locator.TokenMetadata;
+  import org.apache.cassandra.net.IAsyncCallback;
+  import org.apache.cassandra.net.IVerbHandler;
+diff --git a/src/java/org/apache/cassandra/dht/Bounds.java b/src/java/org/apache/cassandra/dht/Bounds.java
+index 50292f9..f4d7e44 100644
+--- a/src/java/org/apache/cassandra/dht/Bounds.java
++++ b/src/java/org/apache/cassandra/dht/Bounds.java
+@@ -21,7 +21,8 @@ package org.apache.cassandra.dht;
+  */
+ 
+ 
+-import java.util.*;
++import java.util.Collections;
++import java.util.List;
+ 
+ import org.apache.cassandra.service.StorageService;
+ 
+diff --git a/src/java/org/apache/cassandra/dht/ByteOrderedPartitioner.java b/src/java/org/apache/cassandra/dht/ByteOrderedPartitioner.java
+index fec25c0..9b00dbb 100644
+--- a/src/java/org/apache/cassandra/dht/ByteOrderedPartitioner.java
++++ b/src/java/org/apache/cassandra/dht/ByteOrderedPartitioner.java
+@@ -19,7 +19,6 @@
+ package org.apache.cassandra.dht;
+ 
+ import java.nio.ByteBuffer;
+-import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
+ 
+diff --git a/src/java/org/apache/cassandra/dht/CollatingOrderPreservingPartitioner.java b/src/java/org/apache/cassandra/dht/CollatingOrderPreservingPartitioner.java
+index 4305850..3f300f7 100644
+--- a/src/java/org/apache/cassandra/dht/CollatingOrderPreservingPartitioner.java
++++ b/src/java/org/apache/cassandra/dht/CollatingOrderPreservingPartitioner.java
+@@ -21,7 +21,6 @@ package org.apache.cassandra.dht;
+ import java.nio.ByteBuffer;
+ import java.nio.charset.CharacterCodingException;
+ import java.text.Collator;
+-import java.util.HashMap;
+ import java.util.List;
+ import java.util.Locale;
+ import java.util.Map;
+diff --git a/src/java/org/apache/cassandra/dht/LocalPartitioner.java b/src/java/org/apache/cassandra/dht/LocalPartitioner.java
+index f0108b6..d6d3945 100644
+--- a/src/java/org/apache/cassandra/dht/LocalPartitioner.java
++++ b/src/java/org/apache/cassandra/dht/LocalPartitioner.java
+@@ -20,12 +20,13 @@
+ package org.apache.cassandra.dht;
+ 
+ import java.nio.ByteBuffer;
+-import java.util.*;
++import java.util.Collections;
++import java.util.List;
++import java.util.Map;
+ 
+ import org.apache.cassandra.db.DecoratedKey;
+ import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.utils.FBUtilities;
+-import org.apache.commons.lang.ArrayUtils;
+ 
+ public class LocalPartitioner implements IPartitioner<LocalToken>
+ {
+diff --git a/src/java/org/apache/cassandra/dht/RandomPartitioner.java b/src/java/org/apache/cassandra/dht/RandomPartitioner.java
+index 8409676..367137b 100644
+--- a/src/java/org/apache/cassandra/dht/RandomPartitioner.java
++++ b/src/java/org/apache/cassandra/dht/RandomPartitioner.java
+@@ -18,8 +18,6 @@
+ 
+ package org.apache.cassandra.dht;
+ 
+-import static com.google.common.base.Charsets.UTF_8;
+-
+ import java.math.BigDecimal;
+ import java.math.BigInteger;
+ import java.nio.ByteBuffer;
+@@ -30,6 +28,8 @@ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.GuidGenerator;
+ import org.apache.cassandra.utils.Pair;
+ 
++import static com.google.common.base.Charsets.UTF_8;
++
+ /**
+  * This class generates a BigIntegerToken using MD5 hash.
+  */
+diff --git a/src/java/org/apache/cassandra/dht/Range.java b/src/java/org/apache/cassandra/dht/Range.java
+index 472841b..18c6bea 100644
+--- a/src/java/org/apache/cassandra/dht/Range.java
++++ b/src/java/org/apache/cassandra/dht/Range.java
+@@ -20,16 +20,12 @@ package org.apache.cassandra.dht;
+ 
+ import java.io.Serializable;
+ import java.nio.ByteBuffer;
+-import java.util.ArrayList;
+-import java.util.Arrays;
+-import java.util.Collections;
+-import java.util.HashSet;
+-import java.util.List;
+-import java.util.Set;
++import java.util.*;
++
++import org.apache.commons.lang.ObjectUtils;
+ 
+ import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.utils.FBUtilities;
+-import org.apache.commons.lang.ObjectUtils;
+ 
+ /**
+  * A representation of the range that a node is responsible for on the DHT ring.
+diff --git a/src/java/org/apache/cassandra/gms/FailureDetector.java b/src/java/org/apache/cassandra/gms/FailureDetector.java
+index 1c7d4dc..d385cad 100644
+--- a/src/java/org/apache/cassandra/gms/FailureDetector.java
++++ b/src/java/org/apache/cassandra/gms/FailureDetector.java
+@@ -18,26 +18,21 @@
+ 
+ package org.apache.cassandra.gms;
+ 
+-import java.io.BufferedOutputStream;
+-import java.io.File;
+-import java.io.FileOutputStream;
+-import java.io.IOException;
+-import java.io.IOError;
+-import java.io.OutputStream;
++import java.io.*;
+ import java.lang.management.ManagementFactory;
++import java.net.InetAddress;
+ import java.util.*;
+ import javax.management.MBeanServer;
+ import javax.management.ObjectName;
+ 
+ import org.apache.commons.lang.StringUtils;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ 
+-import java.net.InetAddress;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.io.util.FileUtils;
+-import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.BoundedStatsDeque;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
++import org.apache.cassandra.utils.FBUtilities;
+ 
+ /**
+  * This FailureDetector is an implementation of the paper titled
+diff --git a/src/java/org/apache/cassandra/gms/GossipDigest.java b/src/java/org/apache/cassandra/gms/GossipDigest.java
+index 63612a2..522c7a1 100644
+--- a/src/java/org/apache/cassandra/gms/GossipDigest.java
++++ b/src/java/org/apache/cassandra/gms/GossipDigest.java
+@@ -21,10 +21,10 @@ package org.apache.cassandra.gms;
+ import java.io.DataInputStream;
+ import java.io.DataOutputStream;
+ import java.io.IOException;
++import java.net.InetAddress;
+ 
+ import org.apache.cassandra.io.ICompactSerializer;
+ import org.apache.cassandra.net.CompactEndpointSerializationHelper;
+-import java.net.InetAddress;
+ 
+ /**
+  * Contains information about a specified list of Endpoints and the largest version 
+diff --git a/src/java/org/apache/cassandra/gms/GossipDigestAck2Message.java b/src/java/org/apache/cassandra/gms/GossipDigestAck2Message.java
+index aaec1a6..8086e4e 100644
+--- a/src/java/org/apache/cassandra/gms/GossipDigestAck2Message.java
++++ b/src/java/org/apache/cassandra/gms/GossipDigestAck2Message.java
+@@ -21,9 +21,11 @@ package org.apache.cassandra.gms;
+ import java.io.DataInputStream;
+ import java.io.DataOutputStream;
+ import java.io.IOException;
+-import java.util.*;
+-import org.apache.cassandra.io.ICompactSerializer;
+ import java.net.InetAddress;
++import java.util.HashMap;
++import java.util.Map;
++
++import org.apache.cassandra.io.ICompactSerializer;
+ 
+ 
+ /**
+diff --git a/src/java/org/apache/cassandra/gms/GossipDigestAck2VerbHandler.java b/src/java/org/apache/cassandra/gms/GossipDigestAck2VerbHandler.java
+index d3edae3..1c8f341 100644
+--- a/src/java/org/apache/cassandra/gms/GossipDigestAck2VerbHandler.java
++++ b/src/java/org/apache/cassandra/gms/GossipDigestAck2VerbHandler.java
+@@ -21,17 +21,18 @@ package org.apache.cassandra.gms;
+  */
+ 
+ 
+-import org.apache.cassandra.net.IVerbHandler;
+-import org.apache.cassandra.net.Message;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+ import java.io.ByteArrayInputStream;
+ import java.io.DataInputStream;
+ import java.io.IOException;
+ import java.net.InetAddress;
+ import java.util.Map;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
++import org.apache.cassandra.net.IVerbHandler;
++import org.apache.cassandra.net.Message;
++
+ public class GossipDigestAck2VerbHandler implements IVerbHandler
+ {
+     private static Logger logger_ = LoggerFactory.getLogger(GossipDigestAck2VerbHandler.class);
+diff --git a/src/java/org/apache/cassandra/gms/GossipDigestAckMessage.java b/src/java/org/apache/cassandra/gms/GossipDigestAckMessage.java
+index e306d09..8519788 100644
+--- a/src/java/org/apache/cassandra/gms/GossipDigestAckMessage.java
++++ b/src/java/org/apache/cassandra/gms/GossipDigestAckMessage.java
+@@ -21,10 +21,13 @@ package org.apache.cassandra.gms;
+ import java.io.DataInputStream;
+ import java.io.DataOutputStream;
+ import java.io.IOException;
+-import java.util.*;
++import java.net.InetAddress;
++import java.util.ArrayList;
++import java.util.HashMap;
++import java.util.List;
++import java.util.Map;
+ 
+ import org.apache.cassandra.io.ICompactSerializer;
+-import java.net.InetAddress;
+ 
+ 
+ 
+diff --git a/src/java/org/apache/cassandra/gms/GossipDigestAckVerbHandler.java b/src/java/org/apache/cassandra/gms/GossipDigestAckVerbHandler.java
+index 0b9e730..490af9c 100644
+--- a/src/java/org/apache/cassandra/gms/GossipDigestAckVerbHandler.java
++++ b/src/java/org/apache/cassandra/gms/GossipDigestAckVerbHandler.java
+@@ -21,12 +21,6 @@ package org.apache.cassandra.gms;
+  */
+ 
+ 
+-import org.apache.cassandra.net.IVerbHandler;
+-import org.apache.cassandra.net.Message;
+-import org.apache.cassandra.net.MessagingService;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+ import java.io.ByteArrayInputStream;
+ import java.io.DataInputStream;
+ import java.io.IOException;
+@@ -35,6 +29,13 @@ import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
++import org.apache.cassandra.net.IVerbHandler;
++import org.apache.cassandra.net.Message;
++import org.apache.cassandra.net.MessagingService;
++
+ public class GossipDigestAckVerbHandler implements IVerbHandler
+ {
+     private static Logger logger_ = LoggerFactory.getLogger(GossipDigestAckVerbHandler.class);
+diff --git a/src/java/org/apache/cassandra/gms/GossipDigestSynMessage.java b/src/java/org/apache/cassandra/gms/GossipDigestSynMessage.java
+index 2e978a7..7cf2820 100644
+--- a/src/java/org/apache/cassandra/gms/GossipDigestSynMessage.java
++++ b/src/java/org/apache/cassandra/gms/GossipDigestSynMessage.java
+@@ -21,16 +21,19 @@ package org.apache.cassandra.gms;
+ import java.io.DataInputStream;
+ import java.io.DataOutputStream;
+ import java.io.IOException;
+-import java.util.*;
+-import java.util.Map.Entry;
+-
+-import org.apache.cassandra.io.ICompactSerializer;
+-import org.apache.cassandra.net.CompactEndpointSerializationHelper;
+ import java.net.InetAddress;
++import java.util.ArrayList;
++import java.util.HashMap;
++import java.util.List;
++import java.util.Map;
++import java.util.Map.Entry;
+ 
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
++import org.apache.cassandra.io.ICompactSerializer;
++import org.apache.cassandra.net.CompactEndpointSerializationHelper;
++
+ 
+ /**
+  * This is the first message that gets sent out as a start of the Gossip protocol in a 
+diff --git a/src/java/org/apache/cassandra/gms/GossipDigestSynVerbHandler.java b/src/java/org/apache/cassandra/gms/GossipDigestSynVerbHandler.java
+index 8cc5556..50df397 100644
+--- a/src/java/org/apache/cassandra/gms/GossipDigestSynVerbHandler.java
++++ b/src/java/org/apache/cassandra/gms/GossipDigestSynVerbHandler.java
+@@ -21,19 +21,20 @@ package org.apache.cassandra.gms;
+  */
+ 
+ 
+-import org.apache.cassandra.config.DatabaseDescriptor;
+-import org.apache.cassandra.net.IVerbHandler;
+-import org.apache.cassandra.net.Message;
+-import org.apache.cassandra.net.MessagingService;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+ import java.io.ByteArrayInputStream;
+ import java.io.DataInputStream;
+ import java.io.IOException;
+ import java.net.InetAddress;
+ import java.util.*;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
++import org.apache.cassandra.config.DatabaseDescriptor;
++import org.apache.cassandra.net.IVerbHandler;
++import org.apache.cassandra.net.Message;
++import org.apache.cassandra.net.MessagingService;
++
+ public class GossipDigestSynVerbHandler implements IVerbHandler
+ {
+     private static Logger logger_ = LoggerFactory.getLogger( GossipDigestSynVerbHandler.class);
+diff --git a/src/java/org/apache/cassandra/gms/PureRandom.java b/src/java/org/apache/cassandra/gms/PureRandom.java
+index 6363166..1bbc632 100644
+--- a/src/java/org/apache/cassandra/gms/PureRandom.java
++++ b/src/java/org/apache/cassandra/gms/PureRandom.java
+@@ -18,8 +18,8 @@
+ 
+ package org.apache.cassandra.gms;
+ 
+-import java.util.Random;
+ import java.util.BitSet;
++import java.util.Random;
+ 
+ 
+ /**
+diff --git a/src/java/org/apache/cassandra/hadoop/ColumnFamilyInputFormat.java b/src/java/org/apache/cassandra/hadoop/ColumnFamilyInputFormat.java
+index 96d3d14..5f7dbfc 100644
+--- a/src/java/org/apache/cassandra/hadoop/ColumnFamilyInputFormat.java
++++ b/src/java/org/apache/cassandra/hadoop/ColumnFamilyInputFormat.java
+@@ -24,35 +24,27 @@ package org.apache.cassandra.hadoop;
+ import java.io.IOException;
+ import java.net.InetAddress;
+ import java.nio.ByteBuffer;
+-import java.util.ArrayList;
+-import java.util.Collections;
+-import java.util.List;
+-import java.util.Random;
+-import java.util.SortedMap;
++import java.util.*;
+ import java.util.concurrent.Callable;
+ import java.util.concurrent.ExecutorService;
+ import java.util.concurrent.Executors;
+ import java.util.concurrent.Future;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.db.IColumn;
+-import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.thrift.Cassandra;
+ import org.apache.cassandra.thrift.InvalidRequestException;
+ import org.apache.cassandra.thrift.TokenRange;
+ import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.mapreduce.InputFormat;
+-import org.apache.hadoop.mapreduce.InputSplit;
+-import org.apache.hadoop.mapreduce.JobContext;
+-import org.apache.hadoop.mapreduce.RecordReader;
+-import org.apache.hadoop.mapreduce.TaskAttemptContext;
++import org.apache.hadoop.mapreduce.*;
+ import org.apache.thrift.TException;
+ import org.apache.thrift.protocol.TBinaryProtocol;
+ import org.apache.thrift.transport.TFramedTransport;
+ import org.apache.thrift.transport.TSocket;
+ import org.apache.thrift.transport.TTransport;
+ import org.apache.thrift.transport.TTransportException;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ /**
+  * Hadoop InputFormat allowing map/reduce against Cassandra rows within one ColumnFamily.
+diff --git a/src/java/org/apache/cassandra/hadoop/ColumnFamilyOutputFormat.java b/src/java/org/apache/cassandra/hadoop/ColumnFamilyOutputFormat.java
+index 3cae699..229eb38 100644
+--- a/src/java/org/apache/cassandra/hadoop/ColumnFamilyOutputFormat.java
++++ b/src/java/org/apache/cassandra/hadoop/ColumnFamilyOutputFormat.java
+@@ -22,30 +22,23 @@ package org.apache.cassandra.hadoop;
+  */
+ 
+ import java.io.IOException;
++import java.nio.ByteBuffer;
+ import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
+-import java.nio.ByteBuffer;
++
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ 
+ import org.apache.cassandra.auth.SimpleAuthenticator;
+ import org.apache.cassandra.avro.Mutation;
+-import org.apache.cassandra.thrift.AuthenticationException;
+-import org.apache.cassandra.thrift.AuthenticationRequest;
+-import org.apache.cassandra.thrift.AuthorizationException;
+-import org.apache.cassandra.thrift.Cassandra;
+-import org.apache.cassandra.thrift.InvalidRequestException;
++import org.apache.cassandra.thrift.*;
+ import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.mapreduce.JobContext;
+-import org.apache.hadoop.mapreduce.OutputCommitter;
+-import org.apache.hadoop.mapreduce.OutputFormat;
+-import org.apache.hadoop.mapreduce.RecordWriter;
+-import org.apache.hadoop.mapreduce.TaskAttemptContext;
++import org.apache.hadoop.mapreduce.*;
+ import org.apache.thrift.TException;
+ import org.apache.thrift.protocol.TBinaryProtocol;
+ import org.apache.thrift.transport.TFramedTransport;
+ import org.apache.thrift.transport.TSocket;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ /**
+  * The <code>ColumnFamilyOutputFormat</code> acts as a Hadoop-specific
+diff --git a/src/java/org/apache/cassandra/hadoop/ColumnFamilyRecordReader.java b/src/java/org/apache/cassandra/hadoop/ColumnFamilyRecordReader.java
+index 46a39b8..0c36585 100644
+--- a/src/java/org/apache/cassandra/hadoop/ColumnFamilyRecordReader.java
++++ b/src/java/org/apache/cassandra/hadoop/ColumnFamilyRecordReader.java
+@@ -25,30 +25,16 @@ import java.io.IOException;
+ import java.net.InetAddress;
+ import java.net.UnknownHostException;
+ import java.nio.ByteBuffer;
+-import java.util.ArrayList;
+-import java.util.HashMap;
+-import java.util.List;
+-import java.util.Map;
+-import java.util.SortedMap;
+-import java.util.TreeMap;
++import java.util.*;
++
++import com.google.common.collect.AbstractIterator;
+ 
+ import org.apache.cassandra.auth.SimpleAuthenticator;
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.db.IColumn;
+ import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.dht.IPartitioner;
+-import org.apache.cassandra.thrift.AuthenticationRequest;
+-import org.apache.cassandra.thrift.Cassandra;
+-import org.apache.cassandra.thrift.CfDef;
+-import org.apache.cassandra.thrift.Column;
+-import org.apache.cassandra.thrift.ColumnOrSuperColumn;
+-import org.apache.cassandra.thrift.ColumnParent;
+-import org.apache.cassandra.thrift.ConsistencyLevel;
+-import org.apache.cassandra.thrift.KeyRange;
+-import org.apache.cassandra.thrift.KeySlice;
+-import org.apache.cassandra.thrift.KsDef;
+-import org.apache.cassandra.thrift.SlicePredicate;
+-import org.apache.cassandra.thrift.SuperColumn;
++import org.apache.cassandra.thrift.*;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.Pair;
+ import org.apache.hadoop.conf.Configuration;
+@@ -60,8 +46,6 @@ import org.apache.thrift.protocol.TBinaryProtocol;
+ import org.apache.thrift.transport.TFramedTransport;
+ import org.apache.thrift.transport.TSocket;
+ 
+-import com.google.common.collect.AbstractIterator;
+-
+ public class ColumnFamilyRecordReader extends RecordReader<ByteBuffer, SortedMap<ByteBuffer, IColumn>>
+ {
+     private ColumnFamilySplit split;
+diff --git a/src/java/org/apache/cassandra/hadoop/ColumnFamilySplit.java b/src/java/org/apache/cassandra/hadoop/ColumnFamilySplit.java
+index 01ec83d..8f6b3dc 100644
+--- a/src/java/org/apache/cassandra/hadoop/ColumnFamilySplit.java
++++ b/src/java/org/apache/cassandra/hadoop/ColumnFamilySplit.java
+@@ -26,14 +26,8 @@ import java.io.DataOutput;
+ import java.io.IOException;
+ import java.util.Arrays;
+ 
+-import org.apache.cassandra.dht.Token;
+-import org.apache.cassandra.thrift.SlicePredicate;
+-import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.hadoop.io.Writable;
+ import org.apache.hadoop.mapreduce.InputSplit;
+-import org.apache.thrift.TDeserializer;
+-import org.apache.thrift.TSerializer;
+-import org.apache.thrift.protocol.TBinaryProtocol;
+ 
+ public class ColumnFamilySplit extends InputSplit implements Writable
+ {
+diff --git a/src/java/org/apache/cassandra/hadoop/ConfigHelper.java b/src/java/org/apache/cassandra/hadoop/ConfigHelper.java
+index 25f6feb..ad67566 100644
+--- a/src/java/org/apache/cassandra/hadoop/ConfigHelper.java
++++ b/src/java/org/apache/cassandra/hadoop/ConfigHelper.java
+@@ -20,8 +20,6 @@ package org.apache.cassandra.hadoop;
+  * 
+  */
+ 
+-import java.nio.ByteBuffer;
+-
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.dht.IPartitioner;
+ import org.apache.cassandra.thrift.SlicePredicate;
+diff --git a/src/java/org/apache/cassandra/hadoop/streaming/AvroOutputReader.java b/src/java/org/apache/cassandra/hadoop/streaming/AvroOutputReader.java
+index cbc0403..7fdbf47 100644
+--- a/src/java/org/apache/cassandra/hadoop/streaming/AvroOutputReader.java
++++ b/src/java/org/apache/cassandra/hadoop/streaming/AvroOutputReader.java
+@@ -23,20 +23,17 @@ import java.io.DataInput;
+ import java.io.EOFException;
+ import java.io.IOException;
+ import java.io.InputStream;
+-import java.net.InetAddress;
+ import java.nio.ByteBuffer;
+-import java.util.*;
+-
+-import org.apache.cassandra.avro.Mutation;
+-import org.apache.cassandra.avro.StreamingMutation;
+-import org.apache.cassandra.hadoop.ConfigHelper;
++import java.util.ArrayList;
++import java.util.List;
+ 
+ import org.apache.avro.io.BinaryDecoder;
+ import org.apache.avro.io.DecoderFactory;
+ import org.apache.avro.specific.SpecificDatumReader;
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.streaming.io.OutputReader;
++import org.apache.cassandra.avro.Mutation;
++import org.apache.cassandra.avro.StreamingMutation;
+ import org.apache.hadoop.streaming.PipeMapRed;
++import org.apache.hadoop.streaming.io.OutputReader;
+ 
+ /**
+  * An OutputReader that reads sequential StreamingMutations (from Cassandra's Avro client API), and converts them to
+diff --git a/src/java/org/apache/cassandra/io/CompactionIterator.java b/src/java/org/apache/cassandra/io/CompactionIterator.java
+index f08a660..dcc486d 100644
+--- a/src/java/org/apache/cassandra/io/CompactionIterator.java
++++ b/src/java/org/apache/cassandra/io/CompactionIterator.java
+@@ -23,21 +23,21 @@ package org.apache.cassandra.io;
+ 
+ import java.io.Closeable;
+ import java.io.IOException;
+-import java.util.List;
+ import java.util.ArrayList;
+ import java.util.Iterator;
++import java.util.List;
+ 
+-import org.apache.cassandra.config.DatabaseDescriptor;
+-import org.apache.cassandra.db.ColumnFamilyStore;
+-import org.apache.cassandra.io.sstable.SSTableIdentityIterator;
++import org.apache.commons.collections.iterators.CollatingIterator;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+-import org.apache.commons.collections.iterators.CollatingIterator;
+ 
+-import org.apache.cassandra.utils.ReducingIterator;
+-import org.apache.cassandra.utils.FBUtilities;
++import org.apache.cassandra.config.DatabaseDescriptor;
++import org.apache.cassandra.db.ColumnFamilyStore;
++import org.apache.cassandra.io.sstable.SSTableIdentityIterator;
+ import org.apache.cassandra.io.sstable.SSTableReader;
+ import org.apache.cassandra.io.sstable.SSTableScanner;
++import org.apache.cassandra.utils.FBUtilities;
++import org.apache.cassandra.utils.ReducingIterator;
+ 
+ public class CompactionIterator extends ReducingIterator<SSTableIdentityIterator, AbstractCompactedRow>
+ implements Closeable, ICompactionInfo
+diff --git a/src/java/org/apache/cassandra/io/ICompactSerializer.java b/src/java/org/apache/cassandra/io/ICompactSerializer.java
+index a232dd4..9114ce5 100644
+--- a/src/java/org/apache/cassandra/io/ICompactSerializer.java
++++ b/src/java/org/apache/cassandra/io/ICompactSerializer.java
+@@ -18,10 +18,9 @@
+ 
+ package org.apache.cassandra.io;
+ 
+-import java.io.DataOutput;
++import java.io.DataInputStream;
+ import java.io.DataOutputStream;
+ import java.io.IOException;
+-import java.io.DataInputStream;
+ 
+ /**
+  * Allows for the controlled serialization/deserialization of a given type.
+diff --git a/src/java/org/apache/cassandra/io/ICompactSerializer2.java b/src/java/org/apache/cassandra/io/ICompactSerializer2.java
+index 0f975ef..2633896 100644
+--- a/src/java/org/apache/cassandra/io/ICompactSerializer2.java
++++ b/src/java/org/apache/cassandra/io/ICompactSerializer2.java
+@@ -18,7 +18,9 @@
+ 
+ package org.apache.cassandra.io;
+ 
+-import java.io.*;
++import java.io.DataInput;
++import java.io.DataOutput;
++import java.io.IOException;
+ 
+ public interface ICompactSerializer2<T>
+ {
+diff --git a/src/java/org/apache/cassandra/io/LazilyCompactedRow.java b/src/java/org/apache/cassandra/io/LazilyCompactedRow.java
+index 6bfa602..94959cc 100644
+--- a/src/java/org/apache/cassandra/io/LazilyCompactedRow.java
++++ b/src/java/org/apache/cassandra/io/LazilyCompactedRow.java
+@@ -31,7 +31,10 @@ import com.google.common.base.Predicates;
+ import com.google.common.collect.Iterators;
+ import org.apache.commons.collections.iterators.CollatingIterator;
+ 
+-import org.apache.cassandra.db.*;
++import org.apache.cassandra.db.ColumnFamily;
++import org.apache.cassandra.db.ColumnFamilyStore;
++import org.apache.cassandra.db.ColumnIndexer;
++import org.apache.cassandra.db.IColumn;
+ import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.io.sstable.SSTable;
+ import org.apache.cassandra.io.sstable.SSTableIdentityIterator;
+diff --git a/src/java/org/apache/cassandra/io/PrecompactedRow.java b/src/java/org/apache/cassandra/io/PrecompactedRow.java
+index aa8f499..a92b494 100644
+--- a/src/java/org/apache/cassandra/io/PrecompactedRow.java
++++ b/src/java/org/apache/cassandra/io/PrecompactedRow.java
+@@ -25,9 +25,12 @@ import java.io.DataOutput;
+ import java.io.IOError;
+ import java.io.IOException;
+ import java.security.MessageDigest;
++import java.util.HashSet;
+ import java.util.List;
+ import java.util.Set;
+-import java.util.HashSet;
++
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ 
+ import org.apache.cassandra.db.ColumnFamily;
+ import org.apache.cassandra.db.ColumnFamilyStore;
+@@ -35,8 +38,6 @@ import org.apache.cassandra.db.DecoratedKey;
+ import org.apache.cassandra.io.sstable.SSTable;
+ import org.apache.cassandra.io.sstable.SSTableIdentityIterator;
+ import org.apache.cassandra.io.util.DataOutputBuffer;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ /**
+  * PrecompactedRow merges its rows in its constructor in memory.
+diff --git a/src/java/org/apache/cassandra/io/SerDeUtils.java b/src/java/org/apache/cassandra/io/SerDeUtils.java
+index 2921fe4..121589e 100644
+--- a/src/java/org/apache/cassandra/io/SerDeUtils.java
++++ b/src/java/org/apache/cassandra/io/SerDeUtils.java
+@@ -24,18 +24,16 @@ import java.nio.ByteBuffer;
+ import java.util.Collections;
+ 
+ import org.apache.avro.Schema;
++import org.apache.avro.generic.GenericArray;
++import org.apache.avro.generic.GenericData;
+ import org.apache.avro.io.BinaryDecoder;
+ import org.apache.avro.io.BinaryEncoder;
+-import org.apache.avro.io.Decoder;
+ import org.apache.avro.io.DecoderFactory;
+ import org.apache.avro.ipc.ByteBufferInputStream;
+-import org.apache.avro.generic.GenericArray;
+-import org.apache.avro.generic.GenericData;
+ import org.apache.avro.specific.SpecificDatumReader;
+ import org.apache.avro.specific.SpecificDatumWriter;
+ import org.apache.avro.specific.SpecificRecord;
+ import org.apache.avro.util.Utf8;
+-
+ import org.apache.cassandra.io.util.OutputBuffer;
+ 
+ /**
+diff --git a/src/java/org/apache/cassandra/io/sstable/IndexHelper.java b/src/java/org/apache/cassandra/io/sstable/IndexHelper.java
+index bc36dd2..4d571bc 100644
+--- a/src/java/org/apache/cassandra/io/sstable/IndexHelper.java
++++ b/src/java/org/apache/cassandra/io/sstable/IndexHelper.java
+@@ -18,12 +18,7 @@
+ 
+ package org.apache.cassandra.io.sstable;
+ 
+-import java.io.ByteArrayInputStream;
+-import java.io.DataInput;
+-import java.io.DataInputStream;
+-import java.io.DataOutput;
+-import java.io.EOFException;
+-import java.io.IOException;
++import java.io.*;
+ import java.nio.ByteBuffer;
+ import java.util.ArrayList;
+ import java.util.Collections;
+diff --git a/src/java/org/apache/cassandra/io/sstable/IndexSummary.java b/src/java/org/apache/cassandra/io/sstable/IndexSummary.java
+index 1338c8e..cb5a4df 100644
+--- a/src/java/org/apache/cassandra/io/sstable/IndexSummary.java
++++ b/src/java/org/apache/cassandra/io/sstable/IndexSummary.java
+@@ -22,12 +22,9 @@ package org.apache.cassandra.io.sstable;
+ 
+ 
+ import java.util.ArrayList;
+-import java.util.HashMap;
+ import java.util.List;
+-import java.util.Map;
+ 
+ import org.apache.cassandra.config.DatabaseDescriptor;
+-import org.apache.cassandra.config.Config;
+ import org.apache.cassandra.db.DecoratedKey;
+ 
+ /**
+diff --git a/src/java/org/apache/cassandra/io/sstable/SSTable.java b/src/java/org/apache/cassandra/io/sstable/SSTable.java
+index 71cbfab..c56ba81 100644
+--- a/src/java/org/apache/cassandra/io/sstable/SSTable.java
++++ b/src/java/org/apache/cassandra/io/sstable/SSTable.java
+@@ -32,8 +32,8 @@ import org.slf4j.LoggerFactory;
+ 
+ import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.dht.IPartitioner;
+-import org.apache.cassandra.io.util.FileUtils;
+ import org.apache.cassandra.io.util.BufferedRandomAccessFile;
++import org.apache.cassandra.io.util.FileUtils;
+ import org.apache.cassandra.utils.EstimatedHistogram;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.Pair;
+diff --git a/src/java/org/apache/cassandra/io/sstable/SSTableIdentityIterator.java b/src/java/org/apache/cassandra/io/sstable/SSTableIdentityIterator.java
+index d2ef426..ea5542e 100644
+--- a/src/java/org/apache/cassandra/io/sstable/SSTableIdentityIterator.java
++++ b/src/java/org/apache/cassandra/io/sstable/SSTableIdentityIterator.java
+@@ -21,7 +21,9 @@ package org.apache.cassandra.io.sstable;
+  */
+ 
+ 
+-import java.io.*;
++import java.io.DataOutput;
++import java.io.IOError;
++import java.io.IOException;
+ 
+ import org.apache.cassandra.db.ColumnFamily;
+ import org.apache.cassandra.db.DecoratedKey;
+diff --git a/src/java/org/apache/cassandra/io/sstable/SSTableReader.java b/src/java/org/apache/cassandra/io/sstable/SSTableReader.java
+index d3d3ac0..cca30a3 100644
+--- a/src/java/org/apache/cassandra/io/sstable/SSTableReader.java
++++ b/src/java/org/apache/cassandra/io/sstable/SSTableReader.java
+@@ -19,33 +19,21 @@
+ 
+ package org.apache.cassandra.io.sstable;
+ 
+-import java.io.BufferedInputStream;
+-import java.io.DataInput;
+-import java.io.DataInputStream;
+-import java.io.File;
+-import java.io.FileInputStream;
+-import java.io.IOError;
+-import java.io.IOException;
++import java.io.*;
+ import java.lang.ref.Reference;
+ import java.lang.ref.ReferenceQueue;
+ import java.nio.ByteBuffer;
+-import java.util.ArrayList;
+-import java.util.Collection;
+-import java.util.Collections;
+-import java.util.HashSet;
+-import java.util.Iterator;
+-import java.util.List;
+-import java.util.Set;
++import java.util.*;
++
++import com.google.common.base.Function;
++import com.google.common.collect.Collections2;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ 
+ import org.apache.cassandra.cache.InstrumentedCache;
+ import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+-import org.apache.cassandra.db.Column;
+-import org.apache.cassandra.db.ColumnFamily;
+-import org.apache.cassandra.db.ColumnFamilyType;
+-import org.apache.cassandra.db.DecoratedKey;
+-import org.apache.cassandra.db.IColumn;
+-import org.apache.cassandra.db.SuperColumn;
++import org.apache.cassandra.db.*;
+ import org.apache.cassandra.db.filter.QueryFilter;
+ import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.dht.AbstractBounds;
+@@ -59,12 +47,6 @@ import org.apache.cassandra.io.util.SegmentedFile;
+ import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.utils.*;
+ 
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-import com.google.common.base.Function;
+-import com.google.common.collect.Collections2;
+-
+ /**
+  * SSTableReaders are open()ed by Table.onStart; after that they are created by SSTableWriter.renameAndOpen.
+  * Do not re-call open() on existing SSTable files; use the references kept by ColumnFamilyStore post-start instead.
+diff --git a/src/java/org/apache/cassandra/io/sstable/SSTableScanner.java b/src/java/org/apache/cassandra/io/sstable/SSTableScanner.java
+index 407bbe3..a6b79ce 100644
+--- a/src/java/org/apache/cassandra/io/sstable/SSTableScanner.java
++++ b/src/java/org/apache/cassandra/io/sstable/SSTableScanner.java
+@@ -20,10 +20,13 @@
+ package org.apache.cassandra.io.sstable;
+ 
+ import java.io.Closeable;
+-import java.io.IOException;
+ import java.io.IOError;
+-import java.util.Iterator;
++import java.io.IOException;
+ import java.util.Arrays;
++import java.util.Iterator;
++
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ 
+ import org.apache.cassandra.db.DecoratedKey;
+ import org.apache.cassandra.db.columniterator.IColumnIterator;
+@@ -31,9 +34,6 @@ import org.apache.cassandra.db.filter.QueryFilter;
+ import org.apache.cassandra.io.util.BufferedRandomAccessFile;
+ import org.apache.cassandra.utils.FBUtilities;
+ 
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+ 
+ public class SSTableScanner implements Iterator<IColumnIterator>, Closeable
+ {
+diff --git a/src/java/org/apache/cassandra/io/sstable/SSTableTracker.java b/src/java/org/apache/cassandra/io/sstable/SSTableTracker.java
+index cb04c31..f85a251 100644
+--- a/src/java/org/apache/cassandra/io/sstable/SSTableTracker.java
++++ b/src/java/org/apache/cassandra/io/sstable/SSTableTracker.java
+@@ -19,20 +19,15 @@
+ 
+ package org.apache.cassandra.io.sstable;
+ 
+-import java.io.BufferedOutputStream;
+-import java.io.File;
+-import java.io.FileDescriptor;
+-import java.io.FileOutputStream;
+-import java.io.IOException;
+-import java.io.ObjectOutputStream;
++import java.io.*;
+ import java.nio.ByteBuffer;
+-import java.util.Collection;
+-import java.util.Collections;
+-import java.util.HashSet;
+-import java.util.Iterator;
+-import java.util.Set;
++import java.util.*;
+ import java.util.concurrent.atomic.AtomicLong;
+ 
++import com.google.common.base.Function;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.cache.JMXInstrumentedCache;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.db.ColumnFamily;
+@@ -40,11 +35,6 @@ import org.apache.cassandra.db.DecoratedKey;
+ import org.apache.cassandra.io.util.FileUtils;
+ import org.apache.cassandra.utils.Pair;
+ 
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-import com.google.common.base.Function;
+-
+ public class SSTableTracker implements Iterable<SSTableReader>
+ {
+     private static final Logger logger = LoggerFactory.getLogger(SSTableTracker.class);
+diff --git a/src/java/org/apache/cassandra/io/sstable/SSTableWriter.java b/src/java/org/apache/cassandra/io/sstable/SSTableWriter.java
+index c0cc3fc..6950343 100644
+--- a/src/java/org/apache/cassandra/io/sstable/SSTableWriter.java
++++ b/src/java/org/apache/cassandra/io/sstable/SSTableWriter.java
+@@ -20,26 +20,21 @@
+ package org.apache.cassandra.io.sstable;
+ 
+ import java.io.*;
+-import java.net.InetAddress;
+-import java.io.DataOutputStream;
+-import java.io.File;
+-import java.io.FileOutputStream;
+-import java.io.IOError;
+-import java.io.IOException;
+ import java.nio.ByteBuffer;
+ import java.util.Arrays;
+ import java.util.HashSet;
+ import java.util.Set;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+-import org.apache.cassandra.db.*;
+-import org.apache.cassandra.db.marshal.AbstractType;
+-import org.apache.cassandra.db.marshal.AbstractCommutativeType;
+ import org.apache.cassandra.db.ColumnFamily;
+ import org.apache.cassandra.db.ColumnFamilyStore;
+ import org.apache.cassandra.db.DecoratedKey;
+ import org.apache.cassandra.db.Table;
++import org.apache.cassandra.db.marshal.AbstractCommutativeType;
+ import org.apache.cassandra.dht.IPartitioner;
+ import org.apache.cassandra.io.AbstractCompactedRow;
+ import org.apache.cassandra.io.ICompactionInfo;
+@@ -52,8 +47,6 @@ import org.apache.cassandra.streaming.OperationType;
+ import org.apache.cassandra.utils.BloomFilter;
+ import org.apache.cassandra.utils.EstimatedHistogram;
+ import org.apache.cassandra.utils.FBUtilities;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ public class SSTableWriter extends SSTable
+ {
+diff --git a/src/java/org/apache/cassandra/io/util/DataOutputBuffer.java b/src/java/org/apache/cassandra/io/util/DataOutputBuffer.java
+index 23a3276..ac8a0ed 100644
+--- a/src/java/org/apache/cassandra/io/util/DataOutputBuffer.java
++++ b/src/java/org/apache/cassandra/io/util/DataOutputBuffer.java
+@@ -18,10 +18,7 @@
+ 
+ package org.apache.cassandra.io.util;
+ 
+-import java.io.ByteArrayOutputStream;
+-import java.io.DataInput;
+ import java.io.DataOutputStream;
+-import java.io.IOException;
+ 
+ 
+ /**
+diff --git a/src/java/org/apache/cassandra/io/util/FileDataInput.java b/src/java/org/apache/cassandra/io/util/FileDataInput.java
+index 41c1049..5d0b6ce 100644
+--- a/src/java/org/apache/cassandra/io/util/FileDataInput.java
++++ b/src/java/org/apache/cassandra/io/util/FileDataInput.java
+@@ -21,9 +21,9 @@ package org.apache.cassandra.io.util;
+  */
+ 
+ 
++import java.io.Closeable;
+ import java.io.DataInput;
+ import java.io.IOException;
+-import java.io.Closeable;
+ 
+ public interface FileDataInput extends DataInput, Closeable
+ {
+diff --git a/src/java/org/apache/cassandra/io/util/FileUtils.java b/src/java/org/apache/cassandra/io/util/FileUtils.java
+index 6bd8537..251d80f 100644
+--- a/src/java/org/apache/cassandra/io/util/FileUtils.java
++++ b/src/java/org/apache/cassandra/io/util/FileUtils.java
+@@ -23,7 +23,6 @@ import java.text.DecimalFormat;
+ import java.util.Comparator;
+ import java.util.List;
+ 
+-import org.apache.cassandra.utils.FBUtilities;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
+diff --git a/src/java/org/apache/cassandra/io/util/IIterableColumns.java b/src/java/org/apache/cassandra/io/util/IIterableColumns.java
+index 928e0d2..f9c74cf 100644
+--- a/src/java/org/apache/cassandra/io/util/IIterableColumns.java
++++ b/src/java/org/apache/cassandra/io/util/IIterableColumns.java
+@@ -21,8 +21,6 @@ package org.apache.cassandra.io.util;
+  */
+ 
+ 
+-import java.util.Comparator;
+-
+ import org.apache.cassandra.db.IColumn;
+ import org.apache.cassandra.db.marshal.AbstractType;
+ 
+diff --git a/src/java/org/apache/cassandra/io/util/MappedFileDataInput.java b/src/java/org/apache/cassandra/io/util/MappedFileDataInput.java
+index 1b57a82..ddc7960 100644
+--- a/src/java/org/apache/cassandra/io/util/MappedFileDataInput.java
++++ b/src/java/org/apache/cassandra/io/util/MappedFileDataInput.java
+@@ -21,8 +21,8 @@ package org.apache.cassandra.io.util;
+  */
+ 
+ 
+-import java.nio.MappedByteBuffer;
+ import java.io.*;
++import java.nio.MappedByteBuffer;
+ 
+ public class MappedFileDataInput extends InputStream implements FileDataInput
+ {
+diff --git a/src/java/org/apache/cassandra/io/util/OutputBuffer.java b/src/java/org/apache/cassandra/io/util/OutputBuffer.java
+index 0dab679..e8ce6d4 100644
+--- a/src/java/org/apache/cassandra/io/util/OutputBuffer.java
++++ b/src/java/org/apache/cassandra/io/util/OutputBuffer.java
+@@ -20,7 +20,6 @@ package org.apache.cassandra.io.util;
+ 
+ import java.io.ByteArrayOutputStream;
+ import java.io.DataInput;
+-import java.io.DataOutputStream;
+ import java.io.IOException;
+ 
+ /**
+diff --git a/src/java/org/apache/cassandra/io/util/SegmentedFile.java b/src/java/org/apache/cassandra/io/util/SegmentedFile.java
+index ff2d65e..e4c4ebb 100644
+--- a/src/java/org/apache/cassandra/io/util/SegmentedFile.java
++++ b/src/java/org/apache/cassandra/io/util/SegmentedFile.java
+@@ -19,13 +19,14 @@
+ 
+ package org.apache.cassandra.io.util;
+ 
+-import java.io.*;
+-import java.util.*;
++import java.io.IOError;
++import java.io.IOException;
+ import java.nio.MappedByteBuffer;
++import java.util.Iterator;
++import java.util.NoSuchElementException;
+ 
+-import org.apache.cassandra.utils.Pair;
+-import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.config.Config;
++import org.apache.cassandra.utils.Pair;
+ 
+ /**
+  * Abstracts a read-only file that has been split into segments, each of which can be represented by an independent
+diff --git a/src/java/org/apache/cassandra/locator/AbstractEndpointSnitch.java b/src/java/org/apache/cassandra/locator/AbstractEndpointSnitch.java
+index 08126f2..818ebab 100644
+--- a/src/java/org/apache/cassandra/locator/AbstractEndpointSnitch.java
++++ b/src/java/org/apache/cassandra/locator/AbstractEndpointSnitch.java
+@@ -19,17 +19,12 @@
+ 
+ package org.apache.cassandra.locator;
+ 
+-import org.apache.cassandra.dht.Token;
+-import org.cliffc.high_scale_lib.NonBlockingHashMap;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+ import java.net.InetAddress;
+-import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.List;
+-import java.util.Map;
+-import java.util.concurrent.CopyOnWriteArrayList;
++
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ 
+ public abstract class AbstractEndpointSnitch implements IEndpointSnitch
+ {
+diff --git a/src/java/org/apache/cassandra/locator/DynamicEndpointSnitch.java b/src/java/org/apache/cassandra/locator/DynamicEndpointSnitch.java
+index 794613b..cd0c34c 100644
+--- a/src/java/org/apache/cassandra/locator/DynamicEndpointSnitch.java
++++ b/src/java/org/apache/cassandra/locator/DynamicEndpointSnitch.java
+@@ -18,22 +18,21 @@
+ 
+ package org.apache.cassandra.locator;
+ 
++import java.lang.management.ManagementFactory;
+ import java.net.InetAddress;
+ import java.util.*;
+-import java.util.concurrent.LinkedBlockingDeque;
+ import java.util.concurrent.ConcurrentHashMap;
++import java.util.concurrent.LinkedBlockingDeque;
+ import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.atomic.AtomicInteger;
+-
+-import java.lang.management.ManagementFactory;
+ import javax.management.MBeanServer;
+ import javax.management.ObjectName;
+ 
++import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.net.MessagingService;
+ import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.utils.AbstractStatsDeque;
+ import org.apache.cassandra.utils.FBUtilities;
+-import org.apache.cassandra.config.DatabaseDescriptor;
+ 
+ /**
+  * A dynamic snitch that sorts endpoints by latency with an adapted phi failure detector
+diff --git a/src/java/org/apache/cassandra/locator/EndpointSnitchInfo.java b/src/java/org/apache/cassandra/locator/EndpointSnitchInfo.java
+index a0b26f7..0c67aff 100644
+--- a/src/java/org/apache/cassandra/locator/EndpointSnitchInfo.java
++++ b/src/java/org/apache/cassandra/locator/EndpointSnitchInfo.java
+@@ -24,7 +24,6 @@ package org.apache.cassandra.locator;
+ import java.lang.management.ManagementFactory;
+ import java.net.InetAddress;
+ import java.net.UnknownHostException;
+-
+ import javax.management.MBeanServer;
+ import javax.management.ObjectName;
+ 
+diff --git a/src/java/org/apache/cassandra/locator/IEndpointSnitch.java b/src/java/org/apache/cassandra/locator/IEndpointSnitch.java
+index 28a7989..067cc36 100644
+--- a/src/java/org/apache/cassandra/locator/IEndpointSnitch.java
++++ b/src/java/org/apache/cassandra/locator/IEndpointSnitch.java
+@@ -18,10 +18,7 @@
+ 
+ package org.apache.cassandra.locator;
+ 
+-import org.apache.cassandra.dht.Token;
+-
+ import java.net.InetAddress;
+-import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.List;
+ 
+diff --git a/src/java/org/apache/cassandra/locator/ILatencyPublisher.java b/src/java/org/apache/cassandra/locator/ILatencyPublisher.java
+index 0d97e84..d1eabc2 100644
+--- a/src/java/org/apache/cassandra/locator/ILatencyPublisher.java
++++ b/src/java/org/apache/cassandra/locator/ILatencyPublisher.java
+@@ -18,8 +18,6 @@
+ 
+ package org.apache.cassandra.locator;
+ 
+-import org.apache.cassandra.locator.ILatencySubscriber;
+-
+ public interface ILatencyPublisher
+ {
+     public void register(ILatencySubscriber subcriber);
+diff --git a/src/java/org/apache/cassandra/locator/LocalStrategy.java b/src/java/org/apache/cassandra/locator/LocalStrategy.java
+index 4863805..2ec7846 100644
+--- a/src/java/org/apache/cassandra/locator/LocalStrategy.java
++++ b/src/java/org/apache/cassandra/locator/LocalStrategy.java
+@@ -20,10 +20,12 @@
+ package org.apache.cassandra.locator;
+ 
+ import java.net.InetAddress;
+-import java.util.*;
++import java.util.Arrays;
++import java.util.List;
++import java.util.Map;
+ 
+-import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.dht.Token;
++import org.apache.cassandra.utils.FBUtilities;
+ 
+ public class LocalStrategy extends AbstractReplicationStrategy
+ {
+diff --git a/src/java/org/apache/cassandra/locator/NetworkTopologyStrategy.java b/src/java/org/apache/cassandra/locator/NetworkTopologyStrategy.java
+index 372c298..9bd6214 100644
+--- a/src/java/org/apache/cassandra/locator/NetworkTopologyStrategy.java
++++ b/src/java/org/apache/cassandra/locator/NetworkTopologyStrategy.java
+@@ -25,11 +25,10 @@ import java.net.InetAddress;
+ import java.util.*;
+ import java.util.Map.Entry;
+ 
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+ import com.google.common.collect.Multimap;
+ import org.apache.commons.lang.StringUtils;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ 
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.dht.Token;
+diff --git a/src/java/org/apache/cassandra/locator/OldNetworkTopologyStrategy.java b/src/java/org/apache/cassandra/locator/OldNetworkTopologyStrategy.java
+index 42de676..aa446eb 100644
+--- a/src/java/org/apache/cassandra/locator/OldNetworkTopologyStrategy.java
++++ b/src/java/org/apache/cassandra/locator/OldNetworkTopologyStrategy.java
+@@ -20,7 +20,10 @@
+ package org.apache.cassandra.locator;
+ 
+ import java.net.InetAddress;
+-import java.util.*;
++import java.util.ArrayList;
++import java.util.Iterator;
++import java.util.List;
++import java.util.Map;
+ 
+ import org.apache.cassandra.dht.Token;
+ 
+diff --git a/src/java/org/apache/cassandra/locator/PropertyFileSnitch.java b/src/java/org/apache/cassandra/locator/PropertyFileSnitch.java
+index 9982e54..9e60413 100644
+--- a/src/java/org/apache/cassandra/locator/PropertyFileSnitch.java
++++ b/src/java/org/apache/cassandra/locator/PropertyFileSnitch.java
+@@ -28,14 +28,15 @@ import java.util.HashMap;
+ import java.util.Map;
+ import java.util.Properties;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.io.util.FileUtils;
+ import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.ResourceWatcher;
+ import org.apache.cassandra.utils.WrappedRunnable;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ /**
+  * Used to determine if two IP's are in the same datacenter or on the same rack.
+diff --git a/src/java/org/apache/cassandra/locator/SimpleSeedProvider.java b/src/java/org/apache/cassandra/locator/SimpleSeedProvider.java
+index 8a2de49..7ca3d28 100644
+--- a/src/java/org/apache/cassandra/locator/SimpleSeedProvider.java
++++ b/src/java/org/apache/cassandra/locator/SimpleSeedProvider.java
+@@ -19,9 +19,6 @@
+ 
+ package org.apache.cassandra.locator;
+ 
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+ import java.net.InetAddress;
+ import java.net.UnknownHostException;
+ import java.util.ArrayList;
+@@ -29,6 +26,9 @@ import java.util.Collections;
+ import java.util.List;
+ import java.util.Map;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ public class SimpleSeedProvider implements SeedProvider
+ {
+     private static final Logger logger = LoggerFactory.getLogger(SimpleSeedProvider.class);
+diff --git a/src/java/org/apache/cassandra/locator/SimpleStrategy.java b/src/java/org/apache/cassandra/locator/SimpleStrategy.java
+index d926278..85690d9 100644
+--- a/src/java/org/apache/cassandra/locator/SimpleStrategy.java
++++ b/src/java/org/apache/cassandra/locator/SimpleStrategy.java
+@@ -20,7 +20,10 @@
+ package org.apache.cassandra.locator;
+ 
+ import java.net.InetAddress;
+-import java.util.*;
++import java.util.ArrayList;
++import java.util.Iterator;
++import java.util.List;
++import java.util.Map;
+ 
+ import org.apache.cassandra.dht.Token;
+ 
+diff --git a/src/java/org/apache/cassandra/locator/TokenMetadata.java b/src/java/org/apache/cassandra/locator/TokenMetadata.java
+index e3812e0..1abdf26 100644
+--- a/src/java/org/apache/cassandra/locator/TokenMetadata.java
++++ b/src/java/org/apache/cassandra/locator/TokenMetadata.java
+@@ -26,12 +26,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
+ import java.util.concurrent.locks.ReadWriteLock;
+ import java.util.concurrent.locks.ReentrantReadWriteLock;
+ 
++import com.google.common.collect.*;
+ import org.apache.commons.lang.StringUtils;
+-
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
+-import com.google.common.collect.*;
+ import org.apache.cassandra.dht.Range;
+ import org.apache.cassandra.dht.Token;
+ import org.apache.cassandra.service.StorageService;
+diff --git a/src/java/org/apache/cassandra/net/CompactEndpointSerializationHelper.java b/src/java/org/apache/cassandra/net/CompactEndpointSerializationHelper.java
+index e370752..3bd54da 100644
+--- a/src/java/org/apache/cassandra/net/CompactEndpointSerializationHelper.java
++++ b/src/java/org/apache/cassandra/net/CompactEndpointSerializationHelper.java
+@@ -18,7 +18,9 @@
+ 
+ package org.apache.cassandra.net;
+ 
+-import java.io.*;
++import java.io.DataInputStream;
++import java.io.DataOutputStream;
++import java.io.IOException;
+ import java.net.InetAddress;
+ 
+ public class CompactEndpointSerializationHelper
+diff --git a/src/java/org/apache/cassandra/net/Header.java b/src/java/org/apache/cassandra/net/Header.java
+index fd9620f..5a72857 100644
+--- a/src/java/org/apache/cassandra/net/Header.java
++++ b/src/java/org/apache/cassandra/net/Header.java
+@@ -21,11 +21,12 @@ package org.apache.cassandra.net;
+ import java.io.DataInputStream;
+ import java.io.DataOutputStream;
+ import java.io.IOException;
+-import java.util.*;
+-import java.util.concurrent.atomic.AtomicInteger;
+ import java.net.InetAddress;
++import java.util.Hashtable;
++import java.util.Map;
++import java.util.Set;
++import java.util.concurrent.atomic.AtomicInteger;
+ 
+-import org.apache.cassandra.concurrent.Stage;
+ import org.apache.cassandra.io.ICompactSerializer;
+ import org.apache.cassandra.service.StorageService;
+ 
+diff --git a/src/java/org/apache/cassandra/net/IAsyncResult.java b/src/java/org/apache/cassandra/net/IAsyncResult.java
+index d7bec0a..6055da6 100644
+--- a/src/java/org/apache/cassandra/net/IAsyncResult.java
++++ b/src/java/org/apache/cassandra/net/IAsyncResult.java
+@@ -19,7 +19,6 @@
+ package org.apache.cassandra.net;
+ 
+ import java.net.InetAddress;
+-import java.util.List;
+ import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.TimeoutException;
+ 
+diff --git a/src/java/org/apache/cassandra/net/IncomingTcpConnection.java b/src/java/org/apache/cassandra/net/IncomingTcpConnection.java
+index 2ce9abb..6236418 100644
+--- a/src/java/org/apache/cassandra/net/IncomingTcpConnection.java
++++ b/src/java/org/apache/cassandra/net/IncomingTcpConnection.java
+@@ -27,7 +27,6 @@ import java.net.Socket;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
+-import org.apache.cassandra.net.sink.SinkManager;
+ import org.apache.cassandra.streaming.IncomingStreamReader;
+ import org.apache.cassandra.streaming.StreamHeader;
+ 
+diff --git a/src/java/org/apache/cassandra/net/OutboundTcpConnection.java b/src/java/org/apache/cassandra/net/OutboundTcpConnection.java
+index ce85ed4..6387417 100644
+--- a/src/java/org/apache/cassandra/net/OutboundTcpConnection.java
++++ b/src/java/org/apache/cassandra/net/OutboundTcpConnection.java
+@@ -29,11 +29,11 @@ import java.nio.ByteBuffer;
+ import java.util.concurrent.BlockingQueue;
+ import java.util.concurrent.LinkedBlockingQueue;
+ 
+-import org.apache.cassandra.utils.FBUtilities;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
+ import org.apache.cassandra.config.DatabaseDescriptor;
++import org.apache.cassandra.utils.FBUtilities;
+ 
+ public class OutboundTcpConnection extends Thread
+ {
+diff --git a/src/java/org/apache/cassandra/net/ResponseVerbHandler.java b/src/java/org/apache/cassandra/net/ResponseVerbHandler.java
+index cde87b2..ef01d13 100644
+--- a/src/java/org/apache/cassandra/net/ResponseVerbHandler.java
++++ b/src/java/org/apache/cassandra/net/ResponseVerbHandler.java
+@@ -19,10 +19,13 @@
+ package org.apache.cassandra.net;
+ 
+ 
+-import java.util.*;
+ import java.net.InetAddress;
++import java.util.ArrayList;
++import java.util.List;
++
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.locator.ILatencyPublisher;
+ import org.apache.cassandra.locator.ILatencySubscriber;
+ 
+diff --git a/src/java/org/apache/cassandra/net/sink/IMessageSink.java b/src/java/org/apache/cassandra/net/sink/IMessageSink.java
+index 7a0dab0..822a8b6 100644
+--- a/src/java/org/apache/cassandra/net/sink/IMessageSink.java
++++ b/src/java/org/apache/cassandra/net/sink/IMessageSink.java
+@@ -19,6 +19,7 @@
+ package org.apache.cassandra.net.sink;
+ 
+ import java.net.InetAddress;
++
+ import org.apache.cassandra.net.Message;
+ 
+ public interface IMessageSink
+diff --git a/src/java/org/apache/cassandra/scheduler/RoundRobinScheduler.java b/src/java/org/apache/cassandra/scheduler/RoundRobinScheduler.java
+index da06edf..8d21bf1 100644
+--- a/src/java/org/apache/cassandra/scheduler/RoundRobinScheduler.java
++++ b/src/java/org/apache/cassandra/scheduler/RoundRobinScheduler.java
+@@ -25,11 +25,12 @@ import java.util.Map;
+ import java.util.concurrent.Semaphore;
+ import java.util.concurrent.SynchronousQueue;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.config.RequestSchedulerOptions;
+ import org.apache.cassandra.utils.Pair;
+ import org.cliffc.high_scale_lib.NonBlockingHashMap;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ /**
+  * A very basic Round Robin implementation of the RequestScheduler. It handles 
+diff --git a/src/java/org/apache/cassandra/service/AbstractCassandraDaemon.java b/src/java/org/apache/cassandra/service/AbstractCassandraDaemon.java
+index 5b76e98..82a4439 100644
+--- a/src/java/org/apache/cassandra/service/AbstractCassandraDaemon.java
++++ b/src/java/org/apache/cassandra/service/AbstractCassandraDaemon.java
+@@ -27,13 +27,14 @@ import java.util.concurrent.SynchronousQueue;
+ import java.util.concurrent.ThreadPoolExecutor;
+ import java.util.concurrent.TimeUnit;
+ 
+-import org.apache.cassandra.config.CFMetaData;
+-import org.apache.cassandra.db.ColumnFamilyStore;
++import org.apache.log4j.PropertyConfigurator;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
++import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.config.DatabaseDescriptor;
++import org.apache.cassandra.db.ColumnFamilyStore;
+ import org.apache.cassandra.db.CompactionManager;
+ import org.apache.cassandra.db.SystemTable;
+ import org.apache.cassandra.db.Table;
+@@ -42,7 +43,6 @@ import org.apache.cassandra.db.migration.Migration;
+ import org.apache.cassandra.utils.CLibrary;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.Mx4jTool;
+-import org.apache.log4j.PropertyConfigurator;
+ import org.mortbay.thread.ThreadPool;
+ 
+ /**
+diff --git a/src/java/org/apache/cassandra/service/AbstractWriteResponseHandler.java b/src/java/org/apache/cassandra/service/AbstractWriteResponseHandler.java
+index abfaaa3..6d049d6 100644
+--- a/src/java/org/apache/cassandra/service/AbstractWriteResponseHandler.java
++++ b/src/java/org/apache/cassandra/service/AbstractWriteResponseHandler.java
+@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.TimeoutException;
+ 
+ import com.google.common.collect.Multimap;
++
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.net.MessagingService;
+diff --git a/src/java/org/apache/cassandra/service/AntiEntropyService.java b/src/java/org/apache/cassandra/service/AntiEntropyService.java
+index f54a8ee..3aad203 100644
+--- a/src/java/org/apache/cassandra/service/AntiEntropyService.java
++++ b/src/java/org/apache/cassandra/service/AntiEntropyService.java
+@@ -23,7 +23,9 @@ import java.net.InetAddress;
+ import java.security.MessageDigest;
+ import java.security.NoSuchAlgorithmException;
+ import java.util.*;
+-import java.util.concurrent.*;
++import java.util.concurrent.Callable;
++import java.util.concurrent.ConcurrentHashMap;
++import java.util.concurrent.ConcurrentMap;
+ import java.util.concurrent.atomic.AtomicInteger;
+ 
+ import com.google.common.base.Objects;
+@@ -33,8 +35,8 @@ import org.slf4j.LoggerFactory;
+ import org.apache.cassandra.concurrent.Stage;
+ import org.apache.cassandra.concurrent.StageManager;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+-import org.apache.cassandra.db.CompactionManager;
+ import org.apache.cassandra.db.ColumnFamilyStore;
++import org.apache.cassandra.db.CompactionManager;
+ import org.apache.cassandra.db.DecoratedKey;
+ import org.apache.cassandra.db.Table;
+ import org.apache.cassandra.dht.Range;
+@@ -42,13 +44,13 @@ import org.apache.cassandra.dht.Token;
+ import org.apache.cassandra.io.AbstractCompactedRow;
+ import org.apache.cassandra.io.ICompactSerializer;
+ import org.apache.cassandra.io.sstable.SSTableReader;
+-import org.apache.cassandra.streaming.OperationType;
+-import org.apache.cassandra.streaming.StreamIn;
+-import org.apache.cassandra.streaming.StreamOut;
+ import org.apache.cassandra.net.CompactEndpointSerializationHelper;
+ import org.apache.cassandra.net.IVerbHandler;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.net.MessagingService;
++import org.apache.cassandra.streaming.OperationType;
++import org.apache.cassandra.streaming.StreamIn;
++import org.apache.cassandra.streaming.StreamOut;
+ import org.apache.cassandra.streaming.StreamOutSession;
+ import org.apache.cassandra.utils.*;
+ 
+diff --git a/src/java/org/apache/cassandra/service/ClientState.java b/src/java/org/apache/cassandra/service/ClientState.java
+index 0755d17..e7c3d39 100644
+--- a/src/java/org/apache/cassandra/service/ClientState.java
++++ b/src/java/org/apache/cassandra/service/ClientState.java
+@@ -18,7 +18,10 @@
+ 
+ package org.apache.cassandra.service;
+ 
+-import java.util.*;
++import java.util.ArrayList;
++import java.util.List;
++import java.util.Map;
++import java.util.Set;
+ 
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+diff --git a/src/java/org/apache/cassandra/service/ConsistencyChecker.java b/src/java/org/apache/cassandra/service/ConsistencyChecker.java
+index 3c44931..d8dcdbe 100644
+--- a/src/java/org/apache/cassandra/service/ConsistencyChecker.java
++++ b/src/java/org/apache/cassandra/service/ConsistencyChecker.java
+@@ -23,9 +23,7 @@ import java.io.DataInputStream;
+ import java.io.IOException;
+ import java.net.InetAddress;
+ import java.nio.ByteBuffer;
+-import java.util.Collection;
+ import java.util.List;
+-import java.util.concurrent.LinkedBlockingQueue;
+ import java.util.concurrent.ScheduledExecutorService;
+ import java.util.concurrent.ScheduledThreadPoolExecutor;
+ import java.util.concurrent.TimeUnit;
+@@ -35,7 +33,6 @@ import org.apache.commons.lang.StringUtils;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
+-import org.apache.cassandra.concurrent.StageManager;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.db.ColumnFamily;
+ import org.apache.cassandra.db.ReadCommand;
+@@ -44,7 +41,6 @@ import org.apache.cassandra.db.Row;
+ import org.apache.cassandra.net.IAsyncCallback;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.net.MessagingService;
+-import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.WrappedRunnable;
+ 
+ /**
+diff --git a/src/java/org/apache/cassandra/service/DatacenterQuorumResponseHandler.java b/src/java/org/apache/cassandra/service/DatacenterQuorumResponseHandler.java
+index 0180d51..7c6ff90 100644
+--- a/src/java/org/apache/cassandra/service/DatacenterQuorumResponseHandler.java
++++ b/src/java/org/apache/cassandra/service/DatacenterQuorumResponseHandler.java
+@@ -23,7 +23,6 @@ package org.apache.cassandra.service;
+ 
+ import java.net.InetAddress;
+ import java.util.Collection;
+-import java.util.List;
+ import java.util.concurrent.atomic.AtomicInteger;
+ 
+ import org.apache.cassandra.config.DatabaseDescriptor;
+diff --git a/src/java/org/apache/cassandra/service/DatacenterSyncWriteResponseHandler.java b/src/java/org/apache/cassandra/service/DatacenterSyncWriteResponseHandler.java
+index 86278f4..1b0342b 100644
+--- a/src/java/org/apache/cassandra/service/DatacenterSyncWriteResponseHandler.java
++++ b/src/java/org/apache/cassandra/service/DatacenterSyncWriteResponseHandler.java
+@@ -30,6 +30,8 @@ import java.util.HashMap;
+ import java.util.Map;
+ import java.util.concurrent.atomic.AtomicInteger;
+ 
++import com.google.common.collect.Multimap;
++
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.db.Table;
+ import org.apache.cassandra.locator.IEndpointSnitch;
+@@ -37,8 +39,6 @@ import org.apache.cassandra.locator.NetworkTopologyStrategy;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.thrift.ConsistencyLevel;
+ import org.apache.cassandra.thrift.UnavailableException;
+-
+-import com.google.common.collect.Multimap;
+ import org.apache.cassandra.utils.FBUtilities;
+ 
+ /**
+diff --git a/src/java/org/apache/cassandra/service/DatacenterWriteResponseHandler.java b/src/java/org/apache/cassandra/service/DatacenterWriteResponseHandler.java
+index f5345a4..d9ac37f 100644
+--- a/src/java/org/apache/cassandra/service/DatacenterWriteResponseHandler.java
++++ b/src/java/org/apache/cassandra/service/DatacenterWriteResponseHandler.java
+@@ -27,6 +27,8 @@ package org.apache.cassandra.service;
+ import java.net.InetAddress;
+ import java.util.Collection;
+ 
++import com.google.common.collect.Multimap;
++
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.db.Table;
+ import org.apache.cassandra.locator.IEndpointSnitch;
+@@ -36,8 +38,6 @@ import org.apache.cassandra.thrift.ConsistencyLevel;
+ import org.apache.cassandra.thrift.UnavailableException;
+ import org.apache.cassandra.utils.FBUtilities;
+ 
+-import com.google.common.collect.Multimap;
+-
+ /**
+  * This class blocks for a quorum of responses _in the local datacenter only_ (CL.LOCAL_QUORUM).
+  */
+diff --git a/src/java/org/apache/cassandra/service/EmbeddedCassandraService.java b/src/java/org/apache/cassandra/service/EmbeddedCassandraService.java
+index f491244..25d31ae 100644
+--- a/src/java/org/apache/cassandra/service/EmbeddedCassandraService.java
++++ b/src/java/org/apache/cassandra/service/EmbeddedCassandraService.java
+@@ -21,18 +21,10 @@ package org.apache.cassandra.service;
+  */
+ 
+ 
+-import java.io.File;
+-import java.io.FileOutputStream;
+ import java.io.IOException;
+-import java.io.InputStream;
+-import java.io.OutputStream;
+ 
+-import org.apache.cassandra.config.DatabaseDescriptor;
+-import org.apache.cassandra.io.util.FileUtils;
+ import org.apache.cassandra.thrift.CassandraDaemon;
+ import org.apache.thrift.transport.TTransportException;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ /**
+  * An embedded, in-memory cassandra storage service that listens
+diff --git a/src/java/org/apache/cassandra/service/IResponseResolver.java b/src/java/org/apache/cassandra/service/IResponseResolver.java
+index ea61705..9690308 100644
+--- a/src/java/org/apache/cassandra/service/IResponseResolver.java
++++ b/src/java/org/apache/cassandra/service/IResponseResolver.java
+@@ -18,8 +18,6 @@
+ 
+ package org.apache.cassandra.service;
+ 
+-import java.util.Collection;
+-import java.util.List;
+ import java.io.IOException;
+ 
+ import org.apache.cassandra.net.Message;
+diff --git a/src/java/org/apache/cassandra/service/IndexScanVerbHandler.java b/src/java/org/apache/cassandra/service/IndexScanVerbHandler.java
+index c38cf76..279abf7 100644
+--- a/src/java/org/apache/cassandra/service/IndexScanVerbHandler.java
++++ b/src/java/org/apache/cassandra/service/IndexScanVerbHandler.java
+@@ -20,13 +20,14 @@ package org.apache.cassandra.service;
+ 
+ import java.util.List;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.db.*;
+ import org.apache.cassandra.db.filter.QueryFilter;
+ import org.apache.cassandra.net.IVerbHandler;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.net.MessagingService;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ public class IndexScanVerbHandler implements IVerbHandler
+ {
+diff --git a/src/java/org/apache/cassandra/service/MigrationManager.java b/src/java/org/apache/cassandra/service/MigrationManager.java
+index 838389b..1e78fbc 100644
+--- a/src/java/org/apache/cassandra/service/MigrationManager.java
++++ b/src/java/org/apache/cassandra/service/MigrationManager.java
+@@ -18,6 +18,16 @@
+ 
+ package org.apache.cassandra.service;
+ 
++import java.io.*;
++import java.net.InetAddress;
++import java.nio.ByteBuffer;
++import java.util.*;
++import java.util.concurrent.ExecutionException;
++import java.util.concurrent.Future;
++
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.concurrent.Stage;
+ import org.apache.cassandra.concurrent.StageManager;
+ import org.apache.cassandra.config.ConfigurationException;
+@@ -25,33 +35,10 @@ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.db.Column;
+ import org.apache.cassandra.db.IColumn;
+ import org.apache.cassandra.db.migration.Migration;
+-import org.apache.cassandra.gms.ApplicationState;
+-import org.apache.cassandra.gms.Gossiper;
+-import org.apache.cassandra.gms.VersionedValue;
+-import org.apache.cassandra.gms.EndpointState;
+-import org.apache.cassandra.gms.IEndpointStateChangeSubscriber;
++import org.apache.cassandra.gms.*;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.net.MessagingService;
+ import org.apache.cassandra.utils.FBUtilities;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-import java.io.ByteArrayInputStream;
+-import java.io.ByteArrayOutputStream;
+-import java.io.DataInputStream;
+-import java.io.DataOutputStream;
+-import java.io.IOError;
+-import java.io.IOException;
+-import java.net.InetAddress;
+-import java.nio.ByteBuffer;
+-import java.util.ArrayList;
+-import java.util.Collection;
+-import java.util.Collections;
+-import java.util.List;
+-import java.util.Set;
+-import java.util.UUID;
+-import java.util.concurrent.ExecutionException;
+-import java.util.concurrent.Future;
+ 
+ public class MigrationManager implements IEndpointStateChangeSubscriber
+ {
+diff --git a/src/java/org/apache/cassandra/service/QuorumResponseHandler.java b/src/java/org/apache/cassandra/service/QuorumResponseHandler.java
+index 9d7c7fd..453096a 100644
+--- a/src/java/org/apache/cassandra/service/QuorumResponseHandler.java
++++ b/src/java/org/apache/cassandra/service/QuorumResponseHandler.java
+@@ -24,6 +24,9 @@ import java.util.Collection;
+ import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.TimeoutException;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.db.Table;
+ import org.apache.cassandra.net.IAsyncCallback;
+@@ -32,8 +35,6 @@ import org.apache.cassandra.net.MessagingService;
+ import org.apache.cassandra.thrift.ConsistencyLevel;
+ import org.apache.cassandra.thrift.UnavailableException;
+ import org.apache.cassandra.utils.SimpleCondition;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ public class QuorumResponseHandler<T> implements IAsyncCallback
+ {
+diff --git a/src/java/org/apache/cassandra/service/RangeSliceResponseResolver.java b/src/java/org/apache/cassandra/service/RangeSliceResponseResolver.java
+index 8b98019..6b148db 100644
+--- a/src/java/org/apache/cassandra/service/RangeSliceResponseResolver.java
++++ b/src/java/org/apache/cassandra/service/RangeSliceResponseResolver.java
+@@ -23,12 +23,11 @@ import java.net.InetAddress;
+ import java.util.*;
+ import java.util.concurrent.LinkedBlockingQueue;
+ 
++import com.google.common.collect.AbstractIterator;
++import org.apache.commons.collections.iterators.CollatingIterator;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
+-import org.apache.commons.collections.iterators.CollatingIterator;
+-
+-import com.google.common.collect.AbstractIterator;
+ import org.apache.cassandra.db.ColumnFamily;
+ import org.apache.cassandra.db.DecoratedKey;
+ import org.apache.cassandra.db.RangeSliceReply;
+diff --git a/src/java/org/apache/cassandra/service/RangeSliceVerbHandler.java b/src/java/org/apache/cassandra/service/RangeSliceVerbHandler.java
+index f0b19ab..e97741f 100644
+--- a/src/java/org/apache/cassandra/service/RangeSliceVerbHandler.java
++++ b/src/java/org/apache/cassandra/service/RangeSliceVerbHandler.java
+@@ -18,6 +18,9 @@
+ 
+ package org.apache.cassandra.service;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.db.ColumnFamilyStore;
+ import org.apache.cassandra.db.RangeSliceCommand;
+ import org.apache.cassandra.db.RangeSliceReply;
+@@ -26,8 +29,6 @@ import org.apache.cassandra.db.filter.QueryFilter;
+ import org.apache.cassandra.net.IVerbHandler;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.net.MessagingService;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ public class RangeSliceVerbHandler implements IVerbHandler
+ {
+diff --git a/src/java/org/apache/cassandra/service/ReadResponseResolver.java b/src/java/org/apache/cassandra/service/ReadResponseResolver.java
+index 6e97c34..17548cf 100644
+--- a/src/java/org/apache/cassandra/service/ReadResponseResolver.java
++++ b/src/java/org/apache/cassandra/service/ReadResponseResolver.java
+@@ -22,22 +22,23 @@ import java.io.ByteArrayInputStream;
+ import java.io.DataInputStream;
+ import java.io.IOError;
+ import java.io.IOException;
+-import java.util.*;
+-
+-import org.apache.cassandra.db.*;
+-import org.apache.cassandra.db.marshal.AbstractType;
+-import org.apache.cassandra.db.marshal.AbstractCommutativeType;
+ import java.net.InetAddress;
+ import java.nio.ByteBuffer;
++import java.util.ArrayList;
++import java.util.List;
++import java.util.Map;
++
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ 
++import org.apache.cassandra.db.*;
++import org.apache.cassandra.db.marshal.AbstractCommutativeType;
++import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.net.MessagingService;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.cliffc.high_scale_lib.NonBlockingHashMap;
+ 
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+ /**
+  * Turns ReadResponse messages into Row objects, resolving to the most recent
+  * version and setting up read repairs as necessary.
+diff --git a/src/java/org/apache/cassandra/service/StorageProxy.java b/src/java/org/apache/cassandra/service/StorageProxy.java
+index 4cb250c..3bfcf90 100644
+--- a/src/java/org/apache/cassandra/service/StorageProxy.java
++++ b/src/java/org/apache/cassandra/service/StorageProxy.java
+@@ -27,7 +27,9 @@ import java.util.concurrent.*;
+ import javax.management.MBeanServer;
+ import javax.management.ObjectName;
+ 
+-import com.google.common.collect.*;
++import com.google.common.collect.HashMultimap;
++import com.google.common.collect.Iterables;
++import com.google.common.collect.Multimap;
+ import org.apache.commons.lang.ArrayUtils;
+ import org.apache.commons.lang.StringUtils;
+ import org.slf4j.Logger;
+@@ -38,10 +40,8 @@ import org.apache.cassandra.concurrent.StageManager;
+ import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.db.*;
+-import org.apache.cassandra.db.marshal.AbstractType;
+-import org.apache.cassandra.db.marshal.AbstractCommutativeType;
+-import org.apache.cassandra.dht.*;
+ import org.apache.cassandra.db.filter.QueryFilter;
++import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.dht.AbstractBounds;
+ import org.apache.cassandra.dht.Bounds;
+ import org.apache.cassandra.dht.IPartitioner;
+diff --git a/src/java/org/apache/cassandra/service/StorageService.java b/src/java/org/apache/cassandra/service/StorageService.java
+index 1f58de5..ccddba1 100644
+--- a/src/java/org/apache/cassandra/service/StorageService.java
++++ b/src/java/org/apache/cassandra/service/StorageService.java
+@@ -24,74 +24,29 @@ import java.lang.management.ManagementFactory;
+ import java.net.InetAddress;
+ import java.net.UnknownHostException;
+ import java.nio.ByteBuffer;
+-import java.util.ArrayList;
+-import java.util.Arrays;
+-import java.util.Collection;
+-import java.util.Collections;
+-import java.util.EnumMap;
+-import java.util.HashMap;
+-import java.util.HashSet;
+-import java.util.List;
+-import java.util.Map;
+-import java.util.Set;
+-import java.util.concurrent.Callable;
+-import java.util.concurrent.CountDownLatch;
+-import java.util.concurrent.ExecutionException;
+-import java.util.concurrent.ExecutorService;
+-import java.util.concurrent.Future;
+-import java.util.concurrent.LinkedBlockingQueue;
+-import java.util.concurrent.TimeUnit;
+-import java.util.concurrent.TimeoutException;
+-
++import java.util.*;
++import java.util.concurrent.*;
+ import javax.management.MBeanServer;
+ import javax.management.ObjectName;
+ 
+-import org.apache.cassandra.concurrent.JMXEnabledThreadPoolExecutor;
+-import org.apache.cassandra.concurrent.NamedThreadFactory;
+-import org.apache.cassandra.concurrent.RetryingScheduledThreadPoolExecutor;
+-import org.apache.cassandra.concurrent.Stage;
+-import org.apache.cassandra.concurrent.StageManager;
+-import org.apache.cassandra.config.CFMetaData;
+-import org.apache.cassandra.config.ColumnDefinition;
+-import org.apache.cassandra.config.ConfigurationException;
+-import org.apache.cassandra.config.DatabaseDescriptor;
+-import org.apache.cassandra.config.KSMetaData;
+-import org.apache.cassandra.config.RawColumnDefinition;
+-import org.apache.cassandra.config.RawColumnFamily;
+-import org.apache.cassandra.config.RawKeyspace;
+-import org.apache.cassandra.db.BinaryVerbHandler;
+-import org.apache.cassandra.db.ColumnFamilyStore;
+-import org.apache.cassandra.db.DecoratedKey;
+-import org.apache.cassandra.db.DefinitionsAnnounceVerbHandler;
+-import org.apache.cassandra.db.DefinitionsUpdateResponseVerbHandler;
+-import org.apache.cassandra.db.DefsTable;
+-import org.apache.cassandra.db.HintedHandOffManager;
+-import org.apache.cassandra.db.ReadCommand;
+-import org.apache.cassandra.db.ReadRepairVerbHandler;
+-import org.apache.cassandra.db.ReadVerbHandler;
+-import org.apache.cassandra.db.ReplicateOnWriteVerbHandler;
+-import org.apache.cassandra.db.Row;
+-import org.apache.cassandra.db.RowMutationVerbHandler;
+-import org.apache.cassandra.db.SchemaCheckVerbHandler;
+-import org.apache.cassandra.db.SystemTable;
+-import org.apache.cassandra.db.Table;
+-import org.apache.cassandra.db.TruncateVerbHandler;
++import com.google.common.base.Charsets;
++import com.google.common.collect.HashMultimap;
++import com.google.common.collect.Multimap;
++import org.apache.log4j.Level;
++import org.apache.commons.lang.StringUtils;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
++import org.apache.cassandra.concurrent.*;
++import org.apache.cassandra.config.*;
++import org.apache.cassandra.db.*;
+ import org.apache.cassandra.db.migration.AddKeyspace;
+ import org.apache.cassandra.db.migration.Migration;
+ import org.apache.cassandra.dht.BootStrapper;
+ import org.apache.cassandra.dht.IPartitioner;
+ import org.apache.cassandra.dht.Range;
+ import org.apache.cassandra.dht.Token;
+-import org.apache.cassandra.gms.ApplicationState;
+-import org.apache.cassandra.gms.EndpointState;
+-import org.apache.cassandra.gms.FailureDetector;
+-import org.apache.cassandra.gms.GossipDigestAck2VerbHandler;
+-import org.apache.cassandra.gms.GossipDigestAckVerbHandler;
+-import org.apache.cassandra.gms.GossipDigestSynVerbHandler;
+-import org.apache.cassandra.gms.Gossiper;
+-import org.apache.cassandra.gms.IEndpointStateChangeSubscriber;
+-import org.apache.cassandra.gms.IFailureDetector;
+-import org.apache.cassandra.gms.VersionedValue;
++import org.apache.cassandra.gms.*;
+ import org.apache.cassandra.io.DeletionService;
+ import org.apache.cassandra.io.util.FileUtils;
+ import org.apache.cassandra.locator.AbstractReplicationStrategy;
+@@ -102,32 +57,18 @@ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.net.MessagingService;
+ import org.apache.cassandra.net.ResponseVerbHandler;
+ import org.apache.cassandra.service.AntiEntropyService.TreeRequestVerbHandler;
+-import org.apache.cassandra.streaming.OperationType;
+-import org.apache.cassandra.streaming.ReplicationFinishedVerbHandler;
+-import org.apache.cassandra.streaming.StreamIn;
+-import org.apache.cassandra.streaming.StreamOut;
+-import org.apache.cassandra.streaming.StreamReplyVerbHandler;
+-import org.apache.cassandra.streaming.StreamRequestVerbHandler;
+-import org.apache.cassandra.streaming.StreamingService;
++import org.apache.cassandra.streaming.*;
+ import org.apache.cassandra.thrift.Constants;
+ import org.apache.cassandra.thrift.UnavailableException;
+ import org.apache.cassandra.utils.ByteBufferUtil;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.SkipNullRepresenter;
+ import org.apache.cassandra.utils.WrappedRunnable;
+-import org.apache.commons.lang.StringUtils;
+-import org.apache.log4j.Level;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ import org.yaml.snakeyaml.Dumper;
+ import org.yaml.snakeyaml.DumperOptions;
+ import org.yaml.snakeyaml.Yaml;
+ import org.yaml.snakeyaml.nodes.Tag;
+ 
+-import com.google.common.base.Charsets;
+-import com.google.common.collect.HashMultimap;
+-import com.google.common.collect.Multimap;
+-
+ /*
+  * This abstraction contains the token/identifier of this node
+  * on the identifier space. This token gets gossiped around.
+diff --git a/src/java/org/apache/cassandra/service/StorageServiceMBean.java b/src/java/org/apache/cassandra/service/StorageServiceMBean.java
+index f0ac562..de64596 100644
+--- a/src/java/org/apache/cassandra/service/StorageServiceMBean.java
++++ b/src/java/org/apache/cassandra/service/StorageServiceMBean.java
+@@ -24,12 +24,10 @@ import java.net.UnknownHostException;
+ import java.nio.ByteBuffer;
+ import java.util.List;
+ import java.util.Map;
+-import java.util.Set;
+ import java.util.concurrent.ExecutionException;
+ import java.util.concurrent.TimeoutException;
+ 
+ import org.apache.cassandra.config.ConfigurationException;
+-import org.apache.cassandra.dht.IPartitioner;
+ import org.apache.cassandra.dht.Range;
+ import org.apache.cassandra.dht.Token;
+ import org.apache.cassandra.thrift.UnavailableException;
+diff --git a/src/java/org/apache/cassandra/service/TruncateResponseHandler.java b/src/java/org/apache/cassandra/service/TruncateResponseHandler.java
+index 4cbae0d..20764bd 100644
+--- a/src/java/org/apache/cassandra/service/TruncateResponseHandler.java
++++ b/src/java/org/apache/cassandra/service/TruncateResponseHandler.java
+@@ -22,12 +22,13 @@ import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.TimeoutException;
+ import java.util.concurrent.atomic.AtomicInteger;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.net.IAsyncCallback;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.utils.SimpleCondition;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ public class TruncateResponseHandler implements IAsyncCallback
+ {
+diff --git a/src/java/org/apache/cassandra/service/WriteResponseHandler.java b/src/java/org/apache/cassandra/service/WriteResponseHandler.java
+index 95e5e3f..9457868 100644
+--- a/src/java/org/apache/cassandra/service/WriteResponseHandler.java
++++ b/src/java/org/apache/cassandra/service/WriteResponseHandler.java
+@@ -25,13 +25,13 @@ import java.util.concurrent.atomic.AtomicInteger;
+ 
+ import com.google.common.collect.ImmutableMultimap;
+ import com.google.common.collect.Multimap;
+-import org.apache.cassandra.config.DatabaseDescriptor;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.db.Table;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.thrift.ConsistencyLevel;
+ import org.apache.cassandra.thrift.UnavailableException;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ /**
+  * Handles blocking writes for ONE, ANY, QUORUM, and ALL consistency levels.
+diff --git a/src/java/org/apache/cassandra/streaming/FileStreamTask.java b/src/java/org/apache/cassandra/streaming/FileStreamTask.java
+index e4d32c5..6a287bf 100644
+--- a/src/java/org/apache/cassandra/streaming/FileStreamTask.java
++++ b/src/java/org/apache/cassandra/streaming/FileStreamTask.java
+@@ -18,20 +18,22 @@
+ 
+ package org.apache.cassandra.streaming;
+ 
+-import java.io.*;
++import java.io.File;
++import java.io.IOException;
++import java.io.RandomAccessFile;
+ import java.net.InetAddress;
+ import java.net.InetSocketAddress;
+ import java.nio.ByteBuffer;
+ import java.nio.channels.FileChannel;
+ import java.nio.channels.SocketChannel;
+ 
+-import org.apache.cassandra.io.util.FileUtils;
+-import org.apache.cassandra.utils.FBUtilities;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
+ import org.apache.cassandra.config.DatabaseDescriptor;
++import org.apache.cassandra.io.util.FileUtils;
+ import org.apache.cassandra.net.MessagingService;
++import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.Pair;
+ import org.apache.cassandra.utils.WrappedRunnable;
+ 
+diff --git a/src/java/org/apache/cassandra/streaming/IncomingStreamReader.java b/src/java/org/apache/cassandra/streaming/IncomingStreamReader.java
+index a2f7aee..d26382b 100644
+--- a/src/java/org/apache/cassandra/streaming/IncomingStreamReader.java
++++ b/src/java/org/apache/cassandra/streaming/IncomingStreamReader.java
+@@ -18,20 +18,17 @@
+ 
+ package org.apache.cassandra.streaming;
+ 
++import java.io.File;
++import java.io.FileOutputStream;
++import java.io.IOException;
+ import java.net.InetSocketAddress;
+ import java.nio.channels.FileChannel;
+ import java.nio.channels.SocketChannel;
+-import java.io.*;
+ 
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
+-import org.apache.cassandra.db.Table;
+-import org.apache.cassandra.io.sstable.Descriptor;
+-import org.apache.cassandra.io.sstable.SSTableReader;
+-import org.apache.cassandra.io.sstable.SSTableWriter;
+ import org.apache.cassandra.io.util.FileUtils;
+-import org.apache.cassandra.net.MessagingService;
+ import org.apache.cassandra.utils.Pair;
+ 
+ public class IncomingStreamReader
+diff --git a/src/java/org/apache/cassandra/streaming/ReplicationFinishedVerbHandler.java b/src/java/org/apache/cassandra/streaming/ReplicationFinishedVerbHandler.java
+index e805603..2cc9046 100644
+--- a/src/java/org/apache/cassandra/streaming/ReplicationFinishedVerbHandler.java
++++ b/src/java/org/apache/cassandra/streaming/ReplicationFinishedVerbHandler.java
+@@ -28,7 +28,6 @@ import org.apache.cassandra.net.IVerbHandler;
+ import org.apache.cassandra.net.Message;
+ import org.apache.cassandra.net.MessagingService;
+ import org.apache.cassandra.service.StorageService;
+-import org.apache.cassandra.utils.FBUtilities;
+ 
+ public class ReplicationFinishedVerbHandler implements IVerbHandler
+ {
+diff --git a/src/java/org/apache/cassandra/streaming/StreamIn.java b/src/java/org/apache/cassandra/streaming/StreamIn.java
+index 4a0326c..ced35d5 100644
+--- a/src/java/org/apache/cassandra/streaming/StreamIn.java
++++ b/src/java/org/apache/cassandra/streaming/StreamIn.java
+@@ -25,9 +25,9 @@ import java.io.IOException;
+ import java.net.InetAddress;
+ import java.util.Collection;
+ 
++import org.apache.commons.lang.StringUtils;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+-import org.apache.commons.lang.StringUtils;
+ 
+ import org.apache.cassandra.db.ColumnFamilyStore;
+ import org.apache.cassandra.db.Table;
+diff --git a/src/java/org/apache/cassandra/streaming/StreamInSession.java b/src/java/org/apache/cassandra/streaming/StreamInSession.java
+index 5d6d745..8c43f7e 100644
+--- a/src/java/org/apache/cassandra/streaming/StreamInSession.java
++++ b/src/java/org/apache/cassandra/streaming/StreamInSession.java
+@@ -25,16 +25,16 @@ import java.util.concurrent.ConcurrentMap;
+ import java.util.concurrent.ExecutionException;
+ import java.util.concurrent.Future;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.db.ColumnFamilyStore;
+ import org.apache.cassandra.db.CompactionManager;
+ import org.apache.cassandra.db.Table;
+-import org.apache.cassandra.io.sstable.*;
++import org.apache.cassandra.io.sstable.SSTableReader;
+ import org.apache.cassandra.net.MessagingService;
+-import org.cliffc.high_scale_lib.NonBlockingHashMap;
+ import org.apache.cassandra.utils.Pair;
+-
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
++import org.cliffc.high_scale_lib.NonBlockingHashMap;
+ 
+ /** each context gets its own StreamInSession. So there may be >1 Session per host */
+ public class StreamInSession
+diff --git a/src/java/org/apache/cassandra/streaming/StreamOut.java b/src/java/org/apache/cassandra/streaming/StreamOut.java
+index ecced13..c3851fb 100644
+--- a/src/java/org/apache/cassandra/streaming/StreamOut.java
++++ b/src/java/org/apache/cassandra/streaming/StreamOut.java
+@@ -19,10 +19,12 @@
+ 
+ package org.apache.cassandra.streaming;
+ 
+-import java.net.InetAddress;
+-import java.util.*;
+-import java.io.IOException;
+ import java.io.IOError;
++import java.io.IOException;
++import java.net.InetAddress;
++import java.util.ArrayList;
++import java.util.Collection;
++import java.util.List;
+ import java.util.concurrent.ExecutionException;
+ import java.util.concurrent.Future;
+ 
+@@ -30,8 +32,8 @@ import org.apache.commons.lang.StringUtils;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
+-import org.apache.cassandra.dht.Range;
+ import org.apache.cassandra.db.Table;
++import org.apache.cassandra.dht.Range;
+ import org.apache.cassandra.io.sstable.Descriptor;
+ import org.apache.cassandra.io.sstable.SSTable;
+ import org.apache.cassandra.io.sstable.SSTableReader;
+diff --git a/src/java/org/apache/cassandra/streaming/StreamOutSession.java b/src/java/org/apache/cassandra/streaming/StreamOutSession.java
+index 35bb905..dc16b46 100644
+--- a/src/java/org/apache/cassandra/streaming/StreamOutSession.java
++++ b/src/java/org/apache/cassandra/streaming/StreamOutSession.java
+@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
+ 
+ import org.apache.cassandra.net.MessagingService;
+ import org.apache.cassandra.utils.Pair;
+-import org.apache.cassandra.utils.SimpleCondition;
+ import org.cliffc.high_scale_lib.NonBlockingHashMap;
+ 
+ /**
+diff --git a/src/java/org/apache/cassandra/streaming/StreamReplyVerbHandler.java b/src/java/org/apache/cassandra/streaming/StreamReplyVerbHandler.java
+index db2f176..2a3e748 100644
+--- a/src/java/org/apache/cassandra/streaming/StreamReplyVerbHandler.java
++++ b/src/java/org/apache/cassandra/streaming/StreamReplyVerbHandler.java
+@@ -26,12 +26,12 @@ import java.io.DataInputStream;
+ import java.io.IOError;
+ import java.io.IOException;
+ 
+-import org.apache.cassandra.net.IVerbHandler;
+-import org.apache.cassandra.net.Message;
+-
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
++import org.apache.cassandra.net.IVerbHandler;
++import org.apache.cassandra.net.Message;
++
+ public class StreamReplyVerbHandler implements IVerbHandler
+ {
+     private static Logger logger = LoggerFactory.getLogger(StreamReplyVerbHandler.class);
+diff --git a/src/java/org/apache/cassandra/streaming/StreamRequestMessage.java b/src/java/org/apache/cassandra/streaming/StreamRequestMessage.java
+index 5cc82f1..08c8023 100644
+--- a/src/java/org/apache/cassandra/streaming/StreamRequestMessage.java
++++ b/src/java/org/apache/cassandra/streaming/StreamRequestMessage.java
+@@ -27,8 +27,6 @@ import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.List;
+ 
+-import org.apache.cassandra.concurrent.Stage;
+-import org.apache.cassandra.concurrent.StageManager;
+ import org.apache.cassandra.dht.AbstractBounds;
+ import org.apache.cassandra.dht.Range;
+ import org.apache.cassandra.io.ICompactSerializer;
+diff --git a/src/java/org/apache/cassandra/streaming/StreamRequestVerbHandler.java b/src/java/org/apache/cassandra/streaming/StreamRequestVerbHandler.java
+index 67aea4b..dfde43b 100644
+--- a/src/java/org/apache/cassandra/streaming/StreamRequestVerbHandler.java
++++ b/src/java/org/apache/cassandra/streaming/StreamRequestVerbHandler.java
+@@ -18,17 +18,16 @@
+ 
+  package org.apache.cassandra.streaming;
+ 
+-import java.io.ByteArrayInputStream;
+-import java.io.DataInputStream;
+-import java.io.IOException;
+-import java.io.IOError;
++ import java.io.ByteArrayInputStream;
++ import java.io.DataInputStream;
++ import java.io.IOError;
++ import java.io.IOException;
+ 
+-import org.apache.cassandra.net.IVerbHandler;
+-import org.apache.cassandra.net.Message;
+-import org.apache.cassandra.net.MessagingService;
++ import org.slf4j.Logger;
++ import org.slf4j.LoggerFactory;
+ 
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
++ import org.apache.cassandra.net.IVerbHandler;
++ import org.apache.cassandra.net.Message;
+ 
+  /**
+  * This verb handler handles the StreamRequestMessage that is sent by
+diff --git a/src/java/org/apache/cassandra/streaming/StreamingService.java b/src/java/org/apache/cassandra/streaming/StreamingService.java
+index 1e36bde..de14bde 100644
+--- a/src/java/org/apache/cassandra/streaming/StreamingService.java
++++ b/src/java/org/apache/cassandra/streaming/StreamingService.java
+@@ -18,18 +18,17 @@
+ 
+ package org.apache.cassandra.streaming;
+ 
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-import javax.management.MBeanServer;
+-import javax.management.ObjectName;
+ import java.io.IOException;
+ import java.lang.management.ManagementFactory;
+ import java.net.InetAddress;
+ import java.util.ArrayList;
+-import java.util.HashSet;
+ import java.util.List;
+ import java.util.Set;
++import javax.management.MBeanServer;
++import javax.management.ObjectName;
++
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
+ 
+ public class StreamingService implements StreamingServiceMBean
+ {
+diff --git a/src/java/org/apache/cassandra/thrift/CassandraServer.java b/src/java/org/apache/cassandra/thrift/CassandraServer.java
+index 24d7ff9..d26f533 100644
+--- a/src/java/org/apache/cassandra/thrift/CassandraServer.java
++++ b/src/java/org/apache/cassandra/thrift/CassandraServer.java
+@@ -20,53 +20,25 @@ package org.apache.cassandra.thrift;
+ 
+ import java.io.IOException;
+ import java.nio.ByteBuffer;
+-import java.util.ArrayList;
+-import java.util.Arrays;
+-import java.util.Collection;
+-import java.util.Collections;
+-import java.util.HashMap;
+-import java.util.List;
+-import java.util.Map;
+-import java.util.Set;
++import java.util.*;
+ import java.util.Map.Entry;
+ import java.util.concurrent.Callable;
+ import java.util.concurrent.ExecutionException;
+ import java.util.concurrent.Future;
+ import java.util.concurrent.TimeoutException;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.auth.Permission;
+ import org.apache.cassandra.concurrent.Stage;
+ import org.apache.cassandra.concurrent.StageManager;
+-import org.apache.cassandra.config.CFMetaData;
+-import org.apache.cassandra.config.ColumnDefinition;
+-import org.apache.cassandra.config.ConfigurationException;
+-import org.apache.cassandra.config.DatabaseDescriptor;
+-import org.apache.cassandra.config.KSMetaData;
+-import org.apache.cassandra.db.ColumnFamily;
+-import org.apache.cassandra.db.ColumnFamilyType;
+-import org.apache.cassandra.db.DecoratedKey;
+-import org.apache.cassandra.db.ExpiringColumn;
+-import org.apache.cassandra.db.IColumn;
+-import org.apache.cassandra.db.RangeSliceCommand;
+-import org.apache.cassandra.db.ReadCommand;
+-import org.apache.cassandra.db.Row;
+-import org.apache.cassandra.db.RowMutation;
+-import org.apache.cassandra.db.SliceByNamesReadCommand;
+-import org.apache.cassandra.db.SliceFromReadCommand;
++import org.apache.cassandra.config.*;
++import org.apache.cassandra.db.*;
+ import org.apache.cassandra.db.filter.QueryPath;
+ import org.apache.cassandra.db.marshal.MarshalException;
+-import org.apache.cassandra.db.migration.AddColumnFamily;
+-import org.apache.cassandra.db.migration.AddKeyspace;
+-import org.apache.cassandra.db.migration.DropColumnFamily;
+-import org.apache.cassandra.db.migration.DropKeyspace;
+-import org.apache.cassandra.db.migration.Migration;
+-import org.apache.cassandra.db.migration.UpdateColumnFamily;
+-import org.apache.cassandra.db.migration.UpdateKeyspace;
+-import org.apache.cassandra.dht.AbstractBounds;
+-import org.apache.cassandra.dht.Bounds;
+-import org.apache.cassandra.dht.IPartitioner;
+-import org.apache.cassandra.dht.Range;
+-import org.apache.cassandra.dht.Token;
++import org.apache.cassandra.db.migration.*;
++import org.apache.cassandra.dht.*;
+ import org.apache.cassandra.locator.AbstractReplicationStrategy;
+ import org.apache.cassandra.locator.DynamicEndpointSnitch;
+ import org.apache.cassandra.scheduler.IRequestScheduler;
+@@ -75,8 +47,6 @@ import org.apache.cassandra.service.StorageProxy;
+ import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.thrift.TException;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ public class CassandraServer implements Cassandra.Iface
+ {
+diff --git a/src/java/org/apache/cassandra/thrift/CustomTThreadPoolServer.java b/src/java/org/apache/cassandra/thrift/CustomTThreadPoolServer.java
+index 4144550..e311b6c 100644
+--- a/src/java/org/apache/cassandra/thrift/CustomTThreadPoolServer.java
++++ b/src/java/org/apache/cassandra/thrift/CustomTThreadPoolServer.java
+@@ -19,6 +19,12 @@
+ 
+ package org.apache.cassandra.thrift;
+ 
++import java.util.concurrent.ExecutorService;
++import java.util.concurrent.TimeUnit;
++
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.thrift.TException;
+ import org.apache.thrift.TProcessor;
+ import org.apache.thrift.TProcessorFactory;
+@@ -30,12 +36,6 @@ import org.apache.thrift.transport.TTransport;
+ import org.apache.thrift.transport.TTransportException;
+ import org.apache.thrift.transport.TTransportFactory;
+ 
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+-import java.util.concurrent.ExecutorService;
+-import java.util.concurrent.TimeUnit;
+-
+ 
+ /**
+  * Slightly modified version of the Apache Thrift TThreadPoolServer.
+diff --git a/src/java/org/apache/cassandra/thrift/TCustomServerSocket.java b/src/java/org/apache/cassandra/thrift/TCustomServerSocket.java
+index 3f676c8..d4e273a 100644
+--- a/src/java/org/apache/cassandra/thrift/TCustomServerSocket.java
++++ b/src/java/org/apache/cassandra/thrift/TCustomServerSocket.java
+@@ -21,16 +21,17 @@ package org.apache.cassandra.thrift;
+  */
+ 
+ 
+-import org.apache.thrift.transport.TServerSocket;
+-import org.apache.thrift.transport.TSocket;
+-import org.apache.thrift.transport.TTransportException;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+-
+ import java.net.InetSocketAddress;
+ import java.net.Socket;
+ import java.net.SocketException;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
++import org.apache.thrift.transport.TServerSocket;
++import org.apache.thrift.transport.TSocket;
++import org.apache.thrift.transport.TTransportException;
++
+ /**
+  * Extends Thrift's TServerSocket to allow customization of various desirable
+  * TCP properties.
+diff --git a/src/java/org/apache/cassandra/thrift/ThriftValidation.java b/src/java/org/apache/cassandra/thrift/ThriftValidation.java
+index 04cc77d..99f4c6f 100644
+--- a/src/java/org/apache/cassandra/thrift/ThriftValidation.java
++++ b/src/java/org/apache/cassandra/thrift/ThriftValidation.java
+@@ -25,14 +25,13 @@ import java.util.Arrays;
+ import java.util.Comparator;
+ import java.util.Set;
+ 
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
+ import org.apache.cassandra.config.CFMetaData;
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+-import org.apache.cassandra.db.ColumnFamily;
+-import org.apache.cassandra.db.ColumnFamilyType;
+-import org.apache.cassandra.db.IColumn;
+-import org.apache.cassandra.db.KeyspaceNotDefinedException;
+-import org.apache.cassandra.db.Table;
++import org.apache.cassandra.db.*;
+ import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.db.marshal.MarshalException;
+ import org.apache.cassandra.dht.IPartitioner;
+@@ -40,8 +39,6 @@ import org.apache.cassandra.dht.RandomPartitioner;
+ import org.apache.cassandra.dht.Token;
+ import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.utils.FBUtilities;
+-import org.slf4j.Logger;
+-import org.slf4j.LoggerFactory;
+ 
+ public class ThriftValidation
+ {
+diff --git a/src/java/org/apache/cassandra/tools/ClusterCmd.java b/src/java/org/apache/cassandra/tools/ClusterCmd.java
+index e1824c4..bc759ca 100644
+--- a/src/java/org/apache/cassandra/tools/ClusterCmd.java
++++ b/src/java/org/apache/cassandra/tools/ClusterCmd.java
+@@ -20,15 +20,8 @@ package org.apache.cassandra.tools;
+ import java.io.IOException;
+ import java.net.InetAddress;
+ import java.util.List;
+-import java.util.Set;
+ 
+-import org.apache.commons.cli.CommandLine;
+-import org.apache.commons.cli.CommandLineParser;
+-import org.apache.commons.cli.HelpFormatter;
+-import org.apache.commons.cli.Option;
+-import org.apache.commons.cli.Options;
+-import org.apache.commons.cli.ParseException;
+-import org.apache.commons.cli.PosixParser;
++import org.apache.commons.cli.*;
+ 
+ /**
+  * JMX cluster wide operations for Cassandra.
+diff --git a/src/java/org/apache/cassandra/tools/NodeCmd.java b/src/java/org/apache/cassandra/tools/NodeCmd.java
+index 3191971..74dc3d6 100644
+--- a/src/java/org/apache/cassandra/tools/NodeCmd.java
++++ b/src/java/org/apache/cassandra/tools/NodeCmd.java
+@@ -30,18 +30,15 @@ import java.util.*;
+ import java.util.Map.Entry;
+ import java.util.concurrent.ExecutionException;
+ 
+-import org.apache.cassandra.db.Table;
+-import org.apache.cassandra.service.StorageService;
+-import org.apache.cassandra.utils.EstimatedHistogram;
+ import org.apache.commons.cli.*;
+ 
+ import org.apache.cassandra.cache.JMXInstrumentedCacheMBean;
+ import org.apache.cassandra.concurrent.IExecutorMBean;
+-import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.db.ColumnFamilyStoreMBean;
+ import org.apache.cassandra.db.CompactionManagerMBean;
+ import org.apache.cassandra.dht.Token;
+ import org.apache.cassandra.net.MessagingServiceMBean;
++import org.apache.cassandra.utils.EstimatedHistogram;
+ 
+ public class NodeCmd {
+     private static final String HOST_OPT_LONG = "host";
+diff --git a/src/java/org/apache/cassandra/tools/NodeProbe.java b/src/java/org/apache/cassandra/tools/NodeProbe.java
+index e2e7d2c..d101ef6 100644
+--- a/src/java/org/apache/cassandra/tools/NodeProbe.java
++++ b/src/java/org/apache/cassandra/tools/NodeProbe.java
+@@ -24,7 +24,6 @@ import java.lang.management.ManagementFactory;
+ import java.lang.management.MemoryMXBean;
+ import java.lang.management.MemoryUsage;
+ import java.lang.management.RuntimeMXBean;
+-import java.lang.reflect.Constructor;
+ import java.net.InetAddress;
+ import java.nio.ByteBuffer;
+ import java.util.*;
+@@ -47,17 +46,12 @@ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.db.ColumnFamilyStoreMBean;
+ import org.apache.cassandra.db.CompactionManager;
+ import org.apache.cassandra.db.CompactionManagerMBean;
+-import org.apache.cassandra.dht.IPartitioner;
+ import org.apache.cassandra.dht.Token;
+-import org.apache.cassandra.locator.IEndpointSnitch;
+-import org.apache.cassandra.locator.TokenMetadata;
+ import org.apache.cassandra.net.MessagingServiceMBean;
+-import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.service.StorageServiceMBean;
+ import org.apache.cassandra.streaming.StreamingService;
+ import org.apache.cassandra.streaming.StreamingServiceMBean;
+ import org.apache.cassandra.thrift.UnavailableException;
+-import org.apache.cassandra.utils.FBUtilities;
+ 
+ import static com.google.common.base.Charsets.UTF_8;
+ 
+diff --git a/src/java/org/apache/cassandra/tools/SSTableExport.java b/src/java/org/apache/cassandra/tools/SSTableExport.java
+index c257db0..12e0ead 100644
+--- a/src/java/org/apache/cassandra/tools/SSTableExport.java
++++ b/src/java/org/apache/cassandra/tools/SSTableExport.java
+@@ -30,8 +30,8 @@ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.db.ColumnFamily;
+ import org.apache.cassandra.db.DecoratedKey;
+-import org.apache.cassandra.db.IColumn;
+ import org.apache.cassandra.db.ExpiringColumn;
++import org.apache.cassandra.db.IColumn;
+ import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.dht.IPartitioner;
+ import org.apache.cassandra.io.sstable.*;
+diff --git a/src/java/org/apache/cassandra/tools/SSTableImport.java b/src/java/org/apache/cassandra/tools/SSTableImport.java
+index 51b242e..abb5509 100644
+--- a/src/java/org/apache/cassandra/tools/SSTableImport.java
++++ b/src/java/org/apache/cassandra/tools/SSTableImport.java
+@@ -21,27 +21,27 @@ package org.apache.cassandra.tools;
+ import java.io.FileReader;
+ import java.io.IOException;
+ import java.nio.ByteBuffer;
+-import java.util.*;
++import java.util.Map;
++import java.util.Set;
++import java.util.SortedMap;
++import java.util.TreeMap;
++
++import org.apache.commons.cli.*;
++
+ import org.apache.cassandra.config.CFMetaData;
+-import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.config.ConfigurationException;
+-import org.apache.cassandra.db.ColumnFamily;
+-import org.apache.cassandra.db.DecoratedKey;
+-import org.apache.cassandra.db.SuperColumn;
+-import org.apache.cassandra.db.ExpiringColumn;
+-import org.apache.cassandra.db.ColumnFamilyType;
++import org.apache.cassandra.config.DatabaseDescriptor;
++import org.apache.cassandra.db.*;
+ import org.apache.cassandra.db.filter.QueryPath;
+ import org.apache.cassandra.dht.IPartitioner;
+-import org.apache.cassandra.io.util.DataOutputBuffer;
+ import org.apache.cassandra.io.sstable.SSTableWriter;
+-
+-import static org.apache.cassandra.utils.FBUtilities.hexToBytes;
+-import org.apache.commons.cli.*;
+ import org.json.simple.JSONArray;
+ import org.json.simple.JSONObject;
+ import org.json.simple.JSONValue;
+ import org.json.simple.parser.ParseException;
+ 
++import static org.apache.cassandra.utils.FBUtilities.hexToBytes;
++
+ /**
+  * Create SSTables from JSON input
+  */
+diff --git a/src/java/org/apache/cassandra/tools/SchemaTool.java b/src/java/org/apache/cassandra/tools/SchemaTool.java
+index 4279309..853fc51 100644
+--- a/src/java/org/apache/cassandra/tools/SchemaTool.java
++++ b/src/java/org/apache/cassandra/tools/SchemaTool.java
+@@ -20,9 +20,10 @@ package org.apache.cassandra.tools;
+  * 
+  */
+ 
+-import org.apache.cassandra.config.ConfigurationException;
+ import java.io.IOException;
+ 
++import org.apache.cassandra.config.ConfigurationException;
++
+ public class SchemaTool
+ {
+     public static void main(String[] args)
+diff --git a/src/java/org/apache/cassandra/utils/AbstractStatsDeque.java b/src/java/org/apache/cassandra/utils/AbstractStatsDeque.java
+index f6516d5..bb5aa1f 100644
+--- a/src/java/org/apache/cassandra/utils/AbstractStatsDeque.java
++++ b/src/java/org/apache/cassandra/utils/AbstractStatsDeque.java
+@@ -19,7 +19,6 @@
+ package org.apache.cassandra.utils;
+ 
+ import java.util.Iterator;
+-import java.util.ArrayDeque;
+ 
+ public abstract class AbstractStatsDeque implements Iterable<Double>
+ {
+diff --git a/src/java/org/apache/cassandra/utils/BitSetSerializer.java b/src/java/org/apache/cassandra/utils/BitSetSerializer.java
+index 6578bae..fa94b22 100644
+--- a/src/java/org/apache/cassandra/utils/BitSetSerializer.java
++++ b/src/java/org/apache/cassandra/utils/BitSetSerializer.java
+@@ -18,15 +18,9 @@
+ */
+ package org.apache.cassandra.utils;
+ 
+-import java.io.DataOutputStream;
+-import java.io.IOException;
+-import java.io.DataInputStream;
+-import java.io.ObjectOutputStream;
+-import java.io.ObjectInputStream;
++import java.io.*;
+ import java.util.BitSet;
+ 
+-import org.apache.cassandra.io.ICompactSerializer;
+-
+ public class BitSetSerializer
+ {
+     public static void serialize(BitSet bs, DataOutputStream dos) throws IOException
+diff --git a/src/java/org/apache/cassandra/utils/BloomFilter.java b/src/java/org/apache/cassandra/utils/BloomFilter.java
+index 481743c..559af77 100644
+--- a/src/java/org/apache/cassandra/utils/BloomFilter.java
++++ b/src/java/org/apache/cassandra/utils/BloomFilter.java
+@@ -24,10 +24,11 @@ import java.io.IOException;
+ import java.nio.ByteBuffer;
+ import java.util.BitSet;
+ 
+-import org.apache.cassandra.io.ICompactSerializer;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
++import org.apache.cassandra.io.ICompactSerializer;
++
+ public class BloomFilter extends Filter
+ {
+     private static final Logger logger = LoggerFactory.getLogger(BloomFilter.class);
+diff --git a/src/java/org/apache/cassandra/utils/EstimatedHistogram.java b/src/java/org/apache/cassandra/utils/EstimatedHistogram.java
+index 53a9bc8..5b74993 100644
+--- a/src/java/org/apache/cassandra/utils/EstimatedHistogram.java
++++ b/src/java/org/apache/cassandra/utils/EstimatedHistogram.java
+@@ -18,11 +18,11 @@
+ */
+ package org.apache.cassandra.utils;
+ 
+-import java.io.IOException;
+-import java.util.concurrent.atomic.AtomicLongArray;
+-import java.util.Arrays;
+ import java.io.DataInputStream;
+ import java.io.DataOutputStream;
++import java.io.IOException;
++import java.util.Arrays;
++import java.util.concurrent.atomic.AtomicLongArray;
+ 
+ import org.apache.cassandra.io.ICompactSerializer;
+ 
+diff --git a/src/java/org/apache/cassandra/utils/ExpiringMap.java b/src/java/org/apache/cassandra/utils/ExpiringMap.java
+index aa2c7ec..863fe38 100644
+--- a/src/java/org/apache/cassandra/utils/ExpiringMap.java
++++ b/src/java/org/apache/cassandra/utils/ExpiringMap.java
+@@ -18,12 +18,16 @@
+ 
+ package org.apache.cassandra.utils;
+ 
+-import java.util.*;
++import java.util.Enumeration;
++import java.util.Set;
++import java.util.Timer;
++import java.util.TimerTask;
+ 
+-import org.cliffc.high_scale_lib.NonBlockingHashMap;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
++import org.cliffc.high_scale_lib.NonBlockingHashMap;
++
+ public class ExpiringMap<K, V>
+ {
+     private static final Logger logger = LoggerFactory.getLogger(ExpiringMap.class);
+diff --git a/src/java/org/apache/cassandra/utils/FBUtilities.java b/src/java/org/apache/cassandra/utils/FBUtilities.java
+index 91ee290..c87b1e6 100644
+--- a/src/java/org/apache/cassandra/utils/FBUtilities.java
++++ b/src/java/org/apache/cassandra/utils/FBUtilities.java
+@@ -41,8 +41,6 @@ import org.apache.commons.lang.ArrayUtils;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
+-import com.sun.jna.LastErrorException;
+-import com.sun.jna.Native;
+ import org.apache.cassandra.config.ConfigurationException;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.db.DecoratedKey;
+@@ -50,7 +48,6 @@ import org.apache.cassandra.db.marshal.AbstractType;
+ import org.apache.cassandra.dht.IPartitioner;
+ import org.apache.cassandra.dht.Range;
+ import org.apache.cassandra.dht.Token;
+-import org.apache.cassandra.locator.AbstractReplicationStrategy;
+ import org.apache.cassandra.locator.PropertyFileSnitch;
+ import org.apache.thrift.TBase;
+ import org.apache.thrift.TDeserializer;
+diff --git a/src/java/org/apache/cassandra/utils/LatencyTracker.java b/src/java/org/apache/cassandra/utils/LatencyTracker.java
+index 5d462a4..b4a9973 100644
+--- a/src/java/org/apache/cassandra/utils/LatencyTracker.java
++++ b/src/java/org/apache/cassandra/utils/LatencyTracker.java
+@@ -22,7 +22,6 @@ package org.apache.cassandra.utils;
+ 
+ 
+ import java.util.concurrent.atomic.AtomicLong;
+-import java.util.concurrent.atomic.AtomicLongArray;
+ 
+ public class LatencyTracker
+ {
+diff --git a/src/java/org/apache/cassandra/utils/MerkleTree.java b/src/java/org/apache/cassandra/utils/MerkleTree.java
+index bd54696..fdf2e52 100644
+--- a/src/java/org/apache/cassandra/utils/MerkleTree.java
++++ b/src/java/org/apache/cassandra/utils/MerkleTree.java
+@@ -19,20 +19,15 @@
+ package org.apache.cassandra.utils;
+ 
+ import java.io.Serializable;
+-import java.nio.ByteBuffer;
+-import java.util.ArrayDeque;
+-import java.util.ArrayList;
+-import java.util.Arrays;
+-import java.util.Iterator;
+-import java.util.List;
++import java.util.*;
++
++import com.google.common.collect.AbstractIterator;
++import com.google.common.collect.PeekingIterator;
+ 
+ import org.apache.cassandra.dht.IPartitioner;
+ import org.apache.cassandra.dht.Range;
+ import org.apache.cassandra.dht.Token;
+ 
+-import com.google.common.collect.AbstractIterator;
+-import com.google.common.collect.PeekingIterator;
+-
+ /**
+  * A MerkleTree implemented as a binary tree.
+  *
+diff --git a/src/java/org/apache/cassandra/utils/MurmurHash.java b/src/java/org/apache/cassandra/utils/MurmurHash.java
+index 6282a62..a34a228 100644
+--- a/src/java/org/apache/cassandra/utils/MurmurHash.java
++++ b/src/java/org/apache/cassandra/utils/MurmurHash.java
+@@ -18,8 +18,6 @@
+ 
+ package org.apache.cassandra.utils;
+ 
+-import java.nio.ByteBuffer;
+-
+ /**
+  * This is a very fast, non-cryptographic hash suitable for general hash-based
+  * lookup.  See http://murmurhash.googlepages.com/ for more details.
+diff --git a/src/java/org/apache/cassandra/utils/Mx4jTool.java b/src/java/org/apache/cassandra/utils/Mx4jTool.java
+index 8ccaabf..7274473 100644
+--- a/src/java/org/apache/cassandra/utils/Mx4jTool.java
++++ b/src/java/org/apache/cassandra/utils/Mx4jTool.java
+@@ -22,7 +22,6 @@ package org.apache.cassandra.utils;
+ 
+ 
+ import java.lang.management.ManagementFactory;
+-
+ import javax.management.MBeanServer;
+ import javax.management.ObjectName;
+ 
+diff --git a/src/java/org/apache/cassandra/utils/SimpleCondition.java b/src/java/org/apache/cassandra/utils/SimpleCondition.java
+index cc3d809..ad45b48 100644
+--- a/src/java/org/apache/cassandra/utils/SimpleCondition.java
++++ b/src/java/org/apache/cassandra/utils/SimpleCondition.java
+@@ -21,9 +21,9 @@ package org.apache.cassandra.utils;
+  */
+ 
+ 
+-import java.util.concurrent.locks.Condition;
+-import java.util.concurrent.TimeUnit;
+ import java.util.Date;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.locks.Condition;
+ 
+ // fulfils the Condition interface without spurious wakeup problems
+ // (or lost notify problems either: that is, even if you call await()
+diff --git a/src/java/org/apache/cassandra/utils/XMLUtils.java b/src/java/org/apache/cassandra/utils/XMLUtils.java
+index 3f7daf2..8b391d4 100644
+--- a/src/java/org/apache/cassandra/utils/XMLUtils.java
++++ b/src/java/org/apache/cassandra/utils/XMLUtils.java
+@@ -18,17 +18,19 @@
+ 
+ package org.apache.cassandra.utils;
+ 
+-import java.util.*;
+-import javax.xml.parsers.*;
+-import javax.xml.transform.*;
+-import javax.xml.xpath.XPath;
+-import javax.xml.xpath.XPathConstants;
+-import javax.xml.xpath.XPathExpression;
+-import javax.xml.xpath.XPathExpressionException;
+-import javax.xml.xpath.XPathFactory;
+-import java.io.*;
+-import org.w3c.dom.*;
+-import org.xml.sax.*;
++import java.io.File;
++import java.io.FileNotFoundException;
++import java.io.IOException;
++import javax.xml.parsers.DocumentBuilder;
++import javax.xml.parsers.DocumentBuilderFactory;
++import javax.xml.parsers.ParserConfigurationException;
++import javax.xml.transform.TransformerException;
++import javax.xml.xpath.*;
++
++import org.w3c.dom.Document;
++import org.w3c.dom.Node;
++import org.w3c.dom.NodeList;
++import org.xml.sax.SAXException;
+ 
+ public class XMLUtils
+ {

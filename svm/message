@@ -1,4 +1,4 @@
-/home/yfy/Downloads/jdk1.8.0_102/bin/java -ea -Didea.launcher.port=7535 -Didea.launcher.bin.path=/home/yfy/Downloads/idea-IC-162.2032.8/bin -Didea.junit.sm_runner -Dfile.encoding=UTF-8 -classpath /home/yfy/Downloads/idea-IC-162.2032.8/lib/idea_rt.jar:/home/yfy/Downloads/idea-IC-162.2032.8/plugins/junit/lib/junit-rt.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/charsets.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/deploy.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/cldrdata.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/dnsns.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/jaccess.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/jfxrt.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/localedata.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/nashorn.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/sunec.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/sunjce_provider.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/sunpkcs11.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/zipfs.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/javaws.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/jce.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/jfr.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/jfxswt.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/jsse.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/management-agent.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/plugin.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/resources.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/rt.jar:/home/yfy/stap/research/crr/build/classes/test:/home/yfy/stap/research/crr/build/classes/main:/home/yfy/stap/research/crr/lib/changedistiller-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/home/yfy/stap/research/crr/lib/changedistiller-0.0.1-SNAPSHOT-sources.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-lang3/3.5/6c6c702c89bfff3cd9e80b04d668c5e190d588c6/commons-lang3-3.5.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka/weka-dev/3.9.0/a3380fa7c68dae495682d968f358cd47aa54eb2b/weka-dev-3.9.0.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/mysql/mysql-connector-java/6.0.5/9d8df5a1f3273110f2a9ad304961bdd03d696d86/mysql-connector-java-6.0.5.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.xerial/sqlite-jdbc/3.14.2.1/66b8075784131f578ef893fd7674273f709b9a4c/sqlite-jdbc-3.14.2.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/1.7.21/139535a69a4239db087de9bab0bee568bf8e0b70/slf4j-api-1.7.21.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-jdk14/1.7.21/168ee1e516a458bd80fb23caf2e512ed41e1e865/slf4j-jdk14-1.7.21.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.eclipse.jgit/org.eclipse.jgit/4.5.0.201609210915-r/3e3d0b73dcf4ad649f37758ea8502d92f3d299de/org.eclipse.jgit-4.5.0.201609210915-r.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/junit/junit/4.12/2973d150c0dc1fefe998f834810d68f278ea58ec/junit-4.12.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka.thirdparty/java-cup-11b/2015.03.26/6e97c5abd2e76d83220f09f72de0b89b6de18dc1/java-cup-11b-2015.03.26.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka.thirdparty/java-cup-11b-runtime/2015.03.26/5466fad5c5866f33e3230c30ca623e7e8deff1f8/java-cup-11b-runtime-2015.03.26.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka.thirdparty/bounce/0.18/d774f9a0aa5cbe08dea8907720c64c417aed861/bounce-0.18.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.googlecode.matrix-toolkits-java/mtj/1.0.4/e14ed840ff5e15de92dba2d1af29201fa70a0f35/mtj-1.0.4.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/net.sourceforge.f2j/arpack_combined_all/0.1/225619a060b42605b4d9fd4af11815664abf26eb/arpack_combined_all-0.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.googlecode.netlib-java/netlib-java/1.1/4a9c3b55b23430e5a6ad86101a88aea500ba8086/netlib-java-1.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.jcraft/jsch/0.1.53/658b682d5c817b27ae795637dfec047c63d29935/jsch-0.1.53.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.googlecode.javaewah/JavaEWAH/0.7.9/eceaf316a8faf0e794296ebe158ae110c7d72a5a/JavaEWAH-0.7.9.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.apache.httpcomponents/httpclient/4.3.6/4c47155e3e6c9a41a28db36680b828ced53b8af4/httpclient-4.3.6.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/all/1.1.2/f235011206ac009adad2d6607f222649aba5ca9e/all-1.1.2.pom:/home/yfy/.gradle/caches/modules-2/files-2.1/org.apache.httpcomponents/httpcore/4.3.3/f91b7a4aadc5cf486df6e4634748d7dd7a73f06d/httpcore-4.3.3.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/commons-logging/commons-logging/1.1.3/f6f66e966c70a83ffbdb6f17a0919eaf7c8aca7f/commons-logging-1.1.3.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/commons-codec/commons-codec/1.6/b7f0fc8f61ecadeb3695f0b9464755eee44374d4/commons-codec-1.6.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-osx-x86_64/1.1/80da53ec862f283dc3b191b9dbd3166ea6671831/netlib-native_ref-osx-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-linux-x86_64/1.1/5a3e5787d03c39790d5ae08cce189dd1ccc4a38/netlib-native_ref-linux-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-linux-i686/1.1/eedd845b214aea560bce317d778ebb52f8f46038/netlib-native_ref-linux-i686-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-win-x86_64/1.1/4ab54511c2844546279d9f8e427c73953b794686/netlib-native_ref-win-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-win-i686/1.1/167fb794a26cb0bfc74890c704c7137b1d5b50fd/netlib-native_ref-win-i686-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-linux-armhf/1.1/ec467162f74710fd8897cff6888534ceaf297d9a/netlib-native_ref-linux-armhf-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-osx-x86_64/1.1/d724e33675dc8eaa5c8fcb05a3aaca6f3339afa7/netlib-native_system-osx-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-linux-x86_64/1.1/163e88facabe7fa29952890dc2d3429e28501120/netlib-native_system-linux-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-linux-i686/1.1/dd43225560dbd9115d306f9be3ca195aed236b78/netlib-native_system-linux-i686-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-linux-armhf/1.1/27ae9f6a9c88b3f8d12ffa52d62941615f8ed416/netlib-native_system-linux-armhf-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-win-x86_64/1.1/222c7915be1daf1c26a4206f375d4957ae5f9d81/netlib-native_system-win-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-win-i686/1.1/c25fd1881cf93f7716f47b7deec859f6b6b7be50/netlib-native_system-win-i686-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/native_ref-java/1.1/408c71ffbc3646dda7bee1e22bf19101e5e9ee90/native_ref-java-1.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/native_system-java/1.1/3c6a2455f96b354a6940dce1393abb35ed7641da/native_system-java-1.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil/jniloader/1.1/4840f897eeb54d67ee14e478f8a45cc9937f3ce1/jniloader-1.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/core/1.1.2/574b480eca62f535fad6d259e144fee3ef24b66e/core-1.1.2.jar com.intellij.rt.execution.application.AppMain com.intellij.rt.execution.junit.JUnitStarter -ideVersion5 com.yfy.crr.CrrTest,gitLogParser
+/home/yfy/Downloads/jdk1.8.0_102/bin/java -ea -Didea.launcher.port=7536 -Didea.launcher.bin.path=/home/yfy/Downloads/idea-IC-162.2032.8/bin -Didea.junit.sm_runner -Dfile.encoding=UTF-8 -classpath /home/yfy/Downloads/idea-IC-162.2032.8/lib/idea_rt.jar:/home/yfy/Downloads/idea-IC-162.2032.8/plugins/junit/lib/junit-rt.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/charsets.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/deploy.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/cldrdata.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/dnsns.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/jaccess.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/jfxrt.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/localedata.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/nashorn.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/sunec.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/sunjce_provider.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/sunpkcs11.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/ext/zipfs.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/javaws.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/jce.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/jfr.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/jfxswt.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/jsse.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/management-agent.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/plugin.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/resources.jar:/home/yfy/Downloads/jdk1.8.0_102/jre/lib/rt.jar:/home/yfy/stap/research/crr/build/classes/test:/home/yfy/stap/research/crr/build/classes/main:/home/yfy/stap/research/crr/lib/changedistiller-0.0.1-SNAPSHOT-jar-with-dependencies.jar:/home/yfy/stap/research/crr/lib/changedistiller-0.0.1-SNAPSHOT-sources.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-lang3/3.5/6c6c702c89bfff3cd9e80b04d668c5e190d588c6/commons-lang3-3.5.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka/weka-dev/3.9.0/a3380fa7c68dae495682d968f358cd47aa54eb2b/weka-dev-3.9.0.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/mysql/mysql-connector-java/6.0.5/9d8df5a1f3273110f2a9ad304961bdd03d696d86/mysql-connector-java-6.0.5.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.xerial/sqlite-jdbc/3.14.2.1/66b8075784131f578ef893fd7674273f709b9a4c/sqlite-jdbc-3.14.2.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-api/1.7.21/139535a69a4239db087de9bab0bee568bf8e0b70/slf4j-api-1.7.21.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.slf4j/slf4j-jdk14/1.7.21/168ee1e516a458bd80fb23caf2e512ed41e1e865/slf4j-jdk14-1.7.21.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.eclipse.jgit/org.eclipse.jgit/4.5.0.201609210915-r/3e3d0b73dcf4ad649f37758ea8502d92f3d299de/org.eclipse.jgit-4.5.0.201609210915-r.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/junit/junit/4.12/2973d150c0dc1fefe998f834810d68f278ea58ec/junit-4.12.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka.thirdparty/java-cup-11b/2015.03.26/6e97c5abd2e76d83220f09f72de0b89b6de18dc1/java-cup-11b-2015.03.26.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka.thirdparty/java-cup-11b-runtime/2015.03.26/5466fad5c5866f33e3230c30ca623e7e8deff1f8/java-cup-11b-runtime-2015.03.26.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/nz.ac.waikato.cms.weka.thirdparty/bounce/0.18/d774f9a0aa5cbe08dea8907720c64c417aed861/bounce-0.18.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.googlecode.matrix-toolkits-java/mtj/1.0.4/e14ed840ff5e15de92dba2d1af29201fa70a0f35/mtj-1.0.4.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/net.sourceforge.f2j/arpack_combined_all/0.1/225619a060b42605b4d9fd4af11815664abf26eb/arpack_combined_all-0.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.googlecode.netlib-java/netlib-java/1.1/4a9c3b55b23430e5a6ad86101a88aea500ba8086/netlib-java-1.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.jcraft/jsch/0.1.53/658b682d5c817b27ae795637dfec047c63d29935/jsch-0.1.53.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.googlecode.javaewah/JavaEWAH/0.7.9/eceaf316a8faf0e794296ebe158ae110c7d72a5a/JavaEWAH-0.7.9.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.apache.httpcomponents/httpclient/4.3.6/4c47155e3e6c9a41a28db36680b828ced53b8af4/httpclient-4.3.6.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/org.hamcrest/hamcrest-core/1.3/42a25dc3219429f0e5d060061f71acb49bf010a0/hamcrest-core-1.3.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/all/1.1.2/f235011206ac009adad2d6607f222649aba5ca9e/all-1.1.2.pom:/home/yfy/.gradle/caches/modules-2/files-2.1/org.apache.httpcomponents/httpcore/4.3.3/f91b7a4aadc5cf486df6e4634748d7dd7a73f06d/httpcore-4.3.3.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/commons-logging/commons-logging/1.1.3/f6f66e966c70a83ffbdb6f17a0919eaf7c8aca7f/commons-logging-1.1.3.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/commons-codec/commons-codec/1.6/b7f0fc8f61ecadeb3695f0b9464755eee44374d4/commons-codec-1.6.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-osx-x86_64/1.1/80da53ec862f283dc3b191b9dbd3166ea6671831/netlib-native_ref-osx-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-linux-x86_64/1.1/5a3e5787d03c39790d5ae08cce189dd1ccc4a38/netlib-native_ref-linux-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-linux-i686/1.1/eedd845b214aea560bce317d778ebb52f8f46038/netlib-native_ref-linux-i686-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-win-x86_64/1.1/4ab54511c2844546279d9f8e427c73953b794686/netlib-native_ref-win-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-win-i686/1.1/167fb794a26cb0bfc74890c704c7137b1d5b50fd/netlib-native_ref-win-i686-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_ref-linux-armhf/1.1/ec467162f74710fd8897cff6888534ceaf297d9a/netlib-native_ref-linux-armhf-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-osx-x86_64/1.1/d724e33675dc8eaa5c8fcb05a3aaca6f3339afa7/netlib-native_system-osx-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-linux-x86_64/1.1/163e88facabe7fa29952890dc2d3429e28501120/netlib-native_system-linux-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-linux-i686/1.1/dd43225560dbd9115d306f9be3ca195aed236b78/netlib-native_system-linux-i686-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-linux-armhf/1.1/27ae9f6a9c88b3f8d12ffa52d62941615f8ed416/netlib-native_system-linux-armhf-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-win-x86_64/1.1/222c7915be1daf1c26a4206f375d4957ae5f9d81/netlib-native_system-win-x86_64-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/netlib-native_system-win-i686/1.1/c25fd1881cf93f7716f47b7deec859f6b6b7be50/netlib-native_system-win-i686-1.1-natives.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/native_ref-java/1.1/408c71ffbc3646dda7bee1e22bf19101e5e9ee90/native_ref-java-1.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/native_system-java/1.1/3c6a2455f96b354a6940dce1393abb35ed7641da/native_system-java-1.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil/jniloader/1.1/4840f897eeb54d67ee14e478f8a45cc9937f3ce1/jniloader-1.1.jar:/home/yfy/.gradle/caches/modules-2/files-2.1/com.github.fommil.netlib/core/1.1.2/574b480eca62f535fad6d259e144fee3ef24b66e/core-1.1.2.jar com.intellij.rt.execution.application.AppMain com.intellij.rt.execution.junit.JUnitStarter -ideVersion5 com.yfy.crr.CrrTest,gitLogParser
 hadoop
 fad9609d13e76e9e3a4e01c96f698bb60b03807e
 
@@ -128,6 +128,13 @@ a31e0164912236630c485e5aeb908b43e3a67c61
     git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1596742 13f79535-47bb-0310-9956-ffa450edef68
 
 
+1e5d2c612bd63e45307eff505b242917ecb4b328
+
+    MAPREDUCE-5861. finishedSubMaps field in LocalContainerLauncher does not need to be volatile. (Contributed by Tsuyoshi OZAWA)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1594795 13f79535-47bb-0310-9956-ffa450edef68
+
+
 b2dd9d74c20844a589263a8ac40a736dbb92be7e
 
     HBASE-10143 replace WritableFactories's hashmap with ConcurrentHashMap (Liang Xie via Stack)
@@ -149,6 +156,21 @@ b2dd9d74c20844a589263a8ac40a736dbb92be7e
     git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1545756 13f79535-47bb-0310-9956-ffa450edef68
 
 
+d0aaa5ba9faa6e2777ade14949bd2df4a7573d9b
+
+    HDFS-5276. Remove volatile from LightWeightHashSet. (Junping Du via llu)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1531225 13f79535-47bb-0310-9956-ffa450edef68
+
+
+b3d7442b2b0466a9813c431e92caf7d37b6b8495
+
+    HADOOP-9770. Make RetryCache#state non volatile. Contributed by Suresh Srinivas.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1507414 13f79535-47bb-0310-9956-ffa450edef68
+
+
 0a5f16a89e3942953d7d6c2d26542764298c6430
 
     HADOOP-9691. RPC clients can generate call ID using AtomicInteger instead of synchronizing on the Client instance. Contributed by Chris Nauroth.
@@ -156,11 +178,27 @@ b2dd9d74c20844a589263a8ac40a736dbb92be7e
     git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1501615 13f79535-47bb-0310-9956-ffa450edef68
 
 
+5c82a0cd1aa77b684b493ba7ef9679f4fdff3e09
+
+    HDFS-4813. Add volatile to BlocksMap.blocks so that the replication thread can see the updated value.  Contributed by Jing Zhao
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1482658 13f79535-47bb-0310-9956-ffa450edef68
+
+
 ef9f251679d7e87698eecd6a119652900274a172
 
     YARN-514.Delayed store operations should not result in RM unavailability for app submission (Zhijie Shen via bikas)
     
     git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1469059 13f79535-47bb-0310-9956-ffa450edef68
+
+
+7c8419f14f8d1c127d511c2e0df60a5caa85fecf
+
+    HDFS-4522. LightWeightGSet expects incrementing a volatile to be atomic. Contributed by Colin Patrick McCabe.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1455780 13f79535-47bb-0310-9956-ffa450edef68
 
 
 d27291842605555f6727faa4454211f55da28cca
@@ -171,11 +209,26 @@ d27291842605555f6727faa4454211f55da28cca
     git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1443016 13f79535-47bb-0310-9956-ffa450edef68
 
 
+4ca58bd57c11fe328ff03d52a3cf6d848f6daa00
+
+    HDFS-4035. LightWeightGSet and LightWeightHashSet increment a volatile without synchronization. Contributed by Eli Collins
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1430595 13f79535-47bb-0310-9956-ffa450edef68
+
+
 7e56bfe40589a1aa9b5ef20b342e421823cd0592
 
     HDFS-4200. Reduce the size of synchronized sections in PacketResponder. Contributed by Suresh Srinivas.
     
     git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1413826 13f79535-47bb-0310-9956-ffa450edef68
+
+
+fd7de4c4eb3906e8e8a2631599dec78ff021d6c0
+
+    HDFS-4106. BPServiceActor#lastHeartbeat, lastBlockReport and lastDeletedReport should be volatile. Contributed by Jing Zhao.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1403075 13f79535-47bb-0310-9956-ffa450edef68
 
 
 a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
@@ -234,7 +287,7 @@ efc83da2a0d8d881904250fb896d45b383a3adf6
 
 Project:             hadoop
 Commit count:        14930
-Related commit count 2016
+Related commit count 2137
 flink
 d3908241323f5de3d454c7daf560faed49b3c779
 
@@ -425,6 +478,21 @@ efca79cfb7b496b4bec70561cc94af069c644ef2
     This closes #925.
 
 
+e9cad4da3a814bcde46c10c0e4da2fc84f99d815
+
+    [FLINK-2232] [storm-compat] Increased sleeping time for IT-Cases
+    
+    To make tests more stable as a temporal fix
+    additional bug fix: isRunning was not volatile in AbstractStormSpoutWrapper
+    
+    Closes #845
+
+
+4b9e34047095da2e6a9425f67462409033a3cf14
+
+    [tests] Increase timeouts for process failure tests in order to compensate for volatile CI environments (Travis)
+
+
 563e546236217dace58a8031d56d08a27e08160b
 
     [FLINK-1419] [runtime] Fix: distributed cache properly synchronized
@@ -527,7 +595,7 @@ d451da79dca8496191435d0dc5557090eb5029a9
 
 Project:             flink
 Commit count:        9771
-Related commit count 1129
+Related commit count 1264
 tomcat
 c0384f0363f51f77987cf519489056908b9e4731
 
@@ -717,12 +785,55 @@ e78fdbead699b9b51166c0f93abcb1bbf0b84dc3
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1718700 13f79535-47bb-0310-9956-ffa450edef68
 
 
+825c450c8f706953930c509e54b9ce3e4e7ec564
+
+    Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58398
+    Simplify the code and fix a data race (listeners should have been volatile)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1703772 13f79535-47bb-0310-9956-ffa450edef68
+
+
+8313fa0f1ca277e9633a78f461804abc3c5515b8
+
+    Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58392
+    Double-checked locking needs to use volatile to be thread-safe
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1703545 13f79535-47bb-0310-9956-ffa450edef68
+
+
 17206cc8c21c439d121a66d7c9934cdfa4791a35
 
     Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58386
     On the basis that access() and finish() are synchronized, extend synchronization to other methods that access same fields.
     
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1703408 13f79535-47bb-0310-9956-ffa450edef68
+
+
+f0e627bb8c9daedb3b064027cac37ce4849bab64
+
+    Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58382
+    Use single object (membersLock) for all locking
+    Make members volatile so single reads are safe
+    Reduce scope of locks where possible
+    Expand scope of locks where necessary
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1703174 13f79535-47bb-0310-9956-ffa450edef68
+
+
+db6a416a69a378078357bce3f3657f4d6d4a5a5a
+
+    Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58380
+    Both maxInactiveInterval and isNew can be accessed concurrently so they need to be volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1703146 13f79535-47bb-0310-9956-ffa450edef68
+
+
+e3244fd51e13b980a72d2b0f44515a376ac7f4bd
+
+    Make the completion handlers final since they are set once in the constructor.
+    The completion threads access the handshake status fields so make them volatile.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1702531 13f79535-47bb-0310-9956-ffa450edef68
 
 
 3bba35b2a312a5834d05baf0f184ad6c847a8ca6
@@ -732,6 +843,46 @@ e78fdbead699b9b51166c0f93abcb1bbf0b84dc3
     Patch provided by Kyohei Nakamura.
     
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1696378 13f79535-47bb-0310-9956-ffa450edef68
+
+
+c62262a154ef436d9adbc98cffde93034060d602
+
+    inBuffer needs to be volatile for double checked locking to work.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1683322 13f79535-47bb-0310-9956-ffa450edef68
+
+
+9257845512595edd65f7eb368abb557d0a6d90f2
+
+    Restore volatile for closed. Not all reads are inside a sync.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1665988 13f79535-47bb-0310-9956-ffa450edef68
+
+
+783c8f0aef0b414345e4428255d69c6b6851e405
+
+    registered is guarded by registeredLock so there is no need for it to be volatile.
+    Simplify the process of triggering the first call to onWritePossible
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1660609 13f79535-47bb-0310-9956-ffa450edef68
+
+
+92d0b61b6038ed6074789558942b3941cab8bd2f
+
+    Make readTimeout and wrietTimeout volatile because they are written on a different thread than they are read on within a single request.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1659906 13f79535-47bb-0310-9956-ffa450edef68
+
+
+9e22ce1a3d9dae7a7a035518d4830a0b4d3012a0
+
+    Guard the digester with its own lock object. Otherwise two threads could create
+    two digester instances, lock on them and then use still the same one at the
+    same time. Remove the now unneeded volatile marker from digester. Issue
+    reported by Coverity Scan.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1656319 13f79535-47bb-0310-9956-ffa450edef68
 
 
 d5b26daab40e5984a86ab7da8094c18f15e88386
@@ -745,11 +896,25 @@ d5b26daab40e5984a86ab7da8094c18f15e88386
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1654851 13f79535-47bb-0310-9956-ffa450edef68
 
 
+3237cd9fb52eac33c070e801b5a074db6bd0338a
+
+    No need for volatile here.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1652121 13f79535-47bb-0310-9956-ffa450edef68
+
+
 88e639150e19ecb4558f1035ec57d8d5e9b96666
 
     Switch to ConcurrentHashMap and remove syncs
     
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1646099 13f79535-47bb-0310-9956-ffa450edef68
+
+
+7d184e288a688f4878e73ad80cd6d87ad44bf0f0
+
+    Fix trailing whitespace to make Checkstyle happy. Mark fields as volatile/final. Followup to r1642962, r1642974.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1643041 13f79535-47bb-0310-9956-ffa450edef68
 
 
 8aa443abb377a47980c07649a2bb96869b2de092
@@ -777,6 +942,31 @@ d5b26daab40e5984a86ab7da8094c18f15e88386
     Mark the AtomicInteger field as final.
     
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1627525 13f79535-47bb-0310-9956-ffa450edef68
+
+
+a6bf3ee8d7573e963d9a85332eaa1eefa1e277f9
+
+    No need for volatile. Can be final. Reported by FindBugs.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1622259 13f79535-47bb-0310-9956-ffa450edef68
+
+
+56bd9b015d04b4a8361bad46615c404b388b61de
+
+    Add a little plumbing for outgoing messages (no actual compression yet)
+    Make a couple of fields volatile that are accessed by multiple threads (in succession, not in parallel)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1618704 13f79535-47bb-0310-9956-ffa450edef68
+
+
+d29cea07c2f5c2813f0b77ef06ddcbbf2fde58e0
+
+    Mapper improvements
+    - Mark MappedContext.versions field as volatile, because it is updated when a Context is started or stopped.
+    - Mark MapElement fields as final and add them to constructors.
+    - Change super class of MappedContext from MapElement<Context> to MapElement<Void>. It does not wrap any real object, its "object" field is always null.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1604320 13f79535-47bb-0310-9956-ffa450edef68
 
 
 8eeed6413e8266d0a54e2c07c4ae1206502eef9a
@@ -816,6 +1006,22 @@ a41c0422bce74cae3ff0d7c5b3f9fbda3f3d37bf
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1581574 13f79535-47bb-0310-9956-ffa450edef68
 
 
+fc8fd23835d91cbadca680663ea8670517d823a2
+
+    Review after unexpected failed test on OSX
+    - completed needs to be volatile
+    - prevent infinite loop
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1580849 13f79535-47bb-0310-9956-ffa450edef68
+
+
+e023baf3790eeac22ad53867e5d95e038342c9f4
+
+    Observed a hard to reproduce test failure with the non-blocking IO tests. Can't reproduce it yet. Working assumption is that Poller and application thread have a different view of the async field on the SocketWrapper so make all the flags the Poller uses volatile.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1551731 13f79535-47bb-0310-9956-ffa450edef68
+
+
 86dfadad13ae3f3917e48272061a3ad20f4ccb02
 
     Observed strange lock-up on OSX when two threads were writing concurrently to this Map. Switch to ConcurrentHashMap in an attempt to avoid the lock-up in future.
@@ -830,12 +1036,27 @@ a41c0422bce74cae3ff0d7c5b3f9fbda3f3d37bf
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1529132 13f79535-47bb-0310-9956-ffa450edef68
 
 
+710bc4a0da9948693208702cf9d6dba6c702f1cc
+
+    Update comment. Make state volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1457118 13f79535-47bb-0310-9956-ffa450edef68
+
+
 e6261dadc99dcea07b4c889324bea9d0fd2e93bb
 
     Make the messages list synchronized as a whole, instead of just using a volatile reference to it.
     I am still observing random failures with TestWsWebSocketContainer, so an issue is not here.
     
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1438747 13f79535-47bb-0310-9956-ffa450edef68
+
+
+da327f49e6b3b9485f6be39de2c61cfd1cb75f0e
+
+    Fix FindBugs warnings
+    volatile int -> AtomicIntger so operations are actually atomic
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1417199 13f79535-47bb-0310-9956-ffa450edef68
 
 
 3e4b1ae6dc786b268505aa2e64067432519c2bcf
@@ -883,11 +1104,26 @@ b9164aaaf1c8db568a90c558e4341830a08c4e1b
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1389076 13f79535-47bb-0310-9956-ffa450edef68
 
 
+5d11e7d328833e73dfde64a5337c3445e6eabc90
+
+    FindBugs: Sync mis-match
+    Reduce size of sync block and make current volatile so updates are seen consistently
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1370441 13f79535-47bb-0310-9956-ffa450edef68
+
+
 3883c752d7b3047956800fab99cde75499dbde23
 
     Fix Findbugs warnings. Sync only on setter. Use ReadWriteLock instead.
     
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1361213 13f79535-47bb-0310-9956-ffa450edef68
+
+
+560cd00890b3f6af2aca0c3a9d51a45f880692dd
+
+    Fix a FindBugs warning (increment of volatile not atomic)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1360946 13f79535-47bb-0310-9956-ffa450edef68
 
 
 ea8e036989fc9ef2c0ab857ceb87d513ca694963
@@ -896,6 +1132,14 @@ ea8e036989fc9ef2c0ab857ceb87d513ca694963
     Make ReadWriteLock fields final (the new one and an old private one as well).
     
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1349410 13f79535-47bb-0310-9956-ffa450edef68
+
+
+49e2fe57487686bb69568e32da5f0abf2b5c447e
+
+    Followup to r1336516
+    Add Javadoc (as asked by sebb) and avoid looking up a volatile field twice
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1337591 13f79535-47bb-0310-9956-ffa450edef68
 
 
 be365e5418d929760bdfed57404eb313fe9dba4b
@@ -912,6 +1156,31 @@ de82eab025005b522b2338a2b72c7fb2bc2fbcd2
     Implement ConcurrentHashMap with weak keys.
     
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1327915 13f79535-47bb-0310-9956-ffa450edef68
+
+
+6f3cafe9ce44793f60d3c5c8d0d77c0cb744b72b
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=52356
+    size needs to be volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1222855 13f79535-47bb-0310-9956-ffa450edef68
+
+
+89834193c769e1c736c46834c083ec7bca001777
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=52354
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=52355
+    Make debug flags volatile as they are accessed by multiple threads
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1222852 13f79535-47bb-0310-9956-ffa450edef68
+
+
+d69fb8ec7357138b4c028d5e7942e765e9d6a7d9
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=52213
+    enabled should be volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1222850 13f79535-47bb-0310-9956-ffa450edef68
 
 
 4377d3349398a47a7ebd359db4f43f025f1cd2b4
@@ -932,6 +1201,14 @@ de82eab025005b522b2338a2b72c7fb2bc2fbcd2
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1198604 13f79535-47bb-0310-9956-ffa450edef68
 
 
+c55eec240daced75f5bb7e3eaf5e085e0767d52a
+
+    Remove debug use of System.out
+    Add missing volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1173021 13f79535-47bb-0310-9956-ffa450edef68
+
+
 a87ab3f011a14d53b0e4098802b8de6ffd0587c6
 
     Reviewing r1166576...
@@ -949,11 +1226,43 @@ e20ff80b31d07ef9b34a15e3ffa9f295056a6a09
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1163986 13f79535-47bb-0310-9956-ffa450edef68
 
 
+27997608f39f9126134cfcbc7e18b1afaba82bfb
+
+    Read/write by multiple threads outside sync - needs to be volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1142104 13f79535-47bb-0310-9956-ffa450edef68
+
+
 5b8e25a31b1b95af0dd834a2fccb90803b9660ab
 
     No need for a ConcurrentHashMap now pre-population is used.
     
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1140461 13f79535-47bb-0310-9956-ffa450edef68
+
+
+f4adcfaf78f781c9c3c12982c40a28e04b9b60ed
+
+    Use static final instead of volatile in
+    AccessLogValve.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1137323 13f79535-47bb-0310-9956-ffa450edef68
+
+
+b24b17c10c778d47413f15d3a24e318d6b0a365b
+
+    make fields volatile
+    https://issues.apache.org/bugzilla/show_bug.cgi?id=51212
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1124352 13f79535-47bb-0310-9956-ffa450edef68
+
+
+f7f6200bc7d553ea2851a544e698ca1c1005a8a7
+
+    SHARED_SELECTOR is used with double checked locking so it needs to be volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1103788 13f79535-47bb-0310-9956-ffa450edef68
 
 
 7a040d89a1648ccc4dc0b4f7e19493fe7f46296a
@@ -969,6 +1278,14 @@ d5792072b3d4cfe5dbcd47b4f1469c022c80c45b
     Move string calculation out of synchronized block
     
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1056828 13f79535-47bb-0310-9956-ffa450edef68
+
+
+d154589a05d146d2e974e95a43924d301854a625
+
+    make shared variable volatile
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1051539 13f79535-47bb-0310-9956-ffa450edef68
 
 
 ff0d9a8f15e1b9da41065b5cc4af9b5a66d68cda
@@ -1025,12 +1342,36 @@ d10b38913e1edaab05436a34ff8df0f5d7c02dd5
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@940298 13f79535-47bb-0310-9956-ffa450edef68
 
 
+334278b429b17696030df742115bd1140eb4cd39
+
+    Make md volatile to be sure there are no threading issues
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@940057 13f79535-47bb-0310-9956-ffa450edef68
+
+
 6ab18d70118e72aafe6a1ca6f81079d45fd4fd2e
 
     Get the shutdown hook working again.
     Now LifecycleBase uses synchronized methods, Catalina can't extend it else the shutdown hook can't function.
     
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@940036 13f79535-47bb-0310-9956-ffa450edef68
+
+
+a6092d771ec50cf9aa434c75455b842f3ac6c628
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=49143
+    Threading / initialisation issues. Not all were valid. Make them volatile anyway so FindBugs doesn't complain.
+    Fix some additional issues - use of valueOf() - found along the way
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@937309 13f79535-47bb-0310-9956-ffa450edef68
+
+
+424af8a12b941fc03c6aa46a12ca45fac4f08ba0
+
+    Mark ResourceEntry.loadedClass as volatile.
+    That is because WebappClassLoader#findClassInternal() uses double-checked locking to initialize this field.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@927877 13f79535-47bb-0310-9956-ffa450edef68
 
 
 4df6f0e4779af8e110110db1f05ac835330486dd
@@ -1065,6 +1406,43 @@ d10b38913e1edaab05436a34ff8df0f5d7c02dd5
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@918594 13f79535-47bb-0310-9956-ffa450edef68
 
 
+d0cfcb35ea4e8a8068cce7e091d870739d472b01
+
+    Following changes
+    1. Default bufferSize is 0 - rely on system behavior
+    2. bufferSize of <0 will automatically flush the writer on each write
+    3. autoFlush for printWriter is false, otherwise we are duplicating the effort
+    4. date is a volatile variable so that a write to the variable gets propagated properly
+    
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@898836 13f79535-47bb-0310-9956-ffa450edef68
+
+
+eca3a4a005811f2839535c6f01ce0e412c8aaa65
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=482
+    Use volatile since field is accessed by multiple threads
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@883203 13f79535-47bb-0310-9956-ffa450edef68
+
+
+a524187fde28ce82790dfbed84f084f3850c426e
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=48248
+    Use volatile since field is accessed by multiple threads
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@883200 13f79535-47bb-0310-9956-ffa450edef68
+
+
+c7d7ba217d8b3aa910587d5d2b49a65b68051f6e
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=48249
+    Use volatile since field is accessed by multiple threads
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@883199 13f79535-47bb-0310-9956-ffa450edef68
+
+
 600443618ad003148e754035ae9bfa0d17220ba3
 
     Mark JspCompilationContext#removed as volatile,
@@ -1072,6 +1450,22 @@ d10b38913e1edaab05436a34ff8df0f5d7c02dd5
     and that access is not synchronized.
     
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@831850 13f79535-47bb-0310-9956-ffa450edef68
+
+
+909a40b63b13bf2fb0e626740428828ac9a01986
+
+    Switch to volatile for status flag used by multiple
+    threads during cluster context startup.
+    
+    Without volatile problems have been observed, where the
+    change by one thread was actually not seen by the other
+    thread.
+    
+    Performance implications are neglectable, because the
+    variable is only used during context startup.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@814024 13f79535-47bb-0310-9956-ffa450edef68
 
 
 6534cf381977be0a6c46f8aa0bc9d1d369587d43
@@ -1082,6 +1476,54 @@ d10b38913e1edaab05436a34ff8df0f5d7c02dd5
     I was concerned about possible performance implications but I saw no detectable change in start-up time with this change.
     
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@805182 13f79535-47bb-0310-9956-ffa450edef68
+
+
+acb7df1b815bd3e6b115acbbe545e4a9549375c1
+
+    Needs to be volatile as it is used in double checked locking
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@792862 13f79535-47bb-0310-9956-ffa450edef68
+
+
+5c3b5fe04b9e8964b9ee170816a33159d61d4873
+
+    Add some doco, make shared variables volatile
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@790684 13f79535-47bb-0310-9956-ffa450edef68
+
+
+a182fc16b1816b7cb0ea9a2061814eafd92b612a
+
+    Add an additional volatile from a review of the associated benchmark tests.
+    Add a sync to deal with the issue filip reported in the 5.5.x status file
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@786483 13f79535-47bb-0310-9956-ffa450edef68
+
+
+8550181163927fe9f6487fe07df0f8251dfd8872
+
+    Minor improvements
+    - as per Sebb's comment on the dev list - need to add a volatile
+    - correct the log message
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@786455 13f79535-47bb-0310-9956-ffa450edef68
+
+
+2521b8e06c08c6405eb15e054754de609588de11
+
+    Expand sync within rotatable block to fix a couple of issues:
+     - fileDateFormatter is a SimpleDateFormat which is not thread safe
+     - the rotationLastChecked needs to be volatile to ensure we don't execute the sync'd block multiple times
+    Although this is a sync on 'this' in log which gets called for every request:
+     - a similar sync occurs in getDate() for every request with minimal performance impact
+     - microbenchmarks suggest that a sync on 'this' has similar performance to using ThreadLocals
+    
+     Based on kkolinko's patch for Tomcat 5.5.x
+    
+     Note there remains an issue with writing to the log if the log files happens to be in the process of rotating
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@785983 13f79535-47bb-0310-9956-ffa450edef68
 
 
 1ce59fe30727fa2e0b3c6efe9430a813e62f825c
@@ -1175,6 +1617,15 @@ a0dbde5f9847cbe8f92958ac7a7d5440ebe6287b
     
     
     git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@538920 13f79535-47bb-0310-9956-ffa450edef68
+
+
+607b06e2c1a3ec9da72a21e32e8f640047cf9448
+
+    volatile should ensure double locking to work properly
+    
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@536540 13f79535-47bb-0310-9956-ffa450edef68
 
 
 bcf5aa009de1e303ec3f4c2e09bbb79708094353
@@ -1274,12 +1725,19 @@ bd8122700c2e70e5adbaddcd289fb1a974f981fe
 
 Project:             tomcat
 Commit count:        17731
-Related commit count 1313
+Related commit count 1599
 mahout
 Project:             mahout
 Commit count:        3703
-Related commit count 168
+Related commit count 173
 cassandra
+1dffa02250c493862f773af9b691a3bf3db6f76d
+
+    StorageService shutdown hook should use a volatile variable
+    
+    patch by Ed Capriolo; reviewed by Stefania Alborghetti for CASSANDRA-11984
+
+
 615945d275efe1899634f7db6f240f4c1f90b495
 
     Aggregate with Initial Condition fails with C* 3.0
@@ -1316,6 +1774,11 @@ c26a7e767a22687fa5c47d759a7a32acbbaa8ec6
     Make HHOM.compact synchronized to avoid compacting the same sstables
     
     Patch by marcuse; reviewed by Aleksey Yeschenko for CASSANDRA-8416
+
+
+32da3c8cdae4d48511345bc44081759a6b7268c7
+
+    Make CFMetaData.memtableFlushPeriod volatile
 
 
 028880e74ceef57b33b858fbd78d8aa9ac3b9680
@@ -1387,6 +1850,28 @@ c22c685ffa7da67b7ee069b37e7b3c770ee23263
     switch from Callable-returns-null to Runnable
 
 
+5f3e3cacfe083b9c64fd9c87b7179bd8a563aae4
+
+    CFS.valid -> volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/branches/cassandra-1.0@1197787 13f79535-47bb-0310-9956-ffa450edef68
+
+
+2828cb4ecfe3f3efb1372d9008f702ea301af2c5
+
+    make DD.defsVersion volatile
+    patch by Jeffrey Wang; reviewed by jbellis for CASSANDRA-2490
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/branches/cassandra-0.7@1094011 13f79535-47bb-0310-9956-ffa450edef68
+
+
+264c7f01a3194313b14c311aeeb68b07bc80e89d
+
+    isFrozen needs to be volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/trunk@1087921 13f79535-47bb-0310-9956-ffa450edef68
+
+
 d222de26747e2b6bde3323dc1f8755d36c8c9174
 
     Use a SynchronousQueue instead of LBQ so when memtable_flush_writers is > 1, it will allow actual parallel flushes.
@@ -1427,6 +1912,13 @@ fcf61a8c0ecb7c589f7ad97c53591a0fe20ca24e
     git-svn-id: https://svn.apache.org/repos/asf/cassandra/trunk@1004259 13f79535-47bb-0310-9956-ffa450edef68
 
 
+f5ed28f536541d835df6ea8e014249199838ba17
+
+    making endpoint cache volatile is unnecessary since we're using NBHM.  patch by jbellis
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/trunk@995068 13f79535-47bb-0310-9956-ffa450edef68
+
+
 2e36c660b0f210d54a0d715d7a793551f606673f
 
     make cassandra.genavro the canonical proto schema
@@ -1450,11 +1942,32 @@ fcba8b889750d25fffc045b86936f5f98967caa5
     git-svn-id: https://svn.apache.org/repos/asf/cassandra/trunk@943344 13f79535-47bb-0310-9956-ffa450edef68
 
 
+45d8fc50cfdd35a9c1087d0ad2f9268a0d243536
+
+    Replace synchronization in Gossiper with concurrent data structures and volatile fields.  Also removes getSortedApplicationStates since nothing actually seems to rely on iterating in sorted order.  Patch by Brandon Williams and jbellis for CASSANDRA-757
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/trunk@938597 13f79535-47bb-0310-9956-ffa450edef68
+
+
+477755128b87289c41a8f7ee1a706e893dff203e
+
+    add missing volatile, final modifiers.  patch by jbellis; reviewed by Stu Hood for CASSANDRA-614
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@890461 13f79535-47bb-0310-9956-ffa450edef68
+
+
 0967566af3321900ff704ed89cb3d0775038b700
 
     move size, count updates outside of synchronized block since they are already atomic.  patch by jbellis
     
     git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@889500 13f79535-47bb-0310-9956-ffa450edef68
+
+
+8ec9b7bd95c5e09227a67893a944945fd0a37707
+
+    make members volatile where necessary to make double-checked locking safe.  patch by gdusbabek; reviewed by jbellis for CASSANDRA-248
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@882682 13f79535-47bb-0310-9956-ffa450edef68
 
 
 23dd57230d9ef539a622291d92d92e4e4dfc9f01
@@ -1531,7 +2044,7 @@ de8318315f51a1cc5d8d0e7c7535c0290870a742
 
 Project:             cassandra
 Commit count:        21982
-Related commit count 1423
+Related commit count 1599
 lucene-solr
 f906862afe2ba4ef7ac521555ee59a86ef0b2a75
 
@@ -1578,6 +2091,20 @@ a64266193ad0b08575fc2bd854057bc0ad01568d
     git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1671258 13f79535-47bb-0310-9956-ffa450edef68
 
 
+aba8b8ae3cd60839cb863fb750e7944c145f28dc
+
+    SOLR-5761: HttpSolrServer has a few fields that can be set via setters but are not volatile.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1573442 13f79535-47bb-0310-9956-ffa450edef68
+
+
+b3044d6a04b16dcdf2c05c0410d86eb5c593c43b
+
+    SOLR-5620: ZKStateReader.aliases should be volatile to ensure all threads see the latest aliases.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1569603 13f79535-47bb-0310-9956-ffa450edef68
+
+
 fa90270c4d8f7a271936ff26471ede6c0fb703b8
 
     LUCENE-5257: Lock down centralized versioning of ivy dependencies
@@ -1592,11 +2119,32 @@ fcc0fea1f374717f97fccb4ab5e9615c2b009109
     git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1353101 13f79535-47bb-0310-9956-ffa450edef68
 
 
+6d2ef6a1e42dee0e1ff5046b6029a1fe6110c7d6
+
+    this should be volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1293345 13f79535-47bb-0310-9956-ffa450edef68
+
+
+b64c42c533bd0e6dbfa0b5683af615925f0f11e0
+
+    cfg should be volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1291127 13f79535-47bb-0310-9956-ffa450edef68
+
+
 10a35f85e53e80cb221cfe434db8c69f18dcbce0
 
     Remove volatile from IR.closed variable (its only used in already synchronized close() method)
     
     git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1291097 13f79535-47bb-0310-9956-ffa450edef68
+
+
+2338018bb099b87c936a7b1f538e7abe0bb93bd4
+
+    LUCENE-2858: Move ReaderContextBuilder into the CompositeReaderContext class, it should only be used privately when building the CompositeReaderContext. Make the lazy init field volatile, the ensureOpen() is already volatile, so it does not hurt
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/branches/lucene2858@1237649 13f79535-47bb-0310-9956-ffa450edef68
 
 
 d1ea4f76f193a258a659ea611d8906bc7c274c54
@@ -1676,6 +2224,13 @@ db1cb0bcb5f392a8b017d66c04f9fec567accf2f
     git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@946338 13f79535-47bb-0310-9956-ffa450edef68
 
 
+1f8951f06cd71cc6e4c83234e2f38c3fc5ff8364
+
+    updated test after clover instrumentation run failure. Thread termination timeout set to 60 seconds and made booleans in workers volatile.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@906441 13f79535-47bb-0310-9956-ffa450edef68
+
+
 dc3f92e6e58c788227b9cfe82d584cbe10e5e5bb
 
     LUCENE-2156: switch to AtomicInteger for IR's ref count; remove sync from IW's ensureOpen (it's only 'best effort')
@@ -1716,6 +2271,13 @@ f34f5ef9873909df51f105e8f10ceb247420f35a
     SOLR-1399.  Lock settings are ignored
     
     git-svn-id: https://svn.apache.org/repos/asf/lucene/solr/trunk@810788 13f79535-47bb-0310-9956-ffa450edef68
+
+
+70040e19ec559312c9120a9eeb36196927b83802
+
+    LUCENE-1707: refCount doesn't need to be volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@788493 13f79535-47bb-0310-9956-ffa450edef68
 
 
 0a828c2f9ddb54578512176af51216d1845f698d
@@ -1887,7 +2449,7 @@ b22cd7789009557c10718d470c16bc6b09e443ff
 
 Project:             lucene-solr
 Commit count:        26152
-Related commit count 1758
+Related commit count 1896
 netty
 42fba015ce82ab4ab30e547c888db82fe74094e9
 
@@ -1916,6 +2478,22 @@ netty
     
     There are some minor perks to this as well.  DefaultResourceLeak accounting is
     moved to a central place which probably has better caching behavior.
+
+
+0b5e75a614ca29810c7ef1b695c0ca962ec7b004
+
+    IdleStateHandler volatile member variables
+    
+    Motivation:
+    IdleStateHandler has a number of volatile member variables which are only accessed from the EventLoop thread. These do not have to be volatile. The accessibility of these member variables are not consistent between private and package private. The state variable can also use a byte instead of an int.
+    
+    Modifications:
+    - Remove volatile from member variables
+    - Change access to private for member variables
+    - Change state from int to byte
+    
+    Result:
+    IdleStateHandler member variables cleaned up.
 
 
 b604a22395f64bca52d155127e2453aa3178af6c
@@ -1969,6 +2547,23 @@ e4154bcb0b91acfe5cf041208fc255aff16143be
     No more deadlock possible.
 
 
+979d775f5f439200fa24088ab4163d82bd8c5ed0
+
+    Remove volatile from field as its not needed.
+    
+    Motivation:
+    
+    We not need to mark the field as volatile and so this may confuse people.
+    
+    Modifications:
+    
+    Remove volatile and add comment to explain why its not needed.
+    
+    Result:
+    
+    More correct example.
+
+
 c6a13e28b93b7b4d1f99f556cc894765a4c8e2f1
 
     Improvement : constant pool now less concurrent
@@ -2017,6 +2612,58 @@ ce95c50444cc2507769574b3e39fdbffccb7fc1b
     Result:
     
     No more deadlock possible.
+
+
+4baff691b41c26b9c24266e2ae32c228ebda76a8
+
+    DefaultPromise make listeners not volatile
+    
+    Motivation:
+    DefaultPromise has a listeners member variable which is volatile to allow for an optimization which makes notification of listeners less expensive when there are no listeners to notify. However this change makes all other operations involving the listeners member variable more costly. This optimization which requires listeners to be volatile can be removed to avoid volatile writes/reads for every access on the listeners member variable.
+    
+    Modifications:
+    - DefaultPromise listeners is made non-volatile and the null check optimization is removed
+    
+    Result:
+    DefaultPromise.listeners is no longer volatile.
+
+
+6492cb98b2e40df4a93a12aef21d5bc89dc8aadb
+
+    Revert "DefaultPromise make listeners not volatile"
+    
+    This reverts commit 4d8132ff246c95cf677c525f8dfce6de00685842 as I missed something I want to discuss first.
+
+
+4d8132ff246c95cf677c525f8dfce6de00685842
+
+    DefaultPromise make listeners not volatile
+    
+    Motivation:
+    DefaultPromise has a listeners member variable which is volatile to allow for an optimization which makes notification of listeners less expensive when there are no listeners to notify. However this change makes all other operations involving the listeners member variable more costly. This optimization which requires listeners to be volatile can be removed to avoid volatile writes/reads for every access on the listeners member variable.
+    
+    Modifications:
+    - DefaultPromise listeners is made non-volatile and the null check optimization is removed
+    
+    Result:
+    DefaultPromise.listeners is no longer volatile.
+
+
+0fbb791ad629144dae5a169e8253850b05afe286
+
+    Make AbstractChannel.outboundBuffer volatile.
+    
+    Motivation:
+    
+    The field can be read from arbitrary threads via Channel.(isWritable()|bytesBeforeWritable()|bytesBeforeUnwritable()), WriteAndFlushTask.newInstance(), PendingWriteQueue, etc.
+    
+    Modifications:
+    
+    Make AbstractChannel.outboundBuffer volatile.
+    
+    Result:
+    
+    More correct in a concurrent use case.
 
 
 b0a5d4c266ed4117282decf06dc5053190423230
@@ -2207,6 +2854,23 @@ a7496ed83df3cf13c24fa9b5ce9494914fcd07ec
     Less performance impact by direct buffers when need to be allocated and released.
 
 
+dcd93e3be026a312939b5c895bcb484d25776f78
+
+    Remove volatile where not needed.
+    
+    Motivation:
+    
+    We can remove the volatile keyword from the cached Runnables as at worse these will just be re-created.
+    
+    Modifications:
+    
+    Remove volatile.
+    
+    Result:
+    
+    Less overhead.
+
+
 f5d58e2e1ae8f3eae8e69fb67aff4544bab50ee3
 
     DefaultPromise concurrency bug
@@ -2335,6 +2999,23 @@ f60698a538e007e1e31c2fa16fa5fd7e4ccda293
     Fixes https://github.com/netty/netty/issues/5161
 
 
+5b48fc284ebe85ca4974985e3be005d37626e980
+
+    Make OIO/NIO/EPOLL autoReadClear consistent
+    
+    Motivation:
+    OIO/NIO use a volatile variable to track if a read is pending. EPOLL does not use a volatile an executes a Runnable on the event loop thread to set readPending to false. These mechansims should be consistent, and not using a volatile variable is preferable because the variable is written to frequently in the event loop thread.
+    OIO also does not set readPending to false before each fireChannelRead operation and may result in reading more data than the user desires.
+    
+    Modifications:
+    - OIO/NIO should not use a volatile variable for readPending
+    - OIO should set readPending to false before each fireChannelRead
+    
+    Result:
+    OIO/NIO/EPOLL are more consistent w.r.t. readPending and volatile variable operations are reduced
+    Fixes https://github.com/netty/netty/issues/5069
+
+
 050ac709ba3db2a1c2df27f558bdcb348c4ac6f2
 
     PromiseNotifier does not propagate cancel events
@@ -2365,6 +3046,28 @@ f60698a538e007e1e31c2fa16fa5fd7e4ccda293
     Result:
     
     No more race.
+
+
+3c5abaa39aa434ac39260164d2e71fda23998bc3
+
+    Correctly handle non handshake commands when using SniHandler
+    
+    Motivation:
+    
+    As we can only handle handshake commands to parse SNI we should try to skip alert and change cipher spec commands a few times before we fallback to use a default SslContext.
+    
+    Modifications:
+    
+    - Use default SslContext if no application data command was received
+    - Use default SslContext if after 4 commands we not received a handshake command
+    - Simplify code
+    - Eliminate multiple volatile fields
+    - Rename SslConstants to SslUtils
+    - Share code between SslHandler and SniHandler by moving stuff to SslUtils
+    
+    Result:
+    
+    Correct handling of non handshake commands and cleaner code.
 
 
 bf2a99518c3ebc484464fc35279452ddd24c0ea9
@@ -2458,6 +3161,20 @@ d9d488e477c302481bb8fa5028e5bb469eefd492
     Result:
     
     No more unnessary synchronized in SpdySessionHandler.
+
+
+0365927951e1a80083f384dbf3988cbfd5b393b0
+
+    HTTP/2 InboundHttp2ToHttpAdapterTest race condition
+    
+    Motivation:
+    The latches in InboundHttp2ToHttpAdapterTest were volatile and reset during the tests. This resulted in race conditions and sometimes the tests would be waiting on old latches that were not the same latches being counted down when messages were received.
+    
+    Modifications:
+    - Remove volatile latches from tests
+    
+    Result:
+    More reliable tests with less race conditions.
 
 
 08b73bf9145d60d862b9faf11b95bee60ee061bd
@@ -2890,6 +3607,18 @@ a69fbaeed9505f017b144050bd0e1cc49f6585c6
     A user does not get the confusing warning message anymore.
 
 
+bf58f871c38645401ab3cf421954777708b4a9f1
+
+    Overall clean-up of the initial SniHandler/DomainNameMapping work
+    
+    - Parameterize DomainNameMapping to make it useful for other use cases
+      than just mapping to SslContext
+    - Move DomainNameMapping to io.netty.util
+    - Clean-up the API documentation
+    - Make SniHandler.hostname and sslContext volatile because they can be
+      accessed by non-I/O threads
+
+
 a64484249c86c282532f9d53d09465b2a4bf98c8
 
     Access autoRead via an AtomicIntegerFieldUpdater.
@@ -2918,6 +3647,24 @@ a64484249c86c282532f9d53d09465b2a4bf98c8
     Result:
     
     There is no longer a race condition between retrieving the old value of the autoRead variable and setting a new value.
+
+
+09100e5043cb731cd84cdcb8e0a5c2bd0977d5b5
+
+    Avoid redundant reads of head in peakNode
+    
+    Motivation:
+    
+    There is not need todo redunant reads of head in peakNode as we can just spin on next() until it becomes visible.
+    
+    Modifications:
+    
+    Remove redundant reads of head in peakNode. This is based on @nitsanw's patch for akka.
+    See https://github.com/akka/akka/pull/15596
+    
+    Result:
+    
+    Less volatile access.
 
 
 af2682634857281157b4f372a8bf0ee64f655978
@@ -3185,6 +3932,22 @@ a79b69adf5abf90250f44ccf0d9645bf30cdff62
     It's now possible to check for the existence of a attribute without create one. Synchronization is per linked-list and the first entry can even be added via atomic operation.
 
 
+2f7d60f234f6b1fb47ffc9e79259d1da00834405
+
+    Minimize memory footprint of HashedWheelTimer and context-switching
+    
+    Motivation:
+    At the moment there are two issues with HashedWheelTimer:
+    * the memory footprint of it is pretty heavy (250kb fon an empty instance)
+    * the way how added Timeouts are handled is inefficient in terms of how locks etc are used and so a lot of context-switching / condition can happen.
+    
+    Modification:
+    Rewrite HashedWheelTimer to use an optimized bucket implementation to store the submitted Timeouts and a MPSC queue to handover the timeouts.  So volatile writes are reduced to a minimum and also the memory foot-print of the buckets itself is reduced a lot as the bucket uses a double-linked-list. Beside this we use Atomic*FieldUpdater where-ever possible to improve the memory foot-print and performance.
+    
+    Result:
+    Lower memory-footprint and better performance
+
+
 d8d822fddd34dedbeec5a78a9b880a90080a4db4
 
     Eliminate unnecessary extra synchronization in DefaultChannelPipeline
@@ -3327,6 +4090,16 @@ eb308cfff66a6264d3eaf81aca28b918cb8fce1e
     ability to use Executor instead of ThreadFactory
 
 
+87602fde252b90850e3a702e82256a3b2e0b56b9
+
+    [#2215] DefaultChannelHandlerContext tasks needs to be volatile to ensure every thread only see full initialized instances
+
+
+f23d68b42fd71674fee6623f6779d70b6849da21
+
+    [#2187] Always do a volatile read on the refCnt
+
+
 9bee78f91c46bfe7f7e4049b568dc13675d4b611
 
     Provide an optimized AtomicIntegerFieldUpdater, AtomicLongFieldUpdater and AtomicReferenceFieldUpdater
@@ -3338,6 +4111,13 @@ bc21443ea904ba37f46c1fb3b9ab99322e3bbb0d
     
     - Fixes #2098
     - Deprecate specifying an alternative Executor for delegated tasks for SslHandler
+
+
+926479e9046655b04ca5b9204a84b575ae4aa3f7
+
+    Make all mutable fields in WebSocketClientHandshaker volatile
+    
+    - Fixes #1945
 
 
 8142aae765b74ba7934b363b562a5ffe4a01a12c
@@ -3358,6 +4138,16 @@ bc21443ea904ba37f46c1fb3b9ab99322e3bbb0d
     [#1668] Remove synchronized usage in JZlibEncoder and JdkZlibEncoder
 
 
+6ff87cc20d5b728ebe6be2d6f4a2cb0092f6abf6
+
+    Small optimitation to limit volatile reads
+
+
+f4e128b8070a197ac3b770a203dcdc72af1088fc
+
+    [#1612] No need for volatile as it is not needed to be precise
+
+
 2b2f8db5d2555ce359f0b47c1680590cf37b9f9e
 
     Use ThreadLocalRandom where possible
@@ -3366,6 +4156,11 @@ bc21443ea904ba37f46c1fb3b9ab99322e3bbb0d
 70df5a6f63a89c6de4afbf64774a5ddb66557985
 
     Add ThreadLocalRandom back because it's used by ForkJoinPool now.
+
+
+01d9f10af680166880fc175e7d58a35b4830f201
+
+    Remove the volatile modifiers where they are unnecessary
 
 
 79e236dfc2eebbe025b80bc7b410609c548c8bad
@@ -3403,6 +4198,11 @@ e1a378aa03034541c1269eab4077743f02ec845f
     - Use Promise/Future instead of CountDownLatch where they simplifies
 
 
+94ef7dc1b9dbbde24140ab43f4192c97d1fc50c2
+
+    Optimize to minimize volatile reads to access next buffer in codec framework
+
+
 96bf71e814c2d7024d38cdeb8dc05a627670f09a
 
     Let EventExecutorGroup extend ScheduledExecutorService as it shares quite some semantic
@@ -3416,6 +4216,26 @@ ce87b627be941e3dc56e85164088ab68f80188db
 88cc8c17392502e037cd1d893a8b74c222d4a287
 
     [#1065] Provide Future/Promise without channel reference
+
+
+0f46d4b3798be5a19578cb18db4762ca5dae3107
+
+    Revert 25c7a783a788b04f148c56f12d6efe1e11d093cd and fix #1064 differently
+    
+    - Rename inbound/outboundBufferFreed to inbound/OutboundShutdown which makes more sense
+    - Move DefaultChannelHandlerContext.isInbound/OutboundBufferFreed() to DefaultChannelPipeline
+    - Fix a problem where invokeFreeInbound/OutboundBuffer() sets inbound/outboundShutdown too early (this was the direct cause of #1064)
+    - Remove the volatile modifier - DCHC.prev/next are volatile and that's just enough
+
+
+7b0bf2da7e421af6661945dd82579ed524716724
+
+    Use double-checked locking idiom + volatile optimization
+
+
+87efff0bca06ef4f90081a7f687e7da816ba1206
+
+    DefaultChannelHandlerContext.removed doesn't need to be volatile
 
 
 1eafffbec57dded19909fb83b7a17e91cb648f4c
@@ -3497,9 +4317,26 @@ ba1c7c5c550fec36b37d2d8bac1674620ab30c99
     No need for AtomicBoolean as we run in the eventloop. See #396
 
 
+71ad0125d63f3fb849d5ce80247be86afa6947fd
+
+    No need for volatile
+
+
 ecea558e0378c780c0e7a8a92ee0650ece6cddd0
 
     Add missing synchronized
+
+
+f3734e1eb9c5fb1d05448ca135e5a8d7c9d3c445
+
+    Simplified DefaultChannelPipeline by making its list head final
+    
+    - Previously, head was a volatile field which is null at the beginning.
+      While iterating over the pipeline, if the loop hits null, it called
+      Channel.Unsafe explicitly.
+    - Instead, I created an outbound handler that redirects all requests
+      to the unsafe and made it a final field of the pipeline.
+    - As a result, DefaultChannelPipeline code became much simpler.
 
 
 ba4736f33b9c553d161b1e4e78d44a9eccd4e24d
@@ -3518,6 +4355,11 @@ Date:   Sun May 20 08:36:28 2012 -0700
       - Scheduled tasks are automatically fetched into taskQueue by
         pollTask() and takeTask()
     - Removed MapBackedSet because Java 6 provides it
+
+
+94b10d2d02d4a4fa0bd781caa5dcc40b1a4f72b7
+
+    Remove volatile on two fields that don't need it
 
 
 b3b5fb1de66fd1290015998d7d4d836bce3e8594
@@ -3586,6 +4428,13 @@ af730c11f97d0baa321ea8fa782adfab577e5a59
     Use LinkedTransferQueue for OMATPE
 
 
+dbb239203460253f84b0f848b8f05e3b6e11a2fd
+
+    NETTY-431 HashedWheelTimer's TimerTask may execute after call to Timeout.cancel()
+    
+    * Replaced a volatile boolean flag and system date access with an atomic integer flag.
+
+
 d1919d0e142208f7251815bdf06b188697fa4efd
 
     Fixed NETTY-336 Fine-grained control over thread renaming
@@ -3596,6 +4445,11 @@ d1919d0e142208f7251815bdf06b188697fa4efd
 a2ef43cf3dea5c555a4c709932bee5b8766a5fbb
 
     Streamline LinkedTransferQueue.isEmpty()
+
+
+28bac1978fd2e0f8ec659481747a8c1b70f50c1e
+
+    This should be volatile anyhow
 
 
 a462d0e85e9f0712fc750856bf3946900505d0eb
@@ -3645,6 +4499,11 @@ d963f4c0467d6a5f059365e1d7735c05de499c14
     Backported upstream updates for LinkedTransferQueue (NETTY-181)
 
 
+065218fd10b3b69882f5ac02c6d7216459b00d62
+
+    Forgot to mark one more volatile member transient
+
+
 06d5f5264ee315e573148cf92daf158fcf13aba7
 
     LocalChannelREgistry should use ConcurrentHashMap
@@ -3687,6 +4546,11 @@ b2d27d3b69e6d9d879ec7922128be49abdf8347c
     * EmbeddedChannelFactory.releaseExternalResources() shouldn't throw an exception.
 
 
+ad595a3a5baed419ce93a658d2d0795a2fef5b36
+
+    * NioClientSocketChannel.worker doesn't need to be volatile - simplified overall code
+
+
 f7e7d8f52417eac4b379df67daaa925de9a91c97
 
     Workaround for NPE on ExecutorService.shutdownNow()
@@ -3696,6 +4560,12 @@ f7e7d8f52417eac4b379df67daaa925de9a91c97
 
     Fixed issue: NETTY-65 (Intermittent high CPU consumption in LinkedTransferQueue)
     * Applied the latest upstream fix
+
+
+580f6f22847c8fb96e70a1be7313e476e7a14527
+
+    * Another workaround for 'missing algorithm' error in SSLEngine
+    * Made handshaking non-volatile
 
 
 b876bd8cec3d6f403a577e0094e992b8ab0a9687
@@ -3720,7 +4590,7 @@ dae3b05ebb6c5ebd188c2dcb5d485967504c0900
 
 Project:             netty
 Commit count:        7759
-Related commit count 1009
+Related commit count 1223
 
 Process finished with exit code 0
 

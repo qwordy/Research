@@ -3,6 +3,7 @@ package com.yfy.crr;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,9 +12,13 @@ import java.util.stream.Collectors;
  */
 public class Train {
 
-  public void train() throws Exception {
+  private PrintWriter pw;
+
+  public Train() throws Exception {
+    pw = new PrintWriter("../svm/train");
     feature(new File("../svm/positive"), 1);
     feature(new File("../svm/negative"), 0);
+    pw.close();
   }
 
   private void feature(File dir, int label) throws Exception {
@@ -25,7 +30,7 @@ public class Train {
       Feature f = new Feature();
       parser.textFeature(lines, f);
       parser.codeFeature(lines, f);
-      Util.log(f.toStr());
+      pw.println(label + " " + f.toStr());
     }
   }
 }

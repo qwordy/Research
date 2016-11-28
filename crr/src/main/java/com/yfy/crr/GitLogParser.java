@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  */
 public class GitLogParser {
 
-  private Db db;
+  //private Db db;
 
   private String project, projectDir, commitId;
 
@@ -76,7 +76,7 @@ public class GitLogParser {
     Util.log("Related commit count " + relatedCommitCount);
 //    Util.log("Modified file count: " + fileCount);
 //    Util.log("Selected file count: " + crFileCount);
-    db.commit();
+    //db.commit();
   }
 
   private void feature(String commitId) throws Exception {
@@ -88,7 +88,10 @@ public class GitLogParser {
     Feature f = new Feature();
     textFeature(lines, f);
     codeFeature(lines, f);
-    if (f.related()) relatedCommitCount++;
+    if (f.related()) {
+      relatedCommitCount++;
+
+    }
   }
 
   public void textFeature(List<String> lines, Feature feature) {
@@ -284,7 +287,7 @@ public class GitLogParser {
         String content2 = new String(
             Files.readAllBytes(Paths.get(fullFilename)));
         //db.addPairs(project, reader1, reader2);
-        db.addPairs(project, content1, content2);
+        //db.addPairs(project, content1, content2);
         break;
       }
     }

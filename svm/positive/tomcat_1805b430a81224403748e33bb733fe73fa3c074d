@@ -1,0 +1,33 @@
+commit 1805b430a81224403748e33bb733fe73fa3c074d
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Mon Jan 28 11:32:26 2013 +0000
+
+    Same ends, different means.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1439351 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/test/org/apache/tomcat/websocket/TestWsWebSocketContainer.java b/test/org/apache/tomcat/websocket/TestWsWebSocketContainer.java
+index 4438043..669f850 100644
+--- a/test/org/apache/tomcat/websocket/TestWsWebSocketContainer.java
++++ b/test/org/apache/tomcat/websocket/TestWsWebSocketContainer.java
+@@ -19,9 +19,8 @@ package org.apache.tomcat.websocket;
+ import java.io.IOException;
+ import java.net.URI;
+ import java.nio.ByteBuffer;
+-import java.util.ArrayList;
+-import java.util.Collections;
+ import java.util.List;
++import java.util.concurrent.CopyOnWriteArrayList;
+ import java.util.concurrent.CountDownLatch;
+ import java.util.concurrent.TimeUnit;
+ 
+@@ -246,8 +245,7 @@ public class TestWsWebSocketContainer extends TomcatBaseTest {
+ 
+         private final CountDownLatch latch;
+ 
+-        private final List<T> messages = Collections
+-                .synchronizedList(new ArrayList<T>());
++        private final List<T> messages = new CopyOnWriteArrayList<>();
+ 
+         public TesterMessageHandler(CountDownLatch latch) {
+             this.latch = latch;
