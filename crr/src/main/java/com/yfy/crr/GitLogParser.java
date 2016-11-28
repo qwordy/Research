@@ -26,7 +26,7 @@ public class GitLogParser {
   private int crFileCount, fileCount, relatedCommitCount;
 
   public GitLogParser() throws Exception {
-    db = new Db();
+    //db = new Db();
   }
 
   public void parseAll() throws Exception {
@@ -91,7 +91,7 @@ public class GitLogParser {
     if (f.related()) relatedCommitCount++;
   }
 
-  private void textFeature(List<String> lines, Feature feature) {
+  public void textFeature(List<String> lines, Feature feature) {
     int i, j;
     for (i = 0; i < lines.size(); i++)
       if (lines.get(i).startsWith("diff --")) break;
@@ -108,12 +108,12 @@ public class GitLogParser {
     feature.msgKey = keyNum;
     if (keyNum > 0) {
       //Util.log(keyNum);
-      Util.log(commitId);
-      Util.log(message);
+//      Util.log(commitId);
+//      Util.log(message);
     }
   }
 
-  private void codeFeature(List<String> lines, Feature feature) throws Exception {
+  public void codeFeature(List<String> lines, Feature feature) throws Exception {
     int fileNum = 0, hunkNum = 0, lineAdd = 0, lineRemove = 0,
         keyAdd = 0, keyRemove = 0, contextKey = 0;
     boolean isJava = false, isHunk = false;

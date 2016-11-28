@@ -40,4 +40,9 @@ public class CrrTest {
     new Cluster().run();
   }
 
+  @Test
+  public void train() throws Exception {
+    new Train().train();
+  }
+
 }

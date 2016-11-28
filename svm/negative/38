@@ -1,0 +1,1867 @@
+commit 21db751647abc0d65fb428be361e28a69bbcda54
+Author: sewen <stephan.ewen@tu-berlin.de>
+Date:   Sat Apr 13 23:08:13 2013 +0200
+
+    Refactored Job Manager Execution Modes.
+    Reworked Nephele Mini Cluster.
+    Added Local Executor.
+
+diff --git a/nephele/nephele-common/src/main/java/eu/stratosphere/nephele/configuration/ConfigConstants.java b/nephele/nephele-common/src/main/java/eu/stratosphere/nephele/configuration/ConfigConstants.java
+index 3bda575..0703226 100644
+--- a/nephele/nephele-common/src/main/java/eu/stratosphere/nephele/configuration/ConfigConstants.java
++++ b/nephele/nephele-common/src/main/java/eu/stratosphere/nephele/configuration/ConfigConstants.java
+@@ -116,11 +116,6 @@ public final class ConfigConstants {
+ 	 */
+ 	public static final boolean DEFAULT_JOBCLIENT_SHUTDOWN_TERMINATEJOB = true;
+ 
+-	/**
+-	 * The default scheduler to be used when Nephele is started in local mode.
+-	 */
+-	public static final String DEFAULT_LOCAL_MODE_SCHEDULER = "eu.stratosphere.nephele.jobmanager.scheduler.local.LocalScheduler";
+-
+ 	// ----------------------------- Instances --------------------------------
+ 
+ 	/**
+diff --git a/nephele/nephele-common/src/main/java/eu/stratosphere/nephele/configuration/GlobalConfiguration.java b/nephele/nephele-common/src/main/java/eu/stratosphere/nephele/configuration/GlobalConfiguration.java
+index 2ad850c..401ffb1 100644
+--- a/nephele/nephele-common/src/main/java/eu/stratosphere/nephele/configuration/GlobalConfiguration.java
++++ b/nephele/nephele-common/src/main/java/eu/stratosphere/nephele/configuration/GlobalConfiguration.java
+@@ -273,7 +273,7 @@ public final class GlobalConfiguration {
+ 		final File[] files = confDirFile.listFiles(new FilenameFilter() {
+ 			@Override
+ 			public boolean accept(final File dir, final String name) {
+-				return dir == confDirFile && name != null && name.endsWith(".xml");
++				return dir.equals(confDirFile) && name != null && name.endsWith(".xml");
+ 			}
+ 
+ 		});
+diff --git a/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/instance/local/LocalInstanceManager.java b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/instance/local/LocalInstanceManager.java
+index e6b6c98..fa65131 100644
+--- a/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/instance/local/LocalInstanceManager.java
++++ b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/instance/local/LocalInstanceManager.java
+@@ -117,7 +117,7 @@ public class LocalInstanceManager implements InstanceManager {
+ 	 * @param configDir
+ 	 *        the path to the configuration directory
+ 	 */
+-	public LocalInstanceManager(final String configDir) {
++	public LocalInstanceManager() {
+ 
+ 		final Configuration config = GlobalConfiguration.getConfiguration();
+ 
+@@ -140,7 +140,7 @@ public class LocalInstanceManager implements InstanceManager {
+ 
+ 		this.instanceTypeDescriptionMap = new SerializableHashMap<InstanceType, InstanceTypeDescription>();
+ 
+-		this.localTaskManagerThread = new LocalTaskManagerThread(configDir);
++		this.localTaskManagerThread = new LocalTaskManagerThread();
+ 		this.localTaskManagerThread.start();
+ 	}
+ 
+diff --git a/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/instance/local/LocalTaskManagerThread.java b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/instance/local/LocalTaskManagerThread.java
+index e41745e..4bd1964 100644
+--- a/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/instance/local/LocalTaskManagerThread.java
++++ b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/instance/local/LocalTaskManagerThread.java
+@@ -35,11 +35,11 @@ public class LocalTaskManagerThread extends Thread {
+ 	 * @param configDir
+ 	 *        the configuration directory to pass on to the task manager instance
+ 	 */
+-	public LocalTaskManagerThread(String configDir) {
++	public LocalTaskManagerThread() {
+ 
+ 		TaskManager tmpTaskManager = null;
+ 		try {
+-			tmpTaskManager = new TaskManager(configDir);
++			tmpTaskManager = new TaskManager();
+ 		} catch (Exception e) {
+ 			throw new RuntimeException(e);
+ 		}
+@@ -73,15 +73,4 @@ public class LocalTaskManagerThread extends Thread {
+ 
+ 		return this.taskManager.isShutDown();
+ 	}
+-
+-	/**
+-	 * Returns true if the TaskManager was successfully initialized.
+-	 * 
+-	 * @return true if the TaskManager was successfully initialized, false otherwise.
+-	 */
+-	/*
+-	 * public boolean isTaskManagerInitialized() {
+-	 * return this.taskManagerSuccessfullyInitialized;
+-	 * }
+-	 */
+ }
+diff --git a/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/jobmanager/JobManager.java b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/jobmanager/JobManager.java
+index 7fae290..46d9309 100644
+--- a/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/jobmanager/JobManager.java
++++ b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/jobmanager/JobManager.java
+@@ -37,6 +37,7 @@ import java.io.IOException;
+ import java.net.InetAddress;
+ import java.net.InetSocketAddress;
+ import java.net.UnknownHostException;
++import java.util.Collections;
+ import java.util.HashMap;
+ import java.util.HashSet;
+ import java.util.Iterator;
+@@ -139,6 +140,10 @@ import eu.stratosphere.nephele.util.StringUtils;
+  */
+ public class JobManager implements DeploymentManager, ExtendedManagementProtocol, InputSplitProviderProtocol,
+ 		JobManagerProtocol, ChannelLookupProtocol, JobStatusListener, PluginCommunicationProtocol {
++	
++	public static enum ExecutionMode { LOCAL, CLUSTER, CLOUD }
++	
++	// --------------------------------------------------------------------------------------------
+ 
+ 	private static final Log LOG = LogFactory.getLog(JobManager.class);
+ 
+@@ -164,19 +169,18 @@ public class JobManager implements DeploymentManager, ExtendedManagementProtocol
+ 
+ 	private final static int SLEEPINTERVAL = 1000;
+ 
+-	private final static int FAILURERETURNCODE = -1;
++	private final static int FAILURERETURNCODE = 1;
+ 
+ 	private final AtomicBoolean isShutdownInProgress = new AtomicBoolean(false);
+ 
+ 	private volatile boolean isShutDown = false;
+ 
+-	/**
+-	 * Constructs a new job manager, starts its discovery service and its IPC service.
+-	 */
+-	public JobManager(final String configDir, final String executionMode) {
+-
+-		// First, try to load global configuration
+-		GlobalConfiguration.loadConfiguration(configDir);
++	
++	public JobManager(ExecutionMode executionMode) {
++		this(executionMode, null);
++	}
++	
++	public JobManager(ExecutionMode executionMode, final String pluginsDir) {
+ 
+ 		final String ipcAddressString = GlobalConfiguration
+ 			.getString(ConfigConstants.JOB_MANAGER_IPC_ADDRESS_KEY, null);
+@@ -229,13 +233,17 @@ public class JobManager implements DeploymentManager, ExtendedManagementProtocol
+ 		LOG.info("Starting job manager in " + executionMode + " mode");
+ 
+ 		// Load the plugins
+-		this.jobManagerPlugins = PluginManager.getJobManagerPlugins(this, configDir);
++		if (pluginsDir != null) {
++			this.jobManagerPlugins = PluginManager.getJobManagerPlugins(this, pluginsDir);
++		} else {
++			this.jobManagerPlugins = Collections.emptyMap();
++		}
+ 
+ 		// Try to load the instance manager for the given execution mode
+ 		// Try to load the scheduler for the given execution mode
+-		if ("local".equals(executionMode)) {
++		if (executionMode == ExecutionMode.LOCAL) {
+ 			try {
+-				this.instanceManager = new LocalInstanceManager(configDir);
++				this.instanceManager = new LocalInstanceManager();
+ 			} catch (RuntimeException rte) {
+ 				LOG.fatal("Cannot instantiate local instance manager: " + StringUtils.stringifyException(rte));
+ 				System.exit(FAILURERETURNCODE);
+@@ -390,10 +398,26 @@ public class JobManager implements DeploymentManager, ExtendedManagementProtocol
+ 		}
+ 
+ 		final String configDir = line.getOptionValue(configDirOpt.getOpt(), null);
+-		final String executionMode = line.getOptionValue(executionModeOpt.getOpt(), "local");
++		final String executionModeName = line.getOptionValue(executionModeOpt.getOpt(), "local");
++		
++		final ExecutionMode executionMode;
++		if ("local".equals(executionModeName)) {
++			executionMode = ExecutionMode.LOCAL;
++		} else if ("local".equals(executionModeName)) {
++			executionMode = ExecutionMode.CLUSTER;
++		} else if ("local".equals(executionModeName)) {
++			executionMode = ExecutionMode.CLOUD;
++		} else {
++			System.err.println("Unrecognized execution mode: " + executionModeName);
++			System.exit(FAILURERETURNCODE);
++			return;
++		}
++		
++		// First, try to load global configuration
++		GlobalConfiguration.loadConfiguration(configDir);
+ 
+ 		// Create a new job manager object
+-		JobManager jobManager = new JobManager(configDir, executionMode);
++		JobManager jobManager = new JobManager(executionMode, configDir);
+ 
+ 		// Run the main task loop
+ 		jobManager.runTaskLoop();
+diff --git a/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/jobmanager/JobManagerUtils.java b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/jobmanager/JobManagerUtils.java
+index 71c992a..9b2b83e 100644
+--- a/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/jobmanager/JobManagerUtils.java
++++ b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/jobmanager/JobManagerUtils.java
+@@ -21,9 +21,8 @@ import java.lang.reflect.InvocationTargetException;
+ import org.apache.commons.logging.Log;
+ import org.apache.commons.logging.LogFactory;
+ 
+-import eu.stratosphere.nephele.configuration.ConfigConstants;
+-import eu.stratosphere.nephele.configuration.GlobalConfiguration;
+ import eu.stratosphere.nephele.instance.InstanceManager;
++import eu.stratosphere.nephele.jobmanager.JobManager.ExecutionMode;
+ import eu.stratosphere.nephele.jobmanager.scheduler.AbstractScheduler;
+ import eu.stratosphere.nephele.util.StringUtils;
+ 
+@@ -142,35 +141,53 @@ public class JobManagerUtils {
+ 	 * Tries to read the class name of the {@link AbstractScheduler} implementation from the global configuration which
+ 	 * is set to be used for the provided execution mode.
+ 	 * 
+-	 * @param executionMode
+-	 *        the name of the Nephele execution mode
++	 * @param executionMode The Nephele execution mode.
+ 	 * @return the class name of the {@link AbstractScheduler} implementation to be used or <code>null</code> if no
+ 	 *         implementation is configured for the given execution mode
+ 	 */
+-	static String getSchedulerClassName(final String executionMode) {
+-
+-		final String instanceManagerClassNameKey = "jobmanager.scheduler." + executionMode + ".classname";
+-		String schedulerClassName = GlobalConfiguration.getString(instanceManagerClassNameKey, null);
+-
+-		if ("local".equals(executionMode) && schedulerClassName == null) {
+-			schedulerClassName = ConfigConstants.DEFAULT_LOCAL_MODE_SCHEDULER;
++	static String getSchedulerClassName(ExecutionMode executionMode) {
++		switch (executionMode) {
++		case LOCAL:
++			return "eu.stratosphere.nephele.jobmanager.scheduler.local.LocalScheduler";
++		case CLUSTER:
++			return "eu.stratosphere.nephele.jobmanager.scheduler.queue.QueueScheduler";
++		case CLOUD:
++			return "eu.stratosphere.nephele.jobmanager.scheduler.queue.QueueScheduler";
++		default:
++			throw new RuntimeException("Unrecognized Execution Mode.");
+ 		}
+-
+-		return schedulerClassName;
++//		String modeClass = getClassStringForMode(executionMode);
++//		String instanceManagerClassNameKey = "jobmanager.scheduler." + modeClass + ".classname";
++//		String schedulerClassName = GlobalConfiguration.getString(instanceManagerClassNameKey, null);
++//
++//		if (executionMode == ExecutionMode.LOCAL && schedulerClassName == null) {
++//			schedulerClassName = ConfigConstants.DEFAULT_LOCAL_MODE_SCHEDULER;
++//		}
++//		return schedulerClassName;
+ 	}
+ 
+ 	/**
+ 	 * Tries to read the class name of the {@link InstanceManager} implementation from the global configuration which is
+ 	 * set to be used for the provided execution mode.
+ 	 * 
+-	 * @param executionMode
+-	 *        the name of the Nephele execution mode
++	 * @param executionMode The Nephele execution mode.
+ 	 * @return the class name of the {@link InstanceManager} implementation to be used or <code>null</code> if no
+ 	 *         implementation is configured for the given execution mode
+ 	 */
+-	static String getInstanceManagerClassName(final String executionMode) {
+-
+-		final String instanceManagerClassNameKey = "jobmanager.instancemanager." + executionMode + ".classname";
+-		return GlobalConfiguration.getString(instanceManagerClassNameKey, null);
++	static String getInstanceManagerClassName(ExecutionMode executionMode) {
++		switch (executionMode) {
++		case LOCAL:
++			return "eu.stratosphere.nephele.instance.local.LocalInstanceManager";
++		case CLUSTER:
++			return "eu.stratosphere.nephele.instance.cluster.ClusterManager";
++		case CLOUD:
++			return "eu.stratosphere.nephele.instance.ec2.EC2CloudManager";
++		default:
++			throw new RuntimeException("Unrecognized Execution Mode.");
++		}
++//		
++//		final String modeClass = getClassStringForMode(executionMode);
++//		final String instanceManagerClassNameKey = "jobmanager.instancemanager." + modeClass + ".classname";
++//		return GlobalConfiguration.getString(instanceManagerClassNameKey, null);
+ 	}
+ }
+diff --git a/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/taskmanager/TaskManager.java b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/taskmanager/TaskManager.java
+index 44aabc1..5f4ce0d 100644
+--- a/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/taskmanager/TaskManager.java
++++ b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/taskmanager/TaskManager.java
+@@ -154,15 +154,23 @@ public class TaskManager implements TaskOperationProtocol, PluginCommunicationPr
+ 
+ 	/**
+ 	 * Constructs a new task manager, starts its IPC service and attempts to discover the job manager to
+-	 * receive an initial configuration.
+-	 * 
+-	 * @param configDir
+-	 *        the directory containing the configuration files for the task manager
++	 * receive an initial configuration. All parameters are obtained from the 
++	 * {@link GlobalConfiguration}, which must be loaded prior to instantiating the task manager.
+ 	 */
+-	public TaskManager(String configDir) throws Exception {
+-
+-		// First, try to load global configuration
+-		GlobalConfiguration.loadConfiguration(configDir);
++	public TaskManager() throws Exception {
++		this(null);
++	}
++	
++	/**
++	 * Constructs a new task manager, starts its IPC service and attempts to discover the job manager to
++	 * receive an initial configuration. All parameters are obtained from the 
++	 * {@link GlobalConfiguration}, which must be loaded prior to instantiating the task manager.
++	 *  
++	 * @param pluginDir The directory to load plug-ins from.
++	 */
++	public TaskManager(String pluginDir) throws Exception {
++		
++		// IMPORTANT! At this point, the GlobalConfiguration must have been read!
+ 
+ 		// Use discovery service to find the job manager in the network?
+ 		final String address = GlobalConfiguration.getString(ConfigConstants.JOB_MANAGER_IPC_ADDRESS_KEY, null);
+@@ -325,7 +333,11 @@ public class TaskManager implements TaskOperationProtocol, PluginCommunicationPr
+ 		this.ioManager = new IOManager(tmpDirPaths);
+ 
+ 		// Load the plugins
+-		this.taskManagerPlugins = PluginManager.getTaskManagerPlugins(this, configDir);
++		if (pluginDir != null) {
++			this.taskManagerPlugins = PluginManager.getTaskManagerPlugins(this, pluginDir);
++		} else {
++			this.taskManagerPlugins = Collections.emptyMap();
++		}
+ 
+ 		// Add shutdown hook for clean up tasks
+ 		Runtime.getRuntime().addShutdownHook(new TaskManagerCleanUp(this));
+@@ -356,6 +368,9 @@ public class TaskManager implements TaskOperationProtocol, PluginCommunicationPr
+ 		}
+ 
+ 		String configDir = line.getOptionValue(configDirOpt.getOpt(), null);
++		
++		// First, try to load global configuration
++		GlobalConfiguration.loadConfiguration(configDir);
+ 
+ 		// Create a new task manager object
+ 		TaskManager taskManager = null;
+diff --git a/nephele/nephele-server/src/test/java/eu/stratosphere/nephele/instance/local/LocalInstanceManagerTest.java b/nephele/nephele-server/src/test/java/eu/stratosphere/nephele/instance/local/LocalInstanceManagerTest.java
+index 22c2f84..12cf321 100644
+--- a/nephele/nephele-server/src/test/java/eu/stratosphere/nephele/instance/local/LocalInstanceManagerTest.java
++++ b/nephele/nephele-server/src/test/java/eu/stratosphere/nephele/instance/local/LocalInstanceManagerTest.java
+@@ -96,7 +96,7 @@ public class LocalInstanceManagerTest {
+ 		LocalInstanceManager lm = null;
+ 		try {
+ 
+-			lm = new LocalInstanceManager(configDir);
++			lm = new LocalInstanceManager();
+ 			lm.setInstanceListener(testInstanceListener);
+ 
+ 			final InstanceType defaultInstanceType = lm.getDefaultInstanceType();
+diff --git a/nephele/nephele-server/src/test/java/eu/stratosphere/nephele/jobmanager/JobManagerITCase.java b/nephele/nephele-server/src/test/java/eu/stratosphere/nephele/jobmanager/JobManagerITCase.java
+index 85e67d4..12086f6 100644
+--- a/nephele/nephele-server/src/test/java/eu/stratosphere/nephele/jobmanager/JobManagerITCase.java
++++ b/nephele/nephele-server/src/test/java/eu/stratosphere/nephele/jobmanager/JobManagerITCase.java
+@@ -22,8 +22,6 @@ import java.io.BufferedReader;
+ import java.io.File;
+ import java.io.FileReader;
+ import java.io.IOException;
+-import java.lang.reflect.Constructor;
+-import java.lang.reflect.InvocationTargetException;
+ import java.util.HashMap;
+ import java.util.Iterator;
+ import java.util.Map;
+@@ -49,6 +47,7 @@ import eu.stratosphere.nephele.jobgraph.JobGraph;
+ import eu.stratosphere.nephele.jobgraph.JobGraphDefinitionException;
+ import eu.stratosphere.nephele.jobgraph.JobTaskVertex;
+ import eu.stratosphere.nephele.jobmanager.JobManager;
++import eu.stratosphere.nephele.jobmanager.JobManager.ExecutionMode;
+ import eu.stratosphere.nephele.util.JarFileCreator;
+ import eu.stratosphere.nephele.util.ServerTestUtils;
+ import eu.stratosphere.nephele.util.StringUtils;
+@@ -124,31 +123,19 @@ public class JobManagerITCase {
+ 	@BeforeClass
+ 	public static void startNephele() {
+ 
++		GlobalConfiguration.loadConfiguration(ServerTestUtils.getConfigDir());
++
+ 		if (jobManagerThread == null) {
+ 
+ 			// create the job manager
+-			JobManager jobManager = null;
++			JobManager jobManager;
+ 
+ 			try {
+-
+-				Constructor<JobManager> c = JobManager.class.getDeclaredConstructor(new Class[] { String.class,
+-					String.class });
+-				c.setAccessible(true);
+-				jobManager = c.newInstance(new Object[] { ServerTestUtils.getConfigDir(), new String("local") });
+-
+-			} catch (SecurityException e) {
+-				fail(e.getMessage());
+-			} catch (NoSuchMethodException e) {
+-				fail(e.getMessage());
+-			} catch (IllegalArgumentException e) {
+-				fail(e.getMessage());
+-			} catch (InstantiationException e) {
+-				fail(e.getMessage());
+-			} catch (IllegalAccessException e) {
+-				fail(e.getMessage());
+-			} catch (InvocationTargetException e) {
++				jobManager = new JobManager(ExecutionMode.LOCAL);
++			} catch (Exception e) {
+ 				e.printStackTrace();
+ 				fail(e.getMessage());
++				return;
+ 			}
+ 
+ 			configuration = GlobalConfiguration
+diff --git a/pact/pact-clients/src/main/java/eu/stratosphere/pact/client/LocalExecutor.java b/pact/pact-clients/src/main/java/eu/stratosphere/pact/client/LocalExecutor.java
+new file mode 100644
+index 0000000..ccd33a0
+--- /dev/null
++++ b/pact/pact-clients/src/main/java/eu/stratosphere/pact/client/LocalExecutor.java
+@@ -0,0 +1,122 @@
++/***********************************************************************************************************************
++ *
++ * Copyright (C) 2010-2013 by the Stratosphere project (http://stratosphere.eu)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
++ * the License. You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
++ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
++ * specific language governing permissions and limitations under the License.
++ *
++ **********************************************************************************************************************/
++
++package eu.stratosphere.pact.client;
++
++import eu.stratosphere.nephele.client.JobClient;
++import eu.stratosphere.nephele.jobgraph.JobGraph;
++import eu.stratosphere.pact.client.minicluster.NepheleMiniCluster;
++import eu.stratosphere.pact.common.plan.Plan;
++import eu.stratosphere.pact.common.plan.PlanAssembler;
++import eu.stratosphere.pact.compiler.PactCompiler;
++import eu.stratosphere.pact.compiler.plan.candidate.OptimizedPlan;
++import eu.stratosphere.pact.compiler.plantranslate.NepheleJobGraphGenerator;
++
++/**
++ * A class for executing a {@link Plan} on a local Nephele instance. Note that
++ * no HDFS instance or anything of that nature is provided. You must therefore
++ * only use data sources and sinks with paths beginning with "file://" in your
++ * plan.
++ * 
++ * When the class is instantiated a local nephele instance is started, this can
++ * be stopped by calling stopNephele.
++ */
++public class LocalExecutor {
++
++	private final Object lock = new Object();	// we lock to ensure singleton execution
++	
++	private NepheleMiniCluster nephele;
++
++	
++	
++	public void start() throws Exception {
++		synchronized (this.lock) {
++			this.nephele = new NepheleMiniCluster();
++			this.nephele.start();
++		}
++	}
++	
++	/**
++	 * Stop the local executor instance. You should not call executePlan after this.
++	 */
++	public void stop() throws Exception {
++		synchronized (this.lock) {
++			this.nephele.stop();
++			this.nephele = null;
++		}
++	}
++
++	/**
++	 * Execute the given plan on the local Nephele instance, wait for the job to
++	 * finish and return the runtime in milliseconds.
++	 * 
++	 * @param plan The plan of the program to execute.
++	 * @return The net runtime of the program, in milliseconds.
++	 * 
++	 * @throws Exception Thrown, if either the startup of the local execution context, or the execution
++	 *                   caused an exception.
++	 */
++	public long executePlan(Plan plan) throws Exception {
++		synchronized (this.lock) {
++			if (this.nephele == null) {
++				throw new Exception("The local executor has not been started.");
++			}
++
++			PactCompiler pc = new PactCompiler();
++			OptimizedPlan op = pc.compile(plan);
++			
++			NepheleJobGraphGenerator jgg = new NepheleJobGraphGenerator();
++			JobGraph jobGraph = jgg.compileJobGraph(op);
++			
++			JobClient jobClient = this.nephele.getJobClient(jobGraph);
++			return jobClient.submitJobAndWait();
++		}
++	}
++	
++	/**
++	 * Executes the program described by the given plan assembler.
++	 * 
++	 * @param pa The program's plan assembler. 
++	 * @param args The parameters.
++	 * @return The net runtime of the program, in milliseconds.
++	 * 
++	 * @throws Exception Thrown, if either the startup of the local execution context, or the execution
++	 *                   caused an exception.
++	 */
++	public static long execute(PlanAssembler pa, String... args) throws Exception {
++		return execute(pa.getPlan(args));
++	}
++	
++	/**
++	 * Executes the program represented by the given Pact plan.
++	 * 
++	 * @param pa The program's plan. 
++	 * @return The net runtime of the program, in milliseconds.
++	 * 
++	 * @throws Exception Thrown, if either the startup of the local execution context, or the execution
++	 *                   caused an exception.
++	 */
++	public static long execute(Plan plan) throws Exception {
++		LocalExecutor exec = new LocalExecutor();
++		try {
++			exec.start();
++			return exec.executePlan(plan);
++		} finally {
++			if (exec != null) {
++				exec.stop();
++			}
++		}
++	}
++}
+\ No newline at end of file
+diff --git a/pact/pact-clients/src/main/java/eu/stratosphere/pact/client/minicluster/NepheleMiniCluster.java b/pact/pact-clients/src/main/java/eu/stratosphere/pact/client/minicluster/NepheleMiniCluster.java
+new file mode 100644
+index 0000000..0002349
+--- /dev/null
++++ b/pact/pact-clients/src/main/java/eu/stratosphere/pact/client/minicluster/NepheleMiniCluster.java
+@@ -0,0 +1,201 @@
++/***********************************************************************************************************************
++ *
++ * Copyright (C) 2010-2013 by the Stratosphere project (http://stratosphere.eu)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
++ * the License. You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
++ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
++ * specific language governing permissions and limitations under the License.
++ *
++ **********************************************************************************************************************/
++
++package eu.stratosphere.pact.client.minicluster;
++
++import java.util.Map;
++
++import eu.stratosphere.nephele.client.JobClient;
++import eu.stratosphere.nephele.configuration.ConfigConstants;
++import eu.stratosphere.nephele.configuration.Configuration;
++import eu.stratosphere.nephele.configuration.GlobalConfiguration;
++import eu.stratosphere.nephele.instance.InstanceType;
++import eu.stratosphere.nephele.instance.InstanceTypeDescription;
++import eu.stratosphere.nephele.jobgraph.JobGraph;
++import eu.stratosphere.nephele.jobmanager.JobManager;
++import eu.stratosphere.nephele.jobmanager.JobManager.ExecutionMode;
++
++
++public class NepheleMiniCluster {
++	
++	private static final int DEFAULT_JM_RPC_PORT = 6498;
++	
++	private static final int DEFAULT_TM_RPC_PORT = 6501;
++	
++	private static final int DEFAULT_TM_DATA_PORT = 7501;
++	
++	private static final boolean DEFAULT_VISUALIZER_ENABLED = true;
++
++	// --------------------------------------------------------------------------------------------
++	
++	private final Object startStopLock = new Object();
++	
++	private int jobManagerRpcPort = DEFAULT_JM_RPC_PORT;
++	
++	private int taskManagerRpcPort = DEFAULT_TM_RPC_PORT;
++	
++	private int taskManagerDataPort = DEFAULT_TM_DATA_PORT;
++	
++	private String configDir;
++
++	private String hdfsConfigFile;
++
++	private boolean visualizerEnabled = DEFAULT_VISUALIZER_ENABLED;
++
++	
++	private Thread runner;
++
++	private JobManager jobManager;
++
++	// ------------------------------------------------------------------------
++	//  Constructor and feature / properties setup
++	// ------------------------------------------------------------------------
++
++	public int getJobManagerRpcPort() {
++		return jobManagerRpcPort;
++	}
++	
++	public void setJobManagerRpcPort(int jobManagerRpcPort) {
++		this.jobManagerRpcPort = jobManagerRpcPort;
++	}
++
++	public int getTaskManagerRpcPort() {
++		return taskManagerRpcPort;
++	}
++
++	public void setTaskManagerRpcPort(int taskManagerRpcPort) {
++		this.taskManagerRpcPort = taskManagerRpcPort;
++	}
++
++	public int getTaskManagerDataPort() {
++		return taskManagerDataPort;
++	}
++
++	public void setTaskManagerDataPort(int taskManagerDataPort) {
++		this.taskManagerDataPort = taskManagerDataPort;
++	}
++
++	public String getConfigDir() {
++		return configDir;
++	}
++
++	public void setConfigDir(String configDir) {
++		this.configDir = configDir;
++	}
++
++	public String getHdfsConfigFile() {
++		return hdfsConfigFile;
++	}
++	
++	public void setHdfsConfigFile(String hdfsConfigFile) {
++		this.hdfsConfigFile = hdfsConfigFile;
++	}
++	
++	public boolean isVisualizerEnabled() {
++		return visualizerEnabled;
++	}
++	
++	public void setVisualizerEnabled(boolean visualizerEnabled) {
++		this.visualizerEnabled = visualizerEnabled;
++	}
++	
++	
++	// ------------------------------------------------------------------------
++	// Life cycle and Job Submission
++	// ------------------------------------------------------------------------
++	
++	public JobClient getJobClient(JobGraph jobGraph) throws Exception {
++		Configuration configuration = jobGraph.getJobConfiguration();
++		configuration.setString(ConfigConstants.JOB_MANAGER_IPC_ADDRESS_KEY, "localhost");
++		configuration.setInteger(ConfigConstants.JOB_MANAGER_IPC_PORT_KEY, jobManagerRpcPort);
++		return new JobClient(jobGraph, configuration);
++	}
++	
++	public void start() throws Exception {
++		synchronized (startStopLock) {
++			// set up the global configuration
++			if (this.configDir != null) {
++				GlobalConfiguration.loadConfiguration(configDir);
++			} else {
++				Configuration conf = getMiniclusterDefaultConfig(jobManagerRpcPort, taskManagerRpcPort,
++					taskManagerDataPort, hdfsConfigFile, visualizerEnabled);
++				GlobalConfiguration.includeConfiguration(conf);
++			}
++			
++			// start the job manager
++			jobManager = new JobManager(ExecutionMode.LOCAL);
++			runner = new Thread() {
++				@Override
++				public void run() {
++					// run the main task loop
++					jobManager.runTaskLoop();
++				}
++			};
++			runner.setDaemon(true);
++			runner.start();
++	
++			waitForJobManagerToBecomeReady();
++		}
++	}
++
++	public void stop() throws Exception {
++		synchronized (this.startStopLock) {
++			if (jobManager != null) {
++				jobManager.shutdown();
++				jobManager = null;
++			}
++	
++			if (runner != null) {
++				runner.interrupt();
++				runner.join();
++				runner = null;
++			}
++		}
++	}
++
++	// ------------------------------------------------------------------------
++	// Network utility methods
++	// ------------------------------------------------------------------------
++	
++	private void waitForJobManagerToBecomeReady() throws InterruptedException {
++		Map<InstanceType, InstanceTypeDescription> instanceMap;
++		while ((instanceMap = jobManager.getMapOfAvailableInstanceTypes()) == null || instanceMap.isEmpty()) {
++			Thread.sleep(100);
++		}
++	}
++	
++	private static Configuration getMiniclusterDefaultConfig(int jobManagerRpcPort, int taskManagerRpcPort,
++			int taskManagerDataPort, String hdfsConfigFile, boolean visualization)
++	{
++		final Configuration config = new Configuration();
++		
++		// addresses and ports
++		config.setString(ConfigConstants.JOB_MANAGER_IPC_ADDRESS_KEY, "localhost");
++		config.setInteger(ConfigConstants.JOB_MANAGER_IPC_PORT_KEY, jobManagerRpcPort);
++		config.setInteger(ConfigConstants.TASK_MANAGER_IPC_PORT_KEY, taskManagerRpcPort);
++		config.setInteger(ConfigConstants.TASK_MANAGER_DATA_PORT_KEY, taskManagerDataPort);
++		
++		// enable / disable features
++		config.setInteger(ConfigConstants.JOB_EXECUTION_RETRIES_KEY, 0);
++		config.setBoolean("taskmanager.setup.usediscovery", false);
++		config.setBoolean("jobmanager.visualization.enable", visualization);
++		
++		// hdfs
++		if (hdfsConfigFile != null) {
++			config.setString("fs.hdfs.hdfsdefault", hdfsConfigFile);
++		}
++		return config;
++	}
++}
+\ No newline at end of file
+diff --git a/pact/pact-clients/src/main/java/eu/stratosphere/pact/testing/TestPlan.java b/pact/pact-clients/src/main/java/eu/stratosphere/pact/testing/TestPlan.java
+index bc0b8cc..320c6f6 100644
+--- a/pact/pact-clients/src/main/java/eu/stratosphere/pact/testing/TestPlan.java
++++ b/pact/pact-clients/src/main/java/eu/stratosphere/pact/testing/TestPlan.java
+@@ -60,6 +60,7 @@ import eu.stratosphere.nephele.jobgraph.AbstractJobVertex;
+ import eu.stratosphere.nephele.jobgraph.JobGraph;
+ import eu.stratosphere.nephele.jobgraph.JobID;
+ import eu.stratosphere.nephele.jobmanager.JobManager;
++import eu.stratosphere.nephele.jobmanager.JobManager.ExecutionMode;
+ import eu.stratosphere.nephele.jobmanager.scheduler.local.LocalScheduler;
+ import eu.stratosphere.nephele.util.StringUtils;
+ import eu.stratosphere.pact.common.contract.FileDataSink;
+@@ -660,7 +661,7 @@ public class TestPlan implements Closeable {
+ 
+ 			// local ip as job manager (localhost or 127.0.0.1 does not work)
+ 			config.setString(ConfigConstants.JOB_MANAGER_IPC_ADDRESS_KEY, "localhost");
+-			JobManager jobManager = new JobManager(this.getNepheleConf(), "local");
++			JobManager jobManager = new JobManager(ExecutionMode.LOCAL);
+ 
+ 			PactCompiler pc = new PactCompiler();
+ 			Plan plan = this.buildPlanWithReadableSinks();
+diff --git a/pact/pact-runtime/src/main/java/eu/stratosphere/pact/runtime/hash/MutableHashTable.java b/pact/pact-runtime/src/main/java/eu/stratosphere/pact/runtime/hash/MutableHashTable.java
+index 4309aa5..9c8b50e 100644
+--- a/pact/pact-runtime/src/main/java/eu/stratosphere/pact/runtime/hash/MutableHashTable.java
++++ b/pact/pact-runtime/src/main/java/eu/stratosphere/pact/runtime/hash/MutableHashTable.java
+@@ -444,14 +444,13 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 	 * @return
+ 	 * @throws IOException
+ 	 */
+-	public boolean nextRecord() throws IOException
+-	{
++	public boolean nextRecord() throws IOException {
++		
+ 		final ProbeIterator<PT> probeIter = this.probeIterator;
+ 		final TypeComparator<PT> probeAccessors = this.probeSideComparator;
+ 		
+ 		PT next;
+-		while ((next = probeIter.next()) != null)
+-		{
++		while ((next = probeIter.next()) != null) {
+ 			final int hash = hash(probeAccessors.hash(next), this.currentRecursionDepth);
+ 			final int posHashCode = hash % this.numBuckets;
+ 			
+@@ -685,12 +684,9 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 		final BT record = this.buildSideSerializer.createInstance();
+ 		
+ 		// go over the complete input and insert every element into the hash table
+-    long recordsInserted = 0;
+-		while (input.next(record))
+-		{
++		while (input.next(record)) {
+ 			final int hashCode = hash(buildTypeComparator.hash(record), 0);
+ 			insertIntoTable(record, hashCode);
+-      recordsInserted++;
+ 		}
+ 
+ 		// finalize the partitions
+@@ -698,19 +694,14 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 			HashPartition<BT, PT> p = this.partitionsBeingBuilt.get(i);
+ 			p.finalizeBuildPhase(this.ioManager, this.currentEnumerator, this.writeBehindBuffers);
+ 		}
+-
+-    if (LOG.isInfoEnabled()) {
+-      LOG.info("inserted " + recordsInserted + " records into build side of HybridHashJoin");
+-    }
+ 	}
+ 	
+ 	/**
+ 	 * @param p
+ 	 * @throws IOException
+ 	 */
+-	protected void buildTableFromSpilledPartition(final HashPartition<BT, PT> p)
+-	throws IOException
+-	{
++	protected void buildTableFromSpilledPartition(final HashPartition<BT, PT> p) throws IOException {
++		
+ 		final int nextRecursionLevel = p.getRecursionLevel() + 1;
+ 		if (nextRecursionLevel > MAX_RECURSION_DEPTH) {
+ 			throw new RuntimeException("Hash join exceeded maximum number of recursions, without reducing "
+@@ -736,8 +727,7 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 		// number of total buckets again.
+ 		final long totalBuffersNeeded = (numBuckets * 2) / (this.bucketsPerSegmentMask + 1) + p.getBuildSideBlockCount() + 1;
+ 		
+-		if (totalBuffersNeeded < totalBuffersAvailable)
+-		{
++		if (totalBuffersNeeded < totalBuffersAvailable) {
+ 			// we are guaranteed to stay in memory
+ 			ensureNumBuffersReturned(p.getBuildSideBlockCount());
+ 			
+@@ -821,9 +811,7 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 	 * @param hashCode
+ 	 * @throws IOException
+ 	 */
+-	protected final void insertIntoTable(final BT record, final int hashCode)
+-	throws IOException
+-	{
++	protected final void insertIntoTable(final BT record, final int hashCode) throws IOException {
+ 		final int posHashCode = hashCode % this.numBuckets;
+ 		
+ 		// get the bucket for the given hash code
+@@ -971,8 +959,7 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 	/**
+ 	 * @param numPartitions
+ 	 */
+-	protected void createPartitions(int numPartitions, int recursionLevel)
+-	{
++	protected void createPartitions(int numPartitions, int recursionLevel) {
+ 		// sanity check
+ 		ensureNumBuffersReturned(numPartitions);
+ 		
+@@ -993,10 +980,8 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 	 * <p>
+ 	 * This method is intended for a hard cleanup in the case that the join is aborted.
+ 	 */
+-	protected void clearPartitions()
+-	{
+-		for (int i = this.partitionsBeingBuilt.size() - 1; i >= 0; --i)
+-		{
++	protected void clearPartitions() {
++		for (int i = this.partitionsBeingBuilt.size() - 1; i >= 0; --i) {
+ 			final HashPartition<BT, PT> p = this.partitionsBeingBuilt.get(i);
+ 			try {
+ 				p.clearAllMemory(this.availableMemory);
+@@ -1012,8 +997,7 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 	 * @param numPartitions
+ 	 * @return
+ 	 */
+-	protected void initTable(int numBuckets, byte numPartitions)
+-	{
++	protected void initTable(int numBuckets, byte numPartitions) {
+ 		final int bucketsPerSegment = this.bucketsPerSegmentMask + 1;
+ 		final int numSegs = (numBuckets >>> this.bucketsPerSegmentBits) + ( (numBuckets & this.bucketsPerSegmentMask) == 0 ? 0 : 1);
+ 		final MemorySegment[] table = new MemorySegment[numSegs];
+@@ -1048,8 +1032,7 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 	/**
+ 	 * Releases the table (the array of buckets) and returns the occupied memory segments to the list of free segments.
+ 	 */
+-	protected void releaseTable()
+-	{
++	protected void releaseTable() {
+ 		// set the counters back
+ 		this.numBuckets = 0;
+ 		
+@@ -1070,8 +1053,7 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 	 * 
+ 	 * @return The number of the spilled partition.
+ 	 */
+-	protected int spillPartition() throws IOException
+-	{	
++	protected int spillPartition() throws IOException {
+ 		// find the largest partition
+ 		ArrayList<HashPartition<BT, PT>> partitions = this.partitionsBeingBuilt;
+ 		int largestNumBlocks = 0;
+@@ -1109,8 +1091,7 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 	 *  
+ 	 * @param minRequiredAvailable The minimum number of buffers that needs to be reclaimed.
+ 	 */
+-	private final void ensureNumBuffersReturned(final int minRequiredAvailable)
+-	{
++	private final void ensureNumBuffersReturned(final int minRequiredAvailable) {
+ 		if (minRequiredAvailable > this.availableMemory.size() + this.writeBehindBuffersAvailable) {
+ 			throw new IllegalArgumentException("More buffers requested available than totally available.");
+ 		}
+@@ -1136,8 +1117,7 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 	 *                     exception replaces the <tt>InterruptedException</tt> to consolidate the exception
+ 	 *                     signatures.
+ 	 */
+-	private final MemorySegment getNextBuffer()
+-	{
++	private final MemorySegment getNextBuffer() {
+ 		// check if the list directly offers memory
+ 		int s = this.availableMemory.size();
+ 		if (s > 0) {
+@@ -1145,8 +1125,7 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 		}
+ 		
+ 		// check if there are write behind buffers that actually are to be used for the hash table
+-		if (this.writeBehindBuffersAvailable > 0)
+-		{
++		if (this.writeBehindBuffersAvailable > 0) {
+ 			// grab at least one, no matter what
+ 			MemorySegment toReturn;
+ 			try {
+@@ -1165,8 +1144,7 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 			}
+ 			
+ 			return toReturn;
+-		}
+-		else {
++		} else {
+ 			// no memory available
+ 			return null;
+ 		}
+@@ -1176,8 +1154,7 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 	 * @see eu.stratosphere.pact.runtime.io.MemorySegmentSource#nextSegment()
+ 	 */
+ 	@Override
+-	public MemorySegment nextSegment()
+-	{
++	public MemorySegment nextSegment() {
+ 		final MemorySegment seg = getNextBuffer();
+ 		if (seg == null) {
+ 			try {
+@@ -1210,8 +1187,7 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 	 * @param numBuffers The number of available buffers.
+ 	 * @return The number 
+ 	 */
+-	public static final int getNumWriteBehindBuffers(int numBuffers)
+-	{
++	public static final int getNumWriteBehindBuffers(int numBuffers) {
+ 		int numIOBufs = (int) (Math.log(numBuffers) / Math.log(4) - 1.5);
+ 		return numIOBufs > 6 ? 6 : numIOBufs;
+ 	}
+@@ -1226,13 +1202,11 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 	 * @param numBuffers The number of buffers available.
+ 	 * @return The number of partitions to use.
+ 	 */
+-	public static final int getPartitioningFanOutNoEstimates(int numBuffers)
+-	{
++	public static final int getPartitioningFanOutNoEstimates(int numBuffers) {
+ 		return Math.max(10, Math.min(numBuffers / 10, MAX_NUM_PARTITIONS));
+ 	}
+ 	
+-	public static final int getInitialTableSize(int numBuffers, int bufferSize, int numPartitions, int recordLenBytes)
+-	{
++	public static final int getInitialTableSize(int numBuffers, int bufferSize, int numPartitions, int recordLenBytes) {
+ 		// ----------------------------------------------------------------------------------------
+ 		// the following observations hold:
+ 		// 1) If the records are assumed to be very large, then many buffers need to go to the partitions
+@@ -1261,13 +1235,12 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 	/**
+ 	 * Assigns a partition to a bucket.
+ 	 * 
+-	 * @param bucket T
+-   *  @param maxParts
++	 * @param bucket
++	 * @param maxParts
+ 	 * @return The hash code for the integer.
+ 	 */
+-	public static final byte assignPartition(int bucket, byte maxParts)
+-	{
+-		return (byte) (bucket % maxParts);
++	public static final byte assignPartition(int bucket, byte numPartitions) {
++		return (byte) (bucket % numPartitions);
+ 	}
+ 	
+ 	/**
+@@ -1279,8 +1252,7 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 	 * @param code The integer to be hashed.
+ 	 * @return The hash code for the integer.
+ 	 */
+-	public static final int hash(int code, int level)
+-	{
++	public static final int hash(int code, int level) {
+ 		final int rotation = level * 11;
+ 		
+ 		code = (code << rotation) | (code >>> -rotation);
+@@ -1299,8 +1271,8 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 	/**
+ 	 *
+ 	 */
+-	public static class HashBucketIterator<BT, PT> implements MutableObjectIterator<BT>
+-	{
++	public static class HashBucketIterator<BT, PT> implements MutableObjectIterator<BT> {
++		
+ 		private final TypeSerializer<BT> accessor;
+ 		
+ 		private final TypePairComparator<PT, BT> comparator;
+@@ -1328,8 +1300,7 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 		private long lastPointer;
+ 		
+ 		
+-		HashBucketIterator(TypeSerializer<BT> accessor, TypePairComparator<PT, BT> comparator)
+-		{
++		HashBucketIterator(TypeSerializer<BT> accessor, TypePairComparator<PT, BT> comparator) {
+ 			this.accessor = accessor;
+ 			this.comparator = comparator;
+ 		}
+@@ -1352,13 +1323,12 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 		}
+ 		
+ 
+-		public boolean next(BT target)
+-		{
++		public boolean next(BT target) {
+ 			// loop over all segments that are involved in the bucket (original bucket plus overflow buckets)
+-			while (true)
+-			{
+-				while (this.numInSegment < this.countInSegment)
+-				{
++			while (true) {
++				
++				while (this.numInSegment < this.countInSegment) {
++					
+ 					final int thisCode = this.bucket.getInt(this.posInSegment);
+ 					this.posInSegment += HASH_CODE_LEN;
+ 						
+@@ -1403,15 +1373,13 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 			}
+ 		}
+ 		
+-		public void writeBack(BT value) throws IOException
+-		{
++		public void writeBack(BT value) throws IOException {
+ 			final SeekableDataOutputView outView = this.partition.getWriteView();
+ 			outView.setWritePosition(this.lastPointer);
+ 			this.accessor.serialize(value, outView);
+ 		}
+ 		
+-		public void reset()
+-		{
++		public void reset() {
+ 			this.bucket = this.originalBucket;
+ 			this.bucketInSegmentOffset = this.originalBucketInSegmentOffset;
+ 			
+@@ -1428,8 +1396,8 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 	/**
+ 	 *
+ 	 */
+-	public static final class LazyHashBucketIterator<BT, PT>
+-	{
++	public static final class LazyHashBucketIterator<BT, PT> {
++		
+ 		private final TypePairComparator<PT, BT> comparator;
+ 		
+ 		private MemorySegment bucket;
+@@ -1448,15 +1416,14 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 		
+ 		private int numInSegment;
+ 		
+-		private LazyHashBucketIterator(TypePairComparator<PT, BT> comparator)
+-		{
++		private LazyHashBucketIterator(TypePairComparator<PT, BT> comparator) {
+ 			this.comparator = comparator;
+ 		}
+ 		
+ 		
+ 		void set(MemorySegment bucket, MemorySegment[] overflowSegments, HashPartition<BT, PT> partition,
+-				int searchHashCode, int bucketInSegmentOffset)
+-		{
++				int searchHashCode, int bucketInSegmentOffset) {
++			
+ 			this.bucket = bucket;
+ 			this.overflowSegments = overflowSegments;
+ 			this.partition = partition;
+@@ -1468,13 +1435,12 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 			this.numInSegment = 0;
+ 		}
+ 
+-		public boolean next(BT target)
+-		{
++		public boolean next(BT target) {
+ 			// loop over all segments that are involved in the bucket (original bucket plus overflow buckets)
+-			while (true)
+-			{
+-				while (this.numInSegment < this.countInSegment)
+-				{
++			while (true) {
++				
++				while (this.numInSegment < this.countInSegment) {
++					
+ 					final int thisCode = this.bucket.getInt(this.posInSegment);
+ 					this.posInSegment += HASH_CODE_LEN;
+ 						
+@@ -1516,8 +1482,8 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 
+ 	// ======================================================================================================
+ 	
+-	public static final class ProbeIterator<PT>
+-	{
++	public static final class ProbeIterator<PT> {
++		
+ 		private MutableObjectIterator<PT> source;
+ 		
+ 		private final PT instance;
+@@ -1525,33 +1491,28 @@ public class MutableHashTable<BT, PT> implements MemorySegmentSource
+ 		private PT current;
+ 		
+ 		
+-		ProbeIterator(MutableObjectIterator<PT> source, PT instance)
+-		{
++		ProbeIterator(MutableObjectIterator<PT> source, PT instance) {
+ 			this.instance = instance;
+ 			set(source);
+ 		}
+ 		
+-		void set(MutableObjectIterator<PT> source) 
+-		{
++		void set(MutableObjectIterator<PT> source) {
+ 			this.source = source;
+ 			if (this.current == null) {
+ 				this.current = this.instance;
+ 			}
+ 		}
+ 		
+-		public PT next() throws IOException
+-		{
++		public PT next() throws IOException {
+ 			if (this.source.next(this.instance)) {
+ 				this.current = this.instance;
+ 				return this.current;
+-			}
+-			else {
++			} else {
+ 				return null;
+ 			}
+ 		}
+ 		
+-		public PT getCurrent()
+-		{
++		public PT getCurrent() {
+ 			return this.current;
+ 		}
+ 	}
+diff --git a/pact/pact-runtime/src/test/java/eu/stratosphere/pact/runtime/task/MatchTaskTest.java b/pact/pact-runtime/src/test/java/eu/stratosphere/pact/runtime/task/MatchTaskTest.java
+index 61c6bdc..fd33eaf 100644
+--- a/pact/pact-runtime/src/test/java/eu/stratosphere/pact/runtime/task/MatchTaskTest.java
++++ b/pact/pact-runtime/src/test/java/eu/stratosphere/pact/runtime/task/MatchTaskTest.java
+@@ -19,9 +19,8 @@ import java.util.ArrayList;
+ import java.util.List;
+ import java.util.concurrent.atomic.AtomicBoolean;
+ 
+-import junit.framework.Assert;
+-
+ import org.junit.Test;
++import org.junit.Assert;
+ 
+ import eu.stratosphere.pact.common.stubs.Collector;
+ import eu.stratosphere.pact.common.stubs.MatchStub;
+diff --git a/pact/pact-tests/pom.xml b/pact/pact-tests/pom.xml
+index c710afc..82b5158 100644
+--- a/pact/pact-tests/pom.xml
++++ b/pact/pact-tests/pom.xml
+@@ -45,6 +45,12 @@
+       <artifactId>pact-compiler</artifactId>
+       <version>${project.version}</version>
+     </dependency>
++    
++    <dependency>
++      <groupId>eu.stratosphere</groupId>
++      <artifactId>pact-clients</artifactId>
++      <version>${project.version}</version>
++    </dependency>
+ 
+     <dependency>
+       <groupId>eu.stratosphere</groupId>
+diff --git a/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/Constants.java b/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/Constants.java
+index b51b247..bb64e9c 100644
+--- a/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/Constants.java
++++ b/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/Constants.java
+@@ -15,11 +15,8 @@
+ 
+ package eu.stratosphere.pact.test.util;
+ 
+-/**
+- * @author Erik Nijkamp
+- */
+-public interface Constants
+-{
++public interface Constants {
++	
+ 	String CLUSTER_CONFIGS = "./src/test/resources/ClusterConfigs/";
+ 
+ 	String TEST_CONFIGS = "./src/test/resources/TestConfigs/";
+diff --git a/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/filesystem/ExternalDFSProvider.java b/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/filesystem/ExternalDFSProvider.java
+deleted file mode 100644
+index e3daa74..0000000
+--- a/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/filesystem/ExternalDFSProvider.java
++++ /dev/null
+@@ -1,46 +0,0 @@
+-/***********************************************************************************************************************
+- *
+- * Copyright (C) 2010 by the Stratosphere project (http://stratosphere.eu)
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+- * the License. You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+- * specific language governing permissions and limitations under the License.
+- *
+- **********************************************************************************************************************/
+-
+-package eu.stratosphere.pact.test.util.filesystem;
+-
+-import java.io.IOException;
+-
+-import org.apache.hadoop.conf.Configuration;
+-import org.apache.hadoop.fs.FileSystem;
+-import org.apache.hadoop.fs.Path;
+-
+-public class ExternalDFSProvider extends HDFSProvider {
+-	public ExternalDFSProvider(String configDir) {
+-		super(configDir);
+-	}
+-
+-	public void start() throws Exception {
+-		Configuration config = new Configuration(false);
+-		config.addResource(new Path(configDir + "/hadoop-default.xml"));
+-		config.addResource(new Path(configDir + "/hadoop-site.xml"));
+-
+-		hdfs = FileSystem.get(config);
+-	}
+-
+-	public void stop() {
+-		try {
+-			hdfs.close();
+-		} catch (IOException e) {
+-			e.printStackTrace();
+-		}
+-		hdfs = null;
+-	}
+-	
+-}
+diff --git a/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/filesystem/LocalFSProvider.java b/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/filesystem/LocalFSProvider.java
+index 27f0c9b..866fffa8 100644
+--- a/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/filesystem/LocalFSProvider.java
++++ b/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/filesystem/LocalFSProvider.java
+@@ -134,6 +134,4 @@ public class LocalFSProvider implements FilesystemProvider {
+ 	public String getURIPrefix() {
+ 		return "file://";
+ 	}
+-
+-	
+ }
+diff --git a/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/minicluster/ClusterProviderPool.java b/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/minicluster/ClusterProviderPool.java
+index 07df29e..d61030d 100644
+--- a/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/minicluster/ClusterProviderPool.java
++++ b/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/minicluster/ClusterProviderPool.java
+@@ -53,8 +53,6 @@ public class ClusterProviderPool {
+ 			String clusterProviderType = config.getString(Constants.CLUSTER_PROVIDER_TYPE, "");
+ 			if (clusterProviderType.equals("LocalClusterProvider")) {
+ 				instance = new LocalClusterProvider(config);
+-			} else if (clusterProviderType.equals("DistClusterProvider")) {
+-				instance = new DistClusterProvider(config);
+ 			} else {
+ 				throw new Exception("No or unknown cluster provider type configured");
+ 			}
+diff --git a/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/minicluster/DistClusterProvider.java b/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/minicluster/DistClusterProvider.java
+deleted file mode 100644
+index 2ee4fea..0000000
+--- a/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/minicluster/DistClusterProvider.java
++++ /dev/null
+@@ -1,161 +0,0 @@
+-/***********************************************************************************************************************
+- *
+- * Copyright (C) 2010 by the Stratosphere project (http://stratosphere.eu)
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+- * the License. You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+- * specific language governing permissions and limitations under the License.
+- *
+- **********************************************************************************************************************/
+-
+-package eu.stratosphere.pact.test.util.minicluster;
+-
+-import java.io.BufferedReader;
+-import java.io.File;
+-import java.io.FileReader;
+-import java.io.IOException;
+-
+-import eu.stratosphere.nephele.client.JobClient;
+-import eu.stratosphere.nephele.configuration.ConfigConstants;
+-import eu.stratosphere.nephele.configuration.Configuration;
+-import eu.stratosphere.nephele.fs.Path;
+-import eu.stratosphere.nephele.jobgraph.JobGraph;
+-import eu.stratosphere.nephele.template.IllegalConfigurationException;
+-import eu.stratosphere.pact.test.util.Constants;
+-import eu.stratosphere.pact.test.util.filesystem.ExternalDFSProvider;
+-
+-public class DistClusterProvider extends ClusterProvider {
+-
+-	// Config Data
+-	private String nepheleConfigDir;
+-
+-	private String hdfsConfigDir;
+-
+-	// internal data
+-	private String jobManagerHostName;
+-
+-	public DistClusterProvider(Configuration config)
+-													throws Exception {
+-
+-		super(config);
+-
+-		// TODO read config and set parameters
+-		this.nepheleConfigDir = config.getString(
+-			"DistClusterProvider#nepheleConfigDir", "");
+-		if (nepheleConfigDir.equals("")) {
+-			throw new Exception("No nephele config dir was specified");
+-		}
+-		this.hdfsConfigDir = config.getString(
+-			"DistClusterProvider#hdfsConfigDir", "");
+-		if (hdfsConfigDir.equals("")) {
+-			throw new Exception("No hdfs config dir was specified");
+-		}
+-
+-	}
+-
+-	@Override
+-	protected void startFS() throws Exception {
+-
+-		if (fsIsRunning()) {
+-			return;
+-		}
+-
+-		if(config.getString(Constants.FILESYSTEM_TYPE, "").equals("external_hdfs")) {
+-			filesystemProvider = new ExternalDFSProvider(this.hdfsConfigDir);
+-		} else {
+-			throw new IllegalConfigurationException("Invalid file system type: "+config.getString(Constants.FILESYSTEM_TYPE, ""));
+-		}
+-		
+-		filesystemProvider.start();
+-		this.filesystemRunning = true;
+-	}
+-
+-	@Override
+-	protected void startNephele() throws Exception {
+-
+-		if (nepheleIsRunning()) {
+-			return;
+-		}
+-
+-		File nepheleConfigDir = new File(this.nepheleConfigDir);
+-
+-		// get Nephele JobManager hostname
+-		File nepheleMasterFile = new File(nepheleConfigDir.getAbsoluteFile() + "/master");
+-		if (nepheleMasterFile.exists()) {
+-			BufferedReader fr = new BufferedReader(new FileReader(nepheleMasterFile));
+-			this.jobManagerHostName = fr.readLine();
+-			fr.close();
+-		} else {
+-			throw new Exception("Nephele Master File not found");
+-		}
+-
+-		// start Nephele cluster
+-
+-		File nepheleStartScript = new File(nepheleConfigDir.getAbsolutePath() + "/../bin/start-cluster.sh");
+-		try {
+-			Runtime.getRuntime().exec(nepheleStartScript.getAbsolutePath());
+-		} catch (IOException e1) {
+-			throw new Exception("Nephele Config File not found");
+-		}
+-		// wait 5s to get Nephele up
+-		Thread.sleep(5000);
+-
+-		this.nepheleRunning = true;
+-
+-	}
+-
+-	@Override
+-	protected void stopFS() throws Exception {
+-
+-		if (!fsIsRunning()) {
+-			return;
+-		}
+-
+-		// stop HDFS provider
+-		filesystemProvider.stop();
+-		this.filesystemRunning = false;
+-
+-	}
+-
+-	@Override
+-	protected void stopNephele() throws Exception {
+-
+-		if (!nepheleIsRunning()) {
+-			return;
+-		}
+-
+-		// stop Nephele
+-		File nepheleConfigDir = new File(this.nepheleConfigDir);
+-		File nepheleStopScript = new File(nepheleConfigDir.getAbsolutePath() + "/../bin/stop-cluster.sh");
+-		Runtime.getRuntime().exec(nepheleStopScript.getAbsolutePath());
+-
+-		this.nepheleRunning = false;
+-
+-	}
+-
+-	/* (non-Javadoc)
+-	 * @see eu.stratosphere.pact.test.util.minicluster.ClusterProvider#getJobClient(eu.stratosphere.nephele.jobgraph.JobGraph, java.lang.String)
+-	 */
+-	@Override
+-	public JobClient getJobClient(JobGraph jobGraph, String jarFilePath) throws Exception
+-	{
+-		if (jarFilePath == null) {
+-			throw new Exception("jar file path not specified");
+-		}
+-		
+-		final Path testJarFile = new Path(jarFilePath);
+-		jobGraph.addJar(testJarFile);
+-		
+-		// set up job configuration
+-		final Configuration configuration = jobGraph.getJobConfiguration();
+-		configuration.setString(ConfigConstants.JOB_MANAGER_IPC_ADDRESS_KEY, this.jobManagerHostName);
+-
+-		return new JobClient(jobGraph, configuration);
+-	}
+-
+-}
+diff --git a/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/minicluster/LocalClusterProvider.java b/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/minicluster/LocalClusterProvider.java
+index 9627c46..1d37329 100644
+--- a/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/minicluster/LocalClusterProvider.java
++++ b/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/minicluster/LocalClusterProvider.java
+@@ -21,10 +21,11 @@ import eu.stratosphere.nephele.client.JobClient;
+ import eu.stratosphere.nephele.configuration.Configuration;
+ import eu.stratosphere.nephele.jobgraph.JobGraph;
+ import eu.stratosphere.nephele.template.IllegalConfigurationException;
++import eu.stratosphere.pact.client.minicluster.NepheleMiniCluster;
+ import eu.stratosphere.pact.test.util.Constants;
+-import eu.stratosphere.pact.test.util.filesystem.HDFSProvider;
+ import eu.stratosphere.pact.test.util.filesystem.LocalFSProvider;
+ 
++
+ public class LocalClusterProvider extends ClusterProvider {
+ 
+ 	// config parameters
+@@ -32,12 +33,10 @@ public class LocalClusterProvider extends ClusterProvider {
+ 
+ 	private NepheleMiniCluster nephele;
+ 
+-	public LocalClusterProvider(Configuration config)
+-														throws Exception {
++	public LocalClusterProvider(Configuration config) throws Exception {
+ 		super(config);
+ 
+-		this.numTaskTrackers = Integer.parseInt(config.getString(
+-			Constants.CLUSTER_NUM_TASKTRACKER, "-1"));
++		this.numTaskTrackers = config.getInteger(Constants.CLUSTER_NUM_TASKTRACKER, -1);
+ 		if (numTaskTrackers == -1) {
+ 			throw new Exception("Number of task trackers was not specified");
+ 		}
+@@ -65,16 +64,13 @@ public class LocalClusterProvider extends ClusterProvider {
+ 			return;
+ 		}
+ 
+-		String nepheleConfigDir = System.getProperty("java.io.tmpdir") + "/minicluster/nephele/config";
+ 		if (filesystemProvider == null) {
+ 			startFS();
+ 		}
+-		String hdfsConfigDir = "";
+-		if(this.config.getString(Constants.FILESYSTEM_TYPE, "").equals("mini_hdfs")) {
+-			hdfsConfigDir = ((HDFSProvider)filesystemProvider).getConfigDir();
+-		}
+-		nephele = new NepheleMiniCluster(nepheleConfigDir, hdfsConfigDir);
+-		nepheleRunning = true;
++
++		this.nephele = new NepheleMiniCluster();
++		this.nephele.start();
++		this.nepheleRunning = true;
+ 	}
+ 
+ 	@Override
+@@ -104,8 +100,7 @@ public class LocalClusterProvider extends ClusterProvider {
+ 	 * @see eu.stratosphere.pact.test.util.minicluster.ClusterProvider#getJobClient(eu.stratosphere.nephele.jobgraph.JobGraph, java.lang.String)
+ 	 */
+ 	@Override
+-	public JobClient getJobClient(JobGraph jobGraph, String jarFilePath) throws Exception
+-	{
++	public JobClient getJobClient(JobGraph jobGraph, String jarFilePath) throws Exception {
+ 		return this.nephele.getJobClient(jobGraph);
+ 	}
+ }
+diff --git a/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/minicluster/NepheleMiniCluster.java b/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/minicluster/NepheleMiniCluster.java
+deleted file mode 100644
+index 062af54..0000000
+--- a/pact/pact-tests/src/test/java/eu/stratosphere/pact/test/util/minicluster/NepheleMiniCluster.java
++++ /dev/null
+@@ -1,299 +0,0 @@
+-/***********************************************************************************************************************
+- *
+- * Copyright (C) 2010 by the Stratosphere project (http://stratosphere.eu)
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+- * the License. You may obtain a copy of the License at
+- *
+- *     http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+- * specific language governing permissions and limitations under the License.
+- *
+- **********************************************************************************************************************/
+-
+-package eu.stratosphere.pact.test.util.minicluster;
+-
+-import java.io.IOException;
+-import java.net.Inet4Address;
+-import java.net.InetSocketAddress;
+-import java.net.InterfaceAddress;
+-import java.net.NetworkInterface;
+-import java.net.SocketException;
+-import java.util.ArrayList;
+-import java.util.Enumeration;
+-import java.util.Iterator;
+-import java.util.List;
+-import java.util.Map;
+-
+-import org.apache.commons.logging.Log;
+-import org.apache.commons.logging.LogFactory;
+-
+-import eu.stratosphere.nephele.client.JobClient;
+-import eu.stratosphere.nephele.configuration.ConfigConstants;
+-import eu.stratosphere.nephele.configuration.Configuration;
+-import eu.stratosphere.nephele.instance.InstanceType;
+-import eu.stratosphere.nephele.instance.InstanceTypeDescription;
+-import eu.stratosphere.nephele.instance.local.LocalInstanceManager;
+-import eu.stratosphere.nephele.ipc.RPC;
+-import eu.stratosphere.nephele.jobgraph.JobGraph;
+-import eu.stratosphere.nephele.jobmanager.JobManager;
+-import eu.stratosphere.nephele.jobmanager.scheduler.local.LocalScheduler;
+-import eu.stratosphere.nephele.net.NetUtils;
+-import eu.stratosphere.nephele.protocols.ExtendedManagementProtocol;
+-import eu.stratosphere.pact.test.util.FileWriter;
+-
+-/**
+- * @author Erik Nijkamp
+- */
+-public class NepheleMiniCluster {
+-
+-	private static final boolean DEFAULT_VISUALIZER_ENABLED = true;
+-
+-	private static final Log LOG = LogFactory.getLog(NepheleMiniCluster.class);
+-
+-	private final String nepheleConfigDir;
+-
+-	private final String hdfsConfigDir;
+-
+-	private final boolean visualizerEnabled;
+-
+-	private Thread runner;
+-
+-	private JobManager jobManager;
+-
+-	public NepheleMiniCluster(String nepheleConfigDir, String hdfsConfigDir) throws Exception {
+-		this(nepheleConfigDir, hdfsConfigDir, DEFAULT_VISUALIZER_ENABLED);
+-	}
+-
+-	public NepheleMiniCluster(String nepheleConfigDir, String hdfsConfigDir, boolean visualizerEnabled)
+-										throws Exception {
+-		this.nepheleConfigDir = nepheleConfigDir;
+-		this.hdfsConfigDir = hdfsConfigDir;
+-		this.visualizerEnabled = visualizerEnabled;
+-
+-		initJobManager();
+-	}
+-
+-	// ------------------------------------------------------------------------
+-	// Public methods
+-	// ------------------------------------------------------------------------
+-
+-	public JobClient getJobClient(JobGraph jobGraph) throws Exception
+-	{
+-		final Configuration configuration = jobGraph.getJobConfiguration();
+-		configuration.setString(ConfigConstants.JOB_MANAGER_IPC_ADDRESS_KEY, "localhost");
+-
+-		return new JobClient(jobGraph, configuration);
+-	}
+-
+-	// ------------------------------------------------------------------------
+-	// Private methods
+-	// ------------------------------------------------------------------------
+-
+-	private void initJobManager() throws Exception
+-	{
+-		// config
+-		final String nepheleConfigDirJob = nepheleConfigDir + "/job";
+-		final int jobManagerRpcPort = ConfigConstants.DEFAULT_JOB_MANAGER_IPC_PORT;
+-		final int rpcPort = 6501, dataPort = 7501;
+-
+-		new FileWriter()
+-			.dir(nepheleConfigDirJob)
+-			.file("nephele-user.xml")
+-			.write(
+-					"<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+-					"<configuration>",
+-					"    <property>",
+-					"        <key>jobmanager.instancemanager.local.classname</key>",
+-					"        <value>" + LocalInstanceManager.class.getName() + "</value>",
+-					"    </property>",
+-					"    <property>",
+-					"        <key>jobmanager.scheduler.local.classname</key>",
+-					"        <value>" + LocalScheduler.class.getName() + "</value>",
+-					"    </property>",
+-					"    <property>",
+-					"        <key>fs.hdfs.hdfsdefault</key>",
+-					"        <value>" + hdfsConfigDir + "/hadoop-default.xml</value>",
+-					"    </property>",
+-					"    <property>",
+-					"        <key>fs.hdfs.hdfssite</key>",
+-					"        <value>" + hdfsConfigDir + "/hadoop-site.xml</value>",
+-					"    </property>",
+-					"    <property>",
+-					"        <key>" + ConfigConstants.JOB_MANAGER_IPC_ADDRESS_KEY + "</key>",
+-					"        <value>localhost</value>",
+-//					"        <value>" + getLocalIpAddress() + "</value>",
+-					"    </property>",
+-					"    <property>",
+-					"        <key>" + ConfigConstants.JOB_MANAGER_IPC_PORT_KEY + "</key>",
+-					"        <value>" + jobManagerRpcPort + "</value>",
+-					"    </property>",
+-					"    <property>",
+-					"        <key>" + ConfigConstants.TASK_MANAGER_IPC_PORT_KEY + "</key>",
+-					"        <value>" + rpcPort + "</value>",
+-					"    </property>",
+-					"    <property>",
+-					"        <key>" + ConfigConstants.TASK_MANAGER_DATA_PORT_KEY + "</key>",
+-					"        <value>" + dataPort + "</value>",
+-					"    </property>",
+-					"    <property>",
+-					"        <key>" + ConfigConstants.JOB_EXECUTION_RETRIES_KEY + "</key>",
+-					"        <value>0</value>",
+-					"    </property>",
+-					"    <property>",
+-					"        <key>taskmanager.setup.usediscovery</key>",
+-					"        <value>false</value>",
+-					"    </property>",
+-					"    <property>",
+-					"        <key>jobmanager.visualization.enable</key>",
+-					"        <value>" + (visualizerEnabled ? "true" : "false") + "</value>",
+-					"    </property>",
+-				"</configuration>")
+-			.close()
+-			.file("pact-user.xml")
+-			.write(
+-					"<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+-					"<configuration>",
+-//					"    <property>",
+-//					"        <key>pact.parallelization.degree</key>",
+-//					"        <value>1</value>",
+-//					"    </property>",
+-//					"    <property>",
+-//					"        <key>pact.parallelization.intra-node-degree</key>",
+-//					"        <value>1</value>",
+-//					"    </property>",
+-//					"    <property>",
+-//					"        <key>pact.parallelization.maxmachines</key>",
+-//					"        <value>1</value>",
+-//					"    </property>",
+-					"</configuration>")
+-			.close();
+-
+-		// thread
+-		LOG.info("Initializing job manager thread with '" + nepheleConfigDirJob + "'.");
+-		this.jobManager = new JobManager(nepheleConfigDirJob, "local");
+-		
+-		runner = new Thread() {
+-			@Override
+-			public void run() {
+-				// run the main task loop
+-				jobManager.runTaskLoop();
+-			}
+-		};
+-		this.runner.setDaemon(true);
+-		this.runner.start();
+-
+-		waitForJobManagerToBeAvailable("localhost", jobManagerRpcPort, 60 * 1000);
+-//		try {
+-//			Thread.sleep(10000);
+-//		} catch (InterruptedException iex) {}
+-	}
+-
+-	public void stop() throws Exception {
+-		if (jobManager != null) {
+-			jobManager.shutdown();
+-		}
+-
+-		if (runner != null) {
+-			runner.interrupt();
+-			runner.join();
+-			runner = null;
+-		}
+-	}
+-
+-	// ------------------------------------------------------------------------
+-	// Network utility methods
+-	// ------------------------------------------------------------------------
+-
+-	@SuppressWarnings("unused")
+-	private static String getLocalIpAddress() throws SocketException, Exception {
+-		String IPv4 = System.getProperty("java.net.preferIPv4Stack");
+-		return getIPInterfaceAddress("true".equals(IPv4)).getAddress().getHostAddress();
+-	}
+-
+-	private static InterfaceAddress getIPInterfaceAddress(boolean preferIPv4) throws Exception, SocketException {
+-		final List<InterfaceAddress> interfaces = getNetworkInterface().getInterfaceAddresses();
+-		final Iterator<InterfaceAddress> it = interfaces.iterator();
+-		final List<InterfaceAddress> matchesIPv4 = new ArrayList<InterfaceAddress>();
+-		final List<InterfaceAddress> matchesIPv6 = new ArrayList<InterfaceAddress>();
+-
+-		while (it.hasNext()) {
+-			final InterfaceAddress ia = it.next();
+-			if (ia.getBroadcast() != null) {
+-				if (ia.getAddress() instanceof Inet4Address) {
+-					matchesIPv4.add(ia);
+-				} else {
+-					matchesIPv6.add(ia);
+-				}
+-			}
+-		}
+-
+-		if (matchesIPv4.isEmpty() && matchesIPv6.isEmpty() == true) {
+-			throw new Exception("Interface " + getNetworkInterface().getName() + " has no interface address attached.");
+-		}
+-
+-		if (preferIPv4 && !matchesIPv4.isEmpty()) {
+-			for (InterfaceAddress ia : matchesIPv4) {
+-				if ((ia.getAddress().toString().contains("192") || ia.getAddress().toString().contains("10"))) {
+-					return ia;
+-				}
+-			}
+-			return matchesIPv4.get(0);
+-		}
+-
+-		return !matchesIPv6.isEmpty() ? matchesIPv6.get(0) : matchesIPv4.get(0);
+-	}
+-
+-	private static NetworkInterface getNetworkInterface() throws SocketException {
+-		final Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+-
+-		while (interfaces.hasMoreElements()) {
+-			NetworkInterface nic = interfaces.nextElement();
+-			if (!nic.isLoopback() && !nic.isPointToPoint())
+-				return nic;
+-		}
+-
+-		throw new SocketException("Cannot find network interface which is not a loopback interface.");
+-	}
+-	
+-	private static void waitForJobManagerToBeAvailable(String hostname, int port, int timeoutMillies)
+-	throws IOException
+-	{
+-		final InetSocketAddress address = new InetSocketAddress(hostname, port);
+-		ExtendedManagementProtocol jobManagerConnection = null;
+-		
+-		try {
+-			jobManagerConnection = RPC.getProxy(ExtendedManagementProtocol.class,
+-				address, NetUtils.getSocketFactory());
+-			
+-			Map<InstanceType, InstanceTypeDescription> map = null;
+-			final long startTime = System.currentTimeMillis();
+-			
+-			do {
+-				try {
+-					map = jobManagerConnection.getMapOfAvailableInstanceTypes();
+-					if (map != null && map.size() > 0) {
+-						break;
+-					}
+-				} catch (Exception e) {}
+-				Thread.sleep(500);
+-			} while ((System.currentTimeMillis() - startTime) < timeoutMillies);
+-		}
+-		catch (Throwable t) {
+-			LOG.error(t);
+-			throw new IOException("Waiting for JobManager to come up failed.", t);
+-		}
+-		finally {
+-			
+-			if (jobManagerConnection != null) {
+-				try {
+-					RPC.stopProxy(jobManagerConnection);
+-				} catch (Throwable t) {
+-					LOG.error("Could not cleanly shut down connection from compiler to job manager,", t);
+-				}
+-			}
+-		}
+-	}
+-}
+diff --git a/stratosphere-dist/src/main/stratosphere-bin/conf/nephele-user.xml b/stratosphere-dist/src/main/stratosphere-bin/conf/nephele-user.xml
+index 07ca255..6cbb67f 100644
+--- a/stratosphere-dist/src/main/stratosphere-bin/conf/nephele-user.xml
++++ b/stratosphere-dist/src/main/stratosphere-bin/conf/nephele-user.xml
+@@ -108,40 +108,6 @@
+ 		<key>instancemanager.cluster.defaulttype</key>
+ 		<value>1</value>
+ 	</property>
+-
+-	<!--  ========================================================================
+-	                   Scheduler and Instance Manager Classes 
+-	      ======================================================================== -->
+-	
+-	<!--the default scheduler for local execution mode -->
+-	<property>
+-		<key>jobmanager.scheduler.local.classname</key>
+-		<value>eu.stratosphere.nephele.jobmanager.scheduler.local.LocalScheduler</value>
+-	</property>
+-	
+-	<!-- the default instance manager for local execution mode -->
+-	<property>
+-		<key>>jobmanager.instancemanager.local.classname</key>
+-		<value>eu.stratosphere.nephele.instance.local.LocalInstanceManager</value>
+-	</property>
+-	
+-	<!--the default scheduler for cluster execution mode -->
+-	<property>
+-		<key>jobmanager.scheduler.cluster.classname</key>
+-		<value>eu.stratosphere.nephele.jobmanager.scheduler.queue.QueueScheduler</value>
+-	</property>
+-	
+-	<!-- the default instance manager for cluster execution mode -->
+-	<property>
+-		<key>jobmanager.instancemanager.cluster.classname</key>
+-		<value>eu.stratosphere.nephele.instance.cluster.ClusterManager</value>
+-	</property>
+-	
+-	<property>
+-		<key>jobmanager.instancemanager.cluster.cleanupinterval</key>
+-		<value>120</value>
+-	</property>
+-	
+ 	
+ 	<!--  ========================================================================
+ 	                       Job / Instance Profiling 

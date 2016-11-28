@@ -1,0 +1,822 @@
+commit e26170dcfc8fc8d9298bf43ce688eeae3ca430ec
+Author: Daniel Warneke <warneke@icsi.berkeley.edu>
+Date:   Fri Nov 9 12:14:25 2012 -0800
+
+    Changed configuration implementation to use java concurrency classes instead of synchronized statement
+
+diff --git a/nephele/nephele-common/src/main/java/eu/stratosphere/nephele/configuration/Configuration.java b/nephele/nephele-common/src/main/java/eu/stratosphere/nephele/configuration/Configuration.java
+index 15add28..42ba517 100644
+--- a/nephele/nephele-common/src/main/java/eu/stratosphere/nephele/configuration/Configuration.java
++++ b/nephele/nephele-common/src/main/java/eu/stratosphere/nephele/configuration/Configuration.java
+@@ -15,11 +15,11 @@
+ 
+ package eu.stratosphere.nephele.configuration;
+ 
+-import java.util.HashMap;
+ import java.util.HashSet;
+ import java.util.Iterator;
+ import java.util.Map;
+ import java.util.Set;
++import java.util.concurrent.ConcurrentHashMap;
+ 
+ import org.apache.commons.codec.binary.Base64;
+ import org.apache.commons.logging.Log;
+@@ -30,6 +30,8 @@ import com.esotericsoftware.kryo.KryoSerializable;
+ import com.esotericsoftware.kryo.io.Input;
+ import com.esotericsoftware.kryo.io.Output;
+ 
++import eu.stratosphere.nephele.util.StringUtils;
++
+ /**
+  * Lightweight configuration object which can store key/value pairs. Configuration objects
+  * can be extracted from or integrated into the {@link GlobalConfiguration} object. They can
+@@ -48,7 +50,7 @@ public class Configuration implements KryoSerializable {
+ 	/**
+ 	 * Stores the concrete key/value pairs of this configuration object.
+ 	 */
+-	private Map<String, String> confData = new HashMap<String, String>();
++	private Map<String, String> confData = new ConcurrentHashMap<String, String>();
+ 
+ 	/**
+ 	 * The class loader to be used for the <code>getClass</code> method.
+@@ -63,6 +65,17 @@ public class Configuration implements KryoSerializable {
+ 	}
+ 
+ 	/**
++	 * Constructs a new configuration object and fills it with the entries of the given map.
++	 * 
++	 * @param entries
++	 *        the entries to fill the configuration object with
++	 */
++	Configuration(final Map<String, String> entries) {
++		this.classLoader = this.getClass().getClassLoader();
++		this.confData.putAll(entries);
++	}
++
++	/**
+ 	 * Constructs a new configuration object.
+ 	 * 
+ 	 * @param classLoader
+@@ -83,15 +96,12 @@ public class Configuration implements KryoSerializable {
+ 	 */
+ 	public String getString(final String key, final String defaultValue) {
+ 
+-		synchronized (this.confData) {
+-
+-			final String retVal = this.confData.get(key);
+-			if (retVal == null) {
+-				return defaultValue;
+-			}
+-
+-			return retVal;
++		final String retVal = this.confData.get(key);
++		if (retVal == null) {
++			return defaultValue;
+ 		}
++
++		return retVal;
+ 	}
+ 
+ 	/**
+@@ -175,9 +185,7 @@ public class Configuration implements KryoSerializable {
+ 			throw new NullPointerException("Given value is null");
+ 		}
+ 
+-		synchronized (this.confData) {
+-			this.confData.put(key, value);
+-		}
++		this.confData.put(key, value);
+ 	}
+ 
+ 	/**
+@@ -191,20 +199,20 @@ public class Configuration implements KryoSerializable {
+ 	 */
+ 	public int getInteger(final String key, final int defaultValue) {
+ 
+-		int retVal = defaultValue;
++		final String str = this.confData.get(key);
++		if (str == null) {
++			return defaultValue;
++		}
+ 
+ 		try {
+-			synchronized (this.confData) {
+-
+-				if (this.confData.containsKey(key)) {
+-					retVal = Integer.parseInt(this.confData.get(key));
+-				}
++			return Integer.parseInt(str);
++		} catch (NumberFormatException nfe) {
++			if (LOG.isDebugEnabled()) {
++				LOG.debug(StringUtils.stringifyException(nfe));
+ 			}
+-		} catch (NumberFormatException e) {
+-			LOG.debug(e);
+ 		}
+ 
+-		return retVal;
++		return defaultValue;
+ 	}
+ 
+ 	/**
+@@ -219,13 +227,10 @@ public class Configuration implements KryoSerializable {
+ 	public void setInteger(final String key, final int value) {
+ 
+ 		if (key == null) {
+-			LOG.warn("Cannot set integer: Given key is null!");
+-			return;
++			throw new NullPointerException("Given key is null");
+ 		}
+ 
+-		synchronized (this.confData) {
+-			this.confData.put(key, Integer.toString(value));
+-		}
++		this.confData.put(key, Integer.toString(value));
+ 	}
+ 
+ 	/**
+@@ -238,15 +243,18 @@ public class Configuration implements KryoSerializable {
+ 	 * @return the (default) value associated with the given key
+ 	 */
+ 	public long getLong(final String key, final long defaultValue) {
++
++		final String str = this.confData.get(key);
++		if (str == null) {
++			return defaultValue;
++		}
++
+ 		try {
+-			synchronized (this.confData) {
+-				String val = this.confData.get(key);
+-				if (val != null) {
+-					return Long.parseLong(val);
+-				}
++			return Long.parseLong(str);
++		} catch (NumberFormatException nfe) {
++			if (LOG.isDebugEnabled()) {
++				LOG.debug(StringUtils.stringifyException(nfe));
+ 			}
+-		} catch (NumberFormatException e) {
+-			LOG.debug(e);
+ 		}
+ 
+ 		return defaultValue;
+@@ -262,14 +270,12 @@ public class Configuration implements KryoSerializable {
+ 	 *        the value of the key/value pair to be added
+ 	 */
+ 	public void setLong(final String key, final long value) {
++
+ 		if (key == null) {
+-			LOG.warn("Cannot set long: Given key is null!");
+-			return;
++			throw new NullPointerException("Given key is null");
+ 		}
+ 
+-		synchronized (this.confData) {
+-			this.confData.put(key, Long.toString(value));
+-		}
++		this.confData.put(key, Long.toString(value));
+ 	}
+ 
+ 	/**
+@@ -283,16 +289,12 @@ public class Configuration implements KryoSerializable {
+ 	 */
+ 	public boolean getBoolean(final String key, final boolean defaultValue) {
+ 
+-		boolean retVal = defaultValue;
+-
+-		synchronized (this.confData) {
+-
+-			if (this.confData.containsKey(key)) {
+-				retVal = Boolean.parseBoolean(this.confData.get(key));
+-			}
++		final String str = this.confData.get(key);
++		if (str == null) {
++			return defaultValue;
+ 		}
+ 
+-		return retVal;
++		return Boolean.parseBoolean(str);
+ 	}
+ 
+ 	/**
+@@ -307,13 +309,10 @@ public class Configuration implements KryoSerializable {
+ 	public void setBoolean(final String key, final boolean value) {
+ 
+ 		if (key == null) {
+-			LOG.warn("Cannot set boolean: Given key is null!");
+-			return;
++			throw new NullPointerException("Given key is null");
+ 		}
+ 
+-		synchronized (this.confData) {
+-			this.confData.put(key, Boolean.toString(value));
+-		}
++		this.confData.put(key, Boolean.toString(value));
+ 	}
+ 
+ 	/**
+@@ -326,10 +325,21 @@ public class Configuration implements KryoSerializable {
+ 	 * @return the (default) value associated with the given key
+ 	 */
+ 	public float getFloat(final String key, final float defaultValue) {
+-		synchronized (this.confData) {
+-			String val = this.confData.get(key);
+-			return val == null ? defaultValue : Float.parseFloat(val);
++
++		final String str = this.confData.get(key);
++		if (str == null) {
++			return defaultValue;
++		}
++
++		try {
++			return Float.parseFloat(str);
++		} catch (NumberFormatException nfe) {
++			if (LOG.isDebugEnabled()) {
++				LOG.debug(StringUtils.stringifyException(nfe));
++			}
+ 		}
++
++		return defaultValue;
+ 	}
+ 
+ 	/**
+@@ -344,13 +354,10 @@ public class Configuration implements KryoSerializable {
+ 	public void setFloat(final String key, final float value) {
+ 
+ 		if (key == null) {
+-			LOG.warn("Cannot set float: Given key is null!");
+-			return;
++			throw new NullPointerException("Given key is null");
+ 		}
+ 
+-		synchronized (this.confData) {
+-			this.confData.put(key, Float.toString(value));
+-		}
++		this.confData.put(key, Float.toString(value));
+ 	}
+ 
+ 	/**
+@@ -364,10 +371,8 @@ public class Configuration implements KryoSerializable {
+ 	 */
+ 	@Deprecated
+ 	public byte[] getBytes(final String key, final byte[] defaultValue) {
+-		final String encoded;
+-		synchronized (this.confData) {
+-			encoded = this.confData.get(key);
+-		}
++
++		final String encoded = this.confData.get(key);
+ 		if (encoded == null) {
+ 			return defaultValue;
+ 		}
+@@ -385,15 +390,13 @@ public class Configuration implements KryoSerializable {
+ 	 */
+ 	@Deprecated
+ 	public void setBytes(final String key, final byte[] bytes) {
++
+ 		if (key == null) {
+-			LOG.warn("Cannot set bytes: Given key is null!");
+-			return;
++			throw new NullPointerException("Given key is null");
+ 		}
+ 
+ 		final String encoded = new String(Base64.encodeBase64(bytes));
+-		synchronized (this.confData) {
+-			this.confData.put(key, encoded);
+-		}
++		this.confData.put(key, encoded);
+ 	}
+ 
+ 	/**
+@@ -406,14 +409,7 @@ public class Configuration implements KryoSerializable {
+ 
+ 		// Copy key set, so return value is independent from the object's internal data structure
+ 		final Set<String> retVal = new HashSet<String>();
+-
+-		synchronized (this.confData) {
+-
+-			final Iterator<String> it = this.confData.keySet().iterator();
+-			while (it.hasNext()) {
+-				retVal.add(it.next());
+-			}
+-		}
++		retVal.addAll(this.confData.keySet());
+ 
+ 		return retVal;
+ 	}
+@@ -428,18 +424,15 @@ public class Configuration implements KryoSerializable {
+ 	 *        The prefix to prepend.
+ 	 */
+ 	public void addAll(Configuration other, String prefix) {
++
+ 		final StringBuilder bld = new StringBuilder();
+ 		bld.append(prefix);
+ 		final int pl = bld.length();
+ 
+-		synchronized (this.confData) {
+-			synchronized (other.confData) {
+-				for (Map.Entry<String, String> entry : other.confData.entrySet()) {
+-					bld.setLength(pl);
+-					bld.append(entry.getKey());
+-					this.confData.put(bld.toString(), entry.getValue());
+-				}
+-			}
++		for (Map.Entry<String, String> entry : other.confData.entrySet()) {
++			bld.setLength(pl);
++			bld.append(entry.getKey());
++			this.confData.put(bld.toString(), entry.getValue());
+ 		}
+ 	}
+ 
+@@ -450,7 +443,7 @@ public class Configuration implements KryoSerializable {
+ 	public int hashCode() {
+ 		final int prime = 31;
+ 		int result = 1;
+-		result = prime * result + confData.hashCode();
++		result = prime * result + this.confData.hashCode();
+ 		return result;
+ 	}
+ 
+@@ -482,17 +475,14 @@ public class Configuration implements KryoSerializable {
+ 	@Override
+ 	public void write(final Kryo kryo, final Output output) {
+ 
+-		synchronized (this.confData) {
++		final Set<Map.Entry<String, String>> entries = this.confData.entrySet();
++		output.writeInt(entries.size());
+ 
+-			output.writeInt(this.confData.size());
+-
+-			final Iterator<String> it = this.confData.keySet().iterator();
+-			while (it.hasNext()) {
+-				final String key = it.next();
+-				final String value = this.confData.get(key);
+-				output.writeString(key);
+-				output.writeString(value);
+-			}
++		final Iterator<Map.Entry<String, String>> it = entries.iterator();
++		while (it.hasNext()) {
++			final Map.Entry<String, String> entry = it.next();
++			output.writeString(entry.getKey());
++			output.writeString(entry.getValue());
+ 		}
+ 	}
+ 
+@@ -502,15 +492,12 @@ public class Configuration implements KryoSerializable {
+ 	@Override
+ 	public void read(final Kryo kryo, final Input input) {
+ 
+-		synchronized (this.confData) {
++		final int numberOfProperties = input.readInt();
+ 
+-			final int numberOfProperties = input.readInt();
+-
+-			for (int i = 0; i < numberOfProperties; i++) {
+-				final String key = input.readString();
+-				final String value = input.readString();
+-				this.confData.put(key, value);
+-			}
++		for (int i = 0; i < numberOfProperties; i++) {
++			final String key = input.readString();
++			final String value = input.readString();
++			this.confData.put(key, value);
+ 		}
+ 	}
+ }
+diff --git a/nephele/nephele-common/src/main/java/eu/stratosphere/nephele/configuration/GlobalConfiguration.java b/nephele/nephele-common/src/main/java/eu/stratosphere/nephele/configuration/GlobalConfiguration.java
+index 7e847c0..646e890 100644
+--- a/nephele/nephele-common/src/main/java/eu/stratosphere/nephele/configuration/GlobalConfiguration.java
++++ b/nephele/nephele-common/src/main/java/eu/stratosphere/nephele/configuration/GlobalConfiguration.java
+@@ -18,9 +18,9 @@ package eu.stratosphere.nephele.configuration;
+ import java.io.File;
+ import java.io.FilenameFilter;
+ import java.io.IOException;
+-import java.util.HashMap;
+ import java.util.Iterator;
+ import java.util.Map;
++import java.util.concurrent.ConcurrentHashMap;
+ 
+ import javax.xml.parsers.DocumentBuilder;
+ import javax.xml.parsers.DocumentBuilderFactory;
+@@ -56,31 +56,17 @@ public final class GlobalConfiguration {
+ 	/**
+ 	 * The global configuration object accessible through a singleton pattern.
+ 	 */
+-	private static GlobalConfiguration configuration = null;
++	private static final GlobalConfiguration CONFIGURATION = new GlobalConfiguration();
+ 
+ 	/**
+ 	 * The key to the directory this configuration was read from.
+ 	 */
+-	private static final String CONFIGDIRKEY = "config.dir";
++	private static final String CONFIG_DIR_KEY = "config.dir";
+ 
+ 	/**
+ 	 * The internal map holding the key-value pairs the configuration consists of.
+ 	 */
+-	private final Map<String, String> confData = new HashMap<String, String>();
+-
+-	/**
+-	 * Retrieves the singleton object of the global configuration.
+-	 * 
+-	 * @return the global configuration object
+-	 */
+-	private static synchronized GlobalConfiguration get() {
+-
+-		if (configuration == null) {
+-			configuration = new GlobalConfiguration();
+-		}
+-
+-		return configuration;
+-	}
++	private final Map<String, String> confData = new ConcurrentHashMap<String, String>();
+ 
+ 	/**
+ 	 * The constructor used to construct the singleton instance of the global configuration.
+@@ -99,7 +85,7 @@ public final class GlobalConfiguration {
+ 	 */
+ 	public static String getString(final String key, final String defaultValue) {
+ 
+-		return get().getStringInternal(key, defaultValue);
++		return CONFIGURATION.getStringInternal(key, defaultValue);
+ 	}
+ 
+ 	/**
+@@ -113,14 +99,12 @@ public final class GlobalConfiguration {
+ 	 */
+ 	private String getStringInternal(final String key, final String defaultValue) {
+ 
+-		synchronized (this.confData) {
+-
+-			if (!this.confData.containsKey(key)) {
+-				return defaultValue;
+-			}
+-
+-			return this.confData.get(key);
++		final String retVal = this.confData.get(key);
++		if (retVal == null) {
++			return defaultValue;
+ 		}
++
++		return retVal;
+ 	}
+ 
+ 	/**
+@@ -134,7 +118,7 @@ public final class GlobalConfiguration {
+ 	 */
+ 	public static long getLong(final String key, final long defaultValue) {
+ 
+-		return get().getLongInternal(key, defaultValue);
++		return CONFIGURATION.getLongInternal(key, defaultValue);
+ 	}
+ 
+ 	/**
+@@ -148,23 +132,20 @@ public final class GlobalConfiguration {
+ 	 */
+ 	private long getLongInternal(final String key, final long defaultValue) {
+ 
+-		long retVal = defaultValue;
++		final String str = this.confData.get(key);
++		if (str == null) {
++			return defaultValue;
++		}
+ 
+ 		try {
+-			synchronized (this.confData) {
+-
+-				if (this.confData.containsKey(key)) {
+-					retVal = Long.parseLong(this.confData.get(key));
+-				}
+-			}
+-		} catch (NumberFormatException e) {
+-
++			return Long.parseLong(str);
++		} catch (NumberFormatException nfe) {
+ 			if (LOG.isDebugEnabled()) {
+-				LOG.debug(StringUtils.stringifyException(e));
++				LOG.debug(StringUtils.stringifyException(nfe));
+ 			}
+ 		}
+ 
+-		return retVal;
++		return defaultValue;
+ 	}
+ 
+ 	/**
+@@ -178,7 +159,7 @@ public final class GlobalConfiguration {
+ 	 */
+ 	public static int getInteger(final String key, final int defaultValue) {
+ 
+-		return get().getIntegerInternal(key, defaultValue);
++		return CONFIGURATION.getIntegerInternal(key, defaultValue);
+ 	}
+ 
+ 	/**
+@@ -192,23 +173,20 @@ public final class GlobalConfiguration {
+ 	 */
+ 	private int getIntegerInternal(final String key, final int defaultValue) {
+ 
+-		int retVal = defaultValue;
++		final String str = this.confData.get(key);
++		if (str == null) {
++			return defaultValue;
++		}
+ 
+ 		try {
+-			synchronized (this.confData) {
+-
+-				if (this.confData.containsKey(key)) {
+-					retVal = Integer.parseInt(this.confData.get(key));
+-				}
+-			}
+-		} catch (NumberFormatException e) {
+-
++			return Integer.parseInt(str);
++		} catch (NumberFormatException nfe) {
+ 			if (LOG.isDebugEnabled()) {
+-				LOG.debug(StringUtils.stringifyException(e));
++				LOG.debug(StringUtils.stringifyException(nfe));
+ 			}
+ 		}
+ 
+-		return retVal;
++		return defaultValue;
+ 	}
+ 
+ 	/**
+@@ -222,7 +200,7 @@ public final class GlobalConfiguration {
+ 	 */
+ 	public static boolean getBoolean(final String key, final boolean defaultValue) {
+ 
+-		return get().getBooleanInternal(key, defaultValue);
++		return CONFIGURATION.getBooleanInternal(key, defaultValue);
+ 	}
+ 
+ 	/**
+@@ -236,17 +214,12 @@ public final class GlobalConfiguration {
+ 	 */
+ 	private boolean getBooleanInternal(final String key, final boolean defaultValue) {
+ 
+-		boolean retVal = defaultValue;
+-
+-		synchronized (this.confData) {
+-
+-			final String value = this.confData.get(key);
+-			if (value != null) {
+-				retVal = Boolean.parseBoolean(value);
+-			}
++		final String str = this.confData.get(key);
++		if (str == null) {
++			return defaultValue;
+ 		}
+ 
+-		return retVal;
++		return Boolean.parseBoolean(str);
+ 	}
+ 
+ 	/**
+@@ -258,7 +231,6 @@ public final class GlobalConfiguration {
+ 	public static void loadConfiguration(final String configDir) {
+ 
+ 		if (configDir == null) {
+-
+ 			LOG.warn("Given configuration directory is null, cannot load configuration");
+ 			return;
+ 		}
+@@ -278,6 +250,7 @@ public final class GlobalConfiguration {
+ 			}
+ 
+ 		});
++
+ 		if (files == null || files.length == 0) {
+ 			LOG.warn("Unable to get the contents of the config directory '" + configDir + "' ("
+ 				+ confDirFile.getAbsolutePath() + ").");
+@@ -286,13 +259,11 @@ public final class GlobalConfiguration {
+ 
+ 		// load each xml file
+ 		for (File f : files) {
+-			get().loadResource(f);
++			CONFIGURATION.loadResource(f);
+ 		}
+ 
+ 		// Store the path to the configuration directory itself
+-		if (configuration != null) {
+-			configuration.confData.put(CONFIGDIRKEY, configDir);
+-		}
++		CONFIGURATION.confData.put(CONFIG_DIR_KEY, configDir);
+ 	}
+ 
+ 	/**
+@@ -344,68 +315,65 @@ public final class GlobalConfiguration {
+ 			final NodeList props = root.getChildNodes();
+ 			int propNumber = -1;
+ 
+-			synchronized (this.confData) {
++			for (int i = 0; i < props.getLength(); i++) {
+ 
+-				for (int i = 0; i < props.getLength(); i++) {
++				final Node propNode = props.item(i);
++				String key = null;
++				String value = null;
+ 
+-					final Node propNode = props.item(i);
+-					String key = null;
+-					String value = null;
+-
+-					// Ignore text at this point
+-					if (propNode instanceof Text) {
+-						continue;
+-					}
++				// Ignore text at this point
++				if (propNode instanceof Text) {
++					continue;
++				}
+ 
+-					if (!(propNode instanceof Element)) {
+-						LOG.warn("Error while reading configuration: " + propNode.getNodeName()
+-							+ " is not of type element");
+-						continue;
+-					}
++				if (!(propNode instanceof Element)) {
++					LOG.warn("Error while reading configuration: " + propNode.getNodeName()
++						+ " is not of type element");
++					continue;
++				}
+ 
+-					Element property = (Element) propNode;
+-					if (!"property".equals(property.getNodeName())) {
+-						LOG.warn("Error while reading configuration: unknown element " + property.getNodeName());
+-						continue;
+-					}
++				Element property = (Element) propNode;
++				if (!"property".equals(property.getNodeName())) {
++					LOG.warn("Error while reading configuration: unknown element " + property.getNodeName());
++					continue;
++				}
+ 
+-					propNumber++;
+-					final NodeList propChildren = property.getChildNodes();
+-					if (propChildren == null) {
+-						LOG.warn("Error while reading configuration: property has no children, skipping...");
+-						continue;
+-					}
++				propNumber++;
++				final NodeList propChildren = property.getChildNodes();
++				if (propChildren == null) {
++					LOG.warn("Error while reading configuration: property has no children, skipping...");
++					continue;
++				}
+ 
+-					for (int j = 0; j < propChildren.getLength(); j++) {
++				for (int j = 0; j < propChildren.getLength(); j++) {
+ 
+-						final Node propChild = propChildren.item(j);
+-						if (propChild instanceof Element) {
+-							if ("key".equals(propChild.getNodeName()) && propChild.getChildNodes() != null
+-								&& propChild.getChildNodes().getLength() == 1
+-								&& propChild.getChildNodes().item(0) instanceof Text) {
++					final Node propChild = propChildren.item(j);
++					if (propChild instanceof Element) {
++						if ("key".equals(propChild.getNodeName()) && propChild.getChildNodes() != null
++							&& propChild.getChildNodes().getLength() == 1
++							&& propChild.getChildNodes().item(0) instanceof Text) {
+ 
+-								final Text t = (Text) propChild.getChildNodes().item(0);
+-								key = t.getTextContent();
+-							}
++							final Text t = (Text) propChild.getChildNodes().item(0);
++							key = t.getTextContent();
++						}
+ 
+-							if ("value".equals(propChild.getNodeName()) && propChild.getChildNodes() != null
+-								&& propChild.getChildNodes().getLength() == 1
+-								&& propChild.getChildNodes().item(0) instanceof Text) {
++						if ("value".equals(propChild.getNodeName()) && propChild.getChildNodes() != null
++							&& propChild.getChildNodes().getLength() == 1
++							&& propChild.getChildNodes().item(0) instanceof Text) {
+ 
+-								final Text t = (Text) propChild.getChildNodes().item(0);
+-								value = t.getTextContent();
+-							}
++							final Text t = (Text) propChild.getChildNodes().item(0);
++							value = t.getTextContent();
+ 						}
+ 					}
++				}
+ 
+-					if (key != null && value != null) {
+-						// Put key, value pair into the map
+-						LOG.debug("Loading configuration property: " + key + ", " + value);
+-						this.confData.put(key, value);
+-					} else {
+-						LOG.warn("Error while reading configuration: Cannot read property " + propNumber);
+-						continue;
+-					}
++				if (key != null && value != null) {
++					// Put key, value pair into the map
++					LOG.debug("Loading configuration property: " + key + ", " + value);
++					this.confData.put(key, value);
++				} else {
++					LOG.warn("Error while reading configuration: Cannot read property " + propNumber);
++					continue;
+ 				}
+ 			}
+ 
+@@ -426,7 +394,7 @@ public final class GlobalConfiguration {
+ 	 */
+ 	public static Configuration getConfiguration() {
+ 
+-		return get().getConfigurationInternal(null);
++		return CONFIGURATION.getConfigurationInternal(null);
+ 	}
+ 
+ 	/**
+@@ -441,7 +409,7 @@ public final class GlobalConfiguration {
+ 	 */
+ 	public static Configuration getConfiguration(final String[] keys) {
+ 
+-		return get().getConfigurationInternal(keys);
++		return CONFIGURATION.getConfigurationInternal(keys);
+ 	}
+ 
+ 	/**
+@@ -453,34 +421,20 @@ public final class GlobalConfiguration {
+ 	 */
+ 	private Configuration getConfigurationInternal(final String[] keys) {
+ 
+-		Configuration conf = new Configuration();
+-
+-		synchronized (this.confData) {
+-
+-			final Iterator<String> it = this.confData.keySet().iterator();
+-
+-			while (it.hasNext()) {
+-
+-				final String key = it.next();
+-				boolean found = false;
+-				if (keys != null) {
+-					for (int i = 0; i < keys.length; i++) {
+-						if (key.equals(keys[i])) {
+-							found = true;
+-							break;
+-						}
+-					}
++		if (keys == null) {
++			return new Configuration(this.confData);
++		}
+ 
+-					if (found) {
+-						conf.setString(key, this.confData.get(key));
+-					}
+-				} else {
+-					conf.setString(key, this.confData.get(key));
+-				}
++		final Configuration configuration = new Configuration();
++		for (int i = 0; i < keys.length; ++i) {
++			final String key = keys[i];
++			final String value = this.confData.get(key);
++			if (value != null) {
++				configuration.setString(key, value);
+ 			}
+ 		}
+ 
+-		return conf;
++		return configuration;
+ 	}
+ 
+ 	/**
+@@ -494,7 +448,7 @@ public final class GlobalConfiguration {
+ 	 */
+ 	public static void includeConfiguration(final Configuration conf) {
+ 
+-		get().includeConfigurationInternal(conf);
++		CONFIGURATION.includeConfigurationInternal(conf);
+ 	}
+ 
+ 	/**
+@@ -506,19 +460,14 @@ public final class GlobalConfiguration {
+ 	private void includeConfigurationInternal(final Configuration conf) {
+ 
+ 		if (conf == null) {
+-			LOG.error("Given configuration object is null, ignoring it...");
+-			return;
++			throw new NullPointerException("Given configuration object is null, ignoring it...");
+ 		}
+ 
+-		synchronized (this.confData) {
+-
+-			final Iterator<String> it = conf.keySet().iterator();
++		final Iterator<String> it = conf.keySet().iterator();
+ 
+-			while (it.hasNext()) {
+-
+-				final String key = it.next();
+-				this.confData.put(key, conf.getString(key, ""));
+-			}
++		while (it.hasNext()) {
++			final String key = it.next();
++			this.confData.put(key, conf.getString(key, ""));
+ 		}
+ 	}
+ }
