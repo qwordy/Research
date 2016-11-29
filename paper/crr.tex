@@ -287,6 +287,8 @@ A concurrent keyword here is defined as one of the class names or interface name
 
 A string matching algorithm is used to check if a snippet contains a concurrent keyword. A keyword sometimes is not at the position which it should be. For example, a type name occurs in a string or a comment. But now that the keyword exists in the code for some reasons, the code tend to has some relationships with concurrency more or less. This method might omit some snippets that are concurrent related, but the selected ones are mostly concurrent related snippets indeed. So, string matching algorithm is acceptable and practical.
 
+We use the SVM method to classify commits as concurrent-related or not. SVM is a supervised classification algorithm which needs both positive and negative training data. We extracted 12 features from each commit and labeled 65 instances manually as a training data set. Testing on the training set itself has an accuracy of 98.46\%. The classifier selects 96 positive instances from 9891 instances.
+
 \subsection{Extracting changes}
 We employ a tree based differencing algorithm to extract code changes of matching methods. For a matching pair of methods before and after a modification, the differencing algorithm generates a sequence of edit operations. An edit operation is one of the following types:
 

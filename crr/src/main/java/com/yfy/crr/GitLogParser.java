@@ -25,8 +25,12 @@ public class GitLogParser {
 
   private int crFileCount, fileCount, relatedCommitCount;
 
+  private PrintWriter pw, pw2;
+
   public GitLogParser() throws Exception {
     //db = new Db();
+    pw = new PrintWriter("../svm/test");
+    pw2 = new PrintWriter("../svm/commitId");
   }
 
   public void parseAll() throws Exception {
@@ -38,6 +42,8 @@ public class GitLogParser {
     parse("lucene-solr"); // 40m 1h
     parse("netty"); // 4m 9m
     //parse("guava"); // 2m 4m
+    pw.close();
+    pw2.close();
   }
 
   private void parse(String project) throws Exception {
@@ -90,7 +96,8 @@ public class GitLogParser {
     codeFeature(lines, f);
     if (f.related()) {
       relatedCommitCount++;
-
+      pw.println("-1 " + f.toStr());
+      pw2.println(project + ' ' + commitId);
     }
   }
 
