@@ -9,7 +9,7 @@ public class Feature {
       keyAdd, keyRemove, keySub, keySum, contextKey;
 
   public boolean related() {
-    return msgKey > 0 || keyAdd > 0 || keyRemove > 0 || contextKey > 0;
+    return msgKey > 0 || keyAdd > 0 || keyRemove > 0;// || contextKey > 0;
   }
 
   public String toStr() {

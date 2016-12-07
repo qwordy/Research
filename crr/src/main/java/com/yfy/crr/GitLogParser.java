@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.locks.Condition;
 import java.util.stream.Collectors;
 
 /**
@@ -96,8 +97,10 @@ public class GitLogParser {
     codeFeature(lines, f);
     if (f.related()) {
       relatedCommitCount++;
-      pw.println("-1 " + f.toStr());
-      pw2.println(project + ' ' + commitId);
+//      pw.println("-1 " + f.toStr());
+//      pw2.println(project + ' ' + commitId);
+      writeDiff(lines, Config.projectsDir + "/diff2",
+          project + '_' + relatedCommitCount + '_' + commitId);
     }
   }
 
