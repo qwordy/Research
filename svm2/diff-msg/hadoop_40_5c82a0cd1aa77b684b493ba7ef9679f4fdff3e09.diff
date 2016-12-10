@@ -1,0 +1,61 @@
+commit 5c82a0cd1aa77b684b493ba7ef9679f4fdff3e09
+Author: Tsz-wo Sze <szetszwo@apache.org>
+Date:   Wed May 15 02:18:27 2013 +0000
+
+    HDFS-4813. Add volatile to BlocksMap.blocks so that the replication thread can see the updated value.  Contributed by Jing Zhao
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1482658 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+index c26a233..dc13e4a 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
++++ b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+@@ -995,6 +995,9 @@ Release 2.0.5-beta - UNRELEASED
+     HDFS-4300. TransferFsImage.downloadEditsToStorage should use a tmp file for
+     destination. (Andrew Wang via atm)
+ 
++    HDFS-4813. Add volatile to BlocksMap.blocks so that the replication thread
++    can see the updated value.  (Jing Zhao via szetszwo)
++
+ Release 2.0.4-alpha - 2013-04-25
+ 
+   INCOMPATIBLE CHANGES
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/BlockManager.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/BlockManager.java
+index d2f7be0..3a298eb 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/BlockManager.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/BlockManager.java
+@@ -59,11 +59,10 @@
+ import org.apache.hadoop.hdfs.server.blockmanagement.PendingDataNodeMessages.ReportedBlockInfo;
+ import org.apache.hadoop.hdfs.server.common.HdfsServerConstants.BlockUCState;
+ import org.apache.hadoop.hdfs.server.common.HdfsServerConstants.ReplicaState;
+-import org.apache.hadoop.hdfs.server.blockmanagement.DatanodeDescriptor;
+ import org.apache.hadoop.hdfs.server.namenode.FSClusterStats;
+ import org.apache.hadoop.hdfs.server.namenode.NameNode;
+-import org.apache.hadoop.hdfs.server.namenode.Namesystem;
+ import org.apache.hadoop.hdfs.server.namenode.NameNode.OperationCategory;
++import org.apache.hadoop.hdfs.server.namenode.Namesystem;
+ import org.apache.hadoop.hdfs.server.namenode.metrics.NameNodeMetrics;
+ import org.apache.hadoop.hdfs.server.protocol.BlockCommand;
+ import org.apache.hadoop.hdfs.server.protocol.BlocksWithLocations;
+@@ -73,7 +72,6 @@
+ import org.apache.hadoop.hdfs.server.protocol.ReceivedDeletedBlockInfo;
+ import org.apache.hadoop.hdfs.util.LightWeightLinkedSet;
+ import org.apache.hadoop.net.Node;
+-import org.apache.hadoop.net.NodeBase;
+ import org.apache.hadoop.util.Daemon;
+ import org.apache.hadoop.util.Time;
+ 
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/BlocksMap.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/BlocksMap.java
+index 245546a..de2eb7c 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/BlocksMap.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/BlocksMap.java
+@@ -57,7 +57,7 @@ public void remove()  {
+   /** Constant {@link LightWeightGSet} capacity. */
+   private final int capacity;
+   
+-  private GSet<Block, BlockInfo> blocks;
++  private volatile GSet<Block, BlockInfo> blocks;
+ 
+   BlocksMap(final float loadFactor) {
+     // Use 2% of total memory to size the GSet capacity

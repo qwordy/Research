@@ -1,0 +1,31 @@
+commit 1dffa02250c493862f773af9b691a3bf3db6f76d
+Author: Edward Capriolo <edlinuxguru@gmail.com>
+Date:   Fri Jun 10 10:45:57 2016 -0500
+
+    StorageService shutdown hook should use a volatile variable
+    
+    patch by Ed Capriolo; reviewed by Stefania Alborghetti for CASSANDRA-11984
+
+diff --git a/CHANGES.txt b/CHANGES.txt
+index ce48994..7ec3ae9 100644
+--- a/CHANGES.txt
++++ b/CHANGES.txt
+@@ -1,4 +1,5 @@
+ 2.2.7
++ * StorageService shutdown hook should use a volatile variable (CASSANDRA-11984)
+  * Persist local metadata earlier in startup sequence (CASSANDRA-11742)
+  * Run CommitLog tests with different compression settings (CASSANDRA-9039)
+  * cqlsh: fix tab completion for case-sensitive identifiers (CASSANDRA-11664)
+diff --git a/src/java/org/apache/cassandra/service/StorageService.java b/src/java/org/apache/cassandra/service/StorageService.java
+index 83639e0..6b64664 100644
+--- a/src/java/org/apache/cassandra/service/StorageService.java
++++ b/src/java/org/apache/cassandra/service/StorageService.java
+@@ -212,7 +212,7 @@ public class StorageService extends NotificationBroadcasterSupport implements IE
+     public volatile VersionedValue.VersionedValueFactory valueFactory = new VersionedValue.VersionedValueFactory(getPartitioner());
+ 
+     private Thread drainOnShutdown = null;
+-    private boolean inShutdownHook = false;
++    private volatile boolean inShutdownHook = false;
+ 
+     public static final StorageService instance = new StorageService();
+ 

@@ -1,0 +1,42 @@
+commit b0a5d4c266ed4117282decf06dc5053190423230
+Author: buchgr <jakob.buchgraber@tum.de>
+Date:   Mon Jul 4 09:49:09 2016 +0200
+
+    Fix improper synchronization in DefaultPromise. Fixes #5489
+    
+    Motivation:
+    
+    A race detector found that DefaultPromise.listeners is improperly synchronized [1].
+    Worst case a listener will not be executed when the promise is completed.
+    
+    Modifications:
+    
+    Make DefaultPromise.listeners a volatile.
+    
+    Result:
+    
+    Hopefully, DefaultPromise is more correct under concurrent execution.
+    
+    [1] https://github.com/grpc/grpc-java/issues/2015
+
+diff --git a/common/src/main/java/io/netty/util/concurrent/DefaultPromise.java b/common/src/main/java/io/netty/util/concurrent/DefaultPromise.java
+index 453c44a..c50e0e5 100644
+--- a/common/src/main/java/io/netty/util/concurrent/DefaultPromise.java
++++ b/common/src/main/java/io/netty/util/concurrent/DefaultPromise.java
+@@ -60,7 +60,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
+      *
+      * Threading - synchronized(this). We must support adding listeners when there is no EventExecutor.
+      */
+-    private Object listeners;
++    private volatile Object listeners;
+     /**
+      * Threading - synchronized(this). We are required to hold the monitor to use Java's underlying wait()/notifyAll().
+      */
+@@ -417,7 +417,6 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
+     }
+ 
+     private void notifyListeners() {
+-        // Modifications to listeners should be done in a synchronized block before this, and should be visible here.
+         if (listeners == null) {
+             return;
+         }

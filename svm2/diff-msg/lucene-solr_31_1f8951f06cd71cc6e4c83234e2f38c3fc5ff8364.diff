@@ -1,0 +1,40 @@
+commit 1f8951f06cd71cc6e4c83234e2f38c3fc5ff8364
+Author: Simon Willnauer <simonw@apache.org>
+Date:   Thu Feb 4 10:23:42 2010 +0000
+
+    updated test after clover instrumentation run failure. Thread termination timeout set to 60 seconds and made booleans in workers volatile.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@906441 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/contrib/spellchecker/src/test/org/apache/lucene/search/spell/TestSpellChecker.java b/contrib/spellchecker/src/test/org/apache/lucene/search/spell/TestSpellChecker.java
+index e766f2a..81782f4 100755
+--- a/contrib/spellchecker/src/test/org/apache/lucene/search/spell/TestSpellChecker.java
++++ b/contrib/spellchecker/src/test/org/apache/lucene/search/spell/TestSpellChecker.java
+@@ -299,12 +299,12 @@ public class TestSpellChecker extends LuceneTestCase {
+     
+     spellChecker.close();
+     executor.shutdown();
+-    executor.awaitTermination(5, TimeUnit.SECONDS);
+-    
++    // wait for 60 seconds - usually this is very fast but coverage runs could take quite long
++    executor.awaitTermination(60L, TimeUnit.SECONDS);
+     
+     for (int i = 0; i < workers.length; i++) {
+-      assertFalse(workers[i].failed);
+-      assertTrue(workers[i].terminated);
++      assertFalse(String.format("worker thread %d failed", i), workers[i].failed);
++      assertTrue(String.format("worker thread %d is still running but should be terminated", i), workers[i].terminated);
+     }
+     // 4 searchers more than iterations
+     // 1. at creation
+@@ -347,8 +347,8 @@ public class TestSpellChecker extends LuceneTestCase {
+   
+   private class SpellCheckWorker implements Runnable {
+     private final IndexReader reader;
+-    boolean terminated = false;
+-    boolean failed = false;
++    volatile boolean terminated = false;
++    volatile boolean failed = false;
+     
+     SpellCheckWorker(IndexReader reader) {
+       super();

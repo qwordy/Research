@@ -1,0 +1,29 @@
+commit ecea558e0378c780c0e7a8a92ee0650ece6cddd0
+Author: Norman Maurer <norman@apache.org>
+Date:   Mon Jun 4 20:40:17 2012 +0200
+
+    Add missing synchronized
+
+diff --git a/transport/src/main/java/io/netty/channel/DefaultChannelPipeline.java b/transport/src/main/java/io/netty/channel/DefaultChannelPipeline.java
+index fc92876..cbc631f 100644
+--- a/transport/src/main/java/io/netty/channel/DefaultChannelPipeline.java
++++ b/transport/src/main/java/io/netty/channel/DefaultChannelPipeline.java
+@@ -1559,6 +1559,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
+         public final void run() {
+             try {
+                 runTask();
++                
+             } catch (Throwable t) {
+                 if (t instanceof ChannelException) {
+                     cause = (ChannelException) t;
+@@ -1577,7 +1578,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
+         
+         void await() {
+             try {
+-                wait();
++                synchronized (ChannelPipelineModificationRunnable.this) {
++                    wait();
++                }
+                 if (cause != null) {
+                     throw cause;
+                 }

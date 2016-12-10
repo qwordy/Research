@@ -1,0 +1,43 @@
+commit 6ff87cc20d5b728ebe6be2d6f4a2cb0092f6abf6
+Author: Norman Maurer <nmaurer@redhat.com>
+Date:   Thu Jul 25 09:28:54 2013 +0200
+
+    Small optimitation to limit volatile reads
+
+diff --git a/transport/src/main/java/io/netty/channel/nio/AbstractNioByteChannel.java b/transport/src/main/java/io/netty/channel/nio/AbstractNioByteChannel.java
+index 6533fd6..6444d30 100644
+--- a/transport/src/main/java/io/netty/channel/nio/AbstractNioByteChannel.java
++++ b/transport/src/main/java/io/netty/channel/nio/AbstractNioByteChannel.java
+@@ -144,6 +144,8 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
+     protected void doWrite(ChannelOutboundBuffer in) throws Exception {
+         final SelectionKey key = selectionKey();
+         final int interestOps = key.interestOps();
++        int writeSpinCount = -1;
++
+         for (;;) {
+             Object msg = in.current();
+             if (msg == null) {
+@@ -163,7 +165,10 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
+ 
+                 boolean done = false;
+                 long flushedAmount = 0;
+-                for (int i = config().getWriteSpinCount() - 1; i >= 0; i --) {
++                if (writeSpinCount == -1) {
++                    writeSpinCount = config().getWriteSpinCount();
++                }
++                for (int i = writeSpinCount - 1; i >= 0; i --) {
+                     int localFlushedAmount = doWriteBytes(buf);
+                     if (localFlushedAmount == 0) {
+                         break;
+@@ -190,7 +195,10 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
+                 FileRegion region = (FileRegion) msg;
+                 boolean done = false;
+                 long flushedAmount = 0;
+-                for (int i = config().getWriteSpinCount() - 1; i >= 0; i --) {
++                if (writeSpinCount == -1) {
++                    writeSpinCount = config().getWriteSpinCount();
++                }
++                for (int i = writeSpinCount - 1; i >= 0; i --) {
+                     long localFlushedAmount = doWriteFileRegion(region);
+                     if (localFlushedAmount == 0) {
+                         break;

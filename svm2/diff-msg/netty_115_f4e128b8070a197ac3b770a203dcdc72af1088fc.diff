@@ -1,0 +1,19 @@
+commit f4e128b8070a197ac3b770a203dcdc72af1088fc
+Author: Norman Maurer <nmaurer@redhat.com>
+Date:   Tue Jul 23 07:11:11 2013 +0200
+
+    [#1612] No need for volatile as it is not needed to be precise
+
+diff --git a/common/src/main/java/io/netty/util/ResourceLeakDetector.java b/common/src/main/java/io/netty/util/ResourceLeakDetector.java
+index 9aac5b5..f60731e 100644
+--- a/common/src/main/java/io/netty/util/ResourceLeakDetector.java
++++ b/common/src/main/java/io/netty/util/ResourceLeakDetector.java
+@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
+ 
+ public final class ResourceLeakDetector<T> {
+ 
+-    private static volatile boolean disabled;
++    private static boolean disabled;
+ 
+     private static final InternalLogger logger = InternalLoggerFactory.getInstance(ResourceLeakDetector.class);
+ 

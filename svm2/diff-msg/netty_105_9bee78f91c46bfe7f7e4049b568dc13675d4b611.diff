@@ -1,0 +1,449 @@
+commit 9bee78f91c46bfe7f7e4049b568dc13675d4b611
+Author: Norman Maurer <nmaurer@redhat.com>
+Date:   Tue Feb 4 10:37:40 2014 +0100
+
+    Provide an optimized AtomicIntegerFieldUpdater, AtomicLongFieldUpdater and AtomicReferenceFieldUpdater
+
+diff --git a/buffer/src/main/java/io/netty/buffer/AbstractReferenceCountedByteBuf.java b/buffer/src/main/java/io/netty/buffer/AbstractReferenceCountedByteBuf.java
+index 25e237a..d881590 100644
+--- a/buffer/src/main/java/io/netty/buffer/AbstractReferenceCountedByteBuf.java
++++ b/buffer/src/main/java/io/netty/buffer/AbstractReferenceCountedByteBuf.java
+@@ -26,8 +26,7 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+  */
+ public abstract class AbstractReferenceCountedByteBuf extends AbstractByteBuf {
+ 
+-    private static final AtomicIntegerFieldUpdater<AbstractReferenceCountedByteBuf> refCntUpdater =
+-            AtomicIntegerFieldUpdater.newUpdater(AbstractReferenceCountedByteBuf.class, "refCnt");
++    private static final AtomicIntegerFieldUpdater<AbstractReferenceCountedByteBuf> refCntUpdater;
+ 
+     private static final long REFCNT_FIELD_OFFSET;
+ 
+@@ -43,6 +42,12 @@ public abstract class AbstractReferenceCountedByteBuf extends AbstractByteBuf {
+         }
+ 
+         REFCNT_FIELD_OFFSET = refCntFieldOffset;
++        AtomicIntegerFieldUpdater<AbstractReferenceCountedByteBuf> updater =
++                PlatformDependent.newAtomicIntegerFieldUpdater(AbstractReferenceCountedByteBuf.class, "refCnt");
++        if (updater == null) {
++            updater = AtomicIntegerFieldUpdater.newUpdater(AbstractReferenceCountedByteBuf.class, "refCnt");
++        }
++        refCntUpdater = updater;
+     }
+ 
+     @SuppressWarnings("FieldMayBeFinal")
+diff --git a/common/src/main/java/io/netty/util/AbstractReferenceCounted.java b/common/src/main/java/io/netty/util/AbstractReferenceCounted.java
+index 136dcf3..5b6131f 100644
+--- a/common/src/main/java/io/netty/util/AbstractReferenceCounted.java
++++ b/common/src/main/java/io/netty/util/AbstractReferenceCounted.java
+@@ -24,8 +24,7 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+  */
+ public abstract class AbstractReferenceCounted implements ReferenceCounted {
+ 
+-    private static final AtomicIntegerFieldUpdater<AbstractReferenceCounted> refCntUpdater =
+-            AtomicIntegerFieldUpdater.newUpdater(AbstractReferenceCounted.class, "refCnt");
++    private static final AtomicIntegerFieldUpdater<AbstractReferenceCounted> refCntUpdater;
+ 
+     private static final long REFCNT_FIELD_OFFSET;
+ 
+@@ -41,6 +40,13 @@ public abstract class AbstractReferenceCounted implements ReferenceCounted {
+         }
+ 
+         REFCNT_FIELD_OFFSET = refCntFieldOffset;
++
++        AtomicIntegerFieldUpdater<AbstractReferenceCounted> updater =
++                PlatformDependent.newAtomicIntegerFieldUpdater(AbstractReferenceCounted.class, "refCnt");
++        if (updater == null) {
++            updater = AtomicIntegerFieldUpdater.newUpdater(AbstractReferenceCounted.class, "refCnt");
++        }
++        refCntUpdater = updater;
+     }
+ 
+     @SuppressWarnings("FieldMayBeFinal")
+diff --git a/common/src/main/java/io/netty/util/DefaultAttributeMap.java b/common/src/main/java/io/netty/util/DefaultAttributeMap.java
+index 49765b1..806610a 100644
+--- a/common/src/main/java/io/netty/util/DefaultAttributeMap.java
++++ b/common/src/main/java/io/netty/util/DefaultAttributeMap.java
+@@ -15,6 +15,8 @@
+  */
+ package io.netty.util;
+ 
++import io.netty.util.internal.PlatformDependent;
++
+ import java.util.IdentityHashMap;
+ import java.util.Map;
+ import java.util.concurrent.atomic.AtomicReference;
+@@ -27,8 +29,17 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+ public class DefaultAttributeMap implements AttributeMap {
+ 
+     @SuppressWarnings("rawtypes")
+-    private static final AtomicReferenceFieldUpdater<DefaultAttributeMap, Map> updater =
+-            AtomicReferenceFieldUpdater.newUpdater(DefaultAttributeMap.class, Map.class, "map");
++    private static final AtomicReferenceFieldUpdater<DefaultAttributeMap, Map> updater;
++
++    static {
++        @SuppressWarnings("rawtypes")
++        AtomicReferenceFieldUpdater<DefaultAttributeMap, Map> referenceFieldUpdater =
++                PlatformDependent.newAtomicReferenceFieldUpdater(DefaultAttributeMap.class, "map");
++        if (referenceFieldUpdater == null) {
++            referenceFieldUpdater = AtomicReferenceFieldUpdater.newUpdater(DefaultAttributeMap.class, Map.class, "map");
++        }
++        updater = referenceFieldUpdater;
++    }
+ 
+     // Initialize lazily to reduce memory consumption; updated by AtomicReferenceFieldUpdater above.
+     @SuppressWarnings("UnusedDeclaration")
+diff --git a/common/src/main/java/io/netty/util/internal/PlatformDependent.java b/common/src/main/java/io/netty/util/internal/PlatformDependent.java
+index 3f65f6d..667162a 100644
+--- a/common/src/main/java/io/netty/util/internal/PlatformDependent.java
++++ b/common/src/main/java/io/netty/util/internal/PlatformDependent.java
+@@ -34,6 +34,9 @@ import java.util.Map;
+ import java.util.concurrent.BlockingQueue;
+ import java.util.concurrent.ConcurrentHashMap;
+ import java.util.concurrent.ConcurrentMap;
++import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
++import java.util.concurrent.atomic.AtomicLongFieldUpdater;
++import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+ import java.util.regex.Matcher;
+ import java.util.regex.Pattern;
+ 
+@@ -296,6 +299,57 @@ public final class PlatformDependent {
+         PlatformDependent0.copyMemory(null, srcAddr, dst, ARRAY_BASE_OFFSET + dstIndex, length);
+     }
+ 
++    /**
++     * Create a new optimized {@link AtomicReferenceFieldUpdater} or {@code null} if it
++     * could not be created. Because of this the caller need to check for {@code null} and if {@code null} is returned
++     * use {@link AtomicReferenceFieldUpdater#newUpdater(Class, Class, String)} as fallback.
++     */
++    public static <U, W> AtomicReferenceFieldUpdater<U, W> newAtomicReferenceFieldUpdater(
++            Class<U> tclass, String fieldName) {
++        if (hasUnsafe()) {
++            try {
++                return PlatformDependent0.newAtomicReferenceFieldUpdater(tclass, fieldName);
++            } catch (Throwable ignore) {
++                // ignore
++            }
++        }
++        return null;
++    }
++
++    /**
++     * Create a new optimized {@link AtomicIntegerFieldUpdater} or {@code null} if it
++     * could not be created. Because of this the caller need to check for {@code null} and if {@code null} is returned
++     * use {@link AtomicIntegerFieldUpdater#newUpdater(Class, String)} as fallback.
++     */
++    public static <T> AtomicIntegerFieldUpdater<T> newAtomicIntegerFieldUpdater(
++            Class<?> tclass, String fieldName) {
++        if (hasUnsafe()) {
++            try {
++                return PlatformDependent0.newAtomicIntegerFieldUpdater(tclass, fieldName);
++            } catch (Throwable ignore) {
++                // ignore
++            }
++        }
++        return null;
++    }
++
++    /**
++     * Create a new optimized {@link AtomicLongFieldUpdater} or {@code null} if it
++     * could not be created. Because of this the caller need to check for {@code null} and if {@code null} is returned
++     * use {@link AtomicLongFieldUpdater#newUpdater(Class, String)} as fallback.
++     */
++    public static <T> AtomicLongFieldUpdater<T> newAtomicLongFieldUpdater(
++            Class<?> tclass, String fieldName) {
++        if (hasUnsafe()) {
++            try {
++                return PlatformDependent0.newAtomicLongFieldUpdater(tclass, fieldName);
++            } catch (Throwable ignore) {
++                // ignore
++            }
++        }
++        return null;
++    }
++
+     private static boolean isAndroid0() {
+         boolean android;
+         try {
+diff --git a/common/src/main/java/io/netty/util/internal/PlatformDependent0.java b/common/src/main/java/io/netty/util/internal/PlatformDependent0.java
+index 80f8a19..bf3abc1 100644
+--- a/common/src/main/java/io/netty/util/internal/PlatformDependent0.java
++++ b/common/src/main/java/io/netty/util/internal/PlatformDependent0.java
+@@ -26,6 +26,9 @@ import java.lang.reflect.Method;
+ import java.nio.Buffer;
+ import java.nio.ByteBuffer;
+ import java.nio.ByteOrder;
++import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
++import java.util.concurrent.atomic.AtomicLongFieldUpdater;
++import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+ 
+ /**
+  * The {@link PlatformDependent} operations which requires access to {@code sun.misc.*}.
+@@ -312,6 +315,22 @@ final class PlatformDependent0 {
+         UNSAFE.copyMemory(src, srcOffset, dst, dstOffset, length);
+     }
+ 
++    static <U, W> AtomicReferenceFieldUpdater<U, W> newAtomicReferenceFieldUpdater(
++            Class<U> tclass, String fieldName) throws Exception {
++        return new UnsafeAtomicReferenceFieldUpdater<U, W>(UNSAFE, tclass, fieldName);
++    }
++
++    static <T> AtomicIntegerFieldUpdater<T> newAtomicIntegerFieldUpdater(
++            Class<?> tclass, String fieldName) throws Exception {
++        return new UnsafeAtomicIntegerFieldUpdater<T>(UNSAFE, tclass, fieldName);
++    }
++
++    static <T> AtomicLongFieldUpdater<T> newAtomicLongFieldUpdater(
++            Class<?> tclass, String fieldName) throws Exception {
++        return new UnsafeAtomicLongFieldUpdater<T>(UNSAFE, tclass, fieldName);
++    }
++
+     private PlatformDependent0() {
+     }
++
+ }
+diff --git a/common/src/main/java/io/netty/util/internal/UnsafeAtomicIntegerFieldUpdater.java b/common/src/main/java/io/netty/util/internal/UnsafeAtomicIntegerFieldUpdater.java
+new file mode 100644
+index 0000000..bd18424
+--- /dev/null
++++ b/common/src/main/java/io/netty/util/internal/UnsafeAtomicIntegerFieldUpdater.java
+@@ -0,0 +1,61 @@
++/*
++ * Copyright 2014 The Netty Project
++ *
++ * The Netty Project licenses this file to you under the Apache License,
++ * version 2.0 (the "License"); you may not use this file except in compliance
++ * with the License. You may obtain a copy of the License at:
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations
++ * under the License.
++ */
++package io.netty.util.internal;
++
++import sun.misc.Unsafe;
++
++import java.lang.reflect.Field;
++import java.lang.reflect.Modifier;
++import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
++
++final class UnsafeAtomicIntegerFieldUpdater<T> extends AtomicIntegerFieldUpdater<T> {
++    private final long offset;
++    private final Unsafe unsafe;
++
++    UnsafeAtomicIntegerFieldUpdater(Unsafe unsafe, Class<?> tClass, String fieldName) throws NoSuchFieldException {
++        Field field = tClass.getDeclaredField(fieldName);
++        if (!Modifier.isVolatile(field.getModifiers())) {
++            throw new IllegalArgumentException("Must be volatile");
++        }
++        this.unsafe = unsafe;
++        offset = unsafe.objectFieldOffset(field);
++    }
++
++    @Override
++    public boolean compareAndSet(T obj, int expect, int update) {
++        return unsafe.compareAndSwapInt(obj, offset, expect, update);
++    }
++
++    @Override
++    public boolean weakCompareAndSet(T obj, int expect, int update) {
++        return unsafe.compareAndSwapInt(obj, offset, expect, update);
++    }
++
++    @Override
++    public void set(T obj, int newValue) {
++        unsafe.putIntVolatile(obj, offset, newValue);
++    }
++
++    @Override
++    public void lazySet(T obj, int newValue) {
++        unsafe.putOrderedInt(obj, offset, newValue);
++    }
++
++    @Override
++    public int get(T obj) {
++        return unsafe.getIntVolatile(obj, offset);
++    }
++}
+diff --git a/common/src/main/java/io/netty/util/internal/UnsafeAtomicLongFieldUpdater.java b/common/src/main/java/io/netty/util/internal/UnsafeAtomicLongFieldUpdater.java
+new file mode 100644
+index 0000000..229fa8c
+--- /dev/null
++++ b/common/src/main/java/io/netty/util/internal/UnsafeAtomicLongFieldUpdater.java
+@@ -0,0 +1,61 @@
++/*
++ * Copyright 2014 The Netty Project
++ *
++ * The Netty Project licenses this file to you under the Apache License,
++ * version 2.0 (the "License"); you may not use this file except in compliance
++ * with the License. You may obtain a copy of the License at:
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations
++ * under the License.
++ */
++package io.netty.util.internal;
++
++import sun.misc.Unsafe;
++
++import java.lang.reflect.Field;
++import java.lang.reflect.Modifier;
++import java.util.concurrent.atomic.AtomicLongFieldUpdater;
++
++final class UnsafeAtomicLongFieldUpdater<T> extends AtomicLongFieldUpdater<T> {
++    private final long offset;
++    private final Unsafe unsafe;
++
++    UnsafeAtomicLongFieldUpdater(Unsafe unsafe, Class<?> tClass, String fieldName) throws NoSuchFieldException {
++        Field field = tClass.getDeclaredField(fieldName);
++        if (!Modifier.isVolatile(field.getModifiers())) {
++            throw new IllegalArgumentException("Must be volatile");
++        }
++        this.unsafe = unsafe;
++        offset = unsafe.objectFieldOffset(field);
++    }
++
++    @Override
++    public boolean compareAndSet(T obj, long expect, long update) {
++        return unsafe.compareAndSwapLong(obj, offset, expect, update);
++    }
++
++    @Override
++    public boolean weakCompareAndSet(T obj, long expect, long update) {
++        return unsafe.compareAndSwapLong(obj, offset, expect, update);
++    }
++
++    @Override
++    public void set(T obj, long newValue) {
++        unsafe.putLongVolatile(obj, offset, newValue);
++    }
++
++    @Override
++    public void lazySet(T obj, long newValue) {
++        unsafe.putOrderedLong(obj, offset, newValue);
++    }
++
++    @Override
++    public long get(T obj) {
++        return unsafe.getLongVolatile(obj, offset);
++    }
++}
+diff --git a/common/src/main/java/io/netty/util/internal/UnsafeAtomicReferenceFieldUpdater.java b/common/src/main/java/io/netty/util/internal/UnsafeAtomicReferenceFieldUpdater.java
+new file mode 100644
+index 0000000..f0c647e
+--- /dev/null
++++ b/common/src/main/java/io/netty/util/internal/UnsafeAtomicReferenceFieldUpdater.java
+@@ -0,0 +1,62 @@
++/*
++ * Copyright 2014 The Netty Project
++ *
++ * The Netty Project licenses this file to you under the Apache License,
++ * version 2.0 (the "License"); you may not use this file except in compliance
++ * with the License. You may obtain a copy of the License at:
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations
++ * under the License.
++ */
++package io.netty.util.internal;
++
++import sun.misc.Unsafe;
++
++import java.lang.reflect.Field;
++import java.lang.reflect.Modifier;
++import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
++
++final class UnsafeAtomicReferenceFieldUpdater<U, M> extends AtomicReferenceFieldUpdater<U, M> {
++    private final long offset;
++    private final Unsafe unsafe;
++
++    UnsafeAtomicReferenceFieldUpdater(Unsafe unsafe, Class<U> tClass, String fieldName) throws NoSuchFieldException {
++        Field field = tClass.getDeclaredField(fieldName);
++        if (!Modifier.isVolatile(field.getModifiers())) {
++            throw new IllegalArgumentException("Must be volatile");
++        }
++        this.unsafe = unsafe;
++        offset = unsafe.objectFieldOffset(field);
++    }
++
++    @Override
++    public boolean compareAndSet(U obj, M expect, M update) {
++        return unsafe.compareAndSwapObject(obj, offset, expect, update);
++    }
++
++    @Override
++    public boolean weakCompareAndSet(U obj, M expect, M update) {
++        return unsafe.compareAndSwapObject(obj, offset, expect, update);
++    }
++
++    @Override
++    public void set(U obj, M newValue) {
++        unsafe.putObjectVolatile(obj, offset, newValue);
++    }
++
++    @Override
++    public void lazySet(U obj, M newValue) {
++        unsafe.putOrderedObject(obj, offset, newValue);
++    }
++
++    @SuppressWarnings("unchecked")
++    @Override
++    public M get(U obj) {
++        return (M) unsafe.getObjectVolatile(obj, offset);
++    }
++}
+diff --git a/transport/src/main/java/io/netty/channel/ChannelOutboundBuffer.java b/transport/src/main/java/io/netty/channel/ChannelOutboundBuffer.java
+index 59bd315..a6419e4 100644
+--- a/transport/src/main/java/io/netty/channel/ChannelOutboundBuffer.java
++++ b/transport/src/main/java/io/netty/channel/ChannelOutboundBuffer.java
+@@ -26,6 +26,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
+ import io.netty.util.Recycler;
+ import io.netty.util.Recycler.Handle;
+ import io.netty.util.ReferenceCountUtil;
++import io.netty.util.internal.PlatformDependent;
+ import io.netty.util.internal.logging.InternalLogger;
+ import io.netty.util.internal.logging.InternalLoggerFactory;
+ 
+@@ -78,13 +79,27 @@ public final class ChannelOutboundBuffer {
+ 
+     private boolean inFail;
+ 
+-    private static final AtomicLongFieldUpdater<ChannelOutboundBuffer> TOTAL_PENDING_SIZE_UPDATER =
+-            AtomicLongFieldUpdater.newUpdater(ChannelOutboundBuffer.class, "totalPendingSize");
++    private static final AtomicLongFieldUpdater<ChannelOutboundBuffer> TOTAL_PENDING_SIZE_UPDATER;
+ 
+     private volatile long totalPendingSize;
+ 
+-    private static final AtomicIntegerFieldUpdater<ChannelOutboundBuffer> WRITABLE_UPDATER =
+-            AtomicIntegerFieldUpdater.newUpdater(ChannelOutboundBuffer.class, "writable");
++    private static final AtomicIntegerFieldUpdater<ChannelOutboundBuffer> WRITABLE_UPDATER;
++
++    static {
++        AtomicIntegerFieldUpdater<ChannelOutboundBuffer> writableUpdater =
++                PlatformDependent.newAtomicIntegerFieldUpdater(ChannelOutboundBuffer.class, "writable");
++        if (writableUpdater == null) {
++            writableUpdater = AtomicIntegerFieldUpdater.newUpdater(ChannelOutboundBuffer.class, "writable");
++        }
++        WRITABLE_UPDATER = writableUpdater;
++
++        AtomicLongFieldUpdater<ChannelOutboundBuffer> pendingSizeUpdater =
++                PlatformDependent.newAtomicLongFieldUpdater(ChannelOutboundBuffer.class, "totalPendingSize");
++        if (pendingSizeUpdater == null) {
++            pendingSizeUpdater = AtomicLongFieldUpdater.newUpdater(ChannelOutboundBuffer.class, "totalPendingSize");
++        }
++        TOTAL_PENDING_SIZE_UPDATER = pendingSizeUpdater;
++    }
+ 
+     private volatile int writable = 1;
+ 

@@ -1,0 +1,26 @@
+commit 926479e9046655b04ca5b9204a84b575ae4aa3f7
+Author: Trustin Lee <t@motd.kr>
+Date:   Thu Oct 24 17:39:50 2013 +0900
+
+    Make all mutable fields in WebSocketClientHandshaker volatile
+    
+    - Fixes #1945
+
+diff --git a/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocketClientHandshaker.java b/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocketClientHandshaker.java
+index 58a0d46..127a1ee 100644
+--- a/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocketClientHandshaker.java
++++ b/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocketClientHandshaker.java
+@@ -40,11 +40,11 @@ public abstract class WebSocketClientHandshaker {
+ 
+     private final WebSocketVersion version;
+ 
+-    private boolean handshakeComplete;
++    private volatile boolean handshakeComplete;
+ 
+     private final String expectedSubprotocol;
+ 
+-    private String actualSubprotocol;
++    private volatile String actualSubprotocol;
+ 
+     protected final HttpHeaders customHeaders;
+ 

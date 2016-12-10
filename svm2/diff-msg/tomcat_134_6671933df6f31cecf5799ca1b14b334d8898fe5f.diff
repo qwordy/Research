@@ -1,0 +1,57 @@
+commit 6671933df6f31cecf5799ca1b14b334d8898fe5f
+Author: Filip Hanik <fhanik@apache.org>
+Date:   Thu Mar 22 01:21:25 2007 +0000
+
+    Make sure that we don't need to use any locks or synchronized statements to get our executor to work properly.
+    If the task gets executed, means that the threadpool just reached max threads when we were about to add this one in.
+    a simple race condition that we can take care of easily
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@521068 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/core/StandardThreadExecutor.java b/java/org/apache/catalina/core/StandardThreadExecutor.java
+index f0f586d..53a4d92 100644
+--- a/java/org/apache/catalina/core/StandardThreadExecutor.java
++++ b/java/org/apache/catalina/core/StandardThreadExecutor.java
+@@ -11,6 +11,7 @@ import org.apache.catalina.Executor;
+ import org.apache.catalina.LifecycleException;
+ import org.apache.catalina.LifecycleListener;
+ import org.apache.catalina.util.LifecycleSupport;
++import java.util.concurrent.RejectedExecutionException;
+ 
+ public class StandardThreadExecutor implements Executor {
+     
+@@ -59,8 +60,14 @@ public class StandardThreadExecutor implements Executor {
+     }
+     
+     public void execute(Runnable command) {
+-        if ( executor != null ) executor.execute(command);
+-        else throw new IllegalStateException("StandardThreadPool not started.");
++        if ( executor != null ) {
++            try {
++                executor.execute(command);
++            } catch (RejectedExecutionException rx) {
++                //there could have been contention around the queue
++                if ( !( (TaskQueue) executor.getQueue()).force(command) ) throw new RejectedExecutionException();
++            }
++        } else throw new IllegalStateException("StandardThreadPool not started.");
+     }
+ 
+     public int getThreadPriority() {
+@@ -171,10 +178,15 @@ public class StandardThreadExecutor implements Executor {
+         public void setParent(ThreadPoolExecutor tp) {
+             parent = tp;
+         }
++        
++        public boolean force(Runnable o) {
++            if ( parent.isShutdown() ) throw new RejectedExecutionException();
++            return super.offer(o); //forces the item onto the queue, to be used if the task is rejected
++        }
+ 
+         public boolean offer(Runnable o) {
+             if (parent != null && parent.getPoolSize() < parent.getMaximumPoolSize())
+-                return false; //force creation of new threads
++                return false; //force creation of new threads by rejecting the task
+             else
+                 return super.offer(o);
+         }

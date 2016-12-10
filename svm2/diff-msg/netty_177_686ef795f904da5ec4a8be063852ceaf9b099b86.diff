@@ -1,0 +1,318 @@
+commit 686ef795f904da5ec4a8be063852ceaf9b099b86
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Mon Feb 1 06:21:49 2010 +0000
+
+    * Added NonReentrantLock
+    * Replaced ReentrantLock or monitor object with NonReentrantLock
+
+diff --git a/src/main/java/org/jboss/netty/channel/socket/nio/NioDatagramChannel.java b/src/main/java/org/jboss/netty/channel/socket/nio/NioDatagramChannel.java
+index a82fa60..29b09f3 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/nio/NioDatagramChannel.java
++++ b/src/main/java/org/jboss/netty/channel/socket/nio/NioDatagramChannel.java
+@@ -15,8 +15,7 @@
+  */
+ package org.jboss.netty.channel.socket.nio;
+ 
+-import static org.jboss.netty.channel.Channels.fireChannelInterestChanged;
+-import static org.jboss.netty.channel.Channels.fireChannelOpen;
++import static org.jboss.netty.channel.Channels.*;
+ 
+ import java.io.IOException;
+ import java.net.InetAddress;
+@@ -28,7 +27,6 @@ import java.nio.channels.DatagramChannel;
+ import java.util.Queue;
+ import java.util.concurrent.atomic.AtomicBoolean;
+ import java.util.concurrent.atomic.AtomicInteger;
+-import java.util.concurrent.locks.ReentrantLock;
+ 
+ import org.jboss.netty.buffer.ChannelBuffer;
+ import org.jboss.netty.channel.AbstractChannel;
+@@ -41,6 +39,7 @@ import org.jboss.netty.channel.ChannelSink;
+ import org.jboss.netty.channel.MessageEvent;
+ import org.jboss.netty.channel.socket.DatagramChannelConfig;
+ import org.jboss.netty.util.internal.LinkedTransferQueue;
++import org.jboss.netty.util.internal.NonReentrantLock;
+ import org.jboss.netty.util.internal.ThreadLocalBoolean;
+ 
+ /**
+@@ -76,9 +75,9 @@ class NioDatagramChannel extends AbstractChannel
+     final Object interestOpsLock = new Object();
+ 
+     /**
+-     * Monitor object for synchronizing access to the {@link WriteBufferQueue}.
++     * Synchronizes access to the {@link WriteBufferQueue}.
+      */
+-    final ReentrantLock writeLock = new ReentrantLock();
++    final NonReentrantLock writeLock = new NonReentrantLock();
+ 
+     /**
+      * WriteTask that performs write operations.
+diff --git a/src/main/java/org/jboss/netty/channel/socket/nio/NioDatagramWorker.java b/src/main/java/org/jboss/netty/channel/socket/nio/NioDatagramWorker.java
+index 1835206..df00d26 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/nio/NioDatagramWorker.java
++++ b/src/main/java/org/jboss/netty/channel/socket/nio/NioDatagramWorker.java
+@@ -34,7 +34,6 @@ import java.util.concurrent.Executor;
+ import java.util.concurrent.ExecutorService;
+ import java.util.concurrent.atomic.AtomicBoolean;
+ import java.util.concurrent.locks.ReadWriteLock;
+-import java.util.concurrent.locks.ReentrantLock;
+ import java.util.concurrent.locks.ReentrantReadWriteLock;
+ 
+ import org.jboss.netty.buffer.ChannelBuffer;
+@@ -48,6 +47,7 @@ import org.jboss.netty.logging.InternalLogger;
+ import org.jboss.netty.logging.InternalLoggerFactory;
+ import org.jboss.netty.util.ThreadRenamingRunnable;
+ import org.jboss.netty.util.internal.LinkedTransferQueue;
++import org.jboss.netty.util.internal.NonReentrantLock;
+ 
+ /**
+  * A class responsible for registering channels with {@link Selector}.
+@@ -443,8 +443,8 @@ class NioDatagramWorker implements Runnable {
+             return;
+         }
+ 
+-        final ReentrantLock writeLock = channel.writeLock;
+-        if (writeLock.isHeldByCurrentThread() || !writeLock.tryLock()) {
++        final NonReentrantLock writeLock = channel.writeLock;
++        if (!writeLock.tryLock()) {
+             rescheduleWrite(channel);
+             return;
+         }
+diff --git a/src/main/java/org/jboss/netty/channel/socket/nio/NioSocketChannel.java b/src/main/java/org/jboss/netty/channel/socket/nio/NioSocketChannel.java
+index 3a8f6c4..5f4bc32 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/nio/NioSocketChannel.java
++++ b/src/main/java/org/jboss/netty/channel/socket/nio/NioSocketChannel.java
+@@ -15,7 +15,7 @@
+  */
+ package org.jboss.netty.channel.socket.nio;
+ 
+-import static org.jboss.netty.channel.Channels.fireChannelInterestChanged;
++import static org.jboss.netty.channel.Channels.*;
+ 
+ import java.net.InetSocketAddress;
+ import java.net.SocketAddress;
+@@ -24,7 +24,6 @@ import java.nio.channels.SocketChannel;
+ import java.util.Queue;
+ import java.util.concurrent.atomic.AtomicBoolean;
+ import java.util.concurrent.atomic.AtomicInteger;
+-import java.util.concurrent.locks.ReentrantLock;
+ 
+ import org.jboss.netty.buffer.ChannelBuffer;
+ import org.jboss.netty.channel.AbstractChannel;
+@@ -35,6 +34,7 @@ import org.jboss.netty.channel.ChannelPipeline;
+ import org.jboss.netty.channel.ChannelSink;
+ import org.jboss.netty.channel.MessageEvent;
+ import org.jboss.netty.util.internal.LinkedTransferQueue;
++import org.jboss.netty.util.internal.NonReentrantLock;
+ import org.jboss.netty.util.internal.ThreadLocalBoolean;
+ 
+ /**
+@@ -60,7 +60,7 @@ class NioSocketChannel extends AbstractChannel
+     private volatile InetSocketAddress remoteAddress;
+ 
+     final Object interestOpsLock = new Object();
+-    final ReentrantLock writeLock = new ReentrantLock();
++    final NonReentrantLock writeLock = new NonReentrantLock();
+ 
+     final Runnable writeTask = new WriteTask();
+     final AtomicBoolean writeTaskInTaskQueue = new AtomicBoolean();
+diff --git a/src/main/java/org/jboss/netty/channel/socket/nio/NioWorker.java b/src/main/java/org/jboss/netty/channel/socket/nio/NioWorker.java
+index 3d5a0d4..8098f1b 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/nio/NioWorker.java
++++ b/src/main/java/org/jboss/netty/channel/socket/nio/NioWorker.java
+@@ -33,7 +33,6 @@ import java.util.concurrent.Executor;
+ import java.util.concurrent.ExecutorService;
+ import java.util.concurrent.atomic.AtomicBoolean;
+ import java.util.concurrent.locks.ReadWriteLock;
+-import java.util.concurrent.locks.ReentrantLock;
+ import java.util.concurrent.locks.ReentrantReadWriteLock;
+ 
+ import org.jboss.netty.buffer.ChannelBuffer;
+@@ -48,6 +47,7 @@ import org.jboss.netty.logging.InternalLoggerFactory;
+ import org.jboss.netty.util.ThreadRenamingRunnable;
+ import org.jboss.netty.util.internal.IoWorkerRunnable;
+ import org.jboss.netty.util.internal.LinkedTransferQueue;
++import org.jboss.netty.util.internal.NonReentrantLock;
+ 
+ /**
+  *
+@@ -372,8 +372,8 @@ class NioWorker implements Runnable {
+             return;
+         }
+ 
+-        final ReentrantLock writeLock = channel.writeLock;
+-        if (writeLock.isHeldByCurrentThread() || !writeLock.tryLock()) {
++        final NonReentrantLock writeLock = channel.writeLock;
++        if (!writeLock.tryLock()) {
+             rescheduleWrite(channel);
+             return;
+         }
+diff --git a/src/main/java/org/jboss/netty/handler/ssl/SslHandler.java b/src/main/java/org/jboss/netty/handler/ssl/SslHandler.java
+index 319670e..f68a0a9 100644
+--- a/src/main/java/org/jboss/netty/handler/ssl/SslHandler.java
++++ b/src/main/java/org/jboss/netty/handler/ssl/SslHandler.java
+@@ -50,6 +50,7 @@ import org.jboss.netty.channel.MessageEvent;
+ import org.jboss.netty.handler.codec.frame.FrameDecoder;
+ import org.jboss.netty.logging.InternalLogger;
+ import org.jboss.netty.logging.InternalLoggerFactory;
++import org.jboss.netty.util.internal.NonReentrantLock;
+ 
+ /**
+  * Adds <a href="http://en.wikipedia.org/wiki/Transport_Layer_Security">SSL
+@@ -174,6 +175,7 @@ public class SslHandler extends FrameDecoder
+     final Object ignoreClosedChannelExceptionLock = new Object();
+     private final Queue<PendingWrite> pendingUnencryptedWrites = new LinkedList<PendingWrite>();
+     private final Queue<MessageEvent> pendingEncryptedWrites = new LinkedList<MessageEvent>();
++    private final NonReentrantLock pendingEncryptedWritesLock = new NonReentrantLock();
+ 
+     /**
+      * Creates a new instance.
+@@ -658,36 +660,35 @@ public class SslHandler extends FrameDecoder
+     }
+ 
+     private void offerEncryptedWriteRequest(MessageEvent encryptedWrite) {
+-        boolean offered;
+-        if (Thread.holdsLock(pendingEncryptedWrites)) {
+-            offered = pendingEncryptedWrites.offer(encryptedWrite);
+-        } else {
+-            synchronized (pendingEncryptedWrites) {
+-                offered = pendingEncryptedWrites.offer(encryptedWrite);
++        final boolean locked = pendingEncryptedWritesLock.tryLock();
++        try {
++            pendingEncryptedWrites.offer(encryptedWrite);
++        } finally {
++            if (locked) {
++                pendingEncryptedWritesLock.unlock();
+             }
+         }
+-        assert offered;
+     }
+ 
+     private void flushPendingEncryptedWrites(ChannelHandlerContext ctx) {
+         // Avoid possible dead lock and data integrity issue
+         // which is caused by cross communication between more than one channel
+         // in the same VM.
+-        if (Thread.holdsLock(pendingEncryptedWrites)) {
++        if (!pendingEncryptedWritesLock.tryLock()) {
+             return;
+         }
+ 
+-        synchronized (pendingEncryptedWrites) {
++        try {
+             if (pendingEncryptedWrites.isEmpty()) {
+                 return;
+             }
+-        }
+ 
+-        synchronized (pendingEncryptedWrites) {
+             MessageEvent e;
+             while ((e = pendingEncryptedWrites.poll()) != null) {
+                 ctx.sendDownstream(e);
+             }
++        } finally {
++            pendingEncryptedWritesLock.unlock();
+         }
+     }
+ 
+@@ -827,7 +828,7 @@ public class SslHandler extends FrameDecoder
+                 // There is also a same issue between pendingEncryptedWrites
+                 // and pendingUnencryptedWrites.
+                 if (!Thread.holdsLock(handshakeLock) &&
+-                    !Thread.holdsLock(pendingEncryptedWrites)) {
++                    !pendingEncryptedWritesLock.isHeldByCurrentThread()) {
+                     wrap(ctx, channel);
+                 }
+             }
+diff --git a/src/main/java/org/jboss/netty/util/internal/NonReentrantLock.java b/src/main/java/org/jboss/netty/util/internal/NonReentrantLock.java
+new file mode 100644
+index 0000000..164afaa
+--- /dev/null
++++ b/src/main/java/org/jboss/netty/util/internal/NonReentrantLock.java
+@@ -0,0 +1,87 @@
++/*
++ * Copyright 2010 Red Hat, Inc.
++ *
++ * Red Hat licenses this file to you under the Apache License, version 2.0
++ * (the "License"); you may not use this file except in compliance with the
++ * License.  You may obtain a copy of the License at:
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
++ * License for the specific language governing permissions and limitations
++ * under the License.
++ */
++package org.jboss.netty.util.internal;
++
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.locks.AbstractQueuedSynchronizer;
++import java.util.concurrent.locks.Condition;
++import java.util.concurrent.locks.Lock;
++
++/**
++ * @author <a href="http://www.jboss.org/netty/">The Netty Project</a>
++ * @author <a href="http://gleamynode.net/">Trustin Lee</a>
++ * @version $Rev$, $Date$
++ */
++public final class NonReentrantLock extends AbstractQueuedSynchronizer
++                             implements Lock {
++
++    private static final long serialVersionUID = -833780837233068610L;
++
++    private Thread owner;
++
++    public void lock() {
++        acquire(1);
++    }
++
++    public void lockInterruptibly() throws InterruptedException {
++        acquireInterruptibly(1);
++    }
++
++    public boolean tryLock() {
++        return tryAcquire(1);
++    }
++
++    public boolean tryLock(long time, TimeUnit unit)
++            throws InterruptedException {
++        return tryAcquireNanos(1, unit.toNanos(time));
++    }
++
++    public void unlock() {
++        release(1);
++    }
++
++    public boolean isHeldByCurrentThread() {
++        return isHeldExclusively();
++    }
++
++    public Condition newCondition() {
++        return new ConditionObject();
++    }
++
++    @Override
++    protected final boolean tryAcquire(int acquires) {
++        if (compareAndSetState(0, 1)) {
++            owner = Thread.currentThread();
++            return true;
++        }
++        return false;
++    }
++
++    @Override
++    protected final boolean tryRelease(int releases) {
++        if (Thread.currentThread() != owner) {
++            throw new IllegalMonitorStateException();
++        }
++        owner = null;
++        setState(0);
++        return true;
++    }
++
++    @Override
++    protected final boolean isHeldExclusively() {
++        return getState() != 0 && owner == Thread.currentThread();
++    }
++}

@@ -1,0 +1,187 @@
+commit 68b2ba9bcc3d7930d915c5f1e8c24522a699e22f
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Wed Mar 3 17:26:54 2010 +0000
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=48831
+    Address issues 1 & 2 by using a ReadWriteLock to control access to the writer. This ensures messages won't be written while the writer is null. Note there is no (easy) way to not close the handler.
+    Address issue 3 by re-enabling the JULI shutdown hook if JULI is being used and Tomcat isn't stopped via a shutdown hook.
+    Address issue 4 by making ClassLoaderLogManager#useShutdownHook volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@918594 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/startup/Catalina.java b/java/org/apache/catalina/startup/Catalina.java
+index 8ad008b..4bcdcb1 100644
+--- a/java/org/apache/catalina/startup/Catalina.java
++++ b/java/org/apache/catalina/startup/Catalina.java
+@@ -607,6 +607,14 @@ public class Catalina extends Embedded {
+             // doesn't get invoked twice
+             if (useShutdownHook) {
+                 Runtime.getRuntime().removeShutdownHook(shutdownHook);
++
++                // If JULI is being used, re-enable JULI's shutdown to ensure
++                // log messages are not lost
++                LogManager logManager = LogManager.getLogManager();
++                if (logManager instanceof ClassLoaderLogManager) {
++                    ((ClassLoaderLogManager) logManager).setUseShutdownHook(
++                            true);
++                }
+             }
+         } catch (Throwable t) {
+             // This will fail on JDK 1.2. Ignoring, as Tomcat can run
+diff --git a/java/org/apache/juli/ClassLoaderLogManager.java b/java/org/apache/juli/ClassLoaderLogManager.java
+index f6c49a8..993ee3f 100644
+--- a/java/org/apache/juli/ClassLoaderLogManager.java
++++ b/java/org/apache/juli/ClassLoaderLogManager.java
+@@ -93,9 +93,9 @@ public class ClassLoaderLogManager extends LogManager {
+      * Determines if the shutdown hook is used to perform any necessary
+      * clean-up such as flushing buffered handlers on JVM shutdown. Defaults to
+      * <code>true</code> but may be set to false if another component ensures
+-     * that 
++     * that {@link #shutdown()} is called.
+      */
+-    protected boolean useShutdownHook = true;
++    protected volatile boolean useShutdownHook = true;
+ 
+     
+     // ------------------------------------------------------------- Properties
+diff --git a/java/org/apache/juli/FileHandler.java b/java/org/apache/juli/FileHandler.java
+index c872f7a..f7a6a02 100644
+--- a/java/org/apache/juli/FileHandler.java
++++ b/java/org/apache/juli/FileHandler.java
+@@ -26,6 +26,8 @@ import java.io.OutputStreamWriter;
+ import java.io.PrintWriter;
+ import java.io.UnsupportedEncodingException;
+ import java.sql.Timestamp;
++import java.util.concurrent.locks.ReadWriteLock;
++import java.util.concurrent.locks.ReentrantReadWriteLock;
+ import java.util.logging.ErrorManager;
+ import java.util.logging.Filter;
+ import java.util.logging.Formatter;
+@@ -96,9 +98,16 @@ public class FileHandler
+      * The PrintWriter to which we are currently logging, if any.
+      */
+     private volatile PrintWriter writer = null;
+-    
++
++
++    /**
++     * Lock used to control access to the writer.
++     */
++    protected ReadWriteLock writerLock = new ReentrantReadWriteLock();
++
++
+     /**
+-     * Log buffer size
++     * Log buffer size.
+      */
+     private int bufferSize = -1;
+ 
+@@ -123,15 +132,22 @@ public class FileHandler
+         String tsString = ts.toString().substring(0, 19);
+         String tsDate = tsString.substring(0, 10);
+ 
++        writerLock.readLock().lock();
+         // If the date has changed, switch log files
+         if (!date.equals(tsDate)) {
+-            synchronized (this) {
+-                if (!date.equals(tsDate)) {
+-                    closeWriter();
+-                    date = tsDate;
+-                    openWriter();
+-                }
+-            }
++        	// Update to writeLock before we switch
++            writerLock.readLock().unlock();
++        	writerLock.writeLock().lock();
++        	// Make sure another thread hasn't already done this
++        	if (!date.equals(tsDate)) {
++	            closeWriter();
++	            date = tsDate;
++	            openWriter();
++        	}
++            // Down grade to read-lock. This ensures the writer remains valid
++            // until the log message is written
++            writerLock.readLock().lock();
++            writerLock.writeLock().unlock();
+         }
+ 
+         String result = null;
+@@ -139,11 +155,11 @@ public class FileHandler
+             result = getFormatter().format(record);
+         } catch (Exception e) {
+             reportError(null, e, ErrorManager.FORMAT_FAILURE);
++        	writerLock.readLock().unlock();
+             return;
+         }
+         
+         try {
+-            PrintWriter writer = this.writer;
+             if (writer!=null) {
+                 writer.write(result);
+                 if (bufferSize < 0) {
+@@ -155,8 +171,9 @@ public class FileHandler
+         } catch (Exception e) {
+             reportError(null, e, ErrorManager.WRITE_FAILURE);
+             return;
++        } finally {
++        	writerLock.readLock().unlock();
+         }
+-        
+     }
+     
+     
+@@ -174,8 +191,7 @@ public class FileHandler
+     protected void closeWriter() {
+         
+         try {
+-            PrintWriter writer = this.writer;
+-            this.writer = null;
++            writerLock.writeLock().lock();
+             if (writer == null)
+                 return;
+             writer.write(getFormatter().getTail(this));
+@@ -185,8 +201,9 @@ public class FileHandler
+             date = "";
+         } catch (Exception e) {
+             reportError(null, e, ErrorManager.CLOSE_FAILURE);
++        } finally {
++            writerLock.writeLock().unlock();
+         }
+-        
+     }
+ 
+ 
+@@ -197,12 +214,14 @@ public class FileHandler
+     public void flush() {
+ 
+         try {
+-            PrintWriter writer = this.writer;
+-            if (writer==null)
++        	writerLock.readLock().lock();
++            if (writer == null)
+                 return;
+             writer.flush();
+         } catch (Exception e) {
+             reportError(null, e, ErrorManager.FLUSH_FAILURE);
++        } finally {
++        	writerLock.readLock().unlock();
+         }
+         
+     }
+@@ -306,6 +325,7 @@ public class FileHandler
+             String encoding = getEncoding();
+             FileOutputStream fos = new FileOutputStream(pathname, true);
+             OutputStream os = bufferSize>0?new BufferedOutputStream(fos,bufferSize):fos;
++            writerLock.writeLock().lock();
+             writer = new PrintWriter(
+                     (encoding != null) ? new OutputStreamWriter(os, encoding)
+                                        : new OutputStreamWriter(os), false);
+@@ -313,6 +333,8 @@ public class FileHandler
+         } catch (Exception e) {
+             reportError(null, e, ErrorManager.OPEN_FAILURE);
+             writer = null;
++        } finally {
++            writerLock.writeLock().unlock();
+         }
+ 
+     }

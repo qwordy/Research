@@ -1,0 +1,596 @@
+commit 5ce410c69e9b2aed881693b41c5583105b004b9f
+Author: Trustin Lee <t@motd.kr>
+Date:   Thu May 22 09:59:58 2014 +0900
+
+    Future compatibility with TLS ALPN
+    
+    Motivation:
+    
+    According to TLS ALPN draft-05, a client sends the list of the supported
+    protocols and a server responds with the selected protocol, which is
+    different from NPN.  Therefore, ApplicationProtocolSelector won't work
+    with ALPN
+    
+    Modifications:
+    
+    - Use Iterable<String> to list the supported protocols on the client
+      side, rather than using ApplicationProtocolSelector
+    - Remove ApplicationProtocolSelector
+    
+    Result:
+    
+    Future compatibility with TLS ALPN
+
+diff --git a/example/src/main/java/io/netty/example/spdy/client/SpdyClient.java b/example/src/main/java/io/netty/example/spdy/client/SpdyClient.java
+index 821005f..6f66ca7 100644
+--- a/example/src/main/java/io/netty/example/spdy/client/SpdyClient.java
++++ b/example/src/main/java/io/netty/example/spdy/client/SpdyClient.java
+@@ -33,6 +33,7 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+ 
+ import javax.net.ssl.SSLException;
+ import java.net.InetSocketAddress;
++import java.util.Arrays;
+ import java.util.concurrent.BlockingQueue;
+ 
+ import static java.util.concurrent.TimeUnit.*;
+@@ -62,9 +63,7 @@ public class SpdyClient {
+     public SpdyClient(String host, int port) throws SSLException {
+         sslCtx = SslContext.newClientContext(
+                 null, InsecureTrustManagerFactory.INSTANCE, null,
+-                SslContext.newApplicationProtocolSelector(
+-                        SelectedProtocol.SPDY_3_1.protocolName(),
+-                        SelectedProtocol.HTTP_1_1.protocolName()),
++                Arrays.asList(SelectedProtocol.SPDY_3_1.protocolName(), SelectedProtocol.HTTP_1_1.protocolName()),
+                 0, 0);
+ 
+         this.host = host;
+diff --git a/handler/src/main/java/io/netty/handler/ssl/ApplicationProtocolSelector.java b/handler/src/main/java/io/netty/handler/ssl/ApplicationProtocolSelector.java
+deleted file mode 100644
+index 4a69861..0000000
+--- a/handler/src/main/java/io/netty/handler/ssl/ApplicationProtocolSelector.java
++++ /dev/null
+@@ -1,34 +0,0 @@
+-/*
+- * Copyright 2014 The Netty Project
+- *
+- * The Netty Project licenses this file to you under the Apache License,
+- * version 2.0 (the "License"); you may not use this file except in compliance
+- * with the License. You may obtain a copy of the License at:
+- *
+- *   http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+- * License for the specific language governing permissions and limitations
+- * under the License.
+- */
+-package io.netty.handler.ssl;
+-
+-import java.util.List;
+-
+-/**
+- * Selects an application layer protocol in TLS <a href="http://tools.ietf.org/html/draft-agl-tls-nextprotoneg-04">NPN
+- * (Next Protocol Negotiation)</a> or <a href="https://tools.ietf.org/html/draft-ietf-tls-applayerprotoneg-05">ALPN
+- * (Application Layer Protocol Negotiation)</a>.
+- */
+-public interface ApplicationProtocolSelector {
+-    /**
+-     * Invoked to select a protocol from the list of specified application layer protocols.
+-     *
+-     * @param protocols the list of application layer protocols sent by the server.
+-     *                  The list is empty if the server supports neither NPN nor ALPM.
+-     * @return the selected protocol. {@code null} if no protocol was selected.
+-     */
+-    String selectProtocol(List<String> protocols) throws Exception;
+-}
+diff --git a/handler/src/main/java/io/netty/handler/ssl/JdkSslClientContext.java b/handler/src/main/java/io/netty/handler/ssl/JdkSslClientContext.java
+index 05e13fd..b6a64ab 100644
+--- a/handler/src/main/java/io/netty/handler/ssl/JdkSslClientContext.java
++++ b/handler/src/main/java/io/netty/handler/ssl/JdkSslClientContext.java
+@@ -20,7 +20,6 @@ import io.netty.buffer.ByteBuf;
+ import io.netty.buffer.ByteBufInputStream;
+ 
+ import javax.net.ssl.SSLContext;
+-import javax.net.ssl.SSLEngine;
+ import javax.net.ssl.SSLException;
+ import javax.net.ssl.SSLSessionContext;
+ import javax.net.ssl.TrustManager;
+@@ -30,6 +29,7 @@ import java.io.File;
+ import java.security.KeyStore;
+ import java.security.cert.CertificateFactory;
+ import java.security.cert.X509Certificate;
++import java.util.ArrayList;
+ import java.util.Collections;
+ import java.util.List;
+ 
+@@ -39,7 +39,7 @@ import java.util.List;
+ public final class JdkSslClientContext extends JdkSslContext {
+ 
+     private final SSLContext ctx;
+-    private final ApplicationProtocolSelector nextProtocolSelector;
++    private final List<String> nextProtocols;
+ 
+     /**
+      * Creates a new instance.
+@@ -92,9 +92,8 @@ public final class JdkSslClientContext extends JdkSslContext {
+      *                            {@code null} to use the default.
+      * @param ciphers the cipher suites to enable, in the order of preference.
+      *                {@code null} to use the default cipher suites.
+-     * @param nextProtocolSelector the {@link ApplicationProtocolSelector} that chooses one of the application layer
+-     *                             protocols returned by a TLS server.
+-     *                             {@code null} to disable TLS NPN/ALPN extension.
++     * @param nextProtocols the application layer protocols to accept, in the order of preference.
++     *                      {@code null} to disable TLS NPN/ALPN extension.
+      * @param sessionCacheSize the size of the cache used for storing SSL session objects.
+      *                         {@code 0} to use the default value.
+      * @param sessionTimeout the timeout for the cached SSL session objects, in seconds.
+@@ -102,16 +101,23 @@ public final class JdkSslClientContext extends JdkSslContext {
+      */
+     public JdkSslClientContext(
+             File certChainFile, TrustManagerFactory trustManagerFactory,
+-            Iterable<String> ciphers, ApplicationProtocolSelector nextProtocolSelector,
++            Iterable<String> ciphers, Iterable<String> nextProtocols,
+             long sessionCacheSize, long sessionTimeout) throws SSLException {
+ 
+         super(ciphers);
+ 
+-        if (nextProtocolSelector != null && !JettyNpnSslEngine.isAvailable()) {
+-            throw new SSLException("NPN/ALPN unsupported: " + nextProtocolSelector);
++        if (nextProtocols != null && nextProtocols.iterator().hasNext() && !JettyNpnSslEngine.isAvailable()) {
++            throw new SSLException("NPN/ALPN unsupported: " + nextProtocols);
+         }
+ 
+-        this.nextProtocolSelector = nextProtocolSelector;
++        List<String> nextProtoList = new ArrayList<String>();
++        for (String p: nextProtocols) {
++            if (p == null) {
++                break;
++            }
++            nextProtoList.add(p);
++        }
++        this.nextProtocols = Collections.unmodifiableList(nextProtoList);
+ 
+         try {
+             if (certChainFile == null) {
+@@ -169,26 +175,12 @@ public final class JdkSslClientContext extends JdkSslContext {
+     }
+ 
+     @Override
+-    public ApplicationProtocolSelector nextProtocolSelector() {
+-        return nextProtocolSelector;
+-    }
+-
+-    @Override
+     public List<String> nextProtocols() {
+-        return Collections.emptyList();
++        return nextProtocols;
+     }
+ 
+     @Override
+     public SSLContext context() {
+         return ctx;
+     }
+-
+-    @Override
+-    SSLEngine wrapEngine(SSLEngine engine) {
+-        if (nextProtocolSelector == null) {
+-            return engine;
+-        } else {
+-            return new JettyNpnSslEngine(engine, nextProtocolSelector);
+-        }
+-    }
+ }
+diff --git a/handler/src/main/java/io/netty/handler/ssl/JdkSslContext.java b/handler/src/main/java/io/netty/handler/ssl/JdkSslContext.java
+index c2d408a..15402a8 100644
+--- a/handler/src/main/java/io/netty/handler/ssl/JdkSslContext.java
++++ b/handler/src/main/java/io/netty/handler/ssl/JdkSslContext.java
+@@ -165,7 +165,13 @@ public abstract class JdkSslContext extends SslContext {
+         return wrapEngine(engine);
+     }
+ 
+-    abstract SSLEngine wrapEngine(SSLEngine engine);
++    private SSLEngine wrapEngine(SSLEngine engine) {
++        if (nextProtocols().isEmpty()) {
++            return engine;
++        } else {
++            return new JettyNpnSslEngine(engine, nextProtocols(), isServer());
++        }
++    }
+ 
+     private static String[] toCipherSuiteArray(Iterable<String> ciphers) {
+         if (ciphers == null) {
+diff --git a/handler/src/main/java/io/netty/handler/ssl/JdkSslServerContext.java b/handler/src/main/java/io/netty/handler/ssl/JdkSslServerContext.java
+index 4363f72..6fcd244 100644
+--- a/handler/src/main/java/io/netty/handler/ssl/JdkSslServerContext.java
++++ b/handler/src/main/java/io/netty/handler/ssl/JdkSslServerContext.java
+@@ -21,7 +21,6 @@ import io.netty.buffer.ByteBufInputStream;
+ 
+ import javax.net.ssl.KeyManagerFactory;
+ import javax.net.ssl.SSLContext;
+-import javax.net.ssl.SSLEngine;
+ import javax.net.ssl.SSLException;
+ import javax.net.ssl.SSLSessionContext;
+ import java.io.File;
+@@ -183,11 +182,6 @@ public final class JdkSslServerContext extends JdkSslContext {
+     }
+ 
+     @Override
+-    public ApplicationProtocolSelector nextProtocolSelector() {
+-        return null;
+-    }
+-
+-    @Override
+     public List<String> nextProtocols() {
+         return nextProtocols;
+     }
+@@ -196,13 +190,4 @@ public final class JdkSslServerContext extends JdkSslContext {
+     public SSLContext context() {
+         return ctx;
+     }
+-
+-    @Override
+-    SSLEngine wrapEngine(SSLEngine engine) {
+-        if (nextProtocols.isEmpty()) {
+-            return engine;
+-        } else {
+-            return new JettyNpnSslEngine(engine, nextProtocols);
+-        }
+-    }
+ }
+diff --git a/handler/src/main/java/io/netty/handler/ssl/JettyNpnSslEngine.java b/handler/src/main/java/io/netty/handler/ssl/JettyNpnSslEngine.java
+index 04a0d25..49e9c3d 100644
+--- a/handler/src/main/java/io/netty/handler/ssl/JettyNpnSslEngine.java
++++ b/handler/src/main/java/io/netty/handler/ssl/JettyNpnSslEngine.java
+@@ -16,8 +16,6 @@
+ 
+ package io.netty.handler.ssl;
+ 
+-import io.netty.util.internal.logging.InternalLogger;
+-import io.netty.util.internal.logging.InternalLoggerFactory;
+ import org.eclipse.jetty.npn.NextProtoNego;
+ import org.eclipse.jetty.npn.NextProtoNego.ClientProvider;
+ import org.eclipse.jetty.npn.NextProtoNego.ServerProvider;
+@@ -33,8 +31,6 @@ import java.util.List;
+ 
+ final class JettyNpnSslEngine extends SSLEngine {
+ 
+-    private static final InternalLogger logger = InternalLoggerFactory.getInstance(JettyNpnSslEngine.class);
+-
+     private static boolean available;
+ 
+     static boolean isAvailable() {
+@@ -64,57 +60,55 @@ final class JettyNpnSslEngine extends SSLEngine {
+     private final SSLEngine engine;
+     private final JettyNpnSslSession session;
+ 
+-    JettyNpnSslEngine(SSLEngine engine, final List<String> nextProtocols) {
++    JettyNpnSslEngine(SSLEngine engine, final List<String> nextProtocols, boolean server) {
+         assert !nextProtocols.isEmpty();
+ 
+         this.engine = engine;
+         session = new JettyNpnSslSession(engine);
+ 
+-        NextProtoNego.put(engine, new ServerProvider() {
+-            @Override
+-            public void unsupported() {
+-                getSession().setApplicationProtocol(nextProtocols.get(nextProtocols.size() - 1));
+-            }
+-
+-            @Override
+-            public List<String> protocols() {
+-                return nextProtocols;
+-            }
+-
+-            @Override
+-            public void protocolSelected(String protocol) {
+-                getSession().setApplicationProtocol(protocol);
+-            }
+-        });
+-    }
++        if (server) {
++            NextProtoNego.put(engine, new ServerProvider() {
++                @Override
++                public void unsupported() {
++                    getSession().setApplicationProtocol(nextProtocols.get(nextProtocols.size() - 1));
++                }
+ 
+-    JettyNpnSslEngine(SSLEngine engine, final ApplicationProtocolSelector nextProtocolSelector) {
+-        this.engine = engine;
+-        session = new JettyNpnSslSession(engine);
++                @Override
++                public List<String> protocols() {
++                    return nextProtocols;
++                }
+ 
+-        NextProtoNego.put(engine, new ClientProvider() {
+-            @Override
+-            public boolean supports() {
+-                return true;
+-            }
++                @Override
++                public void protocolSelected(String protocol) {
++                    getSession().setApplicationProtocol(protocol);
++                }
++            });
++        } else {
++            final String[] list = nextProtocols.toArray(new String[nextProtocols.size()]);
++            final String fallback = list[list.length - 1];
++
++            NextProtoNego.put(engine, new ClientProvider() {
++                @Override
++                public boolean supports() {
++                    return true;
++                }
+ 
+-            @Override
+-            public void unsupported() {
+-                session.setApplicationProtocol(null);
+-            }
++                @Override
++                public void unsupported() {
++                    session.setApplicationProtocol(null);
++                }
+ 
+-            @Override
+-            public String selectProtocol(List<String> protocols) {
+-                String p = null;
+-                try {
+-                    p = nextProtocolSelector.selectProtocol(protocols);
+-                } catch (Exception e) {
+-                    logger.warn("Failed to select the next protocol:", e);
++                @Override
++                public String selectProtocol(List<String> protocols) {
++                    for (String p: list) {
++                        if (protocols.contains(p)) {
++                            return p;
++                        }
++                    }
++                    return fallback;
+                 }
+-                session.setApplicationProtocol(p);
+-                return p;
+-            }
+-        });
++            });
++        }
+     }
+ 
+     @Override
+diff --git a/handler/src/main/java/io/netty/handler/ssl/OpenSslServerContext.java b/handler/src/main/java/io/netty/handler/ssl/OpenSslServerContext.java
+index cbea241..b1a0257 100644
+--- a/handler/src/main/java/io/netty/handler/ssl/OpenSslServerContext.java
++++ b/handler/src/main/java/io/netty/handler/ssl/OpenSslServerContext.java
+@@ -65,8 +65,7 @@ public final class OpenSslServerContext extends SslContext {
+     private final List<String> unmodifiableCiphers = Collections.unmodifiableList(ciphers);
+     private final long sessionCacheSize;
+     private final long sessionTimeout;
+-    private final List<String> nextProtocols = new ArrayList<String>();
+-    private final List<String> unmodifiableNextProtocols = Collections.unmodifiableList(nextProtocols);
++    private final List<String> nextProtocols;
+ 
+     /** The OpenSSL SSL_CTX object */
+     private final long ctx;
+@@ -147,12 +146,14 @@ public final class OpenSslServerContext extends SslContext {
+             this.ciphers.add(c);
+         }
+ 
++        List<String> nextProtoList = new ArrayList<String>();
+         for (String p: nextProtocols) {
+             if (p == null) {
+                 break;
+             }
+-            this.nextProtocols.add(p);
++            nextProtoList.add(p);
+         }
++        this.nextProtocols = Collections.unmodifiableList(nextProtoList);
+ 
+         // Allocate a new APR pool.
+         aprPool = Pool.create(0);
+@@ -217,10 +218,10 @@ public final class OpenSslServerContext extends SslContext {
+                 }
+ 
+                 /* Set next protocols for next protocol negotiation extension, if specified */
+-                if (!this.nextProtocols.isEmpty()) {
++                if (!nextProtoList.isEmpty()) {
+                     // Convert the protocol list into a comma-separated string.
+                     StringBuilder nextProtocolBuf = new StringBuilder();
+-                    for (String p: this.nextProtocols) {
++                    for (String p: nextProtoList) {
+                         nextProtocolBuf.append(p);
+                         nextProtocolBuf.append(',');
+                     }
+@@ -282,13 +283,8 @@ public final class OpenSslServerContext extends SslContext {
+     }
+ 
+     @Override
+-    public ApplicationProtocolSelector nextProtocolSelector() {
+-        return null;
+-    }
+-
+-    @Override
+     public List<String> nextProtocols() {
+-        return unmodifiableNextProtocols;
++        return nextProtocols;
+     }
+ 
+     /**
+@@ -310,10 +306,10 @@ public final class OpenSslServerContext extends SslContext {
+      */
+     @Override
+     public SSLEngine newEngine(ByteBufAllocator alloc) {
+-        if (unmodifiableNextProtocols.isEmpty()) {
++        if (nextProtocols.isEmpty()) {
+             return new OpenSslEngine(ctx, alloc, null);
+         } else {
+-            return new OpenSslEngine(ctx, alloc, unmodifiableNextProtocols.get(unmodifiableNextProtocols.size() - 1));
++            return new OpenSslEngine(ctx, alloc, nextProtocols.get(nextProtocols.size() - 1));
+         }
+     }
+ 
+diff --git a/handler/src/main/java/io/netty/handler/ssl/SslContext.java b/handler/src/main/java/io/netty/handler/ssl/SslContext.java
+index f3a3f33..fde09e8 100644
+--- a/handler/src/main/java/io/netty/handler/ssl/SslContext.java
++++ b/handler/src/main/java/io/netty/handler/ssl/SslContext.java
+@@ -26,7 +26,6 @@ import javax.net.ssl.SSLException;
+ import javax.net.ssl.TrustManager;
+ import javax.net.ssl.TrustManagerFactory;
+ import java.io.File;
+-import java.util.ArrayList;
+ import java.util.List;
+ 
+ /**
+@@ -258,9 +257,8 @@ public abstract class SslContext {
+      *                            {@code null} to use the default.
+      * @param ciphers the cipher suites to enable, in the order of preference.
+      *                {@code null} to use the default cipher suites.
+-     * @param nextProtocolSelector the {@link ApplicationProtocolSelector} that chooses one of the application layer
+-     *                             protocols returned by a TLS server.
+-     *                             {@code null} to disable TLS NPN/ALPN extension.
++     * @param nextProtocols the application layer protocols to accept, in the order of preference.
++     *                      {@code null} to disable TLS NPN/ALPN extension.
+      * @param sessionCacheSize the size of the cache used for storing SSL session objects.
+      *                         {@code 0} to use the default value.
+      * @param sessionTimeout the timeout for the cached SSL session objects, in seconds.
+@@ -270,11 +268,11 @@ public abstract class SslContext {
+      */
+     public static SslContext newClientContext(
+             File certChainFile, TrustManagerFactory trustManagerFactory,
+-            Iterable<String> ciphers, ApplicationProtocolSelector nextProtocolSelector,
++            Iterable<String> ciphers, Iterable<String> nextProtocols,
+             long sessionCacheSize, long sessionTimeout) throws SSLException {
+         return newClientContext(
+                 null, certChainFile, trustManagerFactory,
+-                ciphers, nextProtocolSelector, sessionCacheSize, sessionTimeout);
++                ciphers, nextProtocols, sessionCacheSize, sessionTimeout);
+     }
+ 
+     /**
+@@ -349,9 +347,8 @@ public abstract class SslContext {
+      *                            {@code null} to use the default.
+      * @param ciphers the cipher suites to enable, in the order of preference.
+      *                {@code null} to use the default cipher suites.
+-     * @param nextProtocolSelector the {@link ApplicationProtocolSelector} that chooses one of the application layer
+-     *                             protocols returned by a TLS server.
+-     *                             {@code null} to disable TLS NPN/ALPN extension.
++     * @param nextProtocols the application layer protocols to accept, in the order of preference.
++     *                      {@code null} to disable TLS NPN/ALPN extension.
+      * @param sessionCacheSize the size of the cache used for storing SSL session objects.
+      *                         {@code 0} to use the default value.
+      * @param sessionTimeout the timeout for the cached SSL session objects, in seconds.
+@@ -362,7 +359,7 @@ public abstract class SslContext {
+     public static SslContext newClientContext(
+             SslProvider provider,
+             File certChainFile, TrustManagerFactory trustManagerFactory,
+-            Iterable<String> ciphers, ApplicationProtocolSelector nextProtocolSelector,
++            Iterable<String> ciphers, Iterable<String> nextProtocols,
+             long sessionCacheSize, long sessionTimeout) throws SSLException {
+ 
+         if (provider != null && provider != SslProvider.JDK) {
+@@ -371,84 +368,7 @@ public abstract class SslContext {
+ 
+         return new JdkSslClientContext(
+                 certChainFile, trustManagerFactory,
+-                ciphers, nextProtocolSelector, sessionCacheSize, sessionTimeout);
+-    }
+-
+-    /**
+-     * Creates a simple client-side {@link ApplicationProtocolSelector} that selects the most preferred protocol
+-     * among the application protocols sent by the server.  If there is no match, it chooses the least preferred one.
+-     *
+-     * @param nextProtocols the list of the supported client-side application protocols, in the order of preference
+-     * @return the new {@link ApplicationProtocolSelector}.
+-     *         {@code null} if the specified {@code nextProtocols} does not contain any elements.
+-     *
+-     */
+-    public static ApplicationProtocolSelector newApplicationProtocolSelector(String... nextProtocols) {
+-        if (nextProtocols == null) {
+-            throw new NullPointerException("nextProtocols");
+-        }
+-
+-        final List<String> list = new ArrayList<String>();
+-        for (String p: nextProtocols) {
+-            if (p == null) {
+-                break;
+-            }
+-            list.add(p);
+-        }
+-
+-        if (list.isEmpty()) {
+-            return null;
+-        }
+-
+-        return newApplicationProtocolSelector(list);
+-    }
+-
+-    private static ApplicationProtocolSelector newApplicationProtocolSelector(final List<String> list) {
+-        return new ApplicationProtocolSelector() {
+-            @Override
+-            public String selectProtocol(List<String> protocols) throws Exception {
+-                for (String p: list) {
+-                    if (protocols.contains(p)) {
+-                        return p;
+-                    }
+-                }
+-                return list.get(list.size() - 1);
+-            }
+-
+-            @Override
+-            public String toString() {
+-                return "ApplicationProtocolSelector(" + list + ')';
+-            }
+-        };
+-    }
+-
+-    /**
+-     * Creates a simple client-side {@link ApplicationProtocolSelector} that selects the most preferred protocol
+-     * among the application protocols sent by the server.  If there is no match, it chooses the least preferred one.
+-     *
+-     * @param nextProtocols the list of the supported client-side application protocols, in the order of preference
+-     * @return the new {@link ApplicationProtocolSelector}.
+-     *         {@code null} if the specified {@code nextProtocols} does not contain any elements.
+-     *
+-     */
+-    public static ApplicationProtocolSelector newApplicationProtocolSelector(Iterable<String> nextProtocols) {
+-        if (nextProtocols == null) {
+-            throw new NullPointerException("nextProtocols");
+-        }
+-
+-        final List<String> list = new ArrayList<String>();
+-        for (String p: nextProtocols) {
+-            if (p == null) {
+-                break;
+-            }
+-            list.add(p);
+-        }
+-
+-        if (list.isEmpty()) {
+-            return null;
+-        }
+-
+-        return newApplicationProtocolSelector(list);
++                ciphers, nextProtocols, sessionCacheSize, sessionTimeout);
+     }
+ 
+     SslContext() { }
+@@ -481,18 +401,9 @@ public abstract class SslContext {
+     public abstract long sessionTimeout();
+ 
+     /**
+-     * Returns the client-side {@link ApplicationProtocolSelector} for the TLS NPN/ALPN extension.
+-     *
+-     * @return the client-side {@link ApplicationProtocolSelector}.
+-     *         {@code null} if NPN/ALPN extension has been disabled.
+-     */
+-    public abstract ApplicationProtocolSelector nextProtocolSelector();
+-
+-    /**
+-     * Returns the list of server-side application layer protocols for the TLS NPN/ALPN extension,
+-     * in the order of preference.
++     * Returns the list of application layer protocols for the TLS NPN/ALPN extension, in the order of preference.
+      *
+-     * @return the list of server-side application layer protocols.
++     * @return the list of application layer protocols.
+      *         {@code null} if NPN/ALPN extension has been disabled.
+      */
+     public abstract List<String> nextProtocols();

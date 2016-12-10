@@ -1,0 +1,73 @@
+commit b3d7442b2b0466a9813c431e92caf7d37b6b8495
+Author: Suresh Srinivas <suresh@apache.org>
+Date:   Fri Jul 26 19:59:06 2013 +0000
+
+    HADOOP-9770. Make RetryCache#state non volatile. Contributed by Suresh Srinivas.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1507414 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/hadoop-common-project/hadoop-common/CHANGES.txt b/hadoop-common-project/hadoop-common/CHANGES.txt
+index ea49079..685fd05 100644
+--- a/hadoop-common-project/hadoop-common/CHANGES.txt
++++ b/hadoop-common-project/hadoop-common/CHANGES.txt
+@@ -496,6 +496,8 @@ Release 2.1.0-beta - 2013-07-02
+     HADOOP-9756. Remove the deprecated getServer(..) methods from RPC.
+     (Junping Du via szetszwo)
+ 
++    HADOOP-9770. Make RetryCache#state non volatile. (suresh)
++
+   OPTIMIZATIONS
+ 
+     HADOOP-9150. Avoid unnecessary DNS resolution attempts for logical URIs
+diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/ipc/RetryCache.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/ipc/RetryCache.java
+index d89dceb..dab18db 100644
+--- a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/ipc/RetryCache.java
++++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/ipc/RetryCache.java
+@@ -52,7 +52,7 @@
+     private static byte SUCCESS = 1;
+     private static byte FAILED = 2;
+ 
+-    private volatile byte state = INPROGRESS;
++    private byte state = INPROGRESS;
+     
+     // Store uuid as two long for better memory utilization
+     private final long clientIdMsb; // Most signficant bytes
+@@ -63,8 +63,10 @@
+     private LightWeightGSet.LinkedElement next;
+ 
+     CacheEntry(byte[] clientId, int callId, long expirationTime) {
+-      Preconditions.checkArgument(clientId.length == 16, "Invalid clientId");
+-      // Conver UUID bytes to two longs
++      // ClientId must be a UUID - that is 16 octets.
++      Preconditions.checkArgument(clientId.length == 16,
++          "Invalid clientId - must be UUID of size 16 octets");
++      // Convert UUID bytes to two longs
+       long tmp = 0;
+       for (int i=0; i<8; i++) {
+         tmp = (tmp << 8) | (clientId[i] & 0xff);
+@@ -116,7 +118,7 @@ synchronized void completed(boolean success) {
+       this.notifyAll();
+     }
+ 
+-    public boolean isSuccess() {
++    public synchronized boolean isSuccess() {
+       return state == SUCCESS;
+     }
+ 
+@@ -241,13 +243,13 @@ private CacheEntry waitForCompletion(CacheEntry newEntry) {
+ 
+   private static CacheEntry newEntry(long expirationTime) {
+     return new CacheEntry(Server.getClientId(), Server.getCallId(),
+-        expirationTime);
++        System.nanoTime() + expirationTime);
+   }
+ 
+   private static CacheEntryWithPayload newEntry(Object payload,
+       long expirationTime) {
+     return new CacheEntryWithPayload(Server.getClientId(), Server.getCallId(),
+-        payload, expirationTime);
++        payload, System.nanoTime() + expirationTime);
+   }
+ 
+   /** Static method that provides null check for retryCache */

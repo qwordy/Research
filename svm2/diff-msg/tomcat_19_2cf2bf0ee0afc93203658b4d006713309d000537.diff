@@ -1,0 +1,120 @@
+commit 2cf2bf0ee0afc93203658b4d006713309d000537
+Author: Rainer Jung <rjung@apache.org>
+Date:   Mon Jan 25 15:11:34 2016 +0000
+
+    Move instance variables packageTriggersDeny and
+    packageTriggersPermit from "Static Variables"
+    code block to "Instance Variables" block.
+    
+    Make packageTriggersDeny and packageTriggersPermit
+    private. They are only used in our filter() method
+    which is already protected. People wanting to
+    overwrite filter() should not make their code
+    dependent on the implementation details
+    packageTriggersDeny and packageTriggersPermit.
+    
+    Switch filter() from being synchronized on the
+    class loader instance to being synchronized
+    on a separate object packageTriggerLock which
+    synchronizes only access to the non-thread safe
+    Matchers packageTriggersDeny and
+    packageTriggersPermit.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1726639 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/loader/WebappClassLoaderBase.java b/java/org/apache/catalina/loader/WebappClassLoaderBase.java
+index f554074..1ee1dad 100644
+--- a/java/org/apache/catalina/loader/WebappClassLoaderBase.java
++++ b/java/org/apache/catalina/loader/WebappClassLoaderBase.java
+@@ -191,26 +191,6 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
+     // ------------------------------------------------------- Static Variables
+ 
+     /**
+-     * Regular expression of package names which are not allowed to be loaded
+-     * from a webapp class loader without delegating first.
+-     */
+-    protected final Matcher packageTriggersDeny = Pattern.compile(
+-            "^(?:javax[./](?:el|security[./]auth[./]message|servlet|websocket)|" +
+-            "org[./]apache[./](?:catalina|coyote|el|jasper|juli|naming|tomcat))[./]"
+-            ).matcher("");
+-
+-
+-    /**
+-     * Regular expression of package names which are allowed to be loaded from a
+-     * webapp class loader without delegating first and override any set by
+-     * {@link #packageTriggersDeny}.
+-     */
+-    protected final Matcher packageTriggersPermit =
+-            Pattern.compile("^(?:javax[./]servlet[./]jsp[./]jstl|" +
+-                    "org[./]apache[./]tomcat[./]jdbc)[./]").matcher("");
+-
+-
+-    /**
+      * The string manager for this package.
+      */
+     protected static final StringManager sm =
+@@ -287,6 +267,33 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
+     // ----------------------------------------------------- Instance Variables
+ 
+     /**
++     * Synchronization object for access to packageTriggersDeny
++     * and packageTriggersPermit; Matchers are not thread-safe.
++     */
++    private final Object packageTriggerLock = new Object();
++
++
++    /**
++     * Regular expression of package names which are not allowed to be loaded
++     * from a webapp class loader without delegating first.
++     */
++    private final Matcher packageTriggersDeny = Pattern.compile(
++            "^(?:javax[./](?:el|security[./]auth[./]message|servlet|websocket)|" +
++            "org[./]apache[./](?:catalina|coyote|el|jasper|juli|naming|tomcat))[./]"
++            ).matcher("");
++
++
++    /**
++     * Regular expression of package names which are allowed to be loaded from a
++     * webapp class loader without delegating first and override any set by
++     * {@link #packageTriggersDeny}.
++     */
++    private final Matcher packageTriggersPermit =
++            Pattern.compile("^(?:javax[./]servlet[./]jsp[./]jstl|" +
++                    "org[./]apache[./]tomcat[./]jdbc)[./]").matcher("");
++
++
++    /**
+      * Associated web resources for this webapp.
+      */
+     protected WebResourceRoot resources = null;
+@@ -2778,19 +2785,20 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
+      * @param name class name
+      * @return <code>true</code> if the class should be filtered
+      */
+-    protected synchronized boolean filter(String name) {
++    protected boolean filter(String name) {
+ 
+         if (name == null)
+             return false;
+ 
+-        packageTriggersPermit.reset(name);
+-        if (packageTriggersPermit.lookingAt()) {
+-            return false;
+-        }
+-
+-        packageTriggersDeny.reset(name);
+-        if (packageTriggersDeny.lookingAt()) {
+-            return true;
++        synchronized(packageTriggerLock) {
++            packageTriggersPermit.reset(name);
++            if (packageTriggersPermit.lookingAt()) {
++                return false;
++            }
++            packageTriggersDeny.reset(name);
++            if (packageTriggersDeny.lookingAt()) {
++                return true;
++            }
+         }
+ 
+         return false;

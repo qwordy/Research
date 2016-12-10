@@ -1,0 +1,19 @@
+commit 4b4d69f7786549f33cfd5f71c34b00fef3d6fc91
+Author: Benedict Elliott Smith <benedict@apache.org>
+Date:   Sun Sep 13 12:05:27 2015 +0100
+
+    ninja fix ScheduledExecutorService spinning CPU consumption with 0 corePoolSize
+
+diff --git a/src/java/org/apache/cassandra/utils/concurrent/Ref.java b/src/java/org/apache/cassandra/utils/concurrent/Ref.java
+index 92c1a0c..856c21e 100644
+--- a/src/java/org/apache/cassandra/utils/concurrent/Ref.java
++++ b/src/java/org/apache/cassandra/utils/concurrent/Ref.java
+@@ -317,7 +317,7 @@ public final class Ref<T> implements RefCounted<T>
+     private static final Set<GlobalState> globallyExtant = Collections.newSetFromMap(new ConcurrentHashMap<>());
+     static final ReferenceQueue<Object> referenceQueue = new ReferenceQueue<>();
+     private static final ExecutorService EXEC = Executors.newFixedThreadPool(1, new NamedThreadFactory("Reference-Reaper"));
+-    private static final ScheduledExecutorService STRONG_LEAK_DETECTOR = !DEBUG_ENABLED ? null : Executors.newScheduledThreadPool(0, new NamedThreadFactory("Strong-Reference-Leak-Detector"));
++    private static final ScheduledExecutorService STRONG_LEAK_DETECTOR = !DEBUG_ENABLED ? null : Executors.newScheduledThreadPool(1, new NamedThreadFactory("Strong-Reference-Leak-Detector"));
+     static
+     {
+         EXEC.execute(new ReferenceReaper());

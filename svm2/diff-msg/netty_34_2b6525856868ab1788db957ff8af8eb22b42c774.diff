@@ -1,0 +1,151 @@
+commit 2b6525856868ab1788db957ff8af8eb22b42c774
+Author: Scott Mitchell <scott_mitchell@apple.com>
+Date:   Mon May 2 08:21:29 2016 -0700
+
+    FlowControlHandlerTest invalid condition
+    
+    Motivation:
+    FlowControlHandlerTest attempts to validate the expected contents of the underlying queue in FlowControlHandler. However the condition which triggers the check is too early and the queue contents may not yet contain all expected objects. For example a CountDownLatch is counted down in a handler's channelRead which is  after the FlowControlHandler in the pipeline. At this point if there is a thread context switch the queue may not yet contain all the expected objects and checking the queue contents is not valid.
+    
+    Modifications:
+    - Remove checking the queues contents in FLowControlHandlerTest and instead only check the empty condition at the end of the tests
+    
+    Result:
+    FlowControlHandlerTest won't fail due to invalid checks of the contents of the queue.
+
+diff --git a/handler/src/main/java/io/netty/handler/flow/FlowControlHandler.java b/handler/src/main/java/io/netty/handler/flow/FlowControlHandler.java
+index 1c07cd0..c3130db 100644
+--- a/handler/src/main/java/io/netty/handler/flow/FlowControlHandler.java
++++ b/handler/src/main/java/io/netty/handler/flow/FlowControlHandler.java
+@@ -87,17 +87,11 @@ public class FlowControlHandler extends ChannelDuplexHandler {
+     }
+ 
+     /**
+-     * Returns a copy of the underlying {@link Queue}. This method exists for
++     * Determine if the underlying {@link Queue} is empty. This method exists for
+      * testing, debugging and inspection purposes and it is not Thread safe!
+      */
+-    Queue<Object> queue() {
+-        RecyclableArrayDeque queue = this.queue;
+-
+-        if (queue == null) {
+-            return new ArrayDeque<Object>(0);
+-        }
+-
+-        return new ArrayDeque<Object>(queue);
++    boolean isQueueEmpty() {
++        return queue.isEmpty();
+     }
+ 
+     /**
+diff --git a/handler/src/test/java/io/netty/handler/flow/FlowControlHandlerTest.java b/handler/src/test/java/io/netty/handler/flow/FlowControlHandlerTest.java
+index 26305a0..f6cea33 100644
+--- a/handler/src/test/java/io/netty/handler/flow/FlowControlHandlerTest.java
++++ b/handler/src/test/java/io/netty/handler/flow/FlowControlHandlerTest.java
+@@ -15,25 +15,6 @@
+  */
+ package io.netty.handler.flow;
+ 
+-import static org.junit.Assert.assertEquals;
+-import static org.junit.Assert.assertFalse;
+-import static org.junit.Assert.assertThat;
+-import static org.junit.Assert.assertTrue;
+-import static org.junit.Assert.fail;
+-
+-import java.net.SocketAddress;
+-import java.util.List;
+-import java.util.concurrent.CountDownLatch;
+-import java.util.concurrent.Exchanger;
+-import java.util.concurrent.TimeUnit;
+-import java.util.concurrent.atomic.AtomicInteger;
+-import java.util.concurrent.atomic.AtomicReference;
+-
+-import org.hamcrest.collection.IsIterableContainingInOrder;
+-import org.junit.AfterClass;
+-import org.junit.BeforeClass;
+-import org.junit.Test;
+-
+ import io.netty.bootstrap.Bootstrap;
+ import io.netty.bootstrap.ServerBootstrap;
+ import io.netty.buffer.ByteBuf;
+@@ -53,6 +34,23 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
+ import io.netty.channel.socket.nio.NioSocketChannel;
+ import io.netty.handler.codec.ByteToMessageDecoder;
+ import io.netty.util.ReferenceCountUtil;
++import org.junit.AfterClass;
++import org.junit.BeforeClass;
++import org.junit.Test;
++
++import java.net.SocketAddress;
++import java.util.List;
++import java.util.Queue;
++import java.util.concurrent.CountDownLatch;
++import java.util.concurrent.Exchanger;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.atomic.AtomicInteger;
++import java.util.concurrent.atomic.AtomicReference;
++
++import static org.junit.Assert.assertEquals;
++import static org.junit.Assert.assertFalse;
++import static org.junit.Assert.assertTrue;
++import static org.junit.Assert.fail;
+ 
+ public class FlowControlHandlerTest {
+     private static EventLoopGroup GROUP;
+@@ -231,7 +229,7 @@ public class FlowControlHandlerTest {
+ 
+             // We should receive 3 messages
+             assertTrue(latch.await(1L, TimeUnit.SECONDS));
+-            assertTrue(flow.queue().isEmpty());
++            assertTrue(flow.isQueueEmpty());
+         } finally {
+             client.close();
+             server.close();
+@@ -284,7 +282,6 @@ public class FlowControlHandlerTest {
+             assertTrue(latchRef.get().await(1L, TimeUnit.SECONDS));
+             assertFalse(peer.config().isAutoRead());
+             assertEquals(1, counter.get());
+-            assertThat(flow.queue(), IsIterableContainingInOrder.<Object>contains("2", "3"));
+ 
+             // channelRead(2)
+             latchRef.set(new CountDownLatch(1));
+@@ -292,7 +289,6 @@ public class FlowControlHandlerTest {
+             assertTrue(latchRef.get().await(1L, TimeUnit.SECONDS));
+             assertFalse(peer.config().isAutoRead());
+             assertEquals(2, counter.get());
+-            assertThat(flow.queue(), IsIterableContainingInOrder.<Object>contains("3"));
+ 
+             // channelRead(3)
+             latchRef.set(new CountDownLatch(1));
+@@ -300,7 +296,7 @@ public class FlowControlHandlerTest {
+             assertTrue(latchRef.get().await(1L, TimeUnit.SECONDS));
+             assertFalse(peer.config().isAutoRead());
+             assertEquals(3, counter.get());
+-            assertTrue(flow.queue().isEmpty());
++            assertTrue(flow.isQueueEmpty());
+         } finally {
+             client.close();
+             server.close();
+@@ -350,21 +346,19 @@ public class FlowControlHandlerTest {
+             peer.read();
+             assertTrue(latchRef.get().await(1L, TimeUnit.SECONDS));
+             assertEquals(1, counter.get());
+-            assertThat(flow.queue(), IsIterableContainingInOrder.<Object>contains("2", "3"));
+ 
+             // channelRead(2)
+             latchRef.set(new CountDownLatch(1));
+             peer.read();
+             assertTrue(latchRef.get().await(1L, TimeUnit.SECONDS));
+             assertEquals(2, counter.get());
+-            assertThat(flow.queue(), IsIterableContainingInOrder.<Object>contains("3"));
+ 
+             // channelRead(3)
+             latchRef.set(new CountDownLatch(1));
+             peer.read();
+             assertTrue(latchRef.get().await(1L, TimeUnit.SECONDS));
+             assertEquals(3, counter.get());
+-            assertTrue(flow.queue().isEmpty());
++            assertTrue(flow.isQueueEmpty());
+         } finally {
+             client.close();
+             server.close();

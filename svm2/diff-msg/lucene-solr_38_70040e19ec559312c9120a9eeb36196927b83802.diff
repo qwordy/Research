@@ -1,0 +1,21 @@
+commit 70040e19ec559312c9120a9eeb36196927b83802
+Author: Michael McCandless <mikemccand@apache.org>
+Date:   Thu Jun 25 19:54:49 2009 +0000
+
+    LUCENE-1707: refCount doesn't need to be volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@788493 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/java/org/apache/lucene/index/IndexReader.java b/src/java/org/apache/lucene/index/IndexReader.java
+index 4bb7f5a..21f38c7 100644
+--- a/src/java/org/apache/lucene/index/IndexReader.java
++++ b/src/java/org/apache/lucene/index/IndexReader.java
+@@ -113,7 +113,7 @@ public abstract class IndexReader implements Cloneable {
+   private boolean closed;
+   protected boolean hasChanges;
+   
+-  private volatile int refCount;
++  private int refCount;
+ 
+   private boolean disableFakeNorms = false;
+ 

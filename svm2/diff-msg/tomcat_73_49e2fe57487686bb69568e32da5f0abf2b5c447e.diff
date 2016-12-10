@@ -1,0 +1,35 @@
+commit 49e2fe57487686bb69568e32da5f0abf2b5c447e
+Author: Konstantin Kolinko <kkolinko@apache.org>
+Date:   Sat May 12 16:51:02 2012 +0000
+
+    Followup to r1336516
+    Add Javadoc (as asked by sebb) and avoid looking up a volatile field twice
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1337591 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/tomcat/util/net/AbstractEndpoint.java b/java/org/apache/tomcat/util/net/AbstractEndpoint.java
+index a39aee0..7ccd725 100644
+--- a/java/org/apache/tomcat/util/net/AbstractEndpoint.java
++++ b/java/org/apache/tomcat/util/net/AbstractEndpoint.java
+@@ -174,9 +174,19 @@ public abstract class AbstractEndpoint {
+ 
+     public int  getMaxConnections() { return this.maxConnections; }
+ 
++    /**
++     * Return the current count of connections handled by this endpoint, if the
++     * connections are counted (which happens when the maximum count of
++     * connections is limited), or <code>-1</code> if they are not. This
++     * property is added here so that this value can be inspected through JMX.
++     * It is visible on "ThreadPool" MBean.
++     *
++     * @return The count
++     */
+     public long getConnectionCount() {
+-        if (connectionLimitLatch != null) {
+-            return connectionLimitLatch.getCount();
++        LimitLatch latch = connectionLimitLatch;
++        if (latch != null) {
++            return latch.getCount();
+         }
+         return -1;
+     }

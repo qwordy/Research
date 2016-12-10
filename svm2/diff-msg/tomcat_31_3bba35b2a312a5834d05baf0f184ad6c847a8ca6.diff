@@ -1,0 +1,76 @@
+commit 3bba35b2a312a5834d05baf0f184ad6c847a8ca6
+Author: Mark Thomas <markt@apache.org>
+Date:   Tue Aug 18 09:36:47 2015 +0000
+
+    Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58255
+    Document the Semaphore valve.
+    Patch provided by Kyohei Nakamura.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1696378 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/webapps/docs/config/valve.xml b/webapps/docs/config/valve.xml
+index 5fcf0d8..53e075f 100644
+--- a/webapps/docs/config/valve.xml
++++ b/webapps/docs/config/valve.xml
+@@ -1729,6 +1729,61 @@
+ 
+ </section>
+ 
++<section name="Semaphore Valve">
++
++  <subsection name="Introduction">
++
++    <p>The <strong>Semaphore Valve</strong> is able to limit the number of
++    concurrent request processing threads.</p>
++    <p><strong>org.apache.catalina.valves.SemaphoreValve</strong> provides
++    methods which may be overridden by a subclass to customize behavior:</p>
++    <ul>
++    <li><b><code>controlConcurrency</code></b> may be overridden to add
++    conditions;</li>
++    <li><b><code>permitDenied</code></b> may be overridden to add error handling
++    when a permit isn't granted.</li>
++    </ul>
++
++  </subsection>
++
++  <subsection name="Attributes">
++
++    <p>The <strong>Semaphore Valve</strong> supports the following
++    configuration attributes:</p>
++
++    <attributes>
++
++      <attribute name="block" required="false">
++        <p>Flag to determine if a thread is blocked until a permit is available.
++        The default value is <strong>true</strong>.</p>
++      </attribute>
++
++      <attribute name="className" required="true">
++        <p>Java class name of the implementation to use. This MUST be set to
++        <strong>org.apache.catalina.valves.SemaphoreValve</strong>.</p>
++      </attribute>
++
++      <attribute name="concurrency" required="false">
++        <p>Concurrency level of the semaphore. The default value is
++        <strong>10</strong>.</p>
++      </attribute>
++
++      <attribute name="fairness" required="false">
++        <p>Fairness of the semaphore. The default value is
++        <strong>false</strong>.</p>
++      </attribute>
++
++      <attribute name="interruptible" required="false">
++        <p>Flag to determine if a thread may be interrupted until a permit is
++        available. The default value is <strong>false</strong>.</p>
++      </attribute>
++
++    </attributes>
++
++  </subsection>
++
++</section>
++
+ </body>
+ 
+ 

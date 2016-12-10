@@ -1,0 +1,117 @@
+commit 238758b32a4ae47887844880870f9033453831d0
+Author: Jonathan Ellis <jbellis@apache.org>
+Date:   Fri Apr 3 21:27:34 2009 +0000
+
+    expunge ConcurrentHashMap in favor of NonBlockingHashMap.  patch by jbellis, review by johano.  see #50
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@761804 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/org/apache/cassandra/db/ColumnFamilyStore.java b/src/org/apache/cassandra/db/ColumnFamilyStore.java
+index 34268cf..d737f91 100644
+--- a/src/org/apache/cassandra/db/ColumnFamilyStore.java
++++ b/src/org/apache/cassandra/db/ColumnFamilyStore.java
+@@ -23,17 +23,14 @@ import java.io.IOException;
+ import java.math.BigInteger;
+ import java.util.ArrayList;
+ import java.util.Collections;
+-import java.util.HashMap;
+ import java.util.HashSet;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.PriorityQueue;
+ import java.util.Set;
+ import java.util.StringTokenizer;
+-import java.util.Arrays;
+ import java.util.concurrent.ExecutionException;
+ import java.util.concurrent.Future;
+-import java.util.concurrent.ConcurrentHashMap;
+ import java.util.concurrent.atomic.AtomicBoolean;
+ import java.util.concurrent.atomic.AtomicInteger;
+ import java.util.concurrent.atomic.AtomicReference;
+@@ -49,11 +46,12 @@ import org.apache.cassandra.io.IndexHelper;
+ import org.apache.cassandra.io.SSTable;
+ import org.apache.cassandra.io.SequenceFile;
+ import org.apache.cassandra.net.EndPoint;
+-import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.service.PartitionerType;
++import org.apache.cassandra.service.StorageService;
+ import org.apache.cassandra.utils.BloomFilter;
+ import org.apache.cassandra.utils.FileUtils;
+ import org.apache.cassandra.utils.LogUtil;
++import org.cliffc.high_scale_lib.NonBlockingHashMap;
+ 
+ /**
+  * Author : Avinash Lakshman ( alakshman@facebook.com) & Prashant Malik ( pmalik@facebook.com )
+@@ -702,7 +700,7 @@ public class ColumnFamilyStore
+      */
+     static Set<List<String>> getCompactionBuckets(List<String> files, long min)
+     {
+-    	Map<List<String>, Long> buckets = new ConcurrentHashMap<List<String>, Long>();
++    	Map<List<String>, Long> buckets = new NonBlockingHashMap<List<String>, Long>();
+     	for(String fname : files)
+     	{
+     		File f = new File(fname);
+diff --git a/src/org/apache/cassandra/db/EfficientBidiMap.java b/src/org/apache/cassandra/db/EfficientBidiMap.java
+index cba957c..1ee5573 100644
+--- a/src/org/apache/cassandra/db/EfficientBidiMap.java
++++ b/src/org/apache/cassandra/db/EfficientBidiMap.java
+@@ -19,14 +19,12 @@
+ package org.apache.cassandra.db;
+ 
+ import java.io.Serializable;
+-import java.util.concurrent.ConcurrentHashMap;
+ import java.util.concurrent.ConcurrentSkipListSet;
+ import java.util.Map;
+ import java.util.SortedSet;
+ import java.util.Comparator;
+-import java.util.TreeSet;
+ 
+-import org.apache.cassandra.db.ColumnComparatorFactory.ComparatorType;
++import org.cliffc.high_scale_lib.NonBlockingHashMap;
+ 
+ 
+ /**
+@@ -35,16 +33,16 @@ import org.apache.cassandra.db.ColumnComparatorFactory.ComparatorType;
+ 
+ class EfficientBidiMap implements Serializable
+ {
+-    private Map<String, IColumn> map_;
+-    private SortedSet<IColumn> sortedSet_;
++    private NonBlockingHashMap<String, IColumn> map_;
++    private ConcurrentSkipListSet<IColumn> sortedSet_;
+     private Comparator<IColumn> columnComparator_;
+ 
+     EfficientBidiMap(Comparator<IColumn> columnComparator)
+     {
+-        this(new ConcurrentHashMap<String, IColumn>(), new ConcurrentSkipListSet<IColumn>(columnComparator), columnComparator);
++        this(new NonBlockingHashMap<String, IColumn>(), new ConcurrentSkipListSet<IColumn>(columnComparator), columnComparator);
+     }
+ 
+-    EfficientBidiMap(Map<String, IColumn> map, SortedSet<IColumn> set, Comparator<IColumn> comparator)
++    private EfficientBidiMap(NonBlockingHashMap<String, IColumn> map, ConcurrentSkipListSet<IColumn> set, Comparator<IColumn> comparator)
+     {
+     	map_ = map;
+     	sortedSet_ = set;
+@@ -102,9 +100,7 @@ class EfficientBidiMap implements Serializable
+ 
+     EfficientBidiMap cloneMe()
+     {
+-    	Map<String, IColumn> map = new ConcurrentHashMap<String, IColumn>(map_);
+-    	SortedSet<IColumn> set = new ConcurrentSkipListSet<IColumn>(sortedSet_);
+-    	return new EfficientBidiMap(map, set, columnComparator_);
++    	return new EfficientBidiMap((NonBlockingHashMap<String, IColumn>) map_.clone(), sortedSet_.clone(), columnComparator_);
+     }
+ }
+ 
+diff --git a/src/org/apache/cassandra/utils/Cachetable.java b/src/org/apache/cassandra/utils/Cachetable.java
+index 33660e7..445aa79 100644
+--- a/src/org/apache/cassandra/utils/Cachetable.java
++++ b/src/org/apache/cassandra/utils/Cachetable.java
+@@ -19,7 +19,6 @@
+ package org.apache.cassandra.utils;
+ 
+ import java.util.*;
+-import java.util.concurrent.ConcurrentHashMap;
+ 
+ import org.apache.log4j.Logger;
+ /**

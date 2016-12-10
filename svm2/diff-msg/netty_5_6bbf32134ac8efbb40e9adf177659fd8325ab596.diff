@@ -1,0 +1,214 @@
+commit 6bbf32134ac8efbb40e9adf177659fd8325ab596
+Author: Norman Maurer <norman_maurer@apple.com>
+Date:   Fri Aug 12 12:54:58 2016 +0200
+
+    Log more details if notification of promise fails in PromiseNotifier and AbstractChannelHandlerContext
+    
+    Motivation:
+    
+    To make it easier to debug why notification of a promise failed we should log extra info and make it consistent.
+    
+    Modifications:
+    
+    - Create a new PromiseNotificationUtil that has static methods that can be used to try notify a promise and log.
+    - Reuse this in AbstractChannelHandlerContext, ChannelOutboundBuffer and PromiseNotifier
+    
+    Result:
+    
+    Easier to debug why a promise could not be notified.
+
+diff --git a/common/src/main/java/io/netty/util/concurrent/PromiseNotifier.java b/common/src/main/java/io/netty/util/concurrent/PromiseNotifier.java
+index 5b0112c..41e3d03 100644
+--- a/common/src/main/java/io/netty/util/concurrent/PromiseNotifier.java
++++ b/common/src/main/java/io/netty/util/concurrent/PromiseNotifier.java
+@@ -15,6 +15,7 @@
+  */
+ package io.netty.util.concurrent;
+ 
++import io.netty.util.internal.PromiseNotificationUtil;
+ import io.netty.util.internal.logging.InternalLogger;
+ import io.netty.util.internal.logging.InternalLoggerFactory;
+ 
+@@ -63,25 +64,20 @@ public class PromiseNotifier<V, F extends Future<V>> implements GenericFutureLis
+ 
+     @Override
+     public void operationComplete(F future) throws Exception {
++        InternalLogger internalLogger = logNotifyFailure ? logger : null;
+         if (future.isSuccess()) {
+             V result = future.get();
+             for (Promise<? super V> p: promises) {
+-                if (!p.trySuccess(result) && logNotifyFailure) {
+-                    logger.warn("Failed to mark a promise as success because it is done already: {}", p);
+-                }
++                PromiseNotificationUtil.trySuccess(p, result, internalLogger);
+             }
+         } else if (future.isCancelled()) {
+             for (Promise<? super V> p: promises) {
+-                if (!p.cancel(false) && logNotifyFailure) {
+-                    logger.warn("Failed to cancel a promise because it is done already: {}", p);
+-                }
++                PromiseNotificationUtil.tryCancel(p, internalLogger);
+             }
+         } else {
+             Throwable cause = future.cause();
+             for (Promise<? super V> p: promises) {
+-                if (!p.tryFailure(cause) && logNotifyFailure) {
+-                    logger.warn("Failed to mark a promise as failure because it's done already: {}", p, cause);
+-                }
++                PromiseNotificationUtil.tryFailure(p, cause, internalLogger);
+             }
+         }
+     }
+diff --git a/common/src/main/java/io/netty/util/internal/PromiseNotificationUtil.java b/common/src/main/java/io/netty/util/internal/PromiseNotificationUtil.java
+new file mode 100644
+index 0000000..42872a8
+--- /dev/null
++++ b/common/src/main/java/io/netty/util/internal/PromiseNotificationUtil.java
+@@ -0,0 +1,76 @@
++/*
++ * Copyright 2016 The Netty Project
++ *
++ * The Netty Project licenses this file to you under the Apache License,
++ * version 2.0 (the "License"); you may not use this file except in compliance
++ * with the License. You may obtain a copy of the License at:
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations
++ * under the License.
++ */
++package io.netty.util.internal;
++
++import io.netty.util.concurrent.Promise;
++import io.netty.util.internal.logging.InternalLogger;
++
++/**
++ * Internal utilities to notify {@link Promise}s.
++ */
++public final class PromiseNotificationUtil {
++
++    private PromiseNotificationUtil() { }
++
++    /**
++     * Try to cancel the {@link Promise} and log if {@code logger} is not {@code null} in case this fails.
++     */
++    public static void tryCancel(Promise<?> p, InternalLogger logger) {
++        if (!p.cancel(false) && logger != null) {
++            Throwable err = p.cause();
++            if (err == null) {
++                logger.warn("Failed to cancel promise because it has succeeded already: {}", p);
++            } else {
++                logger.warn(
++                        "Failed to cancel promise because it has failed already: {}, unnotified cause:",
++                        p, err);
++            }
++        }
++    }
++
++    /**
++     * Try to mark the {@link Promise} as success and log if {@code logger} is not {@code null} in case this fails.
++     */
++    public static <V> void trySuccess(Promise<? super V> p, V result, InternalLogger logger) {
++        if (!p.trySuccess(result) && logger != null) {
++            Throwable err = p.cause();
++            if (err == null) {
++                logger.warn("Failed to mark a promise as success because it has succeeded already: {}", p);
++            } else {
++                logger.warn(
++                        "Failed to mark a promise as success because it has failed already: {}, unnotified cause:",
++                        p, err);
++            }
++        }
++    }
++
++    /**
++     * Try to mark the {@link Promise} as failure and log if {@code logger} is not {@code null} in case this fails.
++     */
++    public static void tryFailure(Promise<?> p, Throwable cause, InternalLogger logger) {
++        if (!p.tryFailure(cause) && logger != null) {
++            Throwable err = p.cause();
++            if (err == null) {
++                logger.warn("Failed to mark a promise as failure because it has succeeded already: {}", p, cause);
++            } else {
++                logger.warn(
++                        "Failed to mark a promise as failure because it has failed already: {}, unnotified cause: {}",
++                        p, ThrowableUtil.stackTraceToString(err), cause);
++            }
++        }
++    }
++
++}
+diff --git a/transport/src/main/java/io/netty/channel/AbstractChannelHandlerContext.java b/transport/src/main/java/io/netty/channel/AbstractChannelHandlerContext.java
+index 1aea5fd..ae0d7c1 100644
+--- a/transport/src/main/java/io/netty/channel/AbstractChannelHandlerContext.java
++++ b/transport/src/main/java/io/netty/channel/AbstractChannelHandlerContext.java
+@@ -25,6 +25,7 @@ import io.netty.util.ResourceLeakHint;
+ import io.netty.util.concurrent.EventExecutor;
+ import io.netty.util.concurrent.OrderedEventExecutor;
+ import io.netty.util.internal.PlatformDependent;
++import io.netty.util.internal.PromiseNotificationUtil;
+ import io.netty.util.internal.ThrowableUtil;
+ import io.netty.util.internal.ObjectUtil;
+ import io.netty.util.internal.StringUtil;
+@@ -842,10 +843,8 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
+     }
+ 
+     private static void notifyOutboundHandlerException(Throwable cause, ChannelPromise promise) {
+-        if (!promise.tryFailure(cause) && !(promise instanceof VoidChannelPromise)) {
+-            if (logger.isWarnEnabled()) {
+-                logger.warn("Failed to fail the promise because it's done already: {}", promise, cause);
+-            }
++        if (!(promise instanceof VoidChannelPromise)) {
++            PromiseNotificationUtil.tryFailure(promise, cause, logger);
+         }
+     }
+ 
+diff --git a/transport/src/main/java/io/netty/channel/ChannelOutboundBuffer.java b/transport/src/main/java/io/netty/channel/ChannelOutboundBuffer.java
+index f8e70ea..a82e6ee 100644
+--- a/transport/src/main/java/io/netty/channel/ChannelOutboundBuffer.java
++++ b/transport/src/main/java/io/netty/channel/ChannelOutboundBuffer.java
+@@ -25,7 +25,7 @@ import io.netty.util.ReferenceCountUtil;
+ import io.netty.util.concurrent.FastThreadLocal;
+ import io.netty.util.internal.InternalThreadLocalMap;
+ import io.netty.util.internal.PlatformDependent;
+-import io.netty.util.internal.ThrowableUtil;
++import io.netty.util.internal.PromiseNotificationUtil;
+ import io.netty.util.internal.logging.InternalLogger;
+ import io.netty.util.internal.logging.InternalLoggerFactory;
+ 
+@@ -669,28 +669,14 @@ public final class ChannelOutboundBuffer {
+     }
+ 
+     private static void safeSuccess(ChannelPromise promise) {
+-        if (!(promise instanceof VoidChannelPromise) && !promise.trySuccess()) {
+-            Throwable err = promise.cause();
+-            if (err == null) {
+-                logger.warn("Failed to mark a promise as success because it has succeeded already: {}", promise);
+-            } else {
+-                logger.warn(
+-                        "Failed to mark a promise as success because it has failed already: {}, unnotified cause {}",
+-                        promise, ThrowableUtil.stackTraceToString(err));
+-            }
++        if (!(promise instanceof VoidChannelPromise)) {
++            PromiseNotificationUtil.trySuccess(promise, null, logger);
+         }
+     }
+ 
+     private static void safeFail(ChannelPromise promise, Throwable cause) {
+-        if (!(promise instanceof VoidChannelPromise) && !promise.tryFailure(cause)) {
+-            Throwable err = promise.cause();
+-            if (err == null) {
+-                logger.warn("Failed to mark a promise as failure because it has succeeded already: {}", promise, cause);
+-            } else {
+-                logger.warn(
+-                        "Failed to mark a promise as failure because it has failed already: {}, unnotified cause {}",
+-                        promise, ThrowableUtil.stackTraceToString(err), cause);
+-            }
++        if (!(promise instanceof VoidChannelPromise)) {
++            PromiseNotificationUtil.tryFailure(promise, cause, logger);
+         }
+     }
+ 

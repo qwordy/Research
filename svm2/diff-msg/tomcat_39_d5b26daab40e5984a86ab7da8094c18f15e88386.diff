@@ -1,0 +1,31 @@
+commit d5b26daab40e5984a86ab7da8094c18f15e88386
+Author: Felix Schumacher <fschumacher@apache.org>
+Date:   Mon Jan 26 18:02:11 2015 +0000
+
+    Remove volatile from variables, as it is misleading. All
+    variables, that are mutable and read/written from different threads are only
+    modified/read within a synchronized block. All other variables are immutable
+    and are now declared final. Issue identified by Coverity Scan.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1654851 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/authenticator/DigestAuthenticator.java b/java/org/apache/catalina/authenticator/DigestAuthenticator.java
+index 95a3c61..14bd2ed 100644
+--- a/java/org/apache/catalina/authenticator/DigestAuthenticator.java
++++ b/java/org/apache/catalina/authenticator/DigestAuthenticator.java
+@@ -637,10 +637,10 @@ public class DigestAuthenticator extends AuthenticatorBase {
+     }
+ 
+     private static class NonceInfo {
+-        private volatile long timestamp;
+-        private volatile boolean seen[];
+-        private volatile int offset;
+-        private volatile int count = 0;
++        private final long timestamp;
++        private final boolean seen[];
++        private final int offset;
++        private int count = 0;
+ 
+         public NonceInfo(long currentTime, int seenWindowSize) {
+             this.timestamp = currentTime;

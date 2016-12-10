@@ -1,0 +1,37 @@
+commit 56a2f64665494ee0d52fba7f391de0bea6144e29
+Author: Scott Mitchell <scott_mitchell@apple.com>
+Date:   Mon Jun 6 11:58:02 2016 -0700
+
+    Clarify Future.removeListener[s] javaDocs
+    
+    Motivation:
+    The javaDocs for Future.removeListener do not clarify that only the first occurrence of the listener is guaranteed to be removed.
+    
+    Modifications:
+    - Clarify the javaDocs for Future.removeListener[s] so it is known that the only the first occurrence of the listener will be removed.
+    
+    Result:
+    Fixes https://github.com/netty/netty/issues/5351
+
+diff --git a/common/src/main/java/io/netty/util/concurrent/Future.java b/common/src/main/java/io/netty/util/concurrent/Future.java
+index 8ddb860..16ffa72 100644
+--- a/common/src/main/java/io/netty/util/concurrent/Future.java
++++ b/common/src/main/java/io/netty/util/concurrent/Future.java
+@@ -63,7 +63,7 @@ public interface Future<V> extends java.util.concurrent.Future<V> {
+     Future<V> addListeners(GenericFutureListener<? extends Future<? super V>>... listeners);
+ 
+     /**
+-     * Removes the specified listener from this future.
++     * Removes the first occurrence of the specified listener from this future.
+      * The specified listener is no longer notified when this
+      * future is {@linkplain #isDone() done}.  If the specified
+      * listener is not associated with this future, this method
+@@ -72,7 +72,7 @@ public interface Future<V> extends java.util.concurrent.Future<V> {
+     Future<V> removeListener(GenericFutureListener<? extends Future<? super V>> listener);
+ 
+     /**
+-     * Removes the specified listeners from this future.
++     * Removes the first occurrence for each of the listeners from this future.
+      * The specified listeners are no longer notified when this
+      * future is {@linkplain #isDone() done}.  If the specified
+      * listeners are not associated with this future, this method

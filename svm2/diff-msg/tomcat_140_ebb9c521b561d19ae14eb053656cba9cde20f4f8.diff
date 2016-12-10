@@ -1,0 +1,21 @@
+commit ebb9c521b561d19ae14eb053656cba9cde20f4f8
+Author: Filip Hanik <fhanik@apache.org>
+Date:   Tue Oct 24 22:32:49 2006 +0000
+
+    don't cancel, only do that within the selector thread, as this is a synchronized call
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@467514 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/tomcat/util/net/NioEndpoint.java b/java/org/apache/tomcat/util/net/NioEndpoint.java
+index 168c5ca..9d21f88 100644
+--- a/java/org/apache/tomcat/util/net/NioEndpoint.java
++++ b/java/org/apache/tomcat/util/net/NioEndpoint.java
+@@ -156,7 +156,6 @@ public class NioEndpoint {
+             SelectionKey key = sel!=null?socket.getIOChannel().keyFor(sel):null;
+             KeyAttachment att = key!=null?(KeyAttachment)key.attachment():null;
+             if ( att!=null ) att.reset();
+-            if ( key!=null ) key.cancel();
+             //avoid over growing our cache or add after we have stopped
+             if ( running && (!paused) && (size() < socketProperties.getDirectBufferPool()) ) return super.offer(socket);
+             else return false;

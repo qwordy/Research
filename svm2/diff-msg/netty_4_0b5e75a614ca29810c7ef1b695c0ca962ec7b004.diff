@@ -1,0 +1,48 @@
+commit 0b5e75a614ca29810c7ef1b695c0ca962ec7b004
+Author: Scott Mitchell <scott_mitchell@apple.com>
+Date:   Tue Sep 13 17:03:05 2016 -0700
+
+    IdleStateHandler volatile member variables
+    
+    Motivation:
+    IdleStateHandler has a number of volatile member variables which are only accessed from the EventLoop thread. These do not have to be volatile. The accessibility of these member variables are not consistent between private and package private. The state variable can also use a byte instead of an int.
+    
+    Modifications:
+    - Remove volatile from member variables
+    - Change access to private for member variables
+    - Change state from int to byte
+    
+    Result:
+    IdleStateHandler member variables cleaned up.
+
+diff --git a/handler/src/main/java/io/netty/handler/timeout/IdleStateHandler.java b/handler/src/main/java/io/netty/handler/timeout/IdleStateHandler.java
+index fec6f50..3d2acd1 100644
+--- a/handler/src/main/java/io/netty/handler/timeout/IdleStateHandler.java
++++ b/handler/src/main/java/io/netty/handler/timeout/IdleStateHandler.java
+@@ -110,19 +110,19 @@ public class IdleStateHandler extends ChannelDuplexHandler {
+     private final long writerIdleTimeNanos;
+     private final long allIdleTimeNanos;
+ 
+-    volatile ScheduledFuture<?> readerIdleTimeout;
+-    volatile long lastReadTime;
++    private ScheduledFuture<?> readerIdleTimeout;
++    private long lastReadTime;
+     private boolean firstReaderIdleEvent = true;
+ 
+-    volatile ScheduledFuture<?> writerIdleTimeout;
+-    volatile long lastWriteTime;
++    private ScheduledFuture<?> writerIdleTimeout;
++    private long lastWriteTime;
+     private boolean firstWriterIdleEvent = true;
+ 
+-    volatile ScheduledFuture<?> allIdleTimeout;
++    private ScheduledFuture<?> allIdleTimeout;
+     private boolean firstAllIdleEvent = true;
+ 
+-    private volatile int state; // 0 - none, 1 - initialized, 2 - destroyed
+-    private volatile boolean reading;
++    private byte state; // 0 - none, 1 - initialized, 2 - destroyed
++    private boolean reading;
+ 
+     /**
+      * Creates a new instance firing {@link IdleStateEvent}s.

@@ -1,0 +1,36 @@
+commit 1eafffbec57dded19909fb83b7a17e91cb648f4c
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Fri Feb 8 17:24:29 2013 +0900
+
+    Use thread-local map instead of ConcurrentHashMap for faster instantiation of handler adapters
+
+diff --git a/common/src/main/java/io/netty/util/internal/TypeParameterFinder.java b/common/src/main/java/io/netty/util/internal/TypeParameterFinder.java
+index 55bdcb2..8299be9 100644
+--- a/common/src/main/java/io/netty/util/internal/TypeParameterFinder.java
++++ b/common/src/main/java/io/netty/util/internal/TypeParameterFinder.java
+@@ -18,16 +18,21 @@ package io.netty.util.internal;
+ 
+ import java.lang.reflect.ParameterizedType;
+ import java.lang.reflect.Type;
+-import java.util.concurrent.ConcurrentHashMap;
+-import java.util.concurrent.ConcurrentMap;
++import java.util.IdentityHashMap;
++import java.util.Map;
+ 
+ public final class TypeParameterFinder {
+ 
+-    // TODO: Use a weak key map
+-    private static final ConcurrentMap<Class<?>, Class<?>> typeMap = new ConcurrentHashMap<Class<?>, Class<?>>();
++    private static final ThreadLocal<Map<Class<?>, Class<?>>> typeMap = new ThreadLocal<Map<Class<?>, Class<?>>>() {
++        @Override
++        protected Map<Class<?>, Class<?>> initialValue() {
++            return new IdentityHashMap<Class<?>, Class<?>>();
++        }
++    };
+ 
+     public static Class<?> findActualTypeParameter(
+             final Object object, final Class<?> parameterizedSuperClass, final int typeParamIndex) {
++        final Map<Class<?>, Class<?>> typeMap = TypeParameterFinder.typeMap.get();
+         final Class<?> thisClass = object.getClass();
+         Class<?> messageType = typeMap.get(thisClass);
+         if (messageType == null) {

@@ -1,0 +1,83 @@
+commit f75ba72aeb4f21f5f39215c0900b261b9f22a9fa
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Sat Aug 18 18:48:44 2012 +0900
+
+    Allow using non-BlockingQueue
+    
+    - NioEventLoop never uses takeTask(), and ConcurrentLinkedList is faster
+      than LinkedBlockingQueue
+
+diff --git a/transport/src/main/java/io/netty/channel/SingleThreadEventExecutor.java b/transport/src/main/java/io/netty/channel/SingleThreadEventExecutor.java
+index 3570d46..7c7f955 100644
+--- a/transport/src/main/java/io/netty/channel/SingleThreadEventExecutor.java
++++ b/transport/src/main/java/io/netty/channel/SingleThreadEventExecutor.java
+@@ -22,6 +22,7 @@ import java.util.ArrayList;
+ import java.util.Collections;
+ import java.util.LinkedHashSet;
+ import java.util.List;
++import java.util.Queue;
+ import java.util.Set;
+ import java.util.concurrent.AbstractExecutorService;
+ import java.util.concurrent.BlockingQueue;
+@@ -46,7 +47,7 @@ public abstract class SingleThreadEventExecutor extends AbstractExecutorService
+     }
+ 
+     private final EventExecutorGroup parent;
+-    private final BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<Runnable>();
++    private final Queue<Runnable> taskQueue;
+     private final Thread thread;
+     private final Object stateLock = new Object();
+     private final Semaphore threadLock = new Semaphore(0);
+@@ -106,6 +107,12 @@ public abstract class SingleThreadEventExecutor extends AbstractExecutorService
+                 }
+             }
+         });
++
++        taskQueue = newTaskQueue();
++    }
++
++    protected Queue<Runnable> newTaskQueue() {
++        return new LinkedBlockingQueue<Runnable>();
+     }
+ 
+     @Override
+@@ -129,7 +136,11 @@ public abstract class SingleThreadEventExecutor extends AbstractExecutorService
+ 
+     protected Runnable takeTask() throws InterruptedException {
+         assert inEventLoop();
+-        return taskQueue.take();
++        if (taskQueue instanceof BlockingQueue) {
++            return ((BlockingQueue<Runnable>) taskQueue).take();
++        } else {
++            throw new UnsupportedOperationException();
++        }
+     }
+ 
+     protected Runnable peekTask() {
+diff --git a/transport/src/main/java/io/netty/channel/socket/nio/NioEventLoop.java b/transport/src/main/java/io/netty/channel/socket/nio/NioEventLoop.java
+index a2a5f99..deb62db 100644
+--- a/transport/src/main/java/io/netty/channel/socket/nio/NioEventLoop.java
++++ b/transport/src/main/java/io/netty/channel/socket/nio/NioEventLoop.java
+@@ -31,7 +31,9 @@ import java.nio.channels.spi.SelectorProvider;
+ import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.Iterator;
++import java.util.Queue;
+ import java.util.Set;
++import java.util.concurrent.ConcurrentLinkedQueue;
+ import java.util.concurrent.ThreadFactory;
+ import java.util.concurrent.atomic.AtomicBoolean;
+ 
+@@ -80,6 +82,12 @@ final class NioEventLoop extends SingleThreadEventLoop {
+     }
+ 
+     @Override
++    protected Queue<Runnable> newTaskQueue() {
++        // This event loop never calls takeTask()
++        return new ConcurrentLinkedQueue<Runnable>();
++    }
++
++    @Override
+     protected void run() {
+         Selector selector = this.selector;
+         for (;;) {

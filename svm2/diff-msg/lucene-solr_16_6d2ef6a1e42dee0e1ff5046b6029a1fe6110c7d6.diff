@@ -1,0 +1,21 @@
+commit 6d2ef6a1e42dee0e1ff5046b6029a1fe6110c7d6
+Author: Mark Robert Miller <markrmiller@apache.org>
+Date:   Fri Feb 24 17:16:16 2012 +0000
+
+    this should be volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1293345 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/solr/solrj/src/java/org/apache/solr/client/solrj/impl/CloudSolrServer.java b/solr/solrj/src/java/org/apache/solr/client/solrj/impl/CloudSolrServer.java
+index 9983f82..a9d467d 100644
+--- a/solr/solrj/src/java/org/apache/solr/client/solrj/impl/CloudSolrServer.java
++++ b/solr/solrj/src/java/org/apache/solr/client/solrj/impl/CloudSolrServer.java
+@@ -52,7 +52,7 @@ public class CloudSolrServer extends SolrServer {
+   private String zkHost; // the zk server address
+   private int zkConnectTimeout = 10000;
+   private int zkClientTimeout = 10000;
+-  private String defaultCollection;
++  private volatile String defaultCollection;
+   private LBHttpSolrServer lbServer;
+   Random rand = new Random();
+   private MultiThreadedHttpConnectionManager connManager;

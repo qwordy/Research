@@ -1,0 +1,21 @@
+commit 27997608f39f9126134cfcbc7e18b1afaba82bfb
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Fri Jul 1 21:50:14 2011 +0000
+
+    Read/write by multiple threads outside sync - needs to be volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1142104 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/core/StandardWrapper.java b/java/org/apache/catalina/core/StandardWrapper.java
+index 95d857f..194e2dd 100644
+--- a/java/org/apache/catalina/core/StandardWrapper.java
++++ b/java/org/apache/catalina/core/StandardWrapper.java
+@@ -204,7 +204,7 @@ public class StandardWrapper extends ContainerBase
+     /**
+      * Does this servlet implement the SingleThreadModel interface?
+      */
+-    protected boolean singleThreadModel = false;
++    protected volatile boolean singleThreadModel = false;
+ 
+ 
+     /**

@@ -1,0 +1,32 @@
+commit 1f41c3d2b38d48707e6d1d05c8251747737aa423
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Thu Apr 10 17:29:23 2008 +0000
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=44408
+    Avoid bottleneck by calling the synchronized method only once.
+    Patch provided by Robert Andersson.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@646889 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/jasper/runtime/PageContextImpl.java b/java/org/apache/jasper/runtime/PageContextImpl.java
+index 25d8d87..fb2bc10 100644
+--- a/java/org/apache/jasper/runtime/PageContextImpl.java
++++ b/java/org/apache/jasper/runtime/PageContextImpl.java
+@@ -70,6 +70,8 @@ import org.apache.jasper.util.Enumerator;
+  */
+ public class PageContextImpl extends PageContext {
+ 
++	private static final JspFactory jspf = JspFactory.getDefaultFactory(); 
++
+ 	private BodyContentImpl[] outs;
+ 
+ 	private int depth;
+@@ -895,7 +897,7 @@ public class PageContextImpl extends PageContext {
+ 			final ProtectedFunctionMapper functionMap, final boolean escape)
+ 			throws ELException {
+ 		Object retValue;
+-        final ExpressionFactory exprFactory = JspFactory.getDefaultFactory().getJspApplicationContext(pageContext.getServletContext()).getExpressionFactory();
++        final ExpressionFactory exprFactory = jspf.getJspApplicationContext(pageContext.getServletContext()).getExpressionFactory();
+ 		if (SecurityUtil.isPackageProtectionEnabled()) {
+ 			try {
+ 				retValue = AccessController

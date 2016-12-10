@@ -1,0 +1,448 @@
+commit 41af9a1eb3f9e5c814cc668736a006ee2593b325
+Author: Trustin Lee <t@motd.kr>
+Date:   Tue Jun 11 17:46:21 2013 +0900
+
+    Implement cancellation properly for Promise/Future
+    
+    - Related issue: #1432
+    - Add Future.isCancellable()
+    - Add Promise.setUncancellable() which is meant to be used for the party that runs the task uncancellable once started
+    - Implement Future.isCancelled() and Promise.cancel(boolean) properly
+
+diff --git a/common/src/main/java/io/netty/util/concurrent/AbstractFuture.java b/common/src/main/java/io/netty/util/concurrent/AbstractFuture.java
+index 9ee3831..b6073b6 100644
+--- a/common/src/main/java/io/netty/util/concurrent/AbstractFuture.java
++++ b/common/src/main/java/io/netty/util/concurrent/AbstractFuture.java
+@@ -27,16 +27,6 @@ import java.util.concurrent.TimeoutException;
+ public abstract class AbstractFuture<V> implements Future<V> {
+ 
+     @Override
+-    public boolean cancel(boolean mayInterruptIfRunning) {
+-        return false;
+-    }
+-
+-    @Override
+-    public boolean isCancelled() {
+-        return false;
+-    }
+-
+-    @Override
+     public V get() throws InterruptedException, ExecutionException {
+         await();
+ 
+diff --git a/common/src/main/java/io/netty/util/concurrent/CompleteFuture.java b/common/src/main/java/io/netty/util/concurrent/CompleteFuture.java
+index 97a9810..a00f15a 100644
+--- a/common/src/main/java/io/netty/util/concurrent/CompleteFuture.java
++++ b/common/src/main/java/io/netty/util/concurrent/CompleteFuture.java
+@@ -126,4 +126,19 @@ public abstract class CompleteFuture<V> extends AbstractFuture<V> {
+     public boolean isDone() {
+         return true;
+     }
++
++    @Override
++    public boolean isCancellable() {
++        return false;
++    }
++
++    @Override
++    public boolean isCancelled() {
++        return false;
++    }
++
++    @Override
++    public boolean cancel(boolean mayInterruptIfRunning) {
++        return false;
++    }
+ }
+diff --git a/common/src/main/java/io/netty/util/concurrent/DefaultPromise.java b/common/src/main/java/io/netty/util/concurrent/DefaultPromise.java
+index 134d468..baa51c5 100644
+--- a/common/src/main/java/io/netty/util/concurrent/DefaultPromise.java
++++ b/common/src/main/java/io/netty/util/concurrent/DefaultPromise.java
+@@ -20,6 +20,7 @@ import io.netty.util.internal.PlatformDependent;
+ import io.netty.util.internal.logging.InternalLogger;
+ import io.netty.util.internal.logging.InternalLoggerFactory;
+ 
++import java.util.concurrent.CancellationException;
+ import java.util.concurrent.TimeUnit;
+ 
+ import static java.util.concurrent.TimeUnit.*;
+@@ -38,6 +39,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
+         }
+     };
+     private static final Signal SUCCESS = new Signal(DefaultPromise.class.getName() + ".SUCCESS");
++    private static final Signal UNCANCELLABLE = new Signal(DefaultPromise.class.getName() + ".UNCANCELLABLE");
+     private final EventExecutor executor;
+ 
+     private volatile Object result;
+@@ -70,14 +72,32 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
+     }
+ 
+     @Override
++    public boolean isCancelled() {
++        return isCancelled0(result);
++    }
++
++    private static boolean isCancelled0(Object result) {
++        return result instanceof CauseHolder && ((CauseHolder) result).cause instanceof CancellationException;
++    }
++
++    @Override
++    public boolean isCancellable() {
++        return result == null;
++    }
++
++    @Override
+     public boolean isDone() {
+-        return result != null;
++        return isDone0(result);
++    }
++
++    private static boolean isDone0(Object result) {
++        return result != null && result != UNCANCELLABLE;
+     }
+ 
+     @Override
+     public boolean isSuccess() {
+         Object result = this.result;
+-        if (result == null) {
++        if (result == null || result == UNCANCELLABLE) {
+             return false;
+         }
+         return !(result instanceof CauseHolder);
+@@ -85,9 +105,9 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
+ 
+     @Override
+     public Throwable cause() {
+-        Object cause = result;
+-        if (cause instanceof CauseHolder) {
+-            return ((CauseHolder) cause).cause;
++        Object result = this.result;
++        if (result instanceof CauseHolder) {
++            return ((CauseHolder) result).cause;
+         }
+         return null;
+     }
+@@ -389,6 +409,47 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
+         return false;
+     }
+ 
++    @Override
++    public boolean cancel(boolean mayInterruptIfRunning) {
++        Object result = this.result;
++        if (isDone0(result) || result == UNCANCELLABLE) {
++            return false;
++        }
++
++        synchronized (this) {
++            // Allow only once.
++            result = this.result;
++            if (isDone0(result) || result == UNCANCELLABLE) {
++                return false;
++            }
++
++            this.result = new CauseHolder(new CancellationException());
++            if (hasWaiters()) {
++                notifyAll();
++            }
++        }
++        return true;
++    }
++
++    @Override
++    public boolean setUncancellable() {
++        Object result = this.result;
++        if (isDone0(result)) {
++            return isCancelled0(result);
++        }
++
++        synchronized (this) {
++            // Allow only once.
++            result = this.result;
++            if (isDone0(result)) {
++                return isCancelled0(result);
++            }
++
++            this.result = UNCANCELLABLE;
++        }
++        return true;
++    }
++
+     private boolean setFailure0(Throwable cause) {
+         if (isDone()) {
+             return false;
+diff --git a/common/src/main/java/io/netty/util/concurrent/Future.java b/common/src/main/java/io/netty/util/concurrent/Future.java
+index f6d1c62..1ee845f 100644
+--- a/common/src/main/java/io/netty/util/concurrent/Future.java
++++ b/common/src/main/java/io/netty/util/concurrent/Future.java
+@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
+ /**
+  * The result of an asynchronous operation.
+  */
++@SuppressWarnings("ClassNameSameAsAncestorName")
+ public interface Future<V> extends java.util.concurrent.Future<V> {
+ 
+     /**
+@@ -31,6 +32,11 @@ public interface Future<V> extends java.util.concurrent.Future<V> {
+     boolean isSuccess();
+ 
+     /**
++     * returns {@code true} if and only if the operation can be cancelled via {@link #cancel(boolean)}.
++     */
++    boolean isCancellable();
++
++    /**
+      * Returns the cause of the failed I/O operation if the I/O operation has
+      * failed.
+      *
+diff --git a/common/src/main/java/io/netty/util/concurrent/Promise.java b/common/src/main/java/io/netty/util/concurrent/Promise.java
+index 3eda727..e8360e1 100644
+--- a/common/src/main/java/io/netty/util/concurrent/Promise.java
++++ b/common/src/main/java/io/netty/util/concurrent/Promise.java
+@@ -56,6 +56,14 @@ public interface Promise<V> extends Future<V> {
+      */
+     boolean tryFailure(Throwable cause);
+ 
++    /**
++     * Make this future impossible to cancel.
++     *
++     * @return {@code true} if and only if successfully marked this future as uncancellable or it is already done
++     *         without being cancelled.  {@code false} if this future has been cancelled already.
++     */
++    boolean setUncancellable();
++
+     @Override
+     Promise<V> addListener(GenericFutureListener<? extends Future<V>> listener);
+ 
+diff --git a/common/src/main/java/io/netty/util/concurrent/PromiseTask.java b/common/src/main/java/io/netty/util/concurrent/PromiseTask.java
+index 0f2d8ac..ccb8bf1 100644
+--- a/common/src/main/java/io/netty/util/concurrent/PromiseTask.java
++++ b/common/src/main/java/io/netty/util/concurrent/PromiseTask.java
+@@ -20,6 +20,7 @@ import java.util.concurrent.Executors;
+ import java.util.concurrent.RunnableFuture;
+ 
+ class PromiseTask<V> extends DefaultPromise<V> implements RunnableFuture<V> {
++
+     protected final Callable<V> task;
+ 
+     PromiseTask(EventExecutor executor, Runnable runnable, V result) {
+@@ -32,12 +33,12 @@ class PromiseTask<V> extends DefaultPromise<V> implements RunnableFuture<V> {
+     }
+ 
+     @Override
+-    public int hashCode() {
++    public final int hashCode() {
+         return System.identityHashCode(this);
+     }
+ 
+     @Override
+-    public boolean equals(Object obj) {
++    public final boolean equals(Object obj) {
+         return this == obj;
+     }
+ 
+@@ -52,7 +53,7 @@ class PromiseTask<V> extends DefaultPromise<V> implements RunnableFuture<V> {
+     }
+ 
+     @Override
+-    public Promise<V> setFailure(Throwable cause) {
++    public final Promise<V> setFailure(Throwable cause) {
+         throw new IllegalStateException();
+     }
+ 
+@@ -62,7 +63,7 @@ class PromiseTask<V> extends DefaultPromise<V> implements RunnableFuture<V> {
+     }
+ 
+     @Override
+-    public boolean tryFailure(Throwable cause) {
++    public final boolean tryFailure(Throwable cause) {
+         return false;
+     }
+ 
+@@ -71,7 +72,7 @@ class PromiseTask<V> extends DefaultPromise<V> implements RunnableFuture<V> {
+     }
+ 
+     @Override
+-    public Promise<V> setSuccess(V result) {
++    public final Promise<V> setSuccess(V result) {
+         throw new IllegalStateException();
+     }
+ 
+@@ -81,11 +82,20 @@ class PromiseTask<V> extends DefaultPromise<V> implements RunnableFuture<V> {
+     }
+ 
+     @Override
+-    public boolean trySuccess(V result) {
++    public final boolean trySuccess(V result) {
+         return false;
+     }
+ 
+     protected final boolean trySuccessInternal(V result) {
+         return super.trySuccess(result);
+     }
++
++    @Override
++    public final boolean setUncancellable() {
++        throw new IllegalStateException();
++    }
++
++    protected final boolean setUncancellableInternal() {
++        return super.setUncancellable();
++    }
+ }
+diff --git a/common/src/main/java/io/netty/util/concurrent/SingleThreadEventExecutor.java b/common/src/main/java/io/netty/util/concurrent/SingleThreadEventExecutor.java
+index 403aefa..8cd62e0 100644
+--- a/common/src/main/java/io/netty/util/concurrent/SingleThreadEventExecutor.java
++++ b/common/src/main/java/io/netty/util/concurrent/SingleThreadEventExecutor.java
+@@ -27,7 +27,6 @@ import java.util.Queue;
+ import java.util.Set;
+ import java.util.concurrent.BlockingQueue;
+ import java.util.concurrent.Callable;
+-import java.util.concurrent.CancellationException;
+ import java.util.concurrent.Delayed;
+ import java.util.concurrent.Executors;
+ import java.util.concurrent.LinkedBlockingQueue;
+@@ -35,7 +34,6 @@ import java.util.concurrent.RejectedExecutionException;
+ import java.util.concurrent.Semaphore;
+ import java.util.concurrent.ThreadFactory;
+ import java.util.concurrent.TimeUnit;
+-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+ import java.util.concurrent.atomic.AtomicLong;
+ 
+ /**
+@@ -829,18 +827,13 @@ public abstract class SingleThreadEventExecutor extends AbstractEventExecutor {
+         }
+     }
+ 
++    @SuppressWarnings("ComparableImplementedButEqualsNotOverridden")
+     private static final class ScheduledFutureTask<V> extends PromiseTask<V> implements ScheduledFuture<V> {
+ 
+-        @SuppressWarnings("rawtypes")
+-        private static final AtomicIntegerFieldUpdater<ScheduledFutureTask> uncancellableUpdater =
+-                AtomicIntegerFieldUpdater.newUpdater(ScheduledFutureTask.class, "uncancellable");
+-
+         private final long id = nextTaskId.getAndIncrement();
+         private long deadlineNanos;
+         /* 0 - no repeat, >0 - repeat at fixed rate, <0 - repeat with fixed delay */
+         private final long periodNanos;
+-        @SuppressWarnings("UnusedDeclaration")
+-        private volatile int uncancellable;
+ 
+         ScheduledFutureTask(SingleThreadEventExecutor executor, Runnable runnable, V result, long nanoTime) {
+             this(executor, Executors.callable(runnable, result), nanoTime);
+@@ -905,27 +898,17 @@ public abstract class SingleThreadEventExecutor extends AbstractEventExecutor {
+         }
+ 
+         @Override
+-        public int hashCode() {
+-            return super.hashCode();
+-        }
+-
+-        @Override
+-        public boolean equals(Object obj) {
+-            return super.equals(obj);
+-        }
+-
+-        @Override
+         public void run() {
+             assert executor().inEventLoop();
+             try {
+                 if (periodNanos == 0) {
+-                    if (setUncancellable()) {
++                    if (setUncancellableInternal()) {
+                         V result = task.call();
+                         setSuccessInternal(result);
+                     }
+                 } else {
+                     // check if is done as it may was cancelled
+-                    if (!isDone()) {
++                    if (!isCancelled()) {
+                         task.call();
+                         if (!executor().isShutdown()) {
+                             long p = periodNanos;
+@@ -934,7 +917,7 @@ public abstract class SingleThreadEventExecutor extends AbstractEventExecutor {
+                             } else {
+                                 deadlineNanos = nanoTime() - p;
+                             }
+-                            if (!isDone()) {
++                            if (!isCancelled()) {
+                                 executor().delayedTaskQueue.add(this);
+                             }
+                         }
+@@ -944,28 +927,6 @@ public abstract class SingleThreadEventExecutor extends AbstractEventExecutor {
+                 setFailureInternal(cause);
+             }
+         }
+-
+-        @Override
+-        public boolean isCancelled() {
+-            if (cause() instanceof CancellationException) {
+-                return true;
+-            }
+-            return false;
+-        }
+-
+-        @Override
+-        public  boolean cancel(boolean mayInterruptIfRunning) {
+-            if (!isDone()) {
+-                if (setUncancellable()) {
+-                    return tryFailureInternal(new CancellationException());
+-                }
+-            }
+-            return false;
+-        }
+-
+-        private boolean setUncancellable() {
+-            return uncancellableUpdater.compareAndSet(this, 0, 1);
+-        }
+     }
+ 
+     private final class PurgeTask implements Runnable {
+diff --git a/transport/src/main/java/io/netty/channel/VoidChannelPromise.java b/transport/src/main/java/io/netty/channel/VoidChannelPromise.java
+index 137ac47..0250f2e 100644
+--- a/transport/src/main/java/io/netty/channel/VoidChannelPromise.java
++++ b/transport/src/main/java/io/netty/channel/VoidChannelPromise.java
+@@ -19,6 +19,7 @@ import io.netty.util.concurrent.AbstractFuture;
+ import io.netty.util.concurrent.Future;
+ import io.netty.util.concurrent.GenericFutureListener;
+ 
++import java.util.concurrent.CancellationException;
+ import java.util.concurrent.TimeUnit;
+ 
+ final class VoidChannelPromise extends AbstractFuture<Void> implements ChannelPromise {
+@@ -117,6 +118,21 @@ final class VoidChannelPromise extends AbstractFuture<Void> implements ChannelPr
+     }
+ 
+     @Override
++    public boolean setUncancellable() {
++        return true;
++    }
++
++    @Override
++    public boolean isCancellable() {
++        return false;
++    }
++
++    @Override
++    public boolean isCancelled() {
++        return false;
++    }
++
++    @Override
+     public Throwable cause() {
+         return null;
+     }
+@@ -154,6 +170,14 @@ final class VoidChannelPromise extends AbstractFuture<Void> implements ChannelPr
+     }
+ 
+     @Override
++    public boolean cancel(boolean mayInterruptIfRunning) {
++        if (fireException) {
++            channel.pipeline().fireExceptionCaught(new CancellationException());
++        }
++        return false;
++    }
++
++    @Override
+     public boolean trySuccess() {
+         return false;
+     }

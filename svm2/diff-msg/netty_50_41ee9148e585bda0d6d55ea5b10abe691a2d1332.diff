@@ -1,0 +1,43 @@
+commit 41ee9148e585bda0d6d55ea5b10abe691a2d1332
+Author: Scott Mitchell <scott_mitchell@apple.com>
+Date:   Mon Aug 31 12:37:24 2015 -0700
+
+    HTTP/2 InboundHttp2ToHttpAdapterTest serverChannel NPE
+    
+    Motivation:
+    InboundHttp2ToHttpAdapterTest.bootstrapEnv does not wait for the serverConnectedChannel to be initialized before returning. Some methods rely only this behavior and throw a NPE because it may not be set.
+    
+    Modifications:
+    - Add a CountDownLatch to ensure the serverConnectedChannel is initialized
+    
+    Result:
+    No more NPE.
+
+diff --git a/codec-http2/src/test/java/io/netty/handler/codec/http2/InboundHttp2ToHttpAdapterTest.java b/codec-http2/src/test/java/io/netty/handler/codec/http2/InboundHttp2ToHttpAdapterTest.java
+index aaa709b..ff3ac73 100644
+--- a/codec-http2/src/test/java/io/netty/handler/codec/http2/InboundHttp2ToHttpAdapterTest.java
++++ b/codec-http2/src/test/java/io/netty/handler/codec/http2/InboundHttp2ToHttpAdapterTest.java
+@@ -639,6 +639,7 @@ public class InboundHttp2ToHttpAdapterTest {
+         serverDelegator = null;
+         serverConnectedChannel = null;
+         maxContentLength = 1024;
++        final CountDownLatch serverChannelLatch = new CountDownLatch(1);
+         serverLatch = new CountDownLatch(serverLatchCount);
+         clientLatch = new CountDownLatch(clientLatchCount);
+         settingsLatch = new CountDownLatch(settingsLatchCount);
+@@ -681,6 +682,7 @@ public class InboundHttp2ToHttpAdapterTest {
+                         }
+                     }
+                 });
++                serverChannelLatch.countDown();
+             }
+         });
+ 
+@@ -709,6 +711,7 @@ public class InboundHttp2ToHttpAdapterTest {
+         ChannelFuture ccf = cb.connect(serverChannel.localAddress());
+         assertTrue(ccf.awaitUninterruptibly().isSuccess());
+         clientChannel = ccf.channel();
++        assertTrue(serverChannelLatch.await(2, SECONDS));
+     }
+ 
+     private void cleanupCapturedRequests() {

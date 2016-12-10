@@ -1,0 +1,32 @@
+commit aa8e48df9ff26ff5b81bdbdb53b29f80494b288b
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Fri Feb 19 08:43:13 2010 +0000
+
+    Removed 'volatile' from the member variables that are protected by ThreadPoolExecutor's BlockingQueue operations
+
+diff --git a/src/main/java/org/jboss/netty/handler/execution/ChannelEventRunnable.java b/src/main/java/org/jboss/netty/handler/execution/ChannelEventRunnable.java
+index 96a909e..956033d 100644
+--- a/src/main/java/org/jboss/netty/handler/execution/ChannelEventRunnable.java
++++ b/src/main/java/org/jboss/netty/handler/execution/ChannelEventRunnable.java
+@@ -36,7 +36,7 @@ public class ChannelEventRunnable implements Runnable, EstimatableObjectWrapper
+ 
+     private final ChannelHandlerContext ctx;
+     private final ChannelEvent e;
+-    volatile int estimatedSize;
++    int estimatedSize;
+ 
+     /**
+      * Creates a {@link Runnable} which sends the specified {@link ChannelEvent}
+diff --git a/src/main/java/org/jboss/netty/handler/execution/MemoryAwareThreadPoolExecutor.java b/src/main/java/org/jboss/netty/handler/execution/MemoryAwareThreadPoolExecutor.java
+index 6e57c79..b0206ae 100644
+--- a/src/main/java/org/jboss/netty/handler/execution/MemoryAwareThreadPoolExecutor.java
++++ b/src/main/java/org/jboss/netty/handler/execution/MemoryAwareThreadPoolExecutor.java
+@@ -485,7 +485,7 @@ public class MemoryAwareThreadPoolExecutor extends ThreadPoolExecutor {
+ 
+     private static final class MemoryAwareRunnable implements Runnable {
+         final Runnable task;
+-        volatile int estimatedSize;
++        int estimatedSize;
+ 
+         MemoryAwareRunnable(Runnable task) {
+             this.task = task;

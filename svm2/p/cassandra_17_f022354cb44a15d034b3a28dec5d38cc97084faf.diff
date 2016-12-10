@@ -1,0 +1,46 @@
+commit f022354cb44a15d034b3a28dec5d38cc97084faf
+Author: Jonathan Ellis <jbellis@apache.org>
+Date:   Thu Aug 8 10:57:48 2013 -0500
+
+    replace volatile regionCount w/ AtomicInteger
+
+diff --git a/src/java/org/apache/cassandra/utils/SlabAllocator.java b/src/java/org/apache/cassandra/utils/SlabAllocator.java
+index 6ff66f8..edd6f86 100644
+--- a/src/java/org/apache/cassandra/utils/SlabAllocator.java
++++ b/src/java/org/apache/cassandra/utils/SlabAllocator.java
+@@ -48,7 +48,7 @@ public class SlabAllocator extends Allocator
+     private final static int MAX_CLONED_SIZE = 128 * 1024; // bigger than this don't go in the region
+ 
+     private final AtomicReference<Region> currentRegion = new AtomicReference<Region>();
+-    private volatile int regionCount = 0;
++    private final AtomicInteger regionCount = new AtomicInteger(0);
+     private AtomicLong unslabbed = new AtomicLong(0);
+ 
+     public ByteBuffer allocate(int size)
+@@ -99,7 +99,7 @@ public class SlabAllocator extends Allocator
+             {
+                 // we won race - now we need to actually do the expensive allocation step
+                 region.init();
+-                regionCount++;
++                regionCount.incrementAndGet();
+                 logger.trace("{} regions now allocated in {}", regionCount, this);
+                 return region;
+             }
+@@ -113,7 +113,7 @@ public class SlabAllocator extends Allocator
+      */
+     public long getMinimumSize()
+     {
+-        return unslabbed.get() + (regionCount - 1) * (long)REGION_SIZE;
++        return unslabbed.get() + (regionCount.get() - 1) * (long)REGION_SIZE;
+     }
+ 
+     /**
+@@ -121,7 +121,7 @@ public class SlabAllocator extends Allocator
+      */
+     public long getMaximumSize()
+     {
+-        return unslabbed.get() + regionCount * (long)REGION_SIZE;
++        return unslabbed.get() + regionCount.get() * (long)REGION_SIZE;
+     }
+ 
+     /**

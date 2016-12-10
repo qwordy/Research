@@ -1,0 +1,33 @@
+commit 979d775f5f439200fa24088ab4163d82bd8c5ed0
+Author: Norman Maurer <norman_maurer@apple.com>
+Date:   Mon Aug 8 20:55:51 2016 +0200
+
+    Remove volatile from field as its not needed.
+    
+    Motivation:
+    
+    We not need to mark the field as volatile and so this may confuse people.
+    
+    Modifications:
+    
+    Remove volatile and add comment to explain why its not needed.
+    
+    Result:
+    
+    More correct example.
+
+diff --git a/example/src/main/java/io/netty/example/proxy/HexDumpProxyFrontendHandler.java b/example/src/main/java/io/netty/example/proxy/HexDumpProxyFrontendHandler.java
+index 8b44d2d..22874bd 100644
+--- a/example/src/main/java/io/netty/example/proxy/HexDumpProxyFrontendHandler.java
++++ b/example/src/main/java/io/netty/example/proxy/HexDumpProxyFrontendHandler.java
+@@ -29,7 +29,9 @@ public class HexDumpProxyFrontendHandler extends ChannelInboundHandlerAdapter {
+     private final String remoteHost;
+     private final int remotePort;
+ 
+-    private volatile Channel outboundChannel;
++    // As we use inboundChannel.eventLoop() when buildling the Bootstrap this does not need to be volatile as
++    // the outboundChannel will use the same EventLoop (and therefore Thread) as the inboundChannel.
++    private Channel outboundChannel;
+ 
+     public HexDumpProxyFrontendHandler(String remoteHost, int remotePort) {
+         this.remoteHost = remoteHost;

@@ -1,0 +1,27 @@
+commit 6646db171ecc66b33ea81548b05e7434e27d212b
+Author: Trustin Lee <t@motd.kr>
+Date:   Tue Apr 30 18:30:17 2013 +0900
+
+    Use tryFailure() to notify registration failure to avoid IllegalStateException
+    
+     .. which is raised when the registration promise has been failed already due to an internal error in the pipeline.
+    
+    - Fixes #1319
+
+diff --git a/transport/src/main/java/io/netty/channel/AbstractChannel.java b/transport/src/main/java/io/netty/channel/AbstractChannel.java
+index 1bc91bf..c057433 100644
+--- a/transport/src/main/java/io/netty/channel/AbstractChannel.java
++++ b/transport/src/main/java/io/netty/channel/AbstractChannel.java
+@@ -620,7 +620,11 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
+             } catch (Throwable t) {
+                 // Close the channel directly to avoid FD leak.
+                 closeForcibly();
+-                promise.setFailure(t);
++                if (!promise.tryFailure(t)) {
++                    logger.warn(
++                            "Tried to fail the registration promise, but it is complete already. " +
++                            "Swallowing the cause of the registration failure:", t);
++                }
+                 closeFuture.setClosed();
+             }
+         }

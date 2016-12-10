@@ -1,0 +1,19 @@
+commit 065218fd10b3b69882f5ac02c6d7216459b00d62
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Fri Feb 13 11:53:05 2009 +0000
+
+    Forgot to mark one more volatile member transient
+
+diff --git a/src/main/java/org/jboss/netty/util/ConcurrentIdentityWeakKeyHashMap.java b/src/main/java/org/jboss/netty/util/ConcurrentIdentityWeakKeyHashMap.java
+index 3cf0f3f..10d3354 100644
+--- a/src/main/java/org/jboss/netty/util/ConcurrentIdentityWeakKeyHashMap.java
++++ b/src/main/java/org/jboss/netty/util/ConcurrentIdentityWeakKeyHashMap.java
+@@ -318,7 +318,7 @@ public final class ConcurrentIdentityWeakKeyHashMap<K, V> extends AbstractMap<K,
+          * The collected weak-key reference queue for this segment. This should
+          * be (re)initialized whenever table is assigned,
+          */
+-        volatile ReferenceQueue<Object> refQueue;
++        transient volatile ReferenceQueue<Object> refQueue;
+ 
+         Segment(int initialCapacity, float lf) {
+             loadFactor = lf;

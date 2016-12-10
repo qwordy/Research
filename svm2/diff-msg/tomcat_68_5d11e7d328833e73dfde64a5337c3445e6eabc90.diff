@@ -1,0 +1,95 @@
+commit 5d11e7d328833e73dfde64a5337c3445e6eabc90
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Tue Aug 7 19:15:50 2012 +0000
+
+    FindBugs: Sync mis-match
+    Reduce size of sync block and make current volatile so updates are seen consistently
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1370441 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/tribes/transport/nio/NioSender.java b/java/org/apache/catalina/tribes/transport/nio/NioSender.java
+index cd1ed93..69a5f6b 100644
+--- a/java/org/apache/catalina/tribes/transport/nio/NioSender.java
++++ b/java/org/apache/catalina/tribes/transport/nio/NioSender.java
+@@ -62,7 +62,7 @@ public class NioSender extends AbstractSender {
+      */
+     protected ByteBuffer readbuf = null;
+     protected ByteBuffer writebuf = null;
+-    protected byte[] current = null;
++    protected volatile byte[] current = null;
+     protected final XByteBuffer ackbuf = new XByteBuffer(128,true);
+     protected int remaining = 0;
+     protected boolean complete;
+@@ -349,38 +349,41 @@ public class NioSender extends AbstractSender {
+     * @throws IOException
+     * TODO Implement this org.apache.catalina.tribes.transport.IDataSender method
+     */
+-   public synchronized void setMessage(byte[] data) throws IOException {
+-       setMessage(data,0,data.length);
+-   }
+-
+-   public synchronized void setMessage(byte[] data,int offset, int length) throws IOException {
+-       if ( data != null ) {
+-           current = data;
+-           remaining = length;
+-           ackbuf.clear();
+-           if ( writebuf != null ) writebuf.clear();
+-           else writebuf = getBuffer(length);
+-           if ( writebuf.capacity() < length ) writebuf = getBuffer(length);
+-
+-           //TODO use ByteBuffer.wrap to avoid copying the data.
+-           writebuf.put(data,offset,length);
+-           //writebuf.rewind();
+-           //set the limit so that we don't write non wanted data
+-           //writebuf.limit(length);
+-           writebuf.flip();
+-           if (isConnected()) {
+-               if (isUdpBased())
+-                   dataChannel.register(getSelector(), SelectionKey.OP_WRITE, this);
+-               else
+-                   socketChannel.register(getSelector(), SelectionKey.OP_WRITE, this);
+-           }
+-       }
+-   }
+-
+-   public byte[] getMessage() {
+-       return current;
+-   }
++    public void setMessage(byte[] data) throws IOException {
++        setMessage(data,0,data.length);
++    }
++
++    public void setMessage(byte[] data,int offset, int length) throws IOException {
++        if (data != null) {
++            synchronized (this) {
++                current = data;
++                remaining = length;
++                ackbuf.clear();
++                if (writebuf != null) {
++                    writebuf.clear();
++                } else {
++                    writebuf = getBuffer(length);
++                }
++                if (writebuf.capacity() < length) {
++                    writebuf = getBuffer(length);
++                }
+ 
++                // TODO use ByteBuffer.wrap to avoid copying the data.
++                writebuf.put(data,offset,length);
++                writebuf.flip();
++                if (isConnected()) {
++                    if (isUdpBased())
++                        dataChannel.register(getSelector(), SelectionKey.OP_WRITE, this);
++                    else
++                        socketChannel.register(getSelector(), SelectionKey.OP_WRITE, this);
++                }
++            }
++        }
++    }
++
++    public byte[] getMessage() {
++        return current;
++    }
+ 
+ 
+     public boolean isComplete() {

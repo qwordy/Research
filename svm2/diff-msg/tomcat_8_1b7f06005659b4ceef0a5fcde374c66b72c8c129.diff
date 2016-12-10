@@ -1,0 +1,35 @@
+commit 1b7f06005659b4ceef0a5fcde374c66b72c8c129
+Author: Mark Thomas <markt@apache.org>
+Date:   Wed Apr 27 10:40:26 2016 +0000
+
+    Review of Map / ConcurrentMap / ConcurrentHashMap
+    Declare field using interface rather than implementation.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1741208 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/valves/StuckThreadDetectionValve.java b/java/org/apache/catalina/valves/StuckThreadDetectionValve.java
+index a596cd2..a4ae23f 100644
+--- a/java/org/apache/catalina/valves/StuckThreadDetectionValve.java
++++ b/java/org/apache/catalina/valves/StuckThreadDetectionValve.java
+@@ -20,6 +20,7 @@ import java.io.IOException;
+ import java.util.ArrayList;
+ import java.util.Date;
+ import java.util.List;
++import java.util.Map;
+ import java.util.Queue;
+ import java.util.concurrent.ConcurrentHashMap;
+ import java.util.concurrent.ConcurrentLinkedQueue;
+@@ -79,11 +80,8 @@ public class StuckThreadDetectionValve extends ValveBase {
+      * That way, Threads can be GC'ed, eventhough the Valve still thinks they
+      * are stuck (caused by a long monitor interval)
+      */
+-    private final ConcurrentHashMap<Long, MonitoredThread> activeThreads =
+-            new ConcurrentHashMap<>();
+-    /**
+-     *
+-     */
++    private final Map<Long, MonitoredThread> activeThreads = new ConcurrentHashMap<>();
++
+     private final Queue<CompletedStuckThread> completedStuckThreadsQueue =
+             new ConcurrentLinkedQueue<>();
+ 

@@ -1,0 +1,65 @@
+commit 6492cb98b2e40df4a93a12aef21d5bc89dc8aadb
+Author: Norman Maurer <norman_maurer@apple.com>
+Date:   Thu Jul 7 08:37:41 2016 +0200
+
+    Revert "DefaultPromise make listeners not volatile"
+    
+    This reverts commit 4d8132ff246c95cf677c525f8dfce6de00685842 as I missed something I want to discuss first.
+
+diff --git a/codec-http2/src/test/java/io/netty/handler/codec/http2/Http2ConnectionHandlerTest.java b/codec-http2/src/test/java/io/netty/handler/codec/http2/Http2ConnectionHandlerTest.java
+index 4ac2e1d..742d529 100644
+--- a/codec-http2/src/test/java/io/netty/handler/codec/http2/Http2ConnectionHandlerTest.java
++++ b/codec-http2/src/test/java/io/netty/handler/codec/http2/Http2ConnectionHandlerTest.java
+@@ -27,7 +27,6 @@ import io.netty.channel.DefaultChannelPromise;
+ import io.netty.util.ReferenceCountUtil;
+ import io.netty.util.concurrent.EventExecutor;
+ import io.netty.util.concurrent.GenericFutureListener;
+-import io.netty.util.concurrent.ImmediateEventExecutor;
+ import io.netty.util.concurrent.Promise;
+ import org.junit.After;
+ import org.junit.Before;
+@@ -125,7 +124,7 @@ public class Http2ConnectionHandlerTest {
+     public void setup() throws Exception {
+         MockitoAnnotations.initMocks(this);
+ 
+-        promise = new DefaultChannelPromise(channel, ImmediateEventExecutor.INSTANCE);
++        promise = new DefaultChannelPromise(channel);
+ 
+         Throwable fakeException = new RuntimeException("Fake exception");
+         when(encoder.connection()).thenReturn(connection);
+diff --git a/common/src/main/java/io/netty/util/concurrent/DefaultPromise.java b/common/src/main/java/io/netty/util/concurrent/DefaultPromise.java
+index cd19da4..e7218fd 100644
+--- a/common/src/main/java/io/netty/util/concurrent/DefaultPromise.java
++++ b/common/src/main/java/io/netty/util/concurrent/DefaultPromise.java
+@@ -60,7 +60,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
+      *
+      * Threading - synchronized(this). We must support adding listeners when there is no EventExecutor.
+      */
+-    private Object listeners;
++    private volatile Object listeners;
+     /**
+      * Threading - synchronized(this). We are required to hold the monitor to use Java's underlying wait()/notifyAll().
+      */
+@@ -417,6 +417,13 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
+     }
+ 
+     private void notifyListeners() {
++        if (listeners == null) {
++            return;
++        }
++        notifyListenersWithStackOverFlowProtection();
++    }
++
++    private void notifyListenersWithStackOverFlowProtection() {
+         EventExecutor executor = executor();
+         if (executor.inEventLoop()) {
+             final InternalThreadLocalMap threadLocals = InternalThreadLocalMap.get();
+@@ -441,7 +448,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
+     }
+ 
+     /**
+-     * The logic in this method should be identical to {@link #notifyListeners()} but
++     * The logic in this method should be identical to {@link #notifyListenersWithStackOverFlowProtection()} but
+      * cannot share code because the listener(s) cannot be cached for an instance of {@link DefaultPromise} since the
+      * listener(s) may be changed and is protected by a synchronized operation.
+      */

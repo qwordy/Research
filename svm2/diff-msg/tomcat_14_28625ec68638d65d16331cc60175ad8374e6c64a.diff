@@ -1,0 +1,50 @@
+commit 28625ec68638d65d16331cc60175ad8374e6c64a
+Author: Mark Thomas <markt@apache.org>
+Date:   Wed Apr 27 08:30:28 2016 +0000
+
+    Review of Map / ConcurrentMap / ConcurrentHashMap
+    Simplify. sessionKeys is only used internally so it can be declared as Map with Java 8.
+    Also:
+    - Reduce visibility of fields.
+    - Use final where possible.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1741159 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/authenticator/SingleSignOnEntry.java b/java/org/apache/catalina/authenticator/SingleSignOnEntry.java
+index e291f3b..24984f9 100644
+--- a/java/org/apache/catalina/authenticator/SingleSignOnEntry.java
++++ b/java/org/apache/catalina/authenticator/SingleSignOnEntry.java
+@@ -21,6 +21,7 @@ import java.io.ObjectInputStream;
+ import java.io.ObjectOutputStream;
+ import java.io.Serializable;
+ import java.security.Principal;
++import java.util.Map;
+ import java.util.Set;
+ import java.util.concurrent.ConcurrentHashMap;
+ 
+@@ -45,19 +46,19 @@ public class SingleSignOnEntry implements Serializable {
+ 
+     // ------------------------------------------------------  Instance Fields
+ 
+-    protected String authType = null;
++    private String authType = null;
+ 
+-    protected String password = null;
++    private String password = null;
+ 
+     // Marked as transient so special handling can be applied to serialization
+-    protected transient Principal principal = null;
++    private transient Principal principal = null;
+ 
+-    protected ConcurrentHashMap<SingleSignOnSessionKey,SingleSignOnSessionKey> sessionKeys =
++    private final Map<SingleSignOnSessionKey,SingleSignOnSessionKey> sessionKeys =
+             new ConcurrentHashMap<>();
+ 
+-    protected String username = null;
++    private String username = null;
+ 
+-    protected boolean canReauthenticate = false;
++    private boolean canReauthenticate = false;
+ 
+     // ---------------------------------------------------------  Constructors
+ 

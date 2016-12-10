@@ -1,0 +1,776 @@
+commit d1919d0e142208f7251815bdf06b188697fa4efd
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Tue Mar 29 15:29:52 2011 +0900
+
+    Fixed NETTY-336 Fine-grained control over thread renaming
+    
+    Removed ThreadNameDeterminer and ThreadRenamingRunnable completely and let user specify the Executor with one's own ThreadFactory
+
+diff --git a/src/main/java/org/jboss/netty/channel/socket/nio/NioClientSocketPipelineSink.java b/src/main/java/org/jboss/netty/channel/socket/nio/NioClientSocketPipelineSink.java
+index 9d5d8b2..118b114 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/nio/NioClientSocketPipelineSink.java
++++ b/src/main/java/org/jboss/netty/channel/socket/nio/NioClientSocketPipelineSink.java
+@@ -42,7 +42,6 @@ import org.jboss.netty.channel.ChannelStateEvent;
+ import org.jboss.netty.channel.MessageEvent;
+ import org.jboss.netty.logging.InternalLogger;
+ import org.jboss.netty.logging.InternalLoggerFactory;
+-import org.jboss.netty.util.ThreadRenamingRunnable;
+ import org.jboss.netty.util.internal.DeadLockProofWorker;
+ import org.jboss.netty.util.internal.LinkedTransferQueue;
+ 
+@@ -196,10 +195,7 @@ class NioClientSocketPipelineSink extends AbstractChannelSink {
+                     // Start the worker thread with the new Selector.
+                     boolean success = false;
+                     try {
+-                        DeadLockProofWorker.start(
+-                                bossExecutor,
+-                                new ThreadRenamingRunnable(
+-                                        this, "NewIO", "ClientBoss", null, String.valueOf(id), null));
++                        DeadLockProofWorker.start(bossExecutor, this);
+                         success = true;
+                     } finally {
+                         if (!success) {
+diff --git a/src/main/java/org/jboss/netty/channel/socket/nio/NioDatagramWorker.java b/src/main/java/org/jboss/netty/channel/socket/nio/NioDatagramWorker.java
+index b83a227..7e75daa 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/nio/NioDatagramWorker.java
++++ b/src/main/java/org/jboss/netty/channel/socket/nio/NioDatagramWorker.java
+@@ -45,7 +45,6 @@ import org.jboss.netty.channel.ReceiveBufferSizePredictor;
+ import org.jboss.netty.channel.socket.nio.SocketSendBufferPool.SendBuffer;
+ import org.jboss.netty.logging.InternalLogger;
+ import org.jboss.netty.logging.InternalLoggerFactory;
+-import org.jboss.netty.util.ThreadRenamingRunnable;
+ import org.jboss.netty.util.internal.LinkedTransferQueue;
+ 
+ /**
+@@ -168,9 +167,7 @@ class NioDatagramWorker implements Runnable {
+                 boolean success = false;
+                 try {
+                     // Start the main selector loop. See run() for details.
+-                    executor.execute(new ThreadRenamingRunnable(
+-                            this, "NewIO", "DatagramWorker",
+-                            String.valueOf(bossId), String.valueOf(id), null));
++                    executor.execute(this);
+                     success = true;
+                 } finally {
+                     if (!success) {
+diff --git a/src/main/java/org/jboss/netty/channel/socket/nio/NioServerSocketPipelineSink.java b/src/main/java/org/jboss/netty/channel/socket/nio/NioServerSocketPipelineSink.java
+index dfe8236..691964a 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/nio/NioServerSocketPipelineSink.java
++++ b/src/main/java/org/jboss/netty/channel/socket/nio/NioServerSocketPipelineSink.java
+@@ -39,7 +39,6 @@ import org.jboss.netty.channel.ChannelStateEvent;
+ import org.jboss.netty.channel.MessageEvent;
+ import org.jboss.netty.logging.InternalLogger;
+ import org.jboss.netty.logging.InternalLoggerFactory;
+-import org.jboss.netty.util.ThreadRenamingRunnable;
+ import org.jboss.netty.util.internal.DeadLockProofWorker;
+ 
+ /**
+@@ -154,12 +153,7 @@ class NioServerSocketPipelineSink extends AbstractChannelSink {
+ 
+             Executor bossExecutor =
+                 ((NioServerSocketChannelFactory) channel.getFactory()).bossExecutor;
+-            DeadLockProofWorker.start(
+-                    bossExecutor,
+-                    new ThreadRenamingRunnable(
+-                            new Boss(channel),
+-                            "NewIO", "ServerBoss", null, String.valueOf(id),
+-                            channel.toString()));
++            DeadLockProofWorker.start(bossExecutor, new Boss(channel));
+             bossStarted = true;
+         } catch (Throwable t) {
+             future.setFailure(t);
+diff --git a/src/main/java/org/jboss/netty/channel/socket/nio/NioWorker.java b/src/main/java/org/jboss/netty/channel/socket/nio/NioWorker.java
+index e035b5b..82ef022 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/nio/NioWorker.java
++++ b/src/main/java/org/jboss/netty/channel/socket/nio/NioWorker.java
+@@ -46,7 +46,6 @@ import org.jboss.netty.channel.ReceiveBufferSizePredictor;
+ import org.jboss.netty.channel.socket.nio.SocketSendBufferPool.SendBuffer;
+ import org.jboss.netty.logging.InternalLogger;
+ import org.jboss.netty.logging.InternalLoggerFactory;
+-import org.jboss.netty.util.ThreadRenamingRunnable;
+ import org.jboss.netty.util.internal.DeadLockProofWorker;
+ import org.jboss.netty.util.internal.LinkedTransferQueue;
+ 
+@@ -108,12 +107,7 @@ class NioWorker implements Runnable {
+                 // Start the worker thread with the new Selector.
+                 boolean success = false;
+                 try {
+-                    DeadLockProofWorker.start(
+-                            executor,
+-                            new ThreadRenamingRunnable(
+-                                    this, "NewIO",
+-                                    server? "ServerWorker" : "ClientWorker",
+-                                    String.valueOf(bossId), String.valueOf(id), null));
++                    DeadLockProofWorker.start(executor, this);
+                     success = true;
+                 } finally {
+                     if (!success) {
+diff --git a/src/main/java/org/jboss/netty/channel/socket/oio/OioClientSocketPipelineSink.java b/src/main/java/org/jboss/netty/channel/socket/oio/OioClientSocketPipelineSink.java
+index b80fcc0..53bf914 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/oio/OioClientSocketPipelineSink.java
++++ b/src/main/java/org/jboss/netty/channel/socket/oio/OioClientSocketPipelineSink.java
+@@ -30,7 +30,6 @@ import org.jboss.netty.channel.ChannelPipeline;
+ import org.jboss.netty.channel.ChannelState;
+ import org.jboss.netty.channel.ChannelStateEvent;
+ import org.jboss.netty.channel.MessageEvent;
+-import org.jboss.netty.util.ThreadRenamingRunnable;
+ import org.jboss.netty.util.internal.DeadLockProofWorker;
+ 
+ /**
+@@ -132,13 +131,7 @@ class OioClientSocketPipelineSink extends AbstractChannelSink {
+             fireChannelConnected(channel, channel.getRemoteAddress());
+ 
+             // Start the business.
+-            DeadLockProofWorker.start(
+-                    workerExecutor,
+-                    new ThreadRenamingRunnable(
+-                            new OioWorker(channel),
+-                            "OldIO", "ClientWorker",
+-                            String.valueOf(id), String.valueOf(channel.getId()),
+-                            channel.toString()));
++            DeadLockProofWorker.start(workerExecutor, new OioWorker(channel));
+             workerStarted = true;
+         } catch (Throwable t) {
+             future.setFailure(t);
+diff --git a/src/main/java/org/jboss/netty/channel/socket/oio/OioDatagramPipelineSink.java b/src/main/java/org/jboss/netty/channel/socket/oio/OioDatagramPipelineSink.java
+index 9b35c9e..e245084 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/oio/OioDatagramPipelineSink.java
++++ b/src/main/java/org/jboss/netty/channel/socket/oio/OioDatagramPipelineSink.java
+@@ -28,7 +28,6 @@ import org.jboss.netty.channel.ChannelPipeline;
+ import org.jboss.netty.channel.ChannelState;
+ import org.jboss.netty.channel.ChannelStateEvent;
+ import org.jboss.netty.channel.MessageEvent;
+-import org.jboss.netty.util.ThreadRenamingRunnable;
+ import org.jboss.netty.util.internal.DeadLockProofWorker;
+ 
+ /**
+@@ -105,11 +104,7 @@ class OioDatagramPipelineSink extends AbstractChannelSink {
+             // Start the business.
+             DeadLockProofWorker.start(
+                     workerExecutor,
+-                    new ThreadRenamingRunnable(
+-                            new OioDatagramWorker(channel),
+-                            "OldIO", "DatagramWorker",
+-                            String.valueOf(id), String.valueOf(channel.getId()),
+-                            channel.toString()));
++                    new OioDatagramWorker(channel));
+             workerStarted = true;
+         } catch (Throwable t) {
+             future.setFailure(t);
+@@ -154,17 +149,9 @@ class OioDatagramPipelineSink extends AbstractChannelSink {
+                 // Start the business.
+                 DeadLockProofWorker.start(
+                         workerExecutor,
+-                        new ThreadRenamingRunnable(
+-                                new OioDatagramWorker(channel),
+-                                service, category, String.valueOf(id),
+-                                String.valueOf(channel.getId()), comment));
++                        new OioDatagramWorker(channel));
+             } else {
+-                // Worker started by bind() - just rename.
+-                Thread workerThread = channel.workerThread;
+-                if (workerThread != null) {
+-                    ThreadRenamingRunnable.renameThread(
+-                            workerThread, service, category, String.valueOf(id), String.valueOf(channel.getId()), comment);
+-                }
++                // Worker started by bind() - nothing to do.
+             }
+ 
+             workerStarted = true;
+diff --git a/src/main/java/org/jboss/netty/channel/socket/oio/OioDatagramWorker.java b/src/main/java/org/jboss/netty/channel/socket/oio/OioDatagramWorker.java
+index 865675c..76b49db 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/oio/OioDatagramWorker.java
++++ b/src/main/java/org/jboss/netty/channel/socket/oio/OioDatagramWorker.java
+@@ -27,7 +27,6 @@ import org.jboss.netty.buffer.ChannelBuffer;
+ import org.jboss.netty.channel.Channel;
+ import org.jboss.netty.channel.ChannelFuture;
+ import org.jboss.netty.channel.ReceiveBufferSizePredictor;
+-import org.jboss.netty.util.ThreadRenamingRunnable;
+ 
+ /**
+  *
+@@ -174,16 +173,6 @@ class OioDatagramWorker implements Runnable {
+             channel.socket.disconnect();
+             future.setSuccess();
+             if (connected) {
+-                // Update the worker's thread name to reflect the state change.
+-                Thread workerThread = channel.workerThread;
+-                if (workerThread != null) {
+-                    ThreadRenamingRunnable.renameThread(
+-                            workerThread, "OldIO", "DatagramWorker",
+-                            String.valueOf(((OioDatagramChannelFactory) channel.getFactory()).id),
+-                            String.valueOf(channel.getId()),
+-                            channel.toString());
+-                }
+-
+                 // Notify.
+                 fireChannelDisconnected(channel);
+             }
+diff --git a/src/main/java/org/jboss/netty/channel/socket/oio/OioServerSocketPipelineSink.java b/src/main/java/org/jboss/netty/channel/socket/oio/OioServerSocketPipelineSink.java
+index b0a94d9..4001e2d 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/oio/OioServerSocketPipelineSink.java
++++ b/src/main/java/org/jboss/netty/channel/socket/oio/OioServerSocketPipelineSink.java
+@@ -34,7 +34,6 @@ import org.jboss.netty.channel.ChannelStateEvent;
+ import org.jboss.netty.channel.MessageEvent;
+ import org.jboss.netty.logging.InternalLogger;
+ import org.jboss.netty.logging.InternalLoggerFactory;
+-import org.jboss.netty.util.ThreadRenamingRunnable;
+ import org.jboss.netty.util.internal.DeadLockProofWorker;
+ 
+ /**
+@@ -148,11 +147,7 @@ class OioServerSocketPipelineSink extends AbstractChannelSink {
+ 
+             Executor bossExecutor =
+                 ((OioServerSocketChannelFactory) channel.getFactory()).bossExecutor;
+-            DeadLockProofWorker.start(
+-                    bossExecutor,
+-                    new ThreadRenamingRunnable(
+-                            new Boss(channel), "OldIO", "ServerBoss", null,
+-                            String.valueOf(id), channel.toString()));
++            DeadLockProofWorker.start(bossExecutor, new Boss(channel));
+             bossStarted = true;
+         } catch (Throwable t) {
+             future.setFailure(t);
+@@ -218,12 +213,7 @@ class OioServerSocketPipelineSink extends AbstractChannelSink {
+                                         acceptedSocket);
+                             DeadLockProofWorker.start(
+                                     workerExecutor,
+-                                    new ThreadRenamingRunnable(
+-                                            new OioWorker(acceptedChannel),
+-                                            "OldIO", "ServerWorker",
+-                                            String.valueOf(id),
+-                                            String.valueOf(acceptedChannel.getId()),
+-                                            acceptedChannel.toString()));
++                                    new OioWorker(acceptedChannel));
+                         } catch (Exception e) {
+                             logger.warn(
+                                     "Failed to initialize an accepted socket.", e);
+diff --git a/src/main/java/org/jboss/netty/util/ThreadNameDeterminer.java b/src/main/java/org/jboss/netty/util/ThreadNameDeterminer.java
+deleted file mode 100644
+index 5ea2789..0000000
+--- a/src/main/java/org/jboss/netty/util/ThreadNameDeterminer.java
++++ /dev/null
+@@ -1,96 +0,0 @@
+-/*
+- * Copyright 2009 Red Hat, Inc.
+- *
+- * Red Hat licenses this file to you under the Apache License, version 2.0
+- * (the "License"); you may not use this file except in compliance with the
+- * License.  You may obtain a copy of the License at:
+- *
+- *    http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+- * License for the specific language governing permissions and limitations
+- * under the License.
+- */
+-package org.jboss.netty.util;
+-
+-/**
+- * Overrides the thread name proposed by {@link ThreadRenamingRunnable}.
+- *
+- * @author <a href="http://www.jboss.org/netty/">The Netty Project</a>
+- * @author <a href="http://gleamynode.net/">Trustin Lee</a>
+- * @version $Rev$, $Date$
+- */
+-public interface ThreadNameDeterminer {
+-
+-    /**
+-     * The default {@link ThreadNameDeterminer} that generates a thread name
+-     * which contains all specified information.
+-     */
+-    ThreadNameDeterminer PROPOSED = new ThreadNameDeterminer() {
+-        @Override
+-        public String determineThreadName(String current, String service,
+-                String category, String parentId, String id, String comment) throws Exception {
+-
+-            String newName =
+-                (format("",  " ", service) +
+-                 format("",  " ", category) +
+-                 format("#", " ", parentId, id) +
+-                 format("(", ")", comment)).trim();
+-            if (newName.length() == 0) {
+-                return null;
+-            } else {
+-                return newName;
+-            }
+-        }
+-
+-        private String format(String prefix, String postfix, String... components) {
+-            StringBuilder buf = new StringBuilder();
+-            for (String c: components) {
+-                if (c.length() == 0) {
+-                    continue;
+-                }
+-                buf.append(c);
+-                buf.append(':');
+-            }
+-
+-            if (buf.length() == 0) {
+-                return "";
+-            }
+-
+-            buf.setLength(buf.length() - 1); // Remove trailing ':'
+-            return prefix + buf + postfix;
+-        }
+-    };
+-
+-    /**
+-     * An alternative {@link ThreadNameDeterminer} that rejects the proposed
+-     * thread name and retains the current one.
+-     */
+-    ThreadNameDeterminer CURRENT = new ThreadNameDeterminer() {
+-        @Override
+-        public String determineThreadName(String current, String service,
+-                String category, String parentId, String id, String comment) throws Exception {
+-            return null;
+-        }
+-    };
+-
+-    /**
+-     * Overrides the thread name proposed by {@link ThreadRenamingRunnable}.
+-     *
+-     * @param current   the current thread name
+-     * @param service   the service name (e.g. <tt>"NewIO"</tt> or <tt>"OldIO"</tt>)
+-     * @param category  the category name (e.g. <tt>"ServerBoss"</tt> or <tt>"ClientWorker"</tt>)
+-     * @param parentId  the parent thread ID (e.g. <tt>"1"</tt>)
+-     * @param id        the thread ID (e.g. <tt>"3"</tt>)
+-     * @param comment   the optional comment which might help debugging
+-     *
+-     * @return the actual new thread name.
+-     *         If {@code null} is returned, the proposed thread name is
+-     *         discarded (i.e. no rename).
+-     */
+-    String determineThreadName(
+-            String current,
+-            String service, String category, String parentId, String id, String comment) throws Exception;
+-}
+diff --git a/src/main/java/org/jboss/netty/util/ThreadRenamingRunnable.java b/src/main/java/org/jboss/netty/util/ThreadRenamingRunnable.java
+deleted file mode 100644
+index d2ade49..0000000
+--- a/src/main/java/org/jboss/netty/util/ThreadRenamingRunnable.java
++++ /dev/null
+@@ -1,198 +0,0 @@
+-/*
+- * Copyright 2009 Red Hat, Inc.
+- *
+- * Red Hat licenses this file to you under the Apache License, version 2.0
+- * (the "License"); you may not use this file except in compliance with the
+- * License.  You may obtain a copy of the License at:
+- *
+- *    http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+- * License for the specific language governing permissions and limitations
+- * under the License.
+- */
+-package org.jboss.netty.util;
+-
+-import java.util.regex.Pattern;
+-
+-import org.jboss.netty.logging.InternalLogger;
+-import org.jboss.netty.logging.InternalLoggerFactory;
+-
+-
+-/**
+- * A {@link Runnable} that changes the current thread name and reverts it back
+- * when its execution ends.  To change the default thread names set by Netty,
+- * use {@link #setThreadNameDeterminer(ThreadNameDeterminer)}.
+- *
+- * @author <a href="http://www.jboss.org/netty/">The Netty Project</a>
+- * @author <a href="http://gleamynode.net/">Trustin Lee</a>
+- *
+- * @version $Rev$, $Date$
+- *
+- * @apiviz.landmark
+- * @apiviz.has org.jboss.netty.util.ThreadNameDeterminer oneway - -
+- *
+- */
+-public class ThreadRenamingRunnable implements Runnable {
+-
+-    private static final InternalLogger logger =
+-        InternalLoggerFactory.getInstance(ThreadRenamingRunnable.class);
+-
+-    private static final Pattern SERVICE_PATTERN = Pattern.compile("[a-zA-Z0-9]*");
+-    private static final Pattern CATEGORY_PATTERN = SERVICE_PATTERN;
+-    private static final Pattern ID_PATTERN = SERVICE_PATTERN;
+-
+-    private static volatile ThreadNameDeterminer threadNameDeterminer =
+-        ThreadNameDeterminer.PROPOSED;
+-
+-    /**
+-     * Returns the {@link ThreadNameDeterminer} which overrides the proposed
+-     * new thread name.
+-     */
+-    public static ThreadNameDeterminer getThreadNameDeterminer() {
+-        return threadNameDeterminer;
+-    }
+-
+-    /**
+-     * Sets the {@link ThreadNameDeterminer} which overrides the proposed new
+-     * thread name.  Please note that the specified {@link ThreadNameDeterminer}
+-     * affects only new {@link ThreadRenamingRunnable}s; the existing instances
+-     * are not affected at all.  Therefore, you should make sure to call this
+-     * method at the earliest possible point (i.e. before any Netty worker
+-     * thread starts) for consistent thread naming.  Otherwise, you might see
+-     * the default thread names and the new names appear at the same time in
+-     * the full thread dump.
+-     */
+-    public static void setThreadNameDeterminer(ThreadNameDeterminer threadNameDeterminer) {
+-        if (threadNameDeterminer == null) {
+-            throw new NullPointerException("threadNameDeterminer");
+-        }
+-        ThreadRenamingRunnable.threadNameDeterminer = threadNameDeterminer;
+-    }
+-
+-    /**
+-     * Renames the specified thread.
+-     *
+-     * @return {@code true} if and only if the thread was renamed
+-     */
+-    public static boolean renameThread(Thread thread, String service, String category, String parentId, String id, String comment) {
+-        if (thread == null) {
+-            throw new NullPointerException("thread");
+-        }
+-
+-        validateNameComponents(service, category, parentId, id);
+-
+-        // Normalize the parameters.
+-        service = service != null? service : "";
+-        category = category != null? category : "";
+-        parentId = parentId != null? parentId : "";
+-        id = id != null? id : "";
+-        comment = comment != null? comment : "";
+-
+-        // Get the old & new thread names.
+-        String oldThreadName = thread.getName();
+-        String newThreadName = null;
+-        try {
+-            newThreadName = getThreadNameDeterminer().determineThreadName(
+-                    oldThreadName, service, category, parentId, id, comment);
+-        } catch (Throwable t) {
+-            logger.warn("Failed to determine the thread name", t);
+-        }
+-        if (newThreadName == null || newThreadName.length() == 0) {
+-            newThreadName = oldThreadName;
+-        }
+-
+-        // Change the thread name.
+-        boolean renamed = false;
+-        if (!oldThreadName.equals(newThreadName)) {
+-            try {
+-                //System.out.println(newThreadName);
+-                thread.setName(newThreadName);
+-                renamed = true;
+-            } catch (SecurityException e) {
+-                logger.debug(
+-                        "Failed to rename a thread " +
+-                        "due to security restriction.", e);
+-            }
+-        }
+-
+-        return renamed;
+-    }
+-
+-    private static void validateNameComponents(String service, String category, String parentId, String id) {
+-        if (service != null && !SERVICE_PATTERN.matcher(service).matches()) {
+-            throw new IllegalArgumentException(
+-                    "service: " + service +
+-                    " (expected: " + SERVICE_PATTERN.pattern() + ')');
+-        }
+-
+-        if (category != null && !CATEGORY_PATTERN.matcher(category).matches()) {
+-            throw new IllegalArgumentException(
+-                    "category: " + category +
+-                    " (expected: " + CATEGORY_PATTERN.pattern() + ')');
+-        }
+-
+-        if (parentId != null && !ID_PATTERN.matcher(parentId).matches()) {
+-            throw new IllegalArgumentException(
+-                    "parentId: " + parentId +
+-                    " (expected: " + ID_PATTERN.pattern() + ')');
+-        }
+-
+-        if (id != null && !ID_PATTERN.matcher(id).matches()) {
+-            throw new IllegalArgumentException(
+-                    "id: " + id +
+-                    " (expected: " + ID_PATTERN.pattern() + ')');
+-        }
+-    }
+-
+-    private final Runnable runnable;
+-    private final String service;
+-    private final String category;
+-    private final String parentId;
+-    private final String id;
+-    private final String comment;
+-
+-    /**
+-     * Creates a new instance which wraps the specified {@code runnable}
+-     * and changes the thread name to the specified thread name when the
+-     * specified {@code runnable} is running.
+-     */
+-    public ThreadRenamingRunnable(
+-            Runnable runnable,
+-            String service, String category, String parentId, String id, String comment) {
+-        if (runnable == null) {
+-            throw new NullPointerException("runnable");
+-        }
+-
+-        validateNameComponents(service, category, parentId, id);
+-        this.runnable = runnable;
+-        this.service = service;
+-        this.category = category;
+-        this.parentId = parentId;
+-        this.id = id;
+-        this.comment = comment;
+-    }
+-
+-    @Override
+-    public void run() {
+-        final Thread currentThread = Thread.currentThread();
+-        final String oldThreadName = currentThread.getName();
+-
+-        // Change the thread name before starting the actual runnable.
+-        final boolean renamed = renameThread(
+-                Thread.currentThread(), service, category, parentId, id, comment);
+-
+-        // Run the actual runnable and revert the name back when it ends.
+-        try {
+-            runnable.run();
+-        } finally {
+-            if (renamed) {
+-                // Revert the name back if the current thread was renamed.
+-                // We do not check the exception here because we know it works.
+-                currentThread.setName(oldThreadName);
+-            }
+-        }
+-    }
+-}
+diff --git a/src/main/java/org/jboss/netty/util/internal/StackTraceSimplifier.java b/src/main/java/org/jboss/netty/util/internal/StackTraceSimplifier.java
+index 9aef4d0..10ff1f9 100644
+--- a/src/main/java/org/jboss/netty/util/internal/StackTraceSimplifier.java
++++ b/src/main/java/org/jboss/netty/util/internal/StackTraceSimplifier.java
+@@ -23,7 +23,6 @@ import org.jboss.netty.channel.DefaultChannelPipeline;
+ import org.jboss.netty.channel.SimpleChannelHandler;
+ import org.jboss.netty.channel.StaticChannelPipeline;
+ import org.jboss.netty.util.DebugUtil;
+-import org.jboss.netty.util.ThreadRenamingRunnable;
+ 
+ /**
+  * Simplifies an exception stack trace by removing unnecessary
+@@ -42,14 +41,13 @@ public class StackTraceSimplifier {
+     private static final Pattern EXCLUDED_STACK_TRACE =
+         Pattern.compile(
+                 "^org\\.jboss\\.netty\\." +
+-                "(util\\.(ThreadRenamingRunnable|internal\\.DeadLockProofWorker)" +
++                "(util\\.internal\\.DeadLockProofWorker" +
+                 "|channel\\.(SimpleChannel(Upstream|Downstream)?Handler|(Default|Static)ChannelPipeline.*))(\\$.*)?$");
+ 
+     /**
+      * Removes unnecessary {@link StackTraceElement}s from the specified
+-     * exception. {@link ThreadRenamingRunnable}, {@link SimpleChannelHandler},
+-     * {@link DefaultChannelPipeline}, and {@link StaticChannelPipeline}
+-     * will be dropped from the trace.
++     * exception.  {@link SimpleChannelHandler}, {@link DefaultChannelPipeline},
++     * and {@link StaticChannelPipeline} will be dropped from the trace.
+      */
+     public static void simplify(Throwable e) {
+         if (!SIMPLIFY_STACK_TRACE) {
+diff --git a/src/test/java/org/jboss/netty/util/ThreadRenamingRunnableTest.java b/src/test/java/org/jboss/netty/util/ThreadRenamingRunnableTest.java
+deleted file mode 100644
+index 0b5e983..0000000
+--- a/src/test/java/org/jboss/netty/util/ThreadRenamingRunnableTest.java
++++ /dev/null
+@@ -1,133 +0,0 @@
+-/*
+- * Copyright 2009 Red Hat, Inc.
+- *
+- * Red Hat licenses this file to you under the Apache License, version 2.0
+- * (the "License"); you may not use this file except in compliance with the
+- * License.  You may obtain a copy of the License at:
+- *
+- *    http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+- * License for the specific language governing permissions and limitations
+- * under the License.
+- */
+-package org.jboss.netty.util;
+-
+-import static org.junit.Assert.*;
+-
+-import java.security.Permission;
+-import java.util.concurrent.Executor;
+-
+-import org.junit.Test;
+-
+-
+-/**
+- * @author <a href="http://www.jboss.org/netty/">The Netty Project</a>
+- * @author <a href="http://gleamynode.net/">Trustin Lee</a>
+- *
+- * @version $Rev$, $Date$
+- *
+- */
+-public class ThreadRenamingRunnableTest {
+-
+-    @Test(expected = NullPointerException.class)
+-    public void shouldNotAllowNullRunnable() throws Exception {
+-        new ThreadRenamingRunnable(null, "a", "b", "c", "d", "e");
+-    }
+-
+-    @Test
+-    public void testWithNulls() throws Exception {
+-        final String oldThreadName = Thread.currentThread().getName();
+-        Executor e = new ImmediateExecutor();
+-        e.execute(new ThreadRenamingRunnable(
+-                new Runnable() {
+-                    @Override
+-                    public void run() {
+-                        assertEquals(oldThreadName, Thread.currentThread().getName());
+-                    }
+-                }, null, null, null, null, null));
+-
+-        assertEquals(oldThreadName, Thread.currentThread().getName());
+-    }
+-
+-    @Test
+-    public void testWithEmptyNames() throws Exception {
+-        final String oldThreadName = Thread.currentThread().getName();
+-        Executor e = new ImmediateExecutor();
+-        e.execute(new ThreadRenamingRunnable(
+-                new Runnable() {
+-                    @Override
+-                    public void run() {
+-                        assertEquals(oldThreadName, Thread.currentThread().getName());
+-                    }
+-                }, "", "", "", "", ""));
+-
+-        assertEquals(oldThreadName, Thread.currentThread().getName());
+-    }
+-
+-    @Test
+-    public void testWithoutSecurityManager() throws Exception {
+-        final String oldThreadName = Thread.currentThread().getName();
+-        Executor e = new ImmediateExecutor();
+-        e.execute(new ThreadRenamingRunnable(
+-                new Runnable() {
+-                    @Override
+-                    public void run() {
+-                        assertEquals("a b #c:d (e)", Thread.currentThread().getName());
+-                        assertFalse(oldThreadName.equals(Thread.currentThread().getName()));
+-                    }
+-                }, "a", "b", "c", "d", "e"));
+-
+-        assertEquals(oldThreadName, Thread.currentThread().getName());
+-    }
+-
+-    @Test
+-    public void testWithSecurityManager() throws Exception {
+-        final String oldThreadName = Thread.currentThread().getName();
+-        Executor e = new ImmediateExecutor();
+-        System.setSecurityManager(new SecurityManager() {
+-
+-            @Override
+-            public void checkAccess(Thread t) {
+-                throw new SecurityException();
+-            }
+-
+-            @Override
+-            public void checkPermission(Permission perm, Object context) {
+-                // Allow
+-            }
+-
+-            @Override
+-            public void checkPermission(Permission perm) {
+-                // Allow
+-            }
+-        });
+-        try {
+-            e.execute(new ThreadRenamingRunnable(
+-                    new Runnable() {
+-                        @Override
+-                        public void run() {
+-                            assertEquals(oldThreadName, Thread.currentThread().getName());
+-                        }
+-                    }, "a", "b", "c", "d", "e"));
+-        } finally {
+-            System.setSecurityManager(null);
+-            assertEquals(oldThreadName, Thread.currentThread().getName());
+-        }
+-    }
+-
+-    private static class ImmediateExecutor implements Executor {
+-
+-        ImmediateExecutor() {
+-            super();
+-        }
+-
+-        @Override
+-        public void execute(Runnable command) {
+-            command.run();
+-        }
+-    }
+-
+-}
+diff --git a/src/test/java/org/jboss/netty/util/internal/StackTraceSimplifierTest.java b/src/test/java/org/jboss/netty/util/internal/StackTraceSimplifierTest.java
+index 215a44e..b8a4735 100644
+--- a/src/test/java/org/jboss/netty/util/internal/StackTraceSimplifierTest.java
++++ b/src/test/java/org/jboss/netty/util/internal/StackTraceSimplifierTest.java
+@@ -23,7 +23,6 @@ import org.jboss.netty.buffer.ChannelBuffer;
+ import org.jboss.netty.channel.Channel;
+ import org.jboss.netty.channel.DefaultChannelPipeline;
+ import org.jboss.netty.channel.SimpleChannelHandler;
+-import org.jboss.netty.util.ThreadRenamingRunnable;
+ import org.junit.Test;
+ 
+ 
+@@ -43,7 +42,6 @@ public class StackTraceSimplifierTest {
+                 new StackTraceElement(ChannelBuffer.class.getName(), "a", null, 1),
+                 new StackTraceElement("com.example.Foo", "b", null, 1),
+                 new StackTraceElement(SimpleChannelHandler.class.getName(), "c", null, 1),
+-                new StackTraceElement(ThreadRenamingRunnable.class.getName(), "d", null, 1),
+         });
+ 
+         StackTraceSimplifier.simplify(e);
+@@ -62,7 +60,6 @@ public class StackTraceSimplifierTest {
+                 new StackTraceElement("com.example.Foo", "b", null, 1),
+                 new StackTraceElement(SimpleChannelHandler.class.getName(), "c", null, 1),
+                 new StackTraceElement(DefaultChannelPipeline.class.getName(), "d", null, 1),
+-                new StackTraceElement(ThreadRenamingRunnable.class.getName(), "e", null, 1),
+         });
+ 
+         Exception e2 = new Exception(e1);
+@@ -71,7 +68,6 @@ public class StackTraceSimplifierTest {
+                 new StackTraceElement("com.example.Bar", "b", null, 1),
+                 new StackTraceElement(SimpleChannelHandler.class.getName(), "c", null, 1),
+                 new StackTraceElement(DefaultChannelPipeline.class.getName(), "d", null, 1),
+-                new StackTraceElement(ThreadRenamingRunnable.class.getName(), "e", null, 1),
+         });
+ 
+         StackTraceSimplifier.simplify(e2);
+@@ -95,13 +91,15 @@ public class StackTraceSimplifierTest {
+                 new StackTraceElement(ChannelBuffer.class.getName(), "a", null, 1),
+                 new StackTraceElement("com.example.Foo", "b", null, 1),
+                 new StackTraceElement(SimpleChannelHandler.class.getName(), "c", null, 1),
+-                new StackTraceElement(ThreadRenamingRunnable.class.getName(), "d", null, 1),
+         });
+ 
+         StackTraceSimplifier.simplify(e);
+ 
+         StackTraceElement[] simplified = e.getStackTrace();
+-        assertEquals(5, simplified.length);
++        for (StackTraceElement ste: simplified) {
++            System.out.println(ste);
++        }
++        assertEquals(4, simplified.length);
+     }
+ 
+     @Test

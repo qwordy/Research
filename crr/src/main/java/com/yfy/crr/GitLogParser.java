@@ -5,14 +5,15 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.locks.Condition;
 import java.util.stream.Collectors;
 
 /**
@@ -99,8 +100,8 @@ public class GitLogParser {
       relatedCommitCount++;
 //      pw.println("-1 " + f.toStr());
 //      pw2.println(project + ' ' + commitId);
-      writeDiff(lines, Config.projectsDir + "/diff2",
-          project + '_' + relatedCommitCount + '_' + commitId);
+      writeDiff(lines, Config.projectsDir + "/diff-msg",
+          project + '_' + relatedCommitCount + '_' + commitId + ".diff");
     }
   }
 

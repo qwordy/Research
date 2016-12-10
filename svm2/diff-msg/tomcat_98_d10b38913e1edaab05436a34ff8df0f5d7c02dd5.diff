@@ -1,0 +1,191 @@
+commit d10b38913e1edaab05436a34ff8df0f5d7c02dd5
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Sun May 2 19:10:40 2010 +0000
+
+    Add a setDomain() method to LifecycleMBeanRegistration since not all components (eg Exectutor) retain a reference to their parent.
+    Implement this new method where required.
+    Implement MBean (de)registration for Executors using the new interface.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@940305 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/LifecycleMBeanRegistration.java b/java/org/apache/catalina/LifecycleMBeanRegistration.java
+index a505d36..7f648b9 100644
+--- a/java/org/apache/catalina/LifecycleMBeanRegistration.java
++++ b/java/org/apache/catalina/LifecycleMBeanRegistration.java
+@@ -43,4 +43,8 @@ public interface LifecycleMBeanRegistration extends MBeanRegistration {
+      */
+     public String getDomain();
+ 
++    /**
++     * Specify the domain under which this component should be registered.
++     */
++    public void setDomain(String domain);
+ }
+diff --git a/java/org/apache/catalina/core/LocalStrings.properties b/java/org/apache/catalina/core/LocalStrings.properties
+index 644060e..f744775 100644
+--- a/java/org/apache/catalina/core/LocalStrings.properties
++++ b/java/org/apache/catalina/core/LocalStrings.properties
+@@ -197,6 +197,7 @@ standardService.onameFail=MBean name specified for Service [{0}] is not valid
+ standardService.register.failed=Error registering Service at domain {0}
+ standardService.start.name=Starting service {0}
+ standardService.stop.name=Stopping service {0}
++standardThreadExecutor.onameFail=MBean name specified for Thread Executor [{0}] is not valid
+ standardWrapper.allocate=Error allocating a servlet instance
+ standardWrapper.allocateException=Allocate exception for servlet {0}
+ standardWrapper.containerServlet=Loading container servlet {0}
+diff --git a/java/org/apache/catalina/core/StandardEngine.java b/java/org/apache/catalina/core/StandardEngine.java
+index 9361d9c..66a1e26 100644
+--- a/java/org/apache/catalina/core/StandardEngine.java
++++ b/java/org/apache/catalina/core/StandardEngine.java
+@@ -367,10 +367,6 @@ public class StandardEngine
+     @Override
+     protected void destroyInternal() throws LifecycleException {
+         
+-        // if we created it, make sure it's also destroyed
+-        // this call implizit this.stop()
+-        ((StandardService)service).destroy();
+-
+         if( mbeans != null ) {
+             try {
+                 Registry.getRegistry(null, null)
+diff --git a/java/org/apache/catalina/core/StandardServer.java b/java/org/apache/catalina/core/StandardServer.java
+index 4b83623..f928ff7 100644
+--- a/java/org/apache/catalina/core/StandardServer.java
++++ b/java/org/apache/catalina/core/StandardServer.java
+@@ -768,6 +768,11 @@ public final class StandardServer extends LifecycleBase
+     }
+ 
+     
++    public void setDomain(String domain) {
++        this.domain = domain;
++    }
++    
++    
+     public ObjectName getObjectName() {
+         if (oname == null) {
+             StringBuilder name = new StringBuilder(getDomain());
+diff --git a/java/org/apache/catalina/core/StandardService.java b/java/org/apache/catalina/core/StandardService.java
+index b8a7308..b9362f7 100644
+--- a/java/org/apache/catalina/core/StandardService.java
++++ b/java/org/apache/catalina/core/StandardService.java
+@@ -521,6 +521,9 @@ public class StandardService extends LifecycleBase
+ 
+         // Initialize any Executors
+         for (Executor executor : findExecutors()) {
++            if (executor instanceof LifecycleMBeanRegistration) {
++                ((LifecycleMBeanRegistration) executor).setDomain(getDomain());
++            }
+             executor.init();
+         }
+ 
+@@ -593,6 +596,10 @@ public class StandardService extends LifecycleBase
+         return domain;
+     }
+ 
++    public void setDomain(String domain) {
++        this.domain = domain;
++    }
++    
+     public ObjectName getObjectName() {
+         if (oname == null) {
+             StringBuilder name = new StringBuilder(getDomain());
+diff --git a/java/org/apache/catalina/core/StandardThreadExecutor.java b/java/org/apache/catalina/core/StandardThreadExecutor.java
+index 0a201fc..9d24ca1 100644
+--- a/java/org/apache/catalina/core/StandardThreadExecutor.java
++++ b/java/org/apache/catalina/core/StandardThreadExecutor.java
+@@ -20,18 +20,35 @@ package org.apache.catalina.core;
+ import java.util.concurrent.RejectedExecutionException;
+ import java.util.concurrent.TimeUnit;
+ 
++import javax.management.MBeanServer;
++import javax.management.MalformedObjectNameException;
++import javax.management.ObjectName;
++
+ import org.apache.catalina.Executor;
+ import org.apache.catalina.LifecycleException;
++import org.apache.catalina.LifecycleMBeanRegistration;
+ import org.apache.catalina.LifecycleState;
+ import org.apache.catalina.util.LifecycleBase;
++import org.apache.juli.logging.Log;
++import org.apache.juli.logging.LogFactory;
++import org.apache.tomcat.util.res.StringManager;
+ import org.apache.tomcat.util.threads.ResizableExecutor;
+ import org.apache.tomcat.util.threads.TaskQueue;
+ import org.apache.tomcat.util.threads.TaskThreadFactory;
+ import org.apache.tomcat.util.threads.ThreadPoolExecutor;
+ 
+ public class StandardThreadExecutor extends LifecycleBase
+-        implements Executor, ResizableExecutor {
++        implements Executor, ResizableExecutor, LifecycleMBeanRegistration {
++    
++    private static final Log log =
++        LogFactory.getLog(StandardThreadExecutor.class);
+     
++    /**
++     * The string manager for this package.
++     */
++    private static final StringManager sm =
++        StringManager.getManager(Constants.Package);
++
+     // ---------------------------------------------- Properties
+     /**
+      * Default thread priority
+@@ -290,6 +307,58 @@ public class StandardThreadExecutor extends LifecycleBase
+         return false;
+     }
+     
++
++    protected volatile String domain;
++    protected volatile ObjectName oname;
++
++    /**
++     * Obtain the MBean domain for this server. The domain is set by the
++     * containing Service.
++     */
++    public String getDomain() {
++        return domain;
++    }
++
++    public void setDomain(String domain) {
++        this.domain = domain;
++    }
++    
++    public ObjectName getObjectName() {
++        if (oname == null) {
++            StringBuilder name = new StringBuilder(getDomain());
++            name.append(":type=Executor,name=");
++            name.append(getName());
++            
++            try {
++                oname = new ObjectName(name.toString());
++            } catch (MalformedObjectNameException e) {
++                log.warn(sm.getString(
++                        "standardThreadExecutor.onameFail", name), e);
++            } catch (NullPointerException e) {
++                // Never going to happen
++            }
++        }
++        
++        return oname;
++    }
+     
++    public ObjectName preRegister(MBeanServer server,
++                                  ObjectName name) throws Exception {
++        oname=name;
++        domain=name.getDomain();
++        return name;
++    }
++
++    public void postRegister(Boolean registrationDone) {
++        // NOOP
++    }
++
++    public void preDeregister() throws Exception {
++        // NOOP
++    }
++
++    public void postDeregister() {
++        // NOOP
++    }
+     
+ }

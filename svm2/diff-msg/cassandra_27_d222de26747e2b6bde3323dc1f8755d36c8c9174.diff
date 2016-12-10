@@ -1,0 +1,24 @@
+commit d222de26747e2b6bde3323dc1f8755d36c8c9174
+Author: Chris Goffinet <goffinet@apache.org>
+Date:   Thu Feb 17 02:41:04 2011 +0000
+
+    Use a SynchronousQueue instead of LBQ so when memtable_flush_writers is > 1, it will allow actual parallel flushes.
+    patch by goffinet reviewed by jbellis for CASSANDRA-2178
+    
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/branches/cassandra-0.7@1071482 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/java/org/apache/cassandra/db/ColumnFamilyStore.java b/src/java/org/apache/cassandra/db/ColumnFamilyStore.java
+index 1607198..bfa74f3 100644
+--- a/src/java/org/apache/cassandra/db/ColumnFamilyStore.java
++++ b/src/java/org/apache/cassandra/db/ColumnFamilyStore.java
+@@ -88,7 +88,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean
+                                                DatabaseDescriptor.getFlushWriters(),
+                                                StageManager.KEEPALIVE,
+                                                TimeUnit.SECONDS,
+-                                               new LinkedBlockingQueue<Runnable>(DatabaseDescriptor.getFlushWriters()),
++                                               new SynchronousQueue<Runnable>(),
+                                                new NamedThreadFactory("FlushWriter"),
+                                                "internal");
+     public static final ExecutorService postFlushExecutor = new JMXEnabledThreadPoolExecutor("MemtablePostFlusher");

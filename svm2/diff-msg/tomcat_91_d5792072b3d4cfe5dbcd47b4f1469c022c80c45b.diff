@@ -1,0 +1,38 @@
+commit d5792072b3d4cfe5dbcd47b4f1469c022c80c45b
+Author: Konstantin Kolinko <kkolinko@apache.org>
+Date:   Sat Jan 8 22:46:02 2011 +0000
+
+    Followup to r1055975
+    Move string calculation out of synchronized block
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1056828 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/naming/resources/ProxyDirContext.java b/java/org/apache/naming/resources/ProxyDirContext.java
+index 329f4e5..fa3ca3a 100644
+--- a/java/org/apache/naming/resources/ProxyDirContext.java
++++ b/java/org/apache/naming/resources/ProxyDirContext.java
+@@ -1693,15 +1693,17 @@ public class ProxyDirContext implements DirContext {
+     protected boolean cacheUnload(String name) {
+         if (cache == null)
+             return false;
++        // To ensure correct operation, particularly of WebDAV, unload
++        // the resource with and without a trailing /
++        String name2;
++        if (name.endsWith("/")) {
++            name2 = name.substring(0, name.length() -1);
++        } else {
++            name2 = name + "/";
++        }
+         synchronized (cache) {
+             boolean result = cache.unload(name);
+-            // To ensure correct operation, particularly of WebDAV, unload
+-            // the resource with and without a trailing /
+-            if (name.endsWith("/")) {
+-                cache.unload(name.substring(0, name.length() -1));
+-            } else {
+-                cache.unload(name + "/");
+-            }
++            cache.unload(name2);
+             return result;
+         }
+     }

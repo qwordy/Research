@@ -1,0 +1,29 @@
+commit db6a416a69a378078357bce3f3657f4d6d4a5a5a
+Author: Mark Thomas <markt@apache.org>
+Date:   Tue Sep 15 10:52:42 2015 +0000
+
+    Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58380
+    Both maxInactiveInterval and isNew can be accessed concurrently so they need to be volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1703146 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/session/StandardSession.java b/java/org/apache/catalina/session/StandardSession.java
+index 02bbb56..e6c1033 100644
+--- a/java/org/apache/catalina/session/StandardSession.java
++++ b/java/org/apache/catalina/session/StandardSession.java
+@@ -222,13 +222,13 @@ public class StandardSession implements HttpSession, Session, Serializable {
+      * the servlet container may invalidate this session.  A negative time
+      * indicates that the session should never time out.
+      */
+-    protected int maxInactiveInterval = -1;
++    protected volatile int maxInactiveInterval = -1;
+ 
+ 
+     /**
+      * Flag indicating whether this session is new or not.
+      */
+-    protected boolean isNew = false;
++    protected volatile boolean isNew = false;
+ 
+ 
+     /**

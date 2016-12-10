@@ -1,0 +1,31 @@
+commit ea8e036989fc9ef2c0ab857ceb87d513ca694963
+Author: Konstantin Kolinko <kkolinko@apache.org>
+Date:   Tue Jun 12 16:02:44 2012 +0000
+
+    Review of r1349300:
+    Make ReadWriteLock fields final (the new one and an old private one as well).
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1349410 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/core/ContainerBase.java b/java/org/apache/catalina/core/ContainerBase.java
+index d8ef471..e49bb44 100644
+--- a/java/org/apache/catalina/core/ContainerBase.java
++++ b/java/org/apache/catalina/core/ContainerBase.java
+@@ -182,7 +182,7 @@ public abstract class ContainerBase extends LifecycleMBeanBase
+      */
+     protected ArrayList<ContainerListener> listeners =
+             new ArrayList<ContainerListener>();
+-    protected ReadWriteLock listenersLock = new ReentrantReadWriteLock();
++    protected final ReadWriteLock listenersLock = new ReentrantReadWriteLock();
+ 
+ 
+     /**
+@@ -248,7 +248,7 @@ public abstract class ContainerBase extends LifecycleMBeanBase
+     /**
+      * Lock used to control access to the Realm.
+      */
+-    private ReadWriteLock realmLock = new ReentrantReadWriteLock();
++    private final ReadWriteLock realmLock = new ReentrantReadWriteLock();
+ 
+     /**
+      * The resources DirContext object with which this Container is associated.

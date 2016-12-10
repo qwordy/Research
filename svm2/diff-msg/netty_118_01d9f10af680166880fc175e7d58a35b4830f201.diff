@@ -1,0 +1,138 @@
+commit 01d9f10af680166880fc175e7d58a35b4830f201
+Author: Trustin Lee <t@motd.kr>
+Date:   Thu Jun 13 14:43:39 2013 +0900
+
+    Remove the volatile modifiers where they are unnecessary
+
+diff --git a/codec-http/src/main/java/io/netty/handler/codec/http/HttpClientCodec.java b/codec-http/src/main/java/io/netty/handler/codec/http/HttpClientCodec.java
+index 8899c52..8d8aef5 100644
+--- a/codec-http/src/main/java/io/netty/handler/codec/http/HttpClientCodec.java
++++ b/codec-http/src/main/java/io/netty/handler/codec/http/HttpClientCodec.java
+@@ -47,7 +47,7 @@ public final class HttpClientCodec
+     private final Queue<HttpMethod> queue = new ArrayDeque<HttpMethod>();
+ 
+     /** If true, decoding stops (i.e. pass-through) */
+-    private volatile boolean done;
++    private boolean done;
+ 
+     private final AtomicLong requestResponseCounter = new AtomicLong();
+     private final boolean failOnMissingResponse;
+diff --git a/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyFrameEncoder.java b/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyFrameEncoder.java
+index e16b6c6..d84a40b 100644
+--- a/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyFrameEncoder.java
++++ b/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyFrameEncoder.java
+@@ -34,7 +34,7 @@ import static io.netty.handler.codec.spdy.SpdyCodecUtil.*;
+ public class SpdyFrameEncoder extends MessageToByteEncoder<SpdyFrame> {
+ 
+     private final int version;
+-    private volatile boolean finished;
++    private boolean finished;
+     private final SpdyHeaderBlockCompressor headerBlockCompressor;
+ 
+     /**
+diff --git a/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyHttpEncoder.java b/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyHttpEncoder.java
+index 14eeb4d..8f44e91 100644
+--- a/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyHttpEncoder.java
++++ b/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyHttpEncoder.java
+@@ -123,7 +123,7 @@ import java.util.Map;
+ public class SpdyHttpEncoder extends MessageToMessageEncoder<HttpObject> {
+ 
+     private final int spdyVersion;
+-    private volatile int currentStreamId;
++    private int currentStreamId;
+ 
+     /**
+      * Creates a new instance.
+diff --git a/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdySession.java b/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdySession.java
+index 3674b20..0de5c6d 100644
+--- a/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdySession.java
++++ b/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdySession.java
+@@ -167,12 +167,12 @@ final class SpdySession {
+     private static final class StreamState {
+ 
+         private final byte priority;
+-        private volatile boolean remoteSideClosed;
+-        private volatile boolean localSideClosed;
++        private boolean remoteSideClosed;
++        private boolean localSideClosed;
+         private boolean receivedReply;
+         private final AtomicInteger sendWindowSize;
+         private final AtomicInteger receiveWindowSize;
+-        private volatile int receiveWindowSizeLowerBound;
++        private int receiveWindowSizeLowerBound;
+         private final Queue<Object> pendingWriteQueue = new ConcurrentLinkedQueue<Object>();
+ 
+         StreamState(
+diff --git a/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdySessionHandler.java b/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdySessionHandler.java
+index 2c4ec52..9add62a 100644
+--- a/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdySessionHandler.java
++++ b/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdySessionHandler.java
+@@ -40,24 +40,24 @@ public class SpdySessionHandler
+     }
+ 
+     private final SpdySession spdySession = new SpdySession();
+-    private volatile int lastGoodStreamId;
++    private int lastGoodStreamId;
+ 
+-    private volatile int remoteConcurrentStreams;
+-    private volatile int localConcurrentStreams;
+-    private volatile int maxConcurrentStreams;
++    private int remoteConcurrentStreams;
++    private int localConcurrentStreams;
++    private int maxConcurrentStreams;
+ 
+     private static final int DEFAULT_WINDOW_SIZE = 64 * 1024; // 64 KB default initial window size
+-    private volatile int initialSendWindowSize = DEFAULT_WINDOW_SIZE;
+-    private volatile int initialReceiveWindowSize = DEFAULT_WINDOW_SIZE;
++    private int initialSendWindowSize = DEFAULT_WINDOW_SIZE;
++    private int initialReceiveWindowSize = DEFAULT_WINDOW_SIZE;
+ 
+     private final Object flowControlLock = new Object();
+ 
+     private final AtomicInteger pings = new AtomicInteger();
+ 
+-    private volatile boolean sentGoAwayFrame;
+-    private volatile boolean receivedGoAwayFrame;
++    private boolean sentGoAwayFrame;
++    private boolean receivedGoAwayFrame;
+ 
+-    private volatile ChannelPromise closeSessionFuture;
++    private ChannelPromise closeSessionFuture;
+ 
+     private final boolean server;
+     private final boolean flowControl;
+@@ -748,7 +748,7 @@ public class SpdySessionHandler
+             return false;
+         }
+ 
+-        int maxConcurrentStreams = this.maxConcurrentStreams; // read volatile once
++        int maxConcurrentStreams = this.maxConcurrentStreams;
+         if (maxConcurrentStreams != 0 &&
+            spdySession.numActiveStreams() >= maxConcurrentStreams) {
+             return false;
+diff --git a/codec/src/main/java/io/netty/handler/codec/ByteToMessageDecoder.java b/codec/src/main/java/io/netty/handler/codec/ByteToMessageDecoder.java
+index ed23fbc..f0db696 100644
+--- a/codec/src/main/java/io/netty/handler/codec/ByteToMessageDecoder.java
++++ b/codec/src/main/java/io/netty/handler/codec/ByteToMessageDecoder.java
+@@ -42,7 +42,7 @@ import io.netty.util.internal.StringUtil;
+ public abstract class ByteToMessageDecoder extends ChannelInboundHandlerAdapter {
+ 
+     protected ByteBuf cumulation;
+-    private volatile boolean singleDecode;
++    private boolean singleDecode;
+     private boolean decodeWasNull;
+     private MessageList<Object> out;
+ 
+diff --git a/handler/src/main/java/io/netty/handler/ssl/SslHandler.java b/handler/src/main/java/io/netty/handler/ssl/SslHandler.java
+index b5b111a..60e21e7 100644
+--- a/handler/src/main/java/io/netty/handler/ssl/SslHandler.java
++++ b/handler/src/main/java/io/netty/handler/ssl/SslHandler.java
+@@ -1069,7 +1069,7 @@ public class SslHandler
+     }
+ 
+     private static final class CloseNotifyListener implements ChannelFutureListener {
+-        volatile boolean done;
++        boolean done;
+ 
+         @Override
+         public void operationComplete(ChannelFuture future) throws Exception {

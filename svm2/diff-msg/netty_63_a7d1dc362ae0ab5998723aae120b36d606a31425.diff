@@ -1,0 +1,84 @@
+commit a7d1dc362ae0ab5998723aae120b36d606a31425
+Author: Norman Maurer <norman_maurer@apple.com>
+Date:   Sat Apr 18 21:34:01 2015 +0200
+
+    [#3652] Improve performance of StringUtil.simpleClassName()
+    
+    Motivation:
+    
+    static Package getPackage(Class<?> c) uses synchronized block internally.
+    Thanks to @jingene for the hint and initial report of the issue.
+    
+    Modifications:
+    
+    -Use simple lastIndexOf(...) and substring for a faster implementation
+    
+    Result:
+    
+    No more lock condition.
+
+diff --git a/common/src/main/java/io/netty/util/internal/StringUtil.java b/common/src/main/java/io/netty/util/internal/StringUtil.java
+index 3d743d6..4ede108 100644
+--- a/common/src/main/java/io/netty/util/internal/StringUtil.java
++++ b/common/src/main/java/io/netty/util/internal/StringUtil.java
+@@ -42,6 +42,7 @@ public final class StringUtil {
+      * 5 - Extra allowance for anticipated escape characters that may be added.
+      */
+     private static final int CSV_NUMBER_ESCAPE_CHARACTERS = 2 + 5;
++    private static final char PACKAGE_SEPARATOR_CHAR = '.';
+ 
+     static {
+         // Determine the newline character of the current platform.
+@@ -314,16 +315,12 @@ public final class StringUtil {
+      * with anonymous classes.
+      */
+     public static String simpleClassName(Class<?> clazz) {
+-        if (clazz == null) {
+-            return "null_class";
+-        }
+-
+-        Package pkg = clazz.getPackage();
+-        if (pkg != null) {
+-            return clazz.getName().substring(pkg.getName().length() + 1);
+-        } else {
+-            return clazz.getName();
++        String className = ObjectUtil.checkNotNull(clazz, "clazz").getName();
++        final int lastDotIdx = className.lastIndexOf(PACKAGE_SEPARATOR_CHAR);
++        if (lastDotIdx > -1) {
++            return className.substring(lastDotIdx + 1);
+         }
++        return className;
+     }
+ 
+     /**
+diff --git a/common/src/test/java/io/netty/util/internal/StringUtilTest.java b/common/src/test/java/io/netty/util/internal/StringUtilTest.java
+index 8a2575b..27c51d7 100644
+--- a/common/src/test/java/io/netty/util/internal/StringUtilTest.java
++++ b/common/src/test/java/io/netty/util/internal/StringUtilTest.java
+@@ -277,4 +277,26 @@ public class StringUtilTest {
+         }
+     }
+ 
++    @Test
++    public void testSimpleClassName() throws Exception {
++        testSimpleClassName(String.class);
++    }
++
++    @Test
++    public void testSimpleInnerClassName() throws Exception {
++        testSimpleClassName(TestClass.class);
++    }
++
++    private static void testSimpleClassName(Class<?> clazz) throws Exception {
++        Package pkg = clazz.getPackage();
++        String name;
++        if (pkg != null) {
++            name = clazz.getName().substring(pkg.getName().length() + 1);
++        } else {
++            name = clazz.getName();
++        }
++        assertEquals(name, simpleClassName(clazz));
++    }
++
++    private static final class TestClass { }
+ }

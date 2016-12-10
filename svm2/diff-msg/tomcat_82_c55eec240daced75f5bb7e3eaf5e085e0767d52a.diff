@@ -1,0 +1,30 @@
+commit c55eec240daced75f5bb7e3eaf5e085e0767d52a
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Tue Sep 20 08:36:18 2011 +0000
+
+    Remove debug use of System.out
+    Add missing volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1173021 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/test/org/apache/catalina/comet/TestCometProcessor.java b/test/org/apache/catalina/comet/TestCometProcessor.java
+index 16c3782..d63576e 100644
+--- a/test/org/apache/catalina/comet/TestCometProcessor.java
++++ b/test/org/apache/catalina/comet/TestCometProcessor.java
+@@ -262,7 +262,7 @@ public class TestCometProcessor extends TomcatBaseTest {
+ 
+         private InputStream is;
+         private StringBuilder response = new StringBuilder();
+-        private Exception e = null;
++        private volatile Exception e = null;
+ 
+         public ResponseReaderThread(InputStream is) {
+             this.is = is;
+@@ -284,7 +284,6 @@ public class TestCometProcessor extends TomcatBaseTest {
+                     response.append((char) c);
+                     c = is.read();
+                 }
+-                System.out.println("EOF");
+             } catch (Exception e) {
+                 this.e = e;
+             }

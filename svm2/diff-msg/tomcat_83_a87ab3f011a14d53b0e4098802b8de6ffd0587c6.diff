@@ -1,0 +1,37 @@
+commit a87ab3f011a14d53b0e4098802b8de6ffd0587c6
+Author: Konstantin Kolinko <kkolinko@apache.org>
+Date:   Fri Sep 9 21:30:28 2011 +0000
+
+    Reviewing r1166576...
+    Improve performance of Http11Processor.disableKeepAlive(): call getMaxThreads() first and do not call getCurrentThreadsBusy() twice,
+    because ThreadPoolExecutor.getActiveCount() in JRE is implemented as a loop that counts threads and that should be expensive.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1167368 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/coyote/http11/Http11Processor.java b/java/org/apache/coyote/http11/Http11Processor.java
+index 4100f4f..e157284 100644
+--- a/java/org/apache/coyote/http11/Http11Processor.java
++++ b/java/org/apache/coyote/http11/Http11Processor.java
+@@ -121,14 +121,14 @@ public class Http11Processor extends AbstractHttp11Processor<Socket> {
+     @Override
+     protected boolean disableKeepAlive() {
+         int threadRatio = -1;   
+-        // These may return zero or negative values     
+-        // Only calculate a thread ratio when both are >0 to ensure we get a    
+-        // sensible result      
+-        if (endpoint.getCurrentThreadsBusy() >0 &&      
+-                endpoint.getMaxThreads() >0) {      
+-            threadRatio = (endpoint.getCurrentThreadsBusy() * 100)      
+-                    / endpoint.getMaxThreads();     
+-        }   
++        // These may return zero or negative values
++        // Only calculate a thread ratio when both are >0 to ensure we get a
++        // sensible result
++        int maxThreads, threadsBusy;
++        if ((maxThreads = endpoint.getMaxThreads()) > 0
++                && (threadsBusy = endpoint.getCurrentThreadsBusy()) > 0) {
++            threadRatio = (threadsBusy * 100) / maxThreads;
++        }
+         // Disable keep-alive if we are running low on threads      
+         if (threadRatio > getDisableKeepAlivePercentage()) {     
+             return true;

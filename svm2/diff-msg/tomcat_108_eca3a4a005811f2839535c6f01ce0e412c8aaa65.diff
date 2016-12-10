@@ -1,0 +1,22 @@
+commit eca3a4a005811f2839535c6f01ce0e412c8aaa65
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Mon Nov 23 00:37:36 2009 +0000
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=482
+    Use volatile since field is accessed by multiple threads
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@883203 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/core/ContainerBase.java b/java/org/apache/catalina/core/ContainerBase.java
+index 1e82f24..e4b0b43 100644
+--- a/java/org/apache/catalina/core/ContainerBase.java
++++ b/java/org/apache/catalina/core/ContainerBase.java
+@@ -278,7 +278,7 @@ public abstract class ContainerBase
+     /**
+      * The background thread completion semaphore.
+      */
+-    private boolean threadDone = false;
++    private volatile boolean threadDone = false;
+ 
+ 
+     // ------------------------------------------------------------- Properties

@@ -1,0 +1,31 @@
+commit e6261dadc99dcea07b4c889324bea9d0fd2e93bb
+Author: Konstantin Kolinko <kkolinko@apache.org>
+Date:   Fri Jan 25 22:34:57 2013 +0000
+
+    Make the messages list synchronized as a whole, instead of just using a volatile reference to it.
+    I am still observing random failures with TestWsWebSocketContainer, so an issue is not here.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1438747 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/test/org/apache/tomcat/websocket/TestWsWebSocketContainer.java b/test/org/apache/tomcat/websocket/TestWsWebSocketContainer.java
+index 52f4125..1f18dc5 100644
+--- a/test/org/apache/tomcat/websocket/TestWsWebSocketContainer.java
++++ b/test/org/apache/tomcat/websocket/TestWsWebSocketContainer.java
+@@ -20,6 +20,7 @@ import java.io.IOException;
+ import java.net.URI;
+ import java.nio.ByteBuffer;
+ import java.util.ArrayList;
++import java.util.Collections;
+ import java.util.List;
+ import java.util.concurrent.CountDownLatch;
+ import java.util.concurrent.TimeUnit;
+@@ -245,7 +246,8 @@ public class TestWsWebSocketContainer extends TomcatBaseTest {
+ 
+         private final CountDownLatch latch;
+ 
+-        private volatile List<T> messages = new ArrayList<>();
++        private final List<T> messages = Collections
++                .synchronizedList(new ArrayList<T>());
+ 
+         public TesterMessageHandler(CountDownLatch latch) {
+             this.latch = latch;

@@ -1,0 +1,24 @@
+commit a2ef43cf3dea5c555a4c709932bee5b8766a5fbb
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Fri May 28 02:59:17 2010 +0000
+
+    Streamline LinkedTransferQueue.isEmpty()
+
+diff --git a/src/main/java/org/jboss/netty/util/internal/LinkedTransferQueue.java b/src/main/java/org/jboss/netty/util/internal/LinkedTransferQueue.java
+index f42a147..bcbccf8 100644
+--- a/src/main/java/org/jboss/netty/util/internal/LinkedTransferQueue.java
++++ b/src/main/java/org/jboss/netty/util/internal/LinkedTransferQueue.java
+@@ -1241,7 +1241,12 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
+      */
+     @Override
+     public boolean isEmpty() {
+-        return firstOfMode(true) == null;
++        for (Node p = head; p != null; p = succ(p)) {
++            if (!p.isMatched()) {
++                return !p.isData;
++            }
++        }
++        return true;
+     }
+ 
+     public boolean hasWaitingConsumer() {

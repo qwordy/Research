@@ -1,0 +1,81 @@
+commit a462d0e85e9f0712fc750856bf3946900505d0eb
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Fri Feb 19 09:00:00 2010 +0000
+
+    Removed volatile from some internal state member variables in decoders because they are always either:
+    1) modified from the same threads or
+    2) protected by happens-before condition that is met by Executor's internal synchronization constructs
+
+diff --git a/src/main/java/org/jboss/netty/handler/codec/http/HttpChunkAggregator.java b/src/main/java/org/jboss/netty/handler/codec/http/HttpChunkAggregator.java
+index f9194fc..3f1c5fa 100644
+--- a/src/main/java/org/jboss/netty/handler/codec/http/HttpChunkAggregator.java
++++ b/src/main/java/org/jboss/netty/handler/codec/http/HttpChunkAggregator.java
+@@ -53,7 +53,7 @@ import org.jboss.netty.handler.codec.frame.TooLongFrameException;
+ public class HttpChunkAggregator extends SimpleChannelUpstreamHandler {
+ 
+     private final int maxContentLength;
+-    private volatile HttpMessage currentMessage;
++    private HttpMessage currentMessage;
+ 
+     /**
+      * Creates a new instance.
+diff --git a/src/main/java/org/jboss/netty/handler/codec/http/HttpContentDecoder.java b/src/main/java/org/jboss/netty/handler/codec/http/HttpContentDecoder.java
+index 84bbfc0..060adb3 100644
+--- a/src/main/java/org/jboss/netty/handler/codec/http/HttpContentDecoder.java
++++ b/src/main/java/org/jboss/netty/handler/codec/http/HttpContentDecoder.java
+@@ -48,7 +48,7 @@ import org.jboss.netty.handler.codec.embedder.DecoderEmbedder;
+  */
+ public abstract class HttpContentDecoder extends SimpleChannelUpstreamHandler {
+ 
+-    private volatile DecoderEmbedder<ChannelBuffer> decoder;
++    private DecoderEmbedder<ChannelBuffer> decoder;
+ 
+     /**
+      * Creates a new instance.
+diff --git a/src/main/java/org/jboss/netty/handler/codec/http/HttpMessageDecoder.java b/src/main/java/org/jboss/netty/handler/codec/http/HttpMessageDecoder.java
+index fa8e1a8..3b63c0a 100644
+--- a/src/main/java/org/jboss/netty/handler/codec/http/HttpMessageDecoder.java
++++ b/src/main/java/org/jboss/netty/handler/codec/http/HttpMessageDecoder.java
+@@ -109,9 +109,9 @@ public abstract class HttpMessageDecoder extends ReplayingDecoder<HttpMessageDec
+     private final int maxInitialLineLength;
+     private final int maxHeaderSize;
+     private final int maxChunkSize;
+-    private volatile HttpMessage message;
+-    private volatile ChannelBuffer content;
+-    private volatile long chunkSize;
++    private HttpMessage message;
++    private ChannelBuffer content;
++    private long chunkSize;
+     private int headerSize;
+ 
+     /**
+diff --git a/src/main/java/org/jboss/netty/handler/codec/replay/ReplayingDecoder.java b/src/main/java/org/jboss/netty/handler/codec/replay/ReplayingDecoder.java
+index cd423bc..4a8cd78 100644
+--- a/src/main/java/org/jboss/netty/handler/codec/replay/ReplayingDecoder.java
++++ b/src/main/java/org/jboss/netty/handler/codec/replay/ReplayingDecoder.java
+@@ -298,9 +298,9 @@ public abstract class ReplayingDecoder<T extends Enum<T>>
+     private final AtomicReference<ChannelBuffer> cumulation =
+         new AtomicReference<ChannelBuffer>();
+     private final boolean unfold;
+-    private volatile ReplayingDecoderBuffer replayable;
+-    private volatile T state;
+-    private volatile int checkpoint;
++    private ReplayingDecoderBuffer replayable;
++    private T state;
++    private int checkpoint;
+ 
+     /**
+      * Creates a new instance with no initial state (i.e: {@code null}).
+diff --git a/src/main/java/org/jboss/netty/handler/codec/serialization/CompatibleObjectDecoder.java b/src/main/java/org/jboss/netty/handler/codec/serialization/CompatibleObjectDecoder.java
+index 7102ced..d29585e 100644
+--- a/src/main/java/org/jboss/netty/handler/codec/serialization/CompatibleObjectDecoder.java
++++ b/src/main/java/org/jboss/netty/handler/codec/serialization/CompatibleObjectDecoder.java
+@@ -59,7 +59,7 @@ import org.jboss.netty.handler.codec.replay.ReplayingDecoder;
+ public class CompatibleObjectDecoder extends ReplayingDecoder<CompatibleObjectDecoderState> {
+ 
+     private final SwitchableInputStream bin = new SwitchableInputStream();
+-    private volatile ObjectInputStream oin;
++    private ObjectInputStream oin;
+ 
+     /**
+      * Creates a new decoder.

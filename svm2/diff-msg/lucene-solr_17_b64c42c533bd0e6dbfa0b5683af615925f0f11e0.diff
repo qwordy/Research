@@ -1,0 +1,21 @@
+commit b64c42c533bd0e6dbfa0b5683af615925f0f11e0
+Author: Mark Robert Miller <markrmiller@apache.org>
+Date:   Mon Feb 20 05:09:02 2012 +0000
+
+    cfg should be volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1291127 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/solr/core/src/java/org/apache/solr/core/CoreContainer.java b/solr/core/src/java/org/apache/solr/core/CoreContainer.java
+index b910c09..68590ff 100644
+--- a/solr/core/src/java/org/apache/solr/core/CoreContainer.java
++++ b/solr/core/src/java/org/apache/solr/core/CoreContainer.java
+@@ -473,7 +473,7 @@ public class CoreContainer
+   
+   private volatile boolean isShutDown = false;
+ 
+-  private Config cfg;
++  private volatile Config cfg;
+   
+   public boolean isShutDown() {
+     return isShutDown;

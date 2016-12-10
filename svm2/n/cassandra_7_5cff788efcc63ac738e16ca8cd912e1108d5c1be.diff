@@ -1,0 +1,19 @@
+commit 5cff788efcc63ac738e16ca8cd912e1108d5c1be
+Author: Benedict Elliott Smith <benedict@apache.org>
+Date:   Mon Dec 22 15:39:29 2014 +0000
+
+    ninja remove synchronized from MappedFileDataInput.readBytes
+
+diff --git a/src/java/org/apache/cassandra/io/util/MappedFileDataInput.java b/src/java/org/apache/cassandra/io/util/MappedFileDataInput.java
+index f397ddc..fb5b62e 100644
+--- a/src/java/org/apache/cassandra/io/util/MappedFileDataInput.java
++++ b/src/java/org/apache/cassandra/io/util/MappedFileDataInput.java
+@@ -128,7 +128,7 @@ public class MappedFileDataInput extends AbstractDataInput implements FileDataIn
+      * @return buffer with portion of file content
+      * @throws IOException on any fail of I/O operation
+      */
+-    public synchronized ByteBuffer readBytes(int length) throws IOException
++    public ByteBuffer readBytes(int length) throws IOException
+     {
+         int remaining = buffer.remaining() - position;
+         if (length > remaining)

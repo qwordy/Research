@@ -1,0 +1,36 @@
+commit 7c8419f14f8d1c127d511c2e0df60a5caa85fecf
+Author: Aaron Myers <atm@apache.org>
+Date:   Wed Mar 13 02:55:20 2013 +0000
+
+    HDFS-4522. LightWeightGSet expects incrementing a volatile to be atomic. Contributed by Colin Patrick McCabe.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1455780 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+index 36a5ae4..c483cd7 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
++++ b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+@@ -396,6 +396,9 @@ Release 2.0.5-beta - UNRELEASED
+     HDFS-4592. Default values for access time precision are out of sync between
+     hdfs-default.xml and the code. (atm)
+ 
++    HDFS-4522. LightWeightGSet expects incrementing a volatile to be atomic.
++    (Colin Patrick McCabe via atm)
++
+ Release 2.0.4-alpha - UNRELEASED
+ 
+   INCOMPATIBLE CHANGES
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/util/LightWeightGSet.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/util/LightWeightGSet.java
+index 32d80c2..cb0412d 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/util/LightWeightGSet.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/util/LightWeightGSet.java
+@@ -72,7 +72,7 @@
+   /** Modification version for fail-fast.
+    * @see ConcurrentModificationException
+    */
+-  private volatile int modification = 0;
++  private int modification = 0;
+ 
+   /**
+    * @param recommended_length Recommended size of the internal array.

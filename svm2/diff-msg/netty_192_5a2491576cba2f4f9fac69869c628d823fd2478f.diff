@@ -1,0 +1,109 @@
+commit 5a2491576cba2f4f9fac69869c628d823fd2478f
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Mon Jan 19 05:02:22 2009 +0000
+
+    * Introduced a common interface 'ExternalResourceReleasable'
+    * All types that depend on an external resource (e.g. Executor specified in the constructor) implements ExternalResourceReleasable now
+    * EmbeddedChannelFactory.releaseExternalResources() shouldn't throw an exception.
+
+diff --git a/src/main/java/org/jboss/netty/channel/ChannelFactory.java b/src/main/java/org/jboss/netty/channel/ChannelFactory.java
+index a99d82a..dc8c223 100644
+--- a/src/main/java/org/jboss/netty/channel/ChannelFactory.java
++++ b/src/main/java/org/jboss/netty/channel/ChannelFactory.java
+@@ -25,6 +25,7 @@ package org.jboss.netty.channel;
+ import java.util.concurrent.Executor;
+ 
+ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
++import org.jboss.netty.util.ExternalResourceReleasable;
+ 
+ 
+ /**
+@@ -58,7 +59,7 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+  * @apiviz.landmark
+  * @apiviz.has        org.jboss.netty.channel.Channel oneway - - creates
+  */
+-public interface ChannelFactory {
++public interface ChannelFactory extends ExternalResourceReleasable {
+ 
+     /**
+      * Creates and opens a new {@link Channel} and attaches the specified
+diff --git a/src/main/java/org/jboss/netty/handler/codec/embedder/EmbeddedChannelFactory.java b/src/main/java/org/jboss/netty/handler/codec/embedder/EmbeddedChannelFactory.java
+index aed8864..3af4945 100644
+--- a/src/main/java/org/jboss/netty/handler/codec/embedder/EmbeddedChannelFactory.java
++++ b/src/main/java/org/jboss/netty/handler/codec/embedder/EmbeddedChannelFactory.java
+@@ -44,6 +44,6 @@ class EmbeddedChannelFactory implements ChannelFactory {
+     }
+ 
+     public void releaseExternalResources() {
+-        throw new UnsupportedOperationException();
++        // No external resources
+     }
+ }
+diff --git a/src/main/java/org/jboss/netty/handler/execution/ExecutionHandler.java b/src/main/java/org/jboss/netty/handler/execution/ExecutionHandler.java
+index 9a99bc0..eed9f29 100644
+--- a/src/main/java/org/jboss/netty/handler/execution/ExecutionHandler.java
++++ b/src/main/java/org/jboss/netty/handler/execution/ExecutionHandler.java
+@@ -30,6 +30,7 @@ import org.jboss.netty.channel.ChannelPipeline;
+ import org.jboss.netty.channel.ChannelPipelineCoverage;
+ import org.jboss.netty.channel.ChannelUpstreamHandler;
+ import org.jboss.netty.util.ExecutorShutdownUtil;
++import org.jboss.netty.util.ExternalResourceReleasable;
+ 
+ /**
+  * Forwards an upstream {@link ChannelEvent} to an {@link Executor}.
+@@ -61,7 +62,7 @@ import org.jboss.netty.util.ExecutorShutdownUtil;
+  * @apiviz.has java.util.concurrent.ThreadPoolExecutor
+  */
+ @ChannelPipelineCoverage("all")
+-public class ExecutionHandler implements ChannelUpstreamHandler {
++public class ExecutionHandler implements ChannelUpstreamHandler, ExternalResourceReleasable {
+ 
+     private final Executor executor;
+ 
+@@ -86,7 +87,7 @@ public class ExecutionHandler implements ChannelUpstreamHandler {
+      * Shuts down the {@link Executor} which was specified with the constructor
+      * and wait for its termination.
+      */
+-    public void terminateExecutor() {
++    public void releaseExternalResources() {
+         ExecutorShutdownUtil.shutdown(getExecutor());
+     }
+ 
+diff --git a/src/main/java/org/jboss/netty/util/ExternalResourceReleasable.java b/src/main/java/org/jboss/netty/util/ExternalResourceReleasable.java
+new file mode 100644
+index 0000000..3aaac78
+--- /dev/null
++++ b/src/main/java/org/jboss/netty/util/ExternalResourceReleasable.java
+@@ -0,0 +1,32 @@
++/*
++ * JBoss, Home of Professional Open Source
++ *
++ * Copyright 2009, Red Hat Middleware LLC, and individual contributors
++ * by the @author tags. See the COPYRIGHT.txt in the distribution for a
++ * full listing of individual contributors.
++ *
++ * This is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU Lesser General Public License as
++ * published by the Free Software Foundation; either version 2.1 of
++ * the License, or (at your option) any later version.
++ *
++ * This software is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this software; if not, write to the Free
++ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
++ */
++package org.jboss.netty.util;
++
++/**
++ * @author The Netty Project (netty-dev@lists.jboss.org)
++ * @author Trustin Lee (tlee@redhat.com)
++ * @version $Rev$, $Date$
++ */
++public interface ExternalResourceReleasable {
++    void releaseExternalResources();
++}

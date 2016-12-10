@@ -1,0 +1,46 @@
+commit 5fd064fb7172986987345cb68b4bd5efbd8394fc
+Author: Keiichi Fujino <kfujino@apache.org>
+Date:   Thu Mar 10 09:54:07 2016 +0000
+
+    If promoting a proxy node to a primary node when getting a session, notify the change of the new primary node to the original backup node.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1734377 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/tribes/tipis/AbstractReplicatedMap.java b/java/org/apache/catalina/tribes/tipis/AbstractReplicatedMap.java
+index 2e0b0d5..9edaaba 100644
+--- a/java/org/apache/catalina/tribes/tipis/AbstractReplicatedMap.java
++++ b/java/org/apache/catalina/tribes/tipis/AbstractReplicatedMap.java
+@@ -950,6 +950,13 @@ public abstract class AbstractReplicatedMap<K,V>
+                     backup = entry.getBackupNodes();
+                     if ( msg.getValue()!=null ) entry.setValue((V) msg.getValue());
+ 
++                    // notify member
++                    msg = new MapMessage(getMapContextName(), MapMessage.MSG_NOTIFY_MAPMEMBER,false,
++                            (Serializable)entry.getKey(), null, null, channel.getLocalMember(false), backup);
++                    if ( backup != null && backup.length > 0) {
++                        getChannel().send(backup, msg, getChannelSendOptions());
++                    }
++
+                     //invalidate the previous primary
+                     msg = new MapMessage(getMapContextName(),MapMessage.MSG_PROXY,false,(Serializable)key,null,null,channel.getLocalMember(false),backup);
+                     Member[] dest = getMapMembersExcl(backup);
+diff --git a/webapps/docs/changelog.xml b/webapps/docs/changelog.xml
+index 6769834..f3be8a0 100644
+--- a/webapps/docs/changelog.xml
++++ b/webapps/docs/changelog.xml
+@@ -273,6 +273,15 @@
+       </add>
+     </changelog>
+   </subsection>
++  <subsection name="Tribes">
++    <changelog>
++      <fix>
++        If promoting a proxy node to a primary node when getting a session,
++        notify the change of the new primary node to the original backup node.
++        (kfujino)
++      </fix>
++    </changelog>
++  </subsection>
+   <subsection name="Other">
+     <changelog>
+       <fix>

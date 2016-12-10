@@ -1,0 +1,57 @@
+commit 67d90615e142c6b9af487cf47b6f0f375c66c836
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Tue Feb 3 11:15:25 2009 +0000
+
+    Wishful fix for NETTY-115 AccessControlException when running Netty from an Applet
+    * AtomicReferenceFieldUpdater is used only when it's permitted to be used.
+
+diff --git a/src/main/java/org/jboss/netty/util/LinkedTransferQueue.java b/src/main/java/org/jboss/netty/util/LinkedTransferQueue.java
+index 97d509d..b26968b 100644
+--- a/src/main/java/org/jboss/netty/util/LinkedTransferQueue.java
++++ b/src/main/java/org/jboss/netty/util/LinkedTransferQueue.java
+@@ -136,12 +136,41 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E> implements Blocking
+             this.isData = isData;
+         }
+ 
+-        private static final AtomicReferenceFieldUpdater<QNode, QNode>
+-            nextUpdater = AtomicReferenceFieldUpdater.newUpdater
+-            (QNode.class, QNode.class, "next");
++        private static final AtomicReferenceFieldUpdater<QNode, QNode> nextUpdater;
++        static {
++            AtomicReferenceFieldUpdater<QNode, QNode> tmp = null;
++            try {
++                tmp = AtomicReferenceFieldUpdater.newUpdater(
++                        QNode.class, QNode.class, "next");
++
++                // Test if AtomicReferenceFieldUpdater is really working.
++                QNode testNode = new QNode(null, false);
++                tmp.set(testNode, testNode);
++                if (testNode.next != testNode) {
++                    // Not set as expected - fall back to the safe mode.
++                    throw new Exception();
++                }
++            } catch (Throwable t) {
++                // Running in a restricted environment with a security manager.
++                tmp = null;
++            }
++            nextUpdater = tmp;
++        }
+ 
+         boolean casNext(QNode cmp, QNode val) {
+-            return nextUpdater.compareAndSet(this, cmp, val);
++            if (nextUpdater == null) {
++                // Safe mode.
++                synchronized (this) {
++                    if (next == cmp) {
++                        next = val;
++                        return true;
++                    } else {
++                        return false;
++                    }
++                }
++            } else {
++                return nextUpdater.compareAndSet(this, cmp, val);
++            }
+         }
+     }
+ 

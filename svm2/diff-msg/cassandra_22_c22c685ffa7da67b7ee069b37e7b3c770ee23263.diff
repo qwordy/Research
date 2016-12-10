@@ -1,0 +1,28 @@
+commit c22c685ffa7da67b7ee069b37e7b3c770ee23263
+Author: Sylvain Lebresne <sylvain@datastax.com>
+Date:   Fri May 17 14:52:04 2013 +0200
+
+    Replace ArrayBlockingQuery by LinkedBlockingQueue in binary protocol RequestThreadPoolExecutor
+
+diff --git a/src/java/org/apache/cassandra/transport/RequestThreadPoolExecutor.java b/src/java/org/apache/cassandra/transport/RequestThreadPoolExecutor.java
+index 83c7c29..faae28f 100644
+--- a/src/java/org/apache/cassandra/transport/RequestThreadPoolExecutor.java
++++ b/src/java/org/apache/cassandra/transport/RequestThreadPoolExecutor.java
+@@ -17,7 +17,7 @@
+  */
+ package org.apache.cassandra.transport;
+ 
+-import java.util.concurrent.ArrayBlockingQueue;
++import java.util.concurrent.LinkedBlockingQueue;
+ import java.util.concurrent.TimeUnit;
+ 
+ import org.apache.cassandra.concurrent.DebuggableThreadPoolExecutor;
+@@ -33,7 +33,7 @@ public class RequestThreadPoolExecutor extends DebuggableThreadPoolExecutor
+         super(DatabaseDescriptor.getNativeTransportMinThreads(),
+               DatabaseDescriptor.getNativeTransportMaxThreads(),
+               CORE_THREAD_TIMEOUT_SEC, TimeUnit.SECONDS,
+-              new ArrayBlockingQueue(32), // Seems to help smooth latency compared to SynchronousQueue.
++              new LinkedBlockingQueue<Runnable>(32), // Seems to help smooth latency compared to SynchronousQueue.
+               new NamedThreadFactory("Native-Transport-Requests"));
+     }
+ }

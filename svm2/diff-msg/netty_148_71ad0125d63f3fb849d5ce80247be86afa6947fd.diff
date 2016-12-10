@@ -1,0 +1,71 @@
+commit 71ad0125d63f3fb849d5ce80247be86afa6947fd
+Author: norman <norman@apache.org>
+Date:   Mon Jun 11 09:58:53 2012 +0200
+
+    No need for volatile
+
+diff --git a/handler/src/main/java/io/netty/handler/stream/ChunkedFile.java b/handler/src/main/java/io/netty/handler/stream/ChunkedFile.java
+index 3d1b248..7b637a9 100644
+--- a/handler/src/main/java/io/netty/handler/stream/ChunkedFile.java
++++ b/handler/src/main/java/io/netty/handler/stream/ChunkedFile.java
+@@ -34,7 +34,7 @@ public class ChunkedFile implements ChunkedByteInput {
+     private final long startOffset;
+     private final long endOffset;
+     private final int chunkSize;
+-    private volatile long offset;
++    private long offset;
+ 
+     /**
+      * Creates a new instance that fetches data from the specified file.
+diff --git a/handler/src/main/java/io/netty/handler/stream/ChunkedInput.java b/handler/src/main/java/io/netty/handler/stream/ChunkedInput.java
+index 591a6f7..ffc5b21 100644
+--- a/handler/src/main/java/io/netty/handler/stream/ChunkedInput.java
++++ b/handler/src/main/java/io/netty/handler/stream/ChunkedInput.java
+@@ -29,7 +29,7 @@ public interface ChunkedInput<B> {
+     boolean isEndOfInput() throws Exception;
+ 
+     /**
+-     * Releases the resources associated with the stream.
++     * Releases the resources associated with the input.
+      */
+     void close() throws Exception;
+ 
+diff --git a/handler/src/main/java/io/netty/handler/stream/ChunkedNioFile.java b/handler/src/main/java/io/netty/handler/stream/ChunkedNioFile.java
+index 1e7e082..b346442 100644
+--- a/handler/src/main/java/io/netty/handler/stream/ChunkedNioFile.java
++++ b/handler/src/main/java/io/netty/handler/stream/ChunkedNioFile.java
+@@ -36,7 +36,7 @@ public class ChunkedNioFile implements ChunkedByteInput {
+     private long startOffset;
+     private final long endOffset;
+     private final int chunkSize;
+-    private volatile long offset;
++    private long offset;
+ 
+     /**
+      * Creates a new instance that fetches data from the specified file.
+diff --git a/handler/src/main/java/io/netty/handler/stream/ChunkedNioStream.java b/handler/src/main/java/io/netty/handler/stream/ChunkedNioStream.java
+index 75b39bd..4a70a0f 100644
+--- a/handler/src/main/java/io/netty/handler/stream/ChunkedNioStream.java
++++ b/handler/src/main/java/io/netty/handler/stream/ChunkedNioStream.java
+@@ -30,7 +30,7 @@ public class ChunkedNioStream implements ChunkedByteInput {
+     private final ReadableByteChannel in;
+ 
+     private final int chunkSize;
+-    private volatile long offset;
++    private long offset;
+ 
+     /**
+      * Associated ByteBuffer
+diff --git a/handler/src/main/java/io/netty/handler/stream/ChunkedStream.java b/handler/src/main/java/io/netty/handler/stream/ChunkedStream.java
+index 3db9ff3..d8f36e4 100644
+--- a/handler/src/main/java/io/netty/handler/stream/ChunkedStream.java
++++ b/handler/src/main/java/io/netty/handler/stream/ChunkedStream.java
+@@ -36,7 +36,7 @@ public class ChunkedStream implements ChunkedByteInput {
+ 
+     private final PushbackInputStream in;
+     private final int chunkSize;
+-    private volatile long offset;
++    private long offset;
+ 
+     /**
+      * Creates a new instance that fetches data from the specified stream.

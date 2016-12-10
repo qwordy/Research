@@ -1,0 +1,59 @@
+commit b604a22395f64bca52d155127e2453aa3178af6c
+Author: Roger Kapsi <rkapsi@squarespace.com>
+Date:   Thu Sep 1 08:30:31 2016 -0400
+
+    Expose the ChannelHandlerContext from SniHandler's select() step to the user.
+    
+    Motivation
+    
+    I'm looking to harden our SSL impl. a little bit and add some guards agaist certain types of abuse. One can think of invalid hostname strings in the SNI extenstion or invalid SNI handshakes altogether. This will require measuring, velocity tracking and other things.
+    
+    Modifications
+    
+    Adding a protected `lookup(ctx, hostname)` method that is called from SniHandler's `select(...)` method which users can override and implement custom behaviour. The default implementation will simply call the AsyncMapper.
+    
+    Result
+    
+    It's possible to get a hold onto the ChannelHandlerContext. Users can override that method and do something with it right there or they can delegate it to something else. SniHandler is happy as long as a `Future<SslContext>` is being returned.
+
+diff --git a/handler/src/main/java/io/netty/handler/ssl/SniHandler.java b/handler/src/main/java/io/netty/handler/ssl/SniHandler.java
+index 4cfe781..56c98ef 100644
+--- a/handler/src/main/java/io/netty/handler/ssl/SniHandler.java
++++ b/handler/src/main/java/io/netty/handler/ssl/SniHandler.java
+@@ -57,7 +57,7 @@ public class SniHandler extends ByteToMessageDecoder implements ChannelOutboundH
+             InternalLoggerFactory.getInstance(SniHandler.class);
+     private static final Selection EMPTY_SELECTION = new Selection(null, null);
+ 
+-    private final AsyncMapping<String, SslContext> mapping;
++    protected final AsyncMapping<String, SslContext> mapping;
+ 
+     private boolean handshakeFailed;
+     private boolean suppressRead;
+@@ -273,8 +273,8 @@ public class SniHandler extends ByteToMessageDecoder implements ChannelOutboundH
+         }
+     }
+ 
+-    private void select(final ChannelHandlerContext ctx, final String hostname) {
+-        Future<SslContext> future = mapping.map(hostname, ctx.executor().<SslContext>newPromise());
++    private void select(final ChannelHandlerContext ctx, final String hostname) throws Exception {
++        Future<SslContext> future = lookup(ctx, hostname);
+         if (future.isDone()) {
+             if (future.isSuccess()) {
+                 onSslContext(ctx, hostname, future.getNow());
+@@ -306,6 +306,16 @@ public class SniHandler extends ByteToMessageDecoder implements ChannelOutboundH
+     }
+ 
+     /**
++     * The default implementation will simply call {@link AsyncMapping#map(Object, Promise)} but
++     * users can override this method to implement custom behavior.
++     *
++     * @see AsyncMapping#map(Object, Promise)
++     */
++    protected Future<SslContext> lookup(ChannelHandlerContext ctx, String hostname) throws Exception {
++        return mapping.map(hostname, ctx.executor().<SslContext>newPromise());
++    }
++
++    /**
+      * Called upon successful completion of the {@link AsyncMapping}'s {@link Future}.
+      *
+      * @see #select(ChannelHandlerContext, String)

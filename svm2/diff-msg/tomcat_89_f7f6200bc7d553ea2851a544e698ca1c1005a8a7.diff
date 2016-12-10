@@ -1,0 +1,21 @@
+commit f7f6200bc7d553ea2851a544e698ca1c1005a8a7
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Mon May 16 16:39:42 2011 +0000
+
+    SHARED_SELECTOR is used with double checked locking so it needs to be volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1103788 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/tomcat/util/net/NioSelectorPool.java b/java/org/apache/tomcat/util/net/NioSelectorPool.java
+index 13c1a2e..1ff87e8 100644
+--- a/java/org/apache/tomcat/util/net/NioSelectorPool.java
++++ b/java/org/apache/tomcat/util/net/NioSelectorPool.java
+@@ -50,7 +50,7 @@ public class NioSelectorPool {
+     
+     protected NioBlockingSelector blockingSelector;
+     
+-    protected Selector SHARED_SELECTOR;
++    protected volatile Selector SHARED_SELECTOR;
+     
+     protected int maxSelectors = 200;
+     protected long sharedSelectorTimeout = 30000;

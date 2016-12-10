@@ -1,0 +1,33 @@
+commit 9eb346a6432e952a1892f77c0cf6fda9b40ba1c4
+Author: Jianwei Zhang <eezhangjianwei@gmail.com>
+Date:   Sun May 4 10:25:38 2014 -0400
+
+    fix time conversion to milliseconds in SimpleCondition.await
+    
+    patch by jzhang reviewed by dbrosius for cassandra-7149
+
+diff --git a/CHANGES.txt b/CHANGES.txt
+index 484f4bd..1c6171e 100644
+--- a/CHANGES.txt
++++ b/CHANGES.txt
+@@ -18,6 +18,7 @@
+  * Always clean up references in SerializingCache (CASSANDRA-6994)
+  * fix npe when doing -Dcassandra.fd_initial_value_ms (CASSANDRA-6751)
+  * Preserves CQL metadata when updating table from thrift (CASSANDRA-6831)
++ * fix time conversion to milliseconds in SimpleCondition.await (CASSANDRA-7149)
+ 
+ 
+ 1.2.16
+diff --git a/src/java/org/apache/cassandra/utils/SimpleCondition.java b/src/java/org/apache/cassandra/utils/SimpleCondition.java
+index 4f00998..8899a19 100644
+--- a/src/java/org/apache/cassandra/utils/SimpleCondition.java
++++ b/src/java/org/apache/cassandra/utils/SimpleCondition.java
+@@ -44,7 +44,7 @@ public class SimpleCondition implements Condition
+         // micro/nanoseconds not supported
+         assert unit == TimeUnit.DAYS || unit == TimeUnit.HOURS || unit == TimeUnit.MINUTES || unit == TimeUnit.SECONDS || unit == TimeUnit.MILLISECONDS;
+ 
+-        long end = System.currentTimeMillis() + unit.convert(time, TimeUnit.MILLISECONDS);
++        long end = System.currentTimeMillis() + TimeUnit.MILLISECONDS.convert(time, unit);
+         while (!set && end > System.currentTimeMillis())
+         {
+             TimeUnit.MILLISECONDS.timedWait(this, end - System.currentTimeMillis());

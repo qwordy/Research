@@ -1,0 +1,26 @@
+commit a6bf3ee8d7573e963d9a85332eaa1eefa1e277f9
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Wed Sep 3 14:01:29 2014 +0000
+
+    No need for volatile. Can be final. Reported by FindBugs.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1622259 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/tomcat/websocket/PerMessageDeflate.java b/java/org/apache/tomcat/websocket/PerMessageDeflate.java
+index 50e7b2a..52595cf 100644
+--- a/java/org/apache/tomcat/websocket/PerMessageDeflate.java
++++ b/java/org/apache/tomcat/websocket/PerMessageDeflate.java
+@@ -51,12 +51,12 @@ public class PerMessageDeflate implements Transformation {
+     private final Inflater inflater = new Inflater(true);
+     private final ByteBuffer readBuffer = ByteBuffer.allocate(Constants.DEFAULT_BUFFER_SIZE);
+     private final Deflater deflater = new Deflater(Deflater.DEFAULT_COMPRESSION, true);
++    private final byte[] EOM_BUFFER = new byte[EOM_BYTES.length + 1];
+ 
+     private volatile Transformation next;
+     private volatile boolean skipDecompression = false;
+     private volatile ByteBuffer writeBuffer = ByteBuffer.allocate(Constants.DEFAULT_BUFFER_SIZE);
+     private volatile boolean firstCompressedFrameWritten = false;
+-    private volatile byte[] EOM_BUFFER = new byte[EOM_BYTES.length + 1];
+ 
+     static PerMessageDeflate negotiate(List<List<Parameter>> preferences) {
+         // Accept the first preference that the server is able to support

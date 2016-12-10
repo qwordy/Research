@@ -1,0 +1,270 @@
+commit 96bf71e814c2d7024d38cdeb8dc05a627670f09a
+Author: Norman Maurer <nmaurer@redhat.com>
+Date:   Thu Mar 28 11:56:58 2013 +0100
+
+    Let EventExecutorGroup extend ScheduledExecutorService as it shares quite some semantic
+
+diff --git a/common/src/main/java/io/netty/util/concurrent/AbstractEventExecutorGroup.java b/common/src/main/java/io/netty/util/concurrent/AbstractEventExecutorGroup.java
+new file mode 100644
+index 0000000..6f6db8f
+--- /dev/null
++++ b/common/src/main/java/io/netty/util/concurrent/AbstractEventExecutorGroup.java
+@@ -0,0 +1,100 @@
++/*
++ * Copyright 2013 The Netty Project
++ *
++ * The Netty Project licenses this file to you under the Apache License,
++ * version 2.0 (the "License"); you may not use this file except in compliance
++ * with the License. You may obtain a copy of the License at:
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations
++ * under the License.
++ */
++package io.netty.util.concurrent;
++
++import java.util.Collection;
++import java.util.Collections;
++import java.util.List;
++import java.util.concurrent.Callable;
++import java.util.concurrent.ExecutionException;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.TimeoutException;
++
++
++/**
++ * Abstract base class for {@link EventExecutorGroup} implementations.
++ */
++public abstract class AbstractEventExecutorGroup implements EventExecutorGroup {
++
++    @Override
++    public Future<?> submit(Runnable task) {
++        return next().submit(task);
++    }
++
++    @Override
++    public <T> Future<T> submit(Runnable task, T result) {
++        return next().submit(task, result);
++    }
++
++    @Override
++    public <T> Future<T> submit(Callable<T> task) {
++        return next().submit(task);
++    }
++
++    @Override
++    public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
++        return next().schedule(command, delay, unit);
++    }
++
++    @Override
++    public <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit) {
++        return next().schedule(callable, delay, unit);
++    }
++
++    @Override
++    public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit) {
++        return next().scheduleAtFixedRate(command, initialDelay, period, unit);
++    }
++
++    @Override
++    public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit) {
++        return next().scheduleWithFixedDelay(command, initialDelay, delay, unit);
++    }
++
++    @Override
++    public List<Runnable> shutdownNow() {
++        shutdown();
++        return Collections.emptyList();
++    }
++
++    @Override
++    public <T> List<java.util.concurrent.Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
++            throws InterruptedException {
++        return next().invokeAll(tasks);
++    }
++
++    @Override
++    public <T> List<java.util.concurrent.Future<T>> invokeAll(
++            Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
++        return next().invokeAll(tasks, timeout, unit);
++    }
++
++    @Override
++    public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
++        return next().invokeAny(tasks);
++    }
++
++    @Override
++    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
++            throws InterruptedException, ExecutionException, TimeoutException {
++        return next().invokeAny(tasks, timeout, unit);
++    }
++
++    @Override
++    public void execute(Runnable command) {
++        next().execute(command);
++    }
++}
+diff --git a/common/src/main/java/io/netty/util/concurrent/EventExecutor.java b/common/src/main/java/io/netty/util/concurrent/EventExecutor.java
+index 5de127b..9e47fad 100644
+--- a/common/src/main/java/io/netty/util/concurrent/EventExecutor.java
++++ b/common/src/main/java/io/netty/util/concurrent/EventExecutor.java
+@@ -15,18 +15,14 @@
+  */
+ package io.netty.util.concurrent;
+ 
+-import java.util.concurrent.Callable;
+-import java.util.concurrent.ScheduledExecutorService;
+-import java.util.concurrent.TimeUnit;
+-
+ /**
+- * The {@link EventExecutor} is a special {@link ScheduledExecutorService} which comes
++ * The {@link EventExecutor} is a special {@link EventExecutorGroup} which comes
+  * with some handy methods to see if a {@link Thread} is executed in a event loop.
+  * Beside this it also extends the {@link EventExecutorGroup} to allow a generic way to
+  * access methods.
+  *
+  */
+-public interface EventExecutor extends EventExecutorGroup, ScheduledExecutorService {
++public interface EventExecutor extends EventExecutorGroup {
+ 
+     /**
+      * Returns a reference to itself.
+@@ -68,25 +64,4 @@ public interface EventExecutor extends EventExecutorGroup, ScheduledExecutorServ
+      * every call of blocking methods will just return without blocking.
+      */
+     <V> Future<V> newFailedFuture(Throwable cause);
+-
+-    @Override
+-    Future<?> submit(Runnable task);
+-
+-    @Override
+-    <T> Future<T> submit(Runnable task, T result);
+-
+-    @Override
+-    <T> Future<T> submit(Callable<T> task);
+-
+-    @Override
+-    ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit);
+-
+-    @Override
+-    <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit);
+-
+-    @Override
+-    ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit);
+-
+-    @Override
+-    ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit);
+ }
+diff --git a/common/src/main/java/io/netty/util/concurrent/EventExecutorGroup.java b/common/src/main/java/io/netty/util/concurrent/EventExecutorGroup.java
+index 5f76e86..f465885 100644
+--- a/common/src/main/java/io/netty/util/concurrent/EventExecutorGroup.java
++++ b/common/src/main/java/io/netty/util/concurrent/EventExecutorGroup.java
+@@ -15,7 +15,9 @@
+  */
+ package io.netty.util.concurrent;
+ 
++import java.util.concurrent.Callable;
+ import java.util.concurrent.ExecutorService;
++import java.util.concurrent.ScheduledExecutorService;
+ import java.util.concurrent.TimeUnit;
+ 
+ /**
+@@ -24,40 +26,31 @@ import java.util.concurrent.TimeUnit;
+  * to shut them down in a global fashion.
+  *
+  */
+-public interface EventExecutorGroup {
++public interface EventExecutorGroup extends ScheduledExecutorService {
+ 
+     /**
+      * Returns one of the {@link EventExecutor}s that belong to this group.
+      */
+     EventExecutor next();
+ 
+-    /**
+-     * Shuts down all {@link EventExecutor}s managed by this group.
+-     *
+-     * @see ExecutorService#shutdown()
+-     */
+-    void shutdown();
++    @Override
++    Future<?> submit(Runnable task);
+ 
+-    /**
+-     * Returns {@code true} if and only if {@link #shutdown()} has been called.
+-     *
+-     * @see ExecutorService#isShutdown()
+-     */
+-    boolean isShutdown();
++    @Override
++    <T> Future<T> submit(Runnable task, T result);
+ 
+-    /**
+-     * Returns {@code true} if and only if {@link #shutdown()} has been called and all
+-     * {@link EventExecutor}s managed by this group has been terminated completely.
+-     *
+-     * @see ExecutorService#isTerminated()
+-     */
+-    boolean isTerminated();
++    @Override
++    <T> Future<T> submit(Callable<T> task);
+ 
+-    /**
+-     * Waits until {@link #isTerminated()} returns {@code true} or the specified amount of time
+-     * passes.
+-     *
+-     * @see ExecutorService#awaitTermination(long, TimeUnit)
+-     */
+-    boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException;
++    @Override
++    ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit);
++
++    @Override
++    <V> ScheduledFuture<V> schedule(Callable<V> callable, long delay, TimeUnit unit);
++
++    @Override
++    ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit);
++
++    @Override
++    ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit);
+ }
+diff --git a/common/src/main/java/io/netty/util/concurrent/MultithreadEventExecutorGroup.java b/common/src/main/java/io/netty/util/concurrent/MultithreadEventExecutorGroup.java
+index 24fd26e..87140dd 100644
+--- a/common/src/main/java/io/netty/util/concurrent/MultithreadEventExecutorGroup.java
++++ b/common/src/main/java/io/netty/util/concurrent/MultithreadEventExecutorGroup.java
+@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
+  * Abstract base class for {@link EventExecutorGroup} implementations that handles their tasks with multiple threads at
+  * the same time.
+  */
+-public abstract class MultithreadEventExecutorGroup implements EventExecutorGroup {
++public abstract class MultithreadEventExecutorGroup extends AbstractEventExecutorGroup {
+ 
+     public static final int DEFAULT_POOL_SIZE = Runtime.getRuntime().availableProcessors() * 2;
+     private static final AtomicInteger poolId = new AtomicInteger();
+diff --git a/transport/src/main/java/io/netty/channel/ThreadPerChannelEventLoopGroup.java b/transport/src/main/java/io/netty/channel/ThreadPerChannelEventLoopGroup.java
+index d8c87ed..e9ec3b6 100644
+--- a/transport/src/main/java/io/netty/channel/ThreadPerChannelEventLoopGroup.java
++++ b/transport/src/main/java/io/netty/channel/ThreadPerChannelEventLoopGroup.java
+@@ -16,6 +16,7 @@
+ package io.netty.channel;
+ 
+ 
++import io.netty.util.concurrent.AbstractEventExecutorGroup;
+ import io.netty.util.internal.PlatformDependent;
+ 
+ import java.util.Collections;
+@@ -29,7 +30,7 @@ import java.util.concurrent.TimeUnit;
+ /**
+  * An {@link EventLoopGroup} that creates one {@link EventLoop} per {@link Channel}.
+  */
+-public class ThreadPerChannelEventLoopGroup implements EventLoopGroup {
++public class ThreadPerChannelEventLoopGroup extends AbstractEventExecutorGroup implements EventLoopGroup {
+ 
+     private static final Object[] NO_ARGS = new Object[0];
+     private static final StackTraceElement[] STACK_ELEMENTS = new StackTraceElement[0];

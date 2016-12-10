@@ -1,0 +1,64 @@
+commit dbb239203460253f84b0f848b8f05e3b6e11a2fd
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Fri Aug 12 14:03:48 2011 +0900
+
+    NETTY-431 HashedWheelTimer's TimerTask may execute after call to Timeout.cancel()
+    
+    * Replaced a volatile boolean flag and system date access with an atomic integer flag.
+
+diff --git a/src/main/java/org/jboss/netty/util/HashedWheelTimer.java b/src/main/java/org/jboss/netty/util/HashedWheelTimer.java
+index db5ae0a..b153cdc 100644
+--- a/src/main/java/org/jboss/netty/util/HashedWheelTimer.java
++++ b/src/main/java/org/jboss/netty/util/HashedWheelTimer.java
+@@ -472,11 +472,15 @@ public class HashedWheelTimer implements Timer {
+ 
+     private final class HashedWheelTimeout implements Timeout {
+ 
++        private static final int ST_INIT = 0;
++        private static final int ST_CANCELLED = 1;
++        private static final int ST_EXPIRED = 2;
++
+         private final TimerTask task;
+         final long deadline;
+         volatile int stopIndex;
+         volatile long remainingRounds;
+-        private volatile boolean cancelled;
++        private final AtomicInteger state = new AtomicInteger(ST_INIT);
+ 
+         HashedWheelTimeout(TimerTask task, long deadline) {
+             this.task = task;
+@@ -495,28 +499,26 @@ public class HashedWheelTimer implements Timer {
+ 
+         @Override
+         public void cancel() {
+-            if (isExpired()) {
++            if (!state.compareAndSet(ST_INIT, ST_CANCELLED)) {
++                // TODO return false
+                 return;
+             }
+-
+-            cancelled = true;
+-
+-            // Might be called more than once, but doesn't matter.
++            
+             wheel[stopIndex].remove(this);
+         }
+ 
+         @Override
+         public boolean isCancelled() {
+-            return cancelled;
++            return state.get() == ST_CANCELLED;
+         }
+ 
+         @Override
+         public boolean isExpired() {
+-            return cancelled || System.currentTimeMillis() > deadline;
++            return state.get() != ST_INIT;
+         }
+ 
+         public void expire() {
+-            if (cancelled) {
++            if (!state.compareAndSet(ST_INIT, ST_EXPIRED)) {
+                 return;
+             }
+ 

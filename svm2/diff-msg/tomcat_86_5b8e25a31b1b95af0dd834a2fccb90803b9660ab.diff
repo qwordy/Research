@@ -1,0 +1,34 @@
+commit 5b8e25a31b1b95af0dd834a2fccb90803b9660ab
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Tue Jun 28 07:15:02 2011 +0000
+
+    No need for a ConcurrentHashMap now pre-population is used.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1140461 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/tomcat/util/buf/B2CConverter.java b/java/org/apache/tomcat/util/buf/B2CConverter.java
+index 4b6e15e..d59162b 100644
+--- a/java/org/apache/tomcat/util/buf/B2CConverter.java
++++ b/java/org/apache/tomcat/util/buf/B2CConverter.java
+@@ -23,8 +23,9 @@ import java.io.InputStream;
+ import java.io.InputStreamReader;
+ import java.io.UnsupportedEncodingException;
+ import java.nio.charset.Charset;
++import java.util.HashMap;
+ import java.util.Locale;
+-import java.util.concurrent.ConcurrentHashMap;
++import java.util.Map;
+ 
+ import org.apache.tomcat.util.res.StringManager;
+ 
+@@ -48,8 +49,8 @@ public class B2CConverter {
+     private static final StringManager sm =
+         StringManager.getManager(Constants.Package);
+ 
+-    private static final ConcurrentHashMap<String, Charset> encodingToCharsetCache =
+-        new ConcurrentHashMap<String, Charset>();
++    private static final Map<String, Charset> encodingToCharsetCache =
++        new HashMap<String, Charset>();
+ 
+     static {
+         for (Charset charset: Charset.availableCharsets().values()) {

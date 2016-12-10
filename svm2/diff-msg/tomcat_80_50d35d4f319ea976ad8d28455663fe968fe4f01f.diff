@@ -1,0 +1,22 @@
+commit 50d35d4f319ea976ad8d28455663fe968fe4f01f
+Author: Konstantin Kolinko <kkolinko@apache.org>
+Date:   Mon Nov 7 02:29:19 2011 +0000
+
+    Remove synchronization from write(byte[]), because it is not needed there,
+    as write(byte[],int,int) that it delegates to is synchronized.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1198604 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/coyote/http11/filters/FlushableGZIPOutputStream.java b/java/org/apache/coyote/http11/filters/FlushableGZIPOutputStream.java
+index 28dc797..9ec291c 100644
+--- a/java/org/apache/coyote/http11/filters/FlushableGZIPOutputStream.java
++++ b/java/org/apache/coyote/http11/filters/FlushableGZIPOutputStream.java
+@@ -43,7 +43,7 @@ public class FlushableGZIPOutputStream extends GZIPOutputStream {
+     private boolean hasLastByte = false;
+ 
+     @Override
+-    public synchronized void write(byte[] bytes) throws IOException {
++    public void write(byte[] bytes) throws IOException {
+         write(bytes, 0, bytes.length);
+     }
+ 

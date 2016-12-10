@@ -1,0 +1,21 @@
+commit 2bbc3ea1b54c25c28eb04caa48dece5cfc19d613
+Author: Kihwal Lee <kihwal@apache.org>
+Date:   Wed Jul 13 21:59:35 2016 -0500
+
+    HDFS-10617. PendingReconstructionBlocks.size() should be synchronized. Contributed by Eric Badger.
+
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/PendingReconstructionBlocks.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/PendingReconstructionBlocks.java
+index 956e94f..6628c43 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/PendingReconstructionBlocks.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/PendingReconstructionBlocks.java
+@@ -134,7 +134,9 @@ public void clear() {
+    * The total number of blocks that are undergoing reconstruction.
+    */
+   int size() {
+-    return pendingReconstructions.size();
++    synchronized (pendingReconstructions) {
++      return pendingReconstructions.size();
++    }
+   }
+ 
+   /**

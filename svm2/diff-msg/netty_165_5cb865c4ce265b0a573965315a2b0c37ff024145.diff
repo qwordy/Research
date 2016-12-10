@@ -1,0 +1,38 @@
+commit 5cb865c4ce265b0a573965315a2b0c37ff024145
+Author: norman <norman@apache.org>
+Date:   Wed Dec 7 13:14:42 2011 +0100
+
+    Use AtomicInteger.class ClassLoader for Unsafe dection. See #102
+
+diff --git a/src/main/java/org/jboss/netty/util/UnsafeDetectUtil.java b/src/main/java/org/jboss/netty/util/UnsafeDetectUtil.java
+index d8c3c9e..caf4da2 100644
+--- a/src/main/java/org/jboss/netty/util/UnsafeDetectUtil.java
++++ b/src/main/java/org/jboss/netty/util/UnsafeDetectUtil.java
+@@ -15,6 +15,8 @@
+  */
+ package org.jboss.netty.util;
+ 
++import java.util.concurrent.atomic.AtomicInteger;
++
+ 
+ /**
+  * Utility which checks if {@value #UNSAFE} class can be found in the classpath
+@@ -28,7 +30,8 @@ package org.jboss.netty.util;
+ public class UnsafeDetectUtil {
+ 
+     private static final String UNSAFE = "sun.misc.Unsafe";
+-    
++    private static final boolean UNSAFE_FOUND = isUnsafeFound(AtomicInteger.class.getClassLoader());
++
+     public static boolean isUnsafeFound(ClassLoader loader) {
+         try {
+             Class.forName(UNSAFE, true, loader);
+@@ -39,7 +42,7 @@ public class UnsafeDetectUtil {
+     }
+ 
+     public static boolean isUnsafeFound() {
+-        return isUnsafeFound(UnsafeDetectUtil.class.getClassLoader());
++        return UNSAFE_FOUND;
+     }
+ 
+     private UnsafeDetectUtil() {

@@ -1,0 +1,64 @@
+commit 7918718c8ce53c6d0958aa969fc813e586463d08
+Author: Marcus Eriksson <marcuse@spotify.com>
+Date:   Fri Nov 1 06:57:48 2013 +0100
+
+    Use AtomicIntegerFieldUpdater in RefCountedMemory to save memory in row cache.
+    
+    Patch by marcuse, reviewed by jbellis for CASSANDRA-6278
+
+diff --git a/CHANGES.txt b/CHANGES.txt
+index cc878e4..ad05970 100644
+--- a/CHANGES.txt
++++ b/CHANGES.txt
+@@ -6,7 +6,7 @@
+  * Remove 1.2 network compatibility code (CASSANDRA-5960)
+  * Remove leveled json manifest migration code (CASSANDRA-5996)
+  * Remove CFDefinition (CASSANDRA-6253)
+-
++ * Use AtomicIntegerFieldUpdater in RefCountedMemory (CASSANDRA-6278)
+ 
+ 2.0.3
+  * Fix repair assertion error when tombstones expire (CASSANDRA-6277)
+diff --git a/src/java/org/apache/cassandra/cache/RefCountedMemory.java b/src/java/org/apache/cassandra/cache/RefCountedMemory.java
+index 887bd86..76d9b00 100644
+--- a/src/java/org/apache/cassandra/cache/RefCountedMemory.java
++++ b/src/java/org/apache/cassandra/cache/RefCountedMemory.java
+@@ -17,13 +17,14 @@
+  */
+ package org.apache.cassandra.cache;
+ 
+-import java.util.concurrent.atomic.AtomicInteger;
++import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+ 
+ import org.apache.cassandra.io.util.Memory;
+ 
+ public class RefCountedMemory extends Memory
+ {
+-    private final AtomicInteger references = new AtomicInteger(1);
++    private volatile int references = 1;
++    private static final AtomicIntegerFieldUpdater<RefCountedMemory> UPDATER = AtomicIntegerFieldUpdater.newUpdater(RefCountedMemory.class, "references");
+ 
+     public RefCountedMemory(long size)
+     {
+@@ -38,10 +39,10 @@ public class RefCountedMemory extends Memory
+     {
+         while (true)
+         {
+-            int n = references.get();
++            int n = UPDATER.get(this);
+             if (n <= 0)
+                 return false;
+-            if (references.compareAndSet(n, n + 1))
++            if (UPDATER.compareAndSet(this, n, n + 1))
+                 return true;
+         }
+     }
+@@ -49,7 +50,7 @@ public class RefCountedMemory extends Memory
+     /** decrement reference count.  if count reaches zero, the object is freed. */
+     public void unreference()
+     {
+-        if (references.decrementAndGet() == 0)
++        if (UPDATER.decrementAndGet(this) == 0)
+             free();
+     }
+ }

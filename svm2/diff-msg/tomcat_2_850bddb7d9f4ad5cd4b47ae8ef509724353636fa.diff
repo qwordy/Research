@@ -1,0 +1,69 @@
+commit 850bddb7d9f4ad5cd4b47ae8ef509724353636fa
+Author: Violeta Georgieva Georgieva <violetagg@apache.org>
+Date:   Thu Aug 18 13:19:30 2016 +0000
+
+    Ensure that Semaphore.release is called in all cases. Even when there is an exception.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1756778 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/tomcat/util/net/Nio2Endpoint.java b/java/org/apache/tomcat/util/net/Nio2Endpoint.java
+index 25c36e0..dd7495f 100644
+--- a/java/org/apache/tomcat/util/net/Nio2Endpoint.java
++++ b/java/org/apache/tomcat/util/net/Nio2Endpoint.java
+@@ -819,6 +819,10 @@ public class Nio2Endpoint extends AbstractJsseEndpoint<Nio2Channel> {
+                 log.debug("Socket: [" + this + "], block: [" + block + "], length: [" + len + "]");
+             }
+ 
++            if (socketBufferHandler == null) {
++                throw new IOException(sm.getString("socket.closed"));
++            }
++
+             if (block) {
+                 try {
+                     readPending.acquire();
+@@ -834,9 +838,6 @@ public class Nio2Endpoint extends AbstractJsseEndpoint<Nio2Channel> {
+                 }
+             }
+ 
+-            if (socketBufferHandler == null) {
+-                throw new IOException(sm.getString("socket.closed"));
+-            }
+             socketBufferHandler.configureReadBufferForRead();
+             ByteBuffer readBuffer = socketBufferHandler.getReadBuffer();
+             int remaining = readBuffer.remaining();
+@@ -1096,9 +1097,6 @@ public class Nio2Endpoint extends AbstractJsseEndpoint<Nio2Channel> {
+                 try {
+                     integer = getSocket().read(socketBufferHandler.getReadBuffer());
+                     nRead = integer.get(getNio2ReadTimeout(), TimeUnit.MILLISECONDS).intValue();
+-                    // Blocking read so need to release here since there will
+-                    // not be a callback to a completion handler.
+-                    readPending.release();
+                 } catch (ExecutionException e) {
+                     if (e.getCause() instanceof IOException) {
+                         throw (IOException) e.getCause();
+@@ -1110,6 +1108,10 @@ public class Nio2Endpoint extends AbstractJsseEndpoint<Nio2Channel> {
+                 } catch (TimeoutException e) {
+                     integer.cancel(true);
+                     throw new SocketTimeoutException();
++                } finally {
++                    // Blocking read so need to release here since there will
++                    // not be a callback to a completion handler.
++                    readPending.release();
+                 }
+             } else {
+                 Nio2Endpoint.startInline();
+diff --git a/webapps/docs/changelog.xml b/webapps/docs/changelog.xml
+index 3ba0ddb..151bcd3 100644
+--- a/webapps/docs/changelog.xml
++++ b/webapps/docs/changelog.xml
+@@ -166,6 +166,10 @@
+         number of HTTP/2 streams for a connection could not be pruned to below
+         the limit. (markt)
+       </fix>
++      <fix>
++        Ensure that <code>Semaphore.release</code> is called in all cases. Even
++        when there is an exception. (violetagg)
++      </fix>
+     </changelog>
+   </subsection>
+   <subsection name="Jasper">

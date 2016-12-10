@@ -1,0 +1,34 @@
+commit 151d8c4f040abac3388f187e47f345b2bbcd3214
+Author: Shalin Shekhar Mangar <shalin@apache.org>
+Date:   Wed Dec 17 13:10:47 2008 +0000
+
+    SOLR-918 -- Store SolrInfoMBean in a ConcurrentHashMap instead of a LinkedHashMap
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/solr/trunk@727370 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/java/org/apache/solr/core/RequestHandlers.java b/src/java/org/apache/solr/core/RequestHandlers.java
+index 716831b..3ddd9ad 100644
+--- a/src/java/org/apache/solr/core/RequestHandlers.java
++++ b/src/java/org/apache/solr/core/RequestHandlers.java
+@@ -97,7 +97,7 @@ final class RequestHandlers {
+     SolrRequestHandler old = handlers.put(norm, handler);
+     if (handlerName != null && handlerName != "") {
+       if (handler instanceof SolrInfoMBean) {
+-        core.getInfoRegistry().put(handlerName, (SolrInfoMBean)handler);
++        core.getInfoRegistry().put(handlerName, handler);
+       }
+     }
+     return old;
+diff --git a/src/java/org/apache/solr/core/SolrCore.java b/src/java/org/apache/solr/core/SolrCore.java
+index 6692e87..4b48049 100644
+--- a/src/java/org/apache/solr/core/SolrCore.java
++++ b/src/java/org/apache/solr/core/SolrCore.java
+@@ -498,7 +498,7 @@ public final class SolrCore implements SolrInfoMBean {
+         infoRegistry = new JmxMonitoredMap<String, SolrInfoMBean>(name, config.jmxConfig);
+       } else  {
+         log.info("JMX monitoring not detected for core: " + name);
+-        infoRegistry = new LinkedHashMap<String, SolrInfoMBean>();
++        infoRegistry = new ConcurrentHashMap<String, SolrInfoMBean>();
+       }
+ 
+       this.schema = schema;

@@ -1,0 +1,24 @@
+commit e78fdbead699b9b51166c0f93abcb1bbf0b84dc3
+Author: Mark Thomas <markt@apache.org>
+Date:   Tue Dec 8 20:55:37 2015 +0000
+
+    Remove unused code. unloading can never be true here since it is only true during the execution of unload() and that, like loadServlet(), is synchronized.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1718700 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/core/StandardWrapper.java b/java/org/apache/catalina/core/StandardWrapper.java
+index e5606ef..5c89d6f 100644
+--- a/java/org/apache/catalina/core/StandardWrapper.java
++++ b/java/org/apache/catalina/core/StandardWrapper.java
+@@ -1066,11 +1066,6 @@ public class StandardWrapper extends ContainerBase
+      */
+     public synchronized Servlet loadServlet() throws ServletException {
+ 
+-        if (unloading) {
+-            throw new ServletException(
+-                    sm.getString("standardWrapper.unloading", getName()));
+-        }
+-
+         // Nothing to do if we already have an instance or an instance pool
+         if (!singleThreadModel && (instance != null))
+             return instance;

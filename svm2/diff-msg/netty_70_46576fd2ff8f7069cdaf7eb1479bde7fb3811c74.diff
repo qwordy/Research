@@ -1,0 +1,177 @@
+commit 46576fd2ff8f7069cdaf7eb1479bde7fb3811c74
+Author: Trustin Lee <t@motd.kr>
+Date:   Fri Dec 5 15:51:40 2014 +0900
+
+    Fix a race condition where handler is removed before unregistration
+    
+    Related: #3156
+    
+    Motivation:
+    
+    Let's say we have a channel with the following pipeline configuration:
+    
+      HEAD --> [E1] H1 --> [E2] H2 --> TAIL
+    
+    when the channel is deregistered, the channelUnregistered() methods of
+    H1 and H2 will be invoked from the executor thread of E1 and E2
+    respectively. To ensure that the channelUnregistered() methods are
+    invoked from the correct thread, new one-time tasks will be created
+    accordingly and be scheduled via Executor.execute(Runnable).
+    
+    As soon as the one-time tasks are scheduled,
+    DefaultChannelPipeline.fireChannelUnregistered() will start to remove
+    all handlers from the pipeline via teardownAll(). This process is
+    performed in reversed order of event propagation. i.e. H2 is removed
+    first, and then H1 is removed.
+    
+    If the channelUnregistered() event has been passed to H2 before H2 is
+    removed, a user does not see any problem.
+    
+    If H2 has been removed before channelUnregistered() event is passed to
+    H2, a user will often see the following confusing warning message:
+    
+      An exceptionCaught() event was fired, and it reached at the tail of
+      the pipeline. It usually means the last handler in the pipeline did
+      not handle the exception.
+    
+    Modifications:
+    
+    To ensure that the handlers are removed *after* all events are
+    propagated, traverse the pipeline in ascending order before performing
+    the actual removal.
+    
+    Result:
+    
+    A user does not get the confusing warning message anymore.
+
+diff --git a/transport/src/main/java/io/netty/channel/AbstractChannelHandlerContext.java b/transport/src/main/java/io/netty/channel/AbstractChannelHandlerContext.java
+index 0c57b7d..f371c66 100644
+--- a/transport/src/main/java/io/netty/channel/AbstractChannelHandlerContext.java
++++ b/transport/src/main/java/io/netty/channel/AbstractChannelHandlerContext.java
+@@ -65,31 +65,6 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
+         this.outbound = outbound;
+     }
+ 
+-    /** Invocation initiated by {@link DefaultChannelPipeline#teardownAll()}}. */
+-    void teardown() {
+-        EventExecutor executor = executor();
+-        if (executor.inEventLoop()) {
+-            teardown0();
+-        } else {
+-            executor.execute(new Runnable() {
+-                @Override
+-                public void run() {
+-                    teardown0();
+-                }
+-            });
+-        }
+-    }
+-
+-    private void teardown0() {
+-        AbstractChannelHandlerContext prev = this.prev;
+-        if (prev != null) {
+-            synchronized (pipeline) {
+-                pipeline.remove0(this);
+-            }
+-            prev.teardown();
+-        }
+-    }
+-
+     @Override
+     public Channel channel() {
+         return channel;
+diff --git a/transport/src/main/java/io/netty/channel/DefaultChannelPipeline.java b/transport/src/main/java/io/netty/channel/DefaultChannelPipeline.java
+index acd274a..cd665d1 100644
+--- a/transport/src/main/java/io/netty/channel/DefaultChannelPipeline.java
++++ b/transport/src/main/java/io/netty/channel/DefaultChannelPipeline.java
+@@ -19,6 +19,7 @@ import io.netty.channel.Channel.Unsafe;
+ import io.netty.util.ReferenceCountUtil;
+ import io.netty.util.concurrent.EventExecutor;
+ import io.netty.util.concurrent.EventExecutorGroup;
++import io.netty.util.internal.OneTimeTask;
+ import io.netty.util.internal.PlatformDependent;
+ import io.netty.util.internal.StringUtil;
+ import io.netty.util.internal.logging.InternalLogger;
+@@ -839,18 +840,76 @@ final class DefaultChannelPipeline implements ChannelPipeline {
+ 
+         // Remove all handlers sequentially if channel is closed and unregistered.
+         if (!channel.isOpen()) {
+-            teardownAll();
++            destroy();
+         }
+         return this;
+     }
+ 
+     /**
+-     * Removes all handlers from the pipeline one by one from tail (exclusive) to head (inclusive) to trigger
+-     * handlerRemoved().  Note that the tail handler is excluded because it's neither an outbound handler nor it
+-     * does anything in handlerRemoved().
++     * Removes all handlers from the pipeline one by one from tail (exclusive) to head (exclusive) to trigger
++     * handlerRemoved().
++     *
++     * Note that we traverse up the pipeline ({@link #destroyUp(AbstractChannelHandlerContext)})
++     * before traversing down ({@link #destroyDown(Thread, AbstractChannelHandlerContext)}) so that
++     * the handlers are removed after all events are handled.
++     *
++     * See: https://github.com/netty/netty/issues/3156
+      */
+-    private void teardownAll() {
+-        tail.prev.teardown();
++    private void destroy() {
++        destroyUp(head.next);
++    }
++
++    private void destroyUp(AbstractChannelHandlerContext ctx) {
++        final Thread currentThread = Thread.currentThread();
++        final AbstractChannelHandlerContext tail = this.tail;
++        for (;;) {
++            if (ctx == tail) {
++                destroyDown(currentThread, tail.prev);
++                break;
++            }
++
++            final EventExecutor executor = ctx.executor();
++            if (!executor.inEventLoop(currentThread)) {
++                final AbstractChannelHandlerContext finalCtx = ctx;
++                executor.execute(new OneTimeTask() {
++                    @Override
++                    public void run() {
++                        destroyUp(finalCtx);
++                    }
++                });
++                break;
++            }
++
++            ctx = ctx.next;
++        }
++    }
++
++    private void destroyDown(Thread currentThread, AbstractChannelHandlerContext ctx) {
++        // We have reached at tail; now traverse backwards.
++        final AbstractChannelHandlerContext head = this.head;
++        for (;;) {
++            if (ctx == head) {
++                break;
++            }
++
++            final EventExecutor executor = ctx.executor();
++            if (executor.inEventLoop(currentThread)) {
++                synchronized (this) {
++                    remove0(ctx);
++                }
++            } else {
++                final AbstractChannelHandlerContext finalCtx = ctx;
++                executor.execute(new OneTimeTask() {
++                    @Override
++                    public void run() {
++                        destroyDown(Thread.currentThread(), finalCtx);
++                    }
++                });
++                break;
++            }
++
++            ctx = ctx.prev;
++        }
+     }
+ 
+     @Override

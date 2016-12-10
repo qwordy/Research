@@ -1,0 +1,72 @@
+commit 4baff691b41c26b9c24266e2ae32c228ebda76a8
+Author: Scott Mitchell <scott_mitchell@apple.com>
+Date:   Tue Jul 5 10:49:20 2016 -0700
+
+    DefaultPromise make listeners not volatile
+    
+    Motivation:
+    DefaultPromise has a listeners member variable which is volatile to allow for an optimization which makes notification of listeners less expensive when there are no listeners to notify. However this change makes all other operations involving the listeners member variable more costly. This optimization which requires listeners to be volatile can be removed to avoid volatile writes/reads for every access on the listeners member variable.
+    
+    Modifications:
+    - DefaultPromise listeners is made non-volatile and the null check optimization is removed
+    
+    Result:
+    DefaultPromise.listeners is no longer volatile.
+
+diff --git a/codec-http2/src/test/java/io/netty/handler/codec/http2/Http2ConnectionHandlerTest.java b/codec-http2/src/test/java/io/netty/handler/codec/http2/Http2ConnectionHandlerTest.java
+index 742d529..4ac2e1d 100644
+--- a/codec-http2/src/test/java/io/netty/handler/codec/http2/Http2ConnectionHandlerTest.java
++++ b/codec-http2/src/test/java/io/netty/handler/codec/http2/Http2ConnectionHandlerTest.java
+@@ -27,6 +27,7 @@ import io.netty.channel.DefaultChannelPromise;
+ import io.netty.util.ReferenceCountUtil;
+ import io.netty.util.concurrent.EventExecutor;
+ import io.netty.util.concurrent.GenericFutureListener;
++import io.netty.util.concurrent.ImmediateEventExecutor;
+ import io.netty.util.concurrent.Promise;
+ import org.junit.After;
+ import org.junit.Before;
+@@ -124,7 +125,7 @@ public class Http2ConnectionHandlerTest {
+     public void setup() throws Exception {
+         MockitoAnnotations.initMocks(this);
+ 
+-        promise = new DefaultChannelPromise(channel);
++        promise = new DefaultChannelPromise(channel, ImmediateEventExecutor.INSTANCE);
+ 
+         Throwable fakeException = new RuntimeException("Fake exception");
+         when(encoder.connection()).thenReturn(connection);
+diff --git a/common/src/main/java/io/netty/util/concurrent/DefaultPromise.java b/common/src/main/java/io/netty/util/concurrent/DefaultPromise.java
+index e7218fd..cd19da4 100644
+--- a/common/src/main/java/io/netty/util/concurrent/DefaultPromise.java
++++ b/common/src/main/java/io/netty/util/concurrent/DefaultPromise.java
+@@ -60,7 +60,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
+      *
+      * Threading - synchronized(this). We must support adding listeners when there is no EventExecutor.
+      */
+-    private volatile Object listeners;
++    private Object listeners;
+     /**
+      * Threading - synchronized(this). We are required to hold the monitor to use Java's underlying wait()/notifyAll().
+      */
+@@ -417,13 +417,6 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
+     }
+ 
+     private void notifyListeners() {
+-        if (listeners == null) {
+-            return;
+-        }
+-        notifyListenersWithStackOverFlowProtection();
+-    }
+-
+-    private void notifyListenersWithStackOverFlowProtection() {
+         EventExecutor executor = executor();
+         if (executor.inEventLoop()) {
+             final InternalThreadLocalMap threadLocals = InternalThreadLocalMap.get();
+@@ -448,7 +441,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
+     }
+ 
+     /**
+-     * The logic in this method should be identical to {@link #notifyListenersWithStackOverFlowProtection()} but
++     * The logic in this method should be identical to {@link #notifyListeners()} but
+      * cannot share code because the listener(s) cannot be cached for an instance of {@link DefaultPromise} since the
+      * listener(s) may be changed and is protected by a synchronized operation.
+      */

@@ -1,0 +1,40 @@
+commit dcd93e3be026a312939b5c895bcb484d25776f78
+Author: Norman Maurer <norman_maurer@apple.com>
+Date:   Wed May 25 16:20:07 2016 +0200
+
+    Remove volatile where not needed.
+    
+    Motivation:
+    
+    We can remove the volatile keyword from the cached Runnables as at worse these will just be re-created.
+    
+    Modifications:
+    
+    Remove volatile.
+    
+    Result:
+    
+    Less overhead.
+
+diff --git a/transport/src/main/java/io/netty/channel/AbstractChannelHandlerContext.java b/transport/src/main/java/io/netty/channel/AbstractChannelHandlerContext.java
+index 3c8cfaf..c20331a 100644
+--- a/transport/src/main/java/io/netty/channel/AbstractChannelHandlerContext.java
++++ b/transport/src/main/java/io/netty/channel/AbstractChannelHandlerContext.java
+@@ -66,12 +66,11 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
+     private int handlerState = INIT;
+ 
+     // Lazily instantiated tasks used to trigger events to a handler with different executor.
+-    // These needs to be volatile as otherwise an other Thread may see an half initialized instance.
+-    // See the JMM for more details
+-    private volatile Runnable invokeChannelReadCompleteTask;
+-    private volatile Runnable invokeReadTask;
+-    private volatile Runnable invokeChannelWritableStateChangedTask;
+-    private volatile Runnable invokeFlushTask;
++    // There is no need to make this volatile as at worse it will just create a few more instances then needed.
++    private Runnable invokeChannelReadCompleteTask;
++    private Runnable invokeReadTask;
++    private Runnable invokeChannelWritableStateChangedTask;
++    private Runnable invokeFlushTask;
+ 
+     AbstractChannelHandlerContext(DefaultChannelPipeline pipeline, EventExecutor executor, String name,
+                                   boolean inbound, boolean outbound) {

@@ -1,0 +1,33 @@
+commit af8ef3e40cb8a4e7d9648fbd8f1574ce55eaa8be
+Author: buchgr <jakob.buchgraber@tum.de>
+Date:   Fri Oct 14 10:42:03 2016 +0200
+
+    Correctly release debugData and notify the promise when goAway was already sent
+    
+    Motivation:
+    
+    Commit 908464f161385361c450826bb1242c06f78d931e also introduced a change to guard against re-entrance but failed to correctly handle the debugData and promise.
+    
+    Modifications:
+    
+    Release debugData and correctly notify the promise.
+    
+    Result:
+    
+    No more buffer leak and promise is always notified.
+
+diff --git a/codec-http2/src/main/java/io/netty/handler/codec/http2/Http2ConnectionHandler.java b/codec-http2/src/main/java/io/netty/handler/codec/http2/Http2ConnectionHandler.java
+index eae87bc..2946d5b 100644
+--- a/codec-http2/src/main/java/io/netty/handler/codec/http2/Http2ConnectionHandler.java
++++ b/codec-http2/src/main/java/io/netty/handler/codec/http2/Http2ConnectionHandler.java
+@@ -677,7 +677,9 @@ public class Http2ConnectionHandler extends ByteToMessageDecoder implements Http
+                 // Protect against re-entrancy. Could happen if writing the frame fails, and error handling
+                 // treating this is a connection handler and doing a graceful shutdown...
+                 if (lastStreamId == connection().remote().lastStreamKnownByPeer()) {
+-                    return promise;
++                    // Release the data and notify the promise
++                    debugData.release();
++                    return promise.setSuccess();
+                 }
+                 if (lastStreamId > connection.remote().lastStreamKnownByPeer()) {
+                     throw connectionError(PROTOCOL_ERROR, "Last stream identifier must not increase between " +

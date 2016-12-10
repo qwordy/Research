@@ -1,0 +1,53 @@
+commit a6d2be956d0b18c84c50bedbb94957da9df75c46
+Author: Mark Thomas <markt@apache.org>
+Date:   Wed Apr 27 11:09:15 2016 +0000
+
+    Review of Map / ConcurrentMap / ConcurrentHashMap
+    Declare field using interface rather than implementation.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1741225 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/jasper/compiler/JspRuntimeContext.java b/java/org/apache/jasper/compiler/JspRuntimeContext.java
+index a380719..de75f10 100644
+--- a/java/org/apache/jasper/compiler/JspRuntimeContext.java
++++ b/java/org/apache/jasper/compiler/JspRuntimeContext.java
+@@ -163,8 +163,7 @@ public final class JspRuntimeContext {
+     /**
+      * Maps JSP pages to their JspServletWrapper's
+      */
+-    private final Map<String, JspServletWrapper> jsps =
+-            new ConcurrentHashMap<>();
++    private final Map<String, JspServletWrapper> jsps = new ConcurrentHashMap<>();
+ 
+     /**
+      * Keeps JSP pages ordered by last access.
+diff --git a/java/org/apache/jasper/servlet/JspCServletContext.java b/java/org/apache/jasper/servlet/JspCServletContext.java
+index 8f655eb..7974ef9 100644
+--- a/java/org/apache/jasper/servlet/JspCServletContext.java
++++ b/java/org/apache/jasper/servlet/JspCServletContext.java
+@@ -79,7 +79,7 @@ public class JspCServletContext implements ServletContext {
+     /**
+      * Servlet context initialization parameters.
+      */
+-    private final ConcurrentHashMap<String,String> myParameters;
++    private final Map<String,String> myParameters = new ConcurrentHashMap<>();
+ 
+ 
+     /**
+@@ -126,7 +126,6 @@ public class JspCServletContext implements ServletContext {
+             throws JasperException {
+ 
+         myAttributes = new HashMap<>();
+-        myParameters = new ConcurrentHashMap<>();
+         myParameters.put(Constants.XML_BLOCK_EXTERNAL_INIT_PARAM,
+                 String.valueOf(blockExternal));
+         myLogWriter = aLogWriter;
+@@ -249,7 +248,7 @@ public class JspCServletContext implements ServletContext {
+      */
+     @Override
+     public Enumeration<String> getInitParameterNames() {
+-        return myParameters.keys();
++        return Collections.enumeration(myParameters.keySet());
+     }
+ 
+ 

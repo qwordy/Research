@@ -1,0 +1,26 @@
+commit e023baf3790eeac22ad53867e5d95e038342c9f4
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Tue Dec 17 21:47:28 2013 +0000
+
+    Observed a hard to reproduce test failure with the non-blocking IO tests. Can't reproduce it yet. Working assumption is that Poller and application thread have a different view of the async field on the SocketWrapper so make all the flags the Poller uses volatile.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1551731 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/tomcat/util/net/SocketWrapper.java b/java/org/apache/tomcat/util/net/SocketWrapper.java
+index bd11454..0518144 100644
+--- a/java/org/apache/tomcat/util/net/SocketWrapper.java
++++ b/java/org/apache/tomcat/util/net/SocketWrapper.java
+@@ -31,10 +31,10 @@ public class SocketWrapper<E> {
+     private long timeout = -1;
+     private boolean error = false;
+     private volatile int keepAliveLeft = 100;
+-    private boolean comet = false;
+-    private boolean async = false;
++    private volatile boolean comet = false;
++    private volatile boolean async = false;
+     private boolean keptAlive = false;
+-    private boolean upgraded = false;
++    private volatile boolean upgraded = false;
+     private boolean secure = false;
+     /*
+      * Following cached for speed / reduced GC

@@ -1,0 +1,48 @@
+commit 4ca58bd57c11fe328ff03d52a3cf6d848f6daa00
+Author: Eli Collins <eli@apache.org>
+Date:   Tue Jan 8 22:43:40 2013 +0000
+
+    HDFS-4035. LightWeightGSet and LightWeightHashSet increment a volatile without synchronization. Contributed by Eli Collins
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1430595 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+index 426e9da..82d1231 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
++++ b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+@@ -467,6 +467,9 @@ Release 2.0.3-alpha - Unreleased
+ 
+     HDFS-4034. Remove redundant null checks. (eli)
+ 
++    HDFS-4035. LightWeightGSet and LightWeightHashSet increment a
++    volatile without synchronization. (eli)
++
+   OPTIMIZATIONS
+ 
+   BUG FIXES
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/dev-support/findbugsExcludeFile.xml b/hadoop-hdfs-project/hadoop-hdfs/dev-support/findbugsExcludeFile.xml
+index a649408..c019b10 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/dev-support/findbugsExcludeFile.xml
++++ b/hadoop-hdfs-project/hadoop-hdfs/dev-support/findbugsExcludeFile.xml
+@@ -308,4 +308,20 @@
+        <Field name="pendingReceivedRequests" />
+        <Bug pattern="VO_VOLATILE_INCREMENT" />
+      </Match>
++     <!-- The "LightWeight" classes are explicitly not thread safe -->
++     <Match>
++       <Class name="org.apache.hadoop.hdfs.util.LightWeightGSet" />
++       <Field name="modification" />
++       <Bug pattern="VO_VOLATILE_INCREMENT" />
++     </Match>
++     <Match>
++       <Class name="org.apache.hadoop.hdfs.util.LightWeightHashSet" />
++       <Field name="modification" />
++       <Bug pattern="VO_VOLATILE_INCREMENT" />
++     </Match>
++     <Match>
++       <Class name="org.apache.hadoop.hdfs.util.LightWeightLinkedSet" />
++       <Field name="modification" />
++       <Bug pattern="VO_VOLATILE_INCREMENT" />
++     </Match>
+  </FindBugsFilter>

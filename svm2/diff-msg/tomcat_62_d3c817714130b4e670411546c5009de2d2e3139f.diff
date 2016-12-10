@@ -1,0 +1,25 @@
+commit d3c817714130b4e670411546c5009de2d2e3139f
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Sun Dec 23 19:40:08 2012 +0000
+
+    Remove naked notify (resolving a FindBugs issue) as I can't find any locations where wait() is called with the Poller as the monitor.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1425514 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/tomcat/util/net/NioEndpoint.java b/java/org/apache/tomcat/util/net/NioEndpoint.java
+index 5581d53..35779a7 100644
+--- a/java/org/apache/tomcat/util/net/NioEndpoint.java
++++ b/java/org/apache/tomcat/util/net/NioEndpoint.java
+@@ -1109,11 +1109,8 @@ public class NioEndpoint extends AbstractEndpoint {
+                     }
+                 }
+             }//while
+-            synchronized (this) {
+-                this.notifyAll();
+-            }
+-            stopLatch.countDown();
+ 
++            stopLatch.countDown();
+         }
+ 
+         protected boolean processKey(SelectionKey sk, KeyAttachment attachment) {

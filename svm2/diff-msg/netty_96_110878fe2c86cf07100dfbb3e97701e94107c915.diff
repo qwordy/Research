@@ -1,0 +1,40 @@
+commit 110878fe2c86cf07100dfbb3e97701e94107c915
+Author: Daniel Bevenius <daniel.bevenius@gmail.com>
+Date:   Sat Mar 22 07:20:10 2014 +0100
+
+    Fixing CorsConfigTest failure under Java 8.
+    
+    Motivation:
+    When running the build with Java 8 the following error occurred:
+    
+    java: reference to preflightResponseHeader is ambiguous
+      both method
+      <T>preflightResponseHeader(java.lang.CharSequence,java.lang.Iterable<T>)
+      in io.netty.handler.codec.http.cors.CorsConfig.Builder and method
+      <T>preflightResponseHeader(java.lang.String,java.util.concurrent.Callable<T>)
+      in io.netty.handler.codec.http.cors.CorsConfig.Builder match
+    
+    The offending class was CorsConfigTest and its shouldThrowIfValueIsNull
+    which contained the following line:
+    withOrigin("*").preflightResponseHeader("HeaderName", null).build();
+    
+    Modifications:
+    Updated the offending method with to supply a type, and object array, to
+    avoid the error.
+    
+    Result:
+    After this I was able to build with Java 7 and Java 8
+
+diff --git a/codec-http/src/test/java/io/netty/handler/codec/http/cors/CorsConfigTest.java b/codec-http/src/test/java/io/netty/handler/codec/http/cors/CorsConfigTest.java
+index 6919b6f..e0dfed8 100644
+--- a/codec-http/src/test/java/io/netty/handler/codec/http/cors/CorsConfigTest.java
++++ b/codec-http/src/test/java/io/netty/handler/codec/http/cors/CorsConfigTest.java
+@@ -101,7 +101,7 @@ public class CorsConfigTest {
+ 
+     @Test (expected = IllegalArgumentException.class)
+     public void shouldThrowIfValueIsNull() {
+-        withOrigin("*").preflightResponseHeader("HeaderName", null).build();
++        withOrigin("*").preflightResponseHeader("HeaderName", new Object[]{null}).build();
+     }
+ 
+ }

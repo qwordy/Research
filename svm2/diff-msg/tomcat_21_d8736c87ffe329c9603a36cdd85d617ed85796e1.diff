@@ -1,0 +1,23 @@
+commit d8736c87ffe329c9603a36cdd85d617ed85796e1
+Author: Mark Thomas <markt@apache.org>
+Date:   Wed Jan 6 16:59:02 2016 +0000
+
+    More deprecation now an Executor is used to send messages.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1723371 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/tribes/group/interceptors/MessageDispatchInterceptor.java b/java/org/apache/catalina/tribes/group/interceptors/MessageDispatchInterceptor.java
+index 52fd18c..5cd3cc1 100644
+--- a/java/org/apache/catalina/tribes/group/interceptors/MessageDispatchInterceptor.java
++++ b/java/org/apache/catalina/tribes/group/interceptors/MessageDispatchInterceptor.java
+@@ -250,6 +250,10 @@ public class MessageDispatchInterceptor extends ChannelInterceptorBase implement
+     }
+ 
+ 
++    /**
++     * Deprecated. Unused. Will be removed in 9.0.x
++     */
++    @Deprecated
+     @Override
+     public void run() {
+         while (run) {

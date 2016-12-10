@@ -1,0 +1,28 @@
+commit 06d5f5264ee315e573148cf92daf158fcf13aba7
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Fri Feb 13 11:51:53 2009 +0000
+
+    LocalChannelREgistry should use ConcurrentHashMap
+
+diff --git a/src/main/java/org/jboss/netty/channel/local/LocalChannelRegistry.java b/src/main/java/org/jboss/netty/channel/local/LocalChannelRegistry.java
+index d853388..73b3aa8 100644
+--- a/src/main/java/org/jboss/netty/channel/local/LocalChannelRegistry.java
++++ b/src/main/java/org/jboss/netty/channel/local/LocalChannelRegistry.java
+@@ -25,7 +25,7 @@ package org.jboss.netty.channel.local;
+ import java.util.concurrent.ConcurrentMap;
+ 
+ import org.jboss.netty.channel.Channel;
+-import org.jboss.netty.util.ConcurrentIdentityHashMap;
++import org.jboss.netty.util.ConcurrentHashMap;
+ 
+ /**
+  * @author The Netty Project (netty-dev@lists.jboss.org)
+@@ -35,7 +35,7 @@ import org.jboss.netty.util.ConcurrentIdentityHashMap;
+ final class LocalChannelRegistry {
+ 
+     private static final ConcurrentMap<LocalAddress, Channel> map =
+-        new ConcurrentIdentityHashMap<LocalAddress, Channel>();
++        new ConcurrentHashMap<LocalAddress, Channel>();
+ 
+     static boolean isRegistered(LocalAddress address) {
+         return map.containsKey(address);

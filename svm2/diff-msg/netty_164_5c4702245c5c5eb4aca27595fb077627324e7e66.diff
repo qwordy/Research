@@ -1,0 +1,301 @@
+commit 5c4702245c5c5eb4aca27595fb077627324e7e66
+Author: Norman Maurer <norman@apache.org>
+Date:   Sat Dec 10 21:28:18 2011 +0100
+
+    Start to add handler for simple SEDA support. This handler supports to
+    offload upstream and downstream events. The SedaExecutor is responsible
+    for offload the events to different Executors. See #111
+
+diff --git a/src/main/java/io/netty/handler/execution/ExecutionHandler.java b/src/main/java/io/netty/handler/execution/ExecutionHandler.java
+index e751fbb..6583a00 100644
+--- a/src/main/java/io/netty/handler/execution/ExecutionHandler.java
++++ b/src/main/java/io/netty/handler/execution/ExecutionHandler.java
+@@ -30,6 +30,7 @@ import io.netty.channel.ChannelStateEvent;
+ import io.netty.channel.ChannelUpstreamHandler;
+ import io.netty.channel.Channels;
+ import io.netty.channel.ChannelHandler.Sharable;
++import io.netty.handler.execution.seda.SedaExecutor;
+ import io.netty.util.ExternalResourceReleasable;
+ import io.netty.util.internal.ExecutorUtil;
+ 
+@@ -93,6 +94,7 @@ import io.netty.util.internal.ExecutorUtil;
+  * You can implement an alternative thread model such as
+  * <a href="http://en.wikipedia.org/wiki/Staged_event-driven_architecture">SEDA</a>
+  * by adding more than one {@link ExecutionHandler} to the pipeline.
++ * Alternative you may want to have a look at {@link SedaExecutor}.
+  *
+  * <h3>Using other {@link Executor} implementation</h3>
+  *
+@@ -145,6 +147,17 @@ public class ExecutionHandler implements ChannelUpstreamHandler, ChannelDownstre
+     @Override
+     public void handleDownstream(
+             ChannelHandlerContext ctx, ChannelEvent e) throws Exception {
++        handleReadSuspend(ctx, e);
++        ctx.sendDownstream(e);
++    }
++    
++    /**
++     * Handle suspended reads
++     *  
++     * @param ctx
++     * @param e
++     */
++    protected void handleReadSuspend(ChannelHandlerContext ctx, ChannelEvent e) {
+         if (e instanceof ChannelStateEvent) {
+             ChannelStateEvent cse = (ChannelStateEvent) e;
+             if (cse.getState() == ChannelState.INTEREST_OPS &&
+@@ -160,7 +173,5 @@ public class ExecutionHandler implements ChannelUpstreamHandler, ChannelDownstre
+                 }
+             }
+         }
+-
+-        ctx.sendDownstream(e);
+     }
+ }
+diff --git a/src/main/java/io/netty/handler/execution/seda/ChannelDownstreamEventRunnable.java b/src/main/java/io/netty/handler/execution/seda/ChannelDownstreamEventRunnable.java
+new file mode 100644
+index 0000000..95c8360
+--- /dev/null
++++ b/src/main/java/io/netty/handler/execution/seda/ChannelDownstreamEventRunnable.java
+@@ -0,0 +1,40 @@
++/*
++ * Copyright 2011 The Netty Project
++ *
++ * The Netty Project licenses this file to you under the Apache License,
++ * version 2.0 (the "License"); you may not use this file except in compliance
++ * with the License. You may obtain a copy of the License at:
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations
++ * under the License.
++ */
++package io.netty.handler.execution.seda;
++
++
++import io.netty.channel.ChannelEvent;
++import io.netty.channel.ChannelHandlerContext;
++import io.netty.handler.execution.ChannelEventRunnable;
++
++/**
++ * A {@link Runnable} which sends the specified {@link ChannelEvent} downstream.
++ */
++public class ChannelDownstreamEventRunnable extends ChannelEventRunnable{
++
++    public ChannelDownstreamEventRunnable(ChannelHandlerContext ctx, ChannelEvent e) {
++        super(ctx, e);
++    }
++
++    /**
++     * Send the {@link ChannelEvent} downstream
++     */
++    @Override
++    public void run() {
++        ctx.sendDownstream(e);
++    }
++
++}
+diff --git a/src/main/java/io/netty/handler/execution/seda/SedaExecutor.java b/src/main/java/io/netty/handler/execution/seda/SedaExecutor.java
+new file mode 100644
+index 0000000..cba9fca
+--- /dev/null
++++ b/src/main/java/io/netty/handler/execution/seda/SedaExecutor.java
+@@ -0,0 +1,65 @@
++/*
++ * Copyright 2011 The Netty Project
++ *
++ * The Netty Project licenses this file to you under the Apache License,
++ * version 2.0 (the "License"); you may not use this file except in compliance
++ * with the License. You may obtain a copy of the License at:
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations
++ * under the License.
++ */
++package io.netty.handler.execution.seda;
++
++import io.netty.channel.ChannelHandlerContext;
++import io.netty.channel.Channels;
++import io.netty.handler.execution.ChannelEventRunnable;
++import io.netty.util.ExternalResourceReleasable;
++
++import java.util.concurrent.Executor;
++
++/**
++ * Abstract base class for SEDA bases {@link Executor} logic. 
++ * 
++ *
++ */
++public abstract class SedaExecutor implements Executor, ExternalResourceReleasable{
++    
++    @Override
++    public void execute(Runnable command) {
++        ChannelEventRunnable runnable = (ChannelEventRunnable) command;
++        ChannelHandlerContext ctx = runnable.getContext();
++        try {
++            // check if the event was down or upstream
++            if (runnable instanceof ChannelDownstreamEventRunnable) {
++                executeDownstream((ChannelDownstreamEventRunnable) runnable);
++            } else {
++                executeUpstream(runnable);
++            }
++        } catch (Exception e1) {
++            // handle exceptions
++            Channels.fireExceptionCaught(ctx, e1);
++        }
++    }
++
++    /**
++     * Execute the given {@link ChannelDownstreamEventRunnable} which was triggerd by a downstream event
++     * 
++     * @param runnable
++     * @throws Exception
++     */
++    protected abstract void executeDownstream(ChannelDownstreamEventRunnable runnable) throws Exception;
++    
++    /**
++     * Execute the given {@link ChannelEventRunnable} which was triggered by an upstream event
++     * 
++     * @param runnable
++     * @throws Exception
++     */
++    protected abstract void executeUpstream(ChannelEventRunnable runnable) throws Exception;
++
++}
+diff --git a/src/main/java/io/netty/handler/execution/seda/SedaHandler.java b/src/main/java/io/netty/handler/execution/seda/SedaHandler.java
+new file mode 100644
+index 0000000..71ac43f
+--- /dev/null
++++ b/src/main/java/io/netty/handler/execution/seda/SedaHandler.java
+@@ -0,0 +1,47 @@
++/*
++ * Copyright 2011 The Netty Project
++ *
++ * The Netty Project licenses this file to you under the Apache License,
++ * version 2.0 (the "License"); you may not use this file except in compliance
++ * with the License. You may obtain a copy of the License at:
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations
++ * under the License.
++ */
++package io.netty.handler.execution.seda;
++
++import java.util.concurrent.Executor;
++
++import io.netty.channel.ChannelEvent;
++import io.netty.channel.ChannelHandlerContext;
++import io.netty.handler.execution.ExecutionHandler;
++
++/**
++ * {@link ExecutionHandler} which submit all downstream and upstream events to the given {@link SedaExecutor}. The {@link SedaExecutor} is responsible for hand of the events
++ * to the different {@link Executor}'s and so build up an <a href="http://en.wikipedia.org/wiki/Staged_event-driven_architecture">SEDA</a> architecture.
++ * 
++ *
++ */
++public class SedaHandler extends ExecutionHandler {
++
++    public SedaHandler(SedaExecutor executor) {
++        super(executor);
++    }
++
++    @Override
++    public void handleDownstream(ChannelHandlerContext ctx, ChannelEvent e) throws Exception {
++        handleReadSuspend(ctx, e);
++        getExecutor().execute(new ChannelDownstreamEventRunnable(ctx, e));
++    }
++
++    @Override
++    public void releaseExternalResources() {
++        ((SedaExecutor) getExecutor()).releaseExternalResources();
++    }
++
++}
+diff --git a/src/main/java/io/netty/handler/execution/seda/SimpleSedaExecutor.java b/src/main/java/io/netty/handler/execution/seda/SimpleSedaExecutor.java
+new file mode 100644
+index 0000000..17a261a
+--- /dev/null
++++ b/src/main/java/io/netty/handler/execution/seda/SimpleSedaExecutor.java
+@@ -0,0 +1,71 @@
++/*
++ * Copyright 2011 The Netty Project
++ *
++ * The Netty Project licenses this file to you under the Apache License,
++ * version 2.0 (the "License"); you may not use this file except in compliance
++ * with the License. You may obtain a copy of the License at:
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations
++ * under the License.
++ */
++package io.netty.handler.execution.seda;
++
++import java.util.concurrent.Executor;
++
++import io.netty.handler.execution.ChannelEventRunnable;
++import io.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
++import io.netty.util.internal.ExecutorUtil;
++
++/**
++ * {@link SedaExecutor} which use two different {@link Executor}'s. One is used for upstream events and one for downstream events.
++ * 
++ * You should use an {@link OrderedMemoryAwareThreadPoolExecutor} if you care about the order of thread-execution. In most cases this should be the case
++ * 
++ *
++ */
++public class SimpleSedaExecutor extends SedaExecutor{
++
++    private final Executor upstreamExecutor;
++    private final Executor downstreamExecutor;
++
++    /**
++     * Constrct an {@link SimpleSedaExecutor} which use two different {@link Executor}'s. One is used for upstream events and one for downstream events.
++     * 
++     * @param upstreamExecutor the {@link Executor} which is used for upstream events
++     * @param downstreamExecutor the {@link Executor} which is used for downstream events
++     */
++    public SimpleSedaExecutor(Executor upstreamExecutor, Executor downstreamExecutor) {
++        this.upstreamExecutor = upstreamExecutor;
++        this.downstreamExecutor = downstreamExecutor;
++    }
++
++    /**
++     * Construct an {@link SimpleSedaExecutor} which uses the same {@link Executor} for downstream and upstream events
++     * 
++     * @param executor the {@link Executor} for events
++     */
++    public SimpleSedaExecutor(Executor executor) {
++        this(executor, executor);
++    }
++
++    @Override
++    public void releaseExternalResources() {
++        ExecutorUtil.terminate(upstreamExecutor, downstreamExecutor);
++    }
++
++    @Override
++    protected void executeDownstream(ChannelDownstreamEventRunnable runnable) throws Exception {
++        downstreamExecutor.execute(runnable);        
++    }
++
++    @Override
++    protected void executeUpstream(ChannelEventRunnable runnable) throws Exception {
++        upstreamExecutor.execute(runnable);        
++    }
++
++}

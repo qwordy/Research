@@ -1,0 +1,47 @@
+commit 8ec9b7bd95c5e09227a67893a944945fd0a37707
+Author: Jonathan Ellis <jbellis@apache.org>
+Date:   Fri Nov 20 19:06:22 2009 +0000
+
+    make members volatile where necessary to make double-checked locking safe.  patch by gdusbabek; reviewed by jbellis for CASSANDRA-248
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@882682 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/java/org/apache/cassandra/gms/FailureDetector.java b/src/java/org/apache/cassandra/gms/FailureDetector.java
+index 027dc1c..a5d5fd2 100644
+--- a/src/java/org/apache/cassandra/gms/FailureDetector.java
++++ b/src/java/org/apache/cassandra/gms/FailureDetector.java
+@@ -49,7 +49,7 @@ public class FailureDetector implements IFailureDetector, FailureDetectorMBean
+     private static final int phiConvictThreshold_ = 8;
+     /* The Failure Detector has to have been up for at least 1 min. */
+     private static final long uptimeThreshold_ = 60000;
+-    private static IFailureDetector failureDetector_;
++    private static volatile IFailureDetector failureDetector_;
+     /* Used to lock the factory for creation of FailureDetector instance */
+     private static Lock createLock_ = new ReentrantLock();
+     /* The time when the module was instantiated. */
+diff --git a/src/java/org/apache/cassandra/gms/Gossiper.java b/src/java/org/apache/cassandra/gms/Gossiper.java
+index c289839..0d56fd1 100644
+--- a/src/java/org/apache/cassandra/gms/Gossiper.java
++++ b/src/java/org/apache/cassandra/gms/Gossiper.java
+@@ -96,7 +96,7 @@ public class Gossiper implements IFailureDetectionEventListener, IEndPointStateC
+     final static String GOSSIP_DIGEST_ACK2_VERB = "GA2V";
+     public final static int intervalInMillis_ = 1000;
+     private static Logger logger_ = Logger.getLogger(Gossiper.class);
+-    static Gossiper gossiper_;
++    private static volatile Gossiper gossiper_;
+ 
+     public synchronized static Gossiper instance()
+     {
+diff --git a/src/java/org/apache/cassandra/net/MessagingService.java b/src/java/org/apache/cassandra/net/MessagingService.java
+index cabb375..8ff93f6 100644
+--- a/src/java/org/apache/cassandra/net/MessagingService.java
++++ b/src/java/org/apache/cassandra/net/MessagingService.java
+@@ -89,7 +89,7 @@ public class MessagingService
+     
+     private static Logger logger_ = Logger.getLogger(MessagingService.class);
+     
+-    private static MessagingService messagingService_ = new MessagingService();
++    private static volatile MessagingService messagingService_ = new MessagingService();
+ 
+     private static final int MESSAGE_DESERIALIZE_THREADS = 4;
+ 

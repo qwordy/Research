@@ -1,0 +1,38 @@
+commit a5c8e145ee3f927f5d1793d34188f2ca86b3cbe8
+Author: JongYoon Lim <jy1105.lim@samsung.com>
+Date:   Thu Apr 30 21:34:24 2015 +0900
+
+    Remove the condition which is always true when reached
+    
+    Motivation:
+    Condition 'isNextCharDoubleQuote' is always 'true' when reached.
+    
+    Motification:
+    - Removed Condition 'isNextCharDoubleQuote'.
+    - Additionally fixed typo in javadoc
+    
+    Result:
+    Cleaner code.
+
+diff --git a/common/src/main/java/io/netty/util/internal/StringUtil.java b/common/src/main/java/io/netty/util/internal/StringUtil.java
+index 4ede108..adbfeca 100644
+--- a/common/src/main/java/io/netty/util/internal/StringUtil.java
++++ b/common/src/main/java/io/netty/util/internal/StringUtil.java
+@@ -329,7 +329,7 @@ public final class StringUtil {
+      *
+      * @param value The value which will be escaped according to
+      *              <a href="https://tools.ietf.org/html/rfc4180#section-2">RFC-4180</a>
+-     * @return {@link CharSequence} the escaped value if nesessary, or the value unchanged
++     * @return {@link CharSequence} the escaped value if necessary, or the value unchanged
+      */
+     public static CharSequence escapeCsv(CharSequence value) {
+         int length = checkNotNull(value, "value").length();
+@@ -354,7 +354,7 @@ public final class StringUtil {
+                     } else {
+                         boolean isNextCharDoubleQuote = isDoubleQuote(value.charAt(i + 1));
+                         if (!isDoubleQuote(value.charAt(i - 1)) &&
+-                                (!isNextCharDoubleQuote || isNextCharDoubleQuote && i + 1 == last)) {
++                                (!isNextCharDoubleQuote || i + 1 == last)) {
+                             escaped.append(DOUBLE_QUOTE);
+                             escapedDoubleQuote = true;
+                         }

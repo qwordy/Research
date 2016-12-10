@@ -1,0 +1,113 @@
+commit 9306beb181fcb218f44d7a9a50e4bbb3258c1b79
+Author: StephanEwen <stephan.ewen@tu-berlin.de>
+Date:   Thu Dec 5 13:51:34 2013 +0100
+
+    Executor services use daemon threads which prevents lingering threads at job end.
+
+diff --git a/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/executiongraph/ExecutionGraph.java b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/executiongraph/ExecutionGraph.java
+index e524fff..05e8811 100644
+--- a/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/executiongraph/ExecutionGraph.java
++++ b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/executiongraph/ExecutionGraph.java
+@@ -50,6 +50,7 @@ import eu.stratosphere.nephele.jobgraph.JobEdge;
+ import eu.stratosphere.nephele.jobgraph.JobFileOutputVertex;
+ import eu.stratosphere.nephele.jobgraph.JobGraph;
+ import eu.stratosphere.nephele.jobgraph.JobID;
++import eu.stratosphere.nephele.taskmanager.runtime.ExecutorThreadFactory;
+ import eu.stratosphere.nephele.template.AbstractInputTask;
+ import eu.stratosphere.nephele.template.AbstractInvokable;
+ import eu.stratosphere.nephele.template.IllegalConfigurationException;
+@@ -103,7 +104,7 @@ public class ExecutionGraph implements ExecutionListener {
+ 	/**
+ 	 * The executor service to asynchronously perform update operations to this graph.
+ 	 */
+-	private final ExecutorService executorService = Executors.newSingleThreadExecutor();
++	private final ExecutorService executorService = Executors.newSingleThreadExecutor(ExecutorThreadFactory.INSTANCE);
+ 
+ 	/**
+ 	 * Index to the current execution stage.
+diff --git a/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/jobmanager/JobManager.java b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/jobmanager/JobManager.java
+index 19845cd..9c719bf 100644
+--- a/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/jobmanager/JobManager.java
++++ b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/jobmanager/JobManager.java
+@@ -124,6 +124,7 @@ import eu.stratosphere.nephele.taskmanager.TaskKillResult;
+ import eu.stratosphere.nephele.taskmanager.TaskSubmissionResult;
+ import eu.stratosphere.nephele.taskmanager.bytebuffered.ConnectionInfoLookupResponse;
+ import eu.stratosphere.nephele.taskmanager.bytebuffered.RemoteReceiver;
++import eu.stratosphere.nephele.taskmanager.runtime.ExecutorThreadFactory;
+ import eu.stratosphere.nephele.topology.NetworkTopology;
+ import eu.stratosphere.nephele.types.IntegerRecord;
+ import eu.stratosphere.nephele.types.StringRecord;
+@@ -166,7 +167,7 @@ public class JobManager implements DeploymentManager, ExtendedManagementProtocol
+ 
+ 	private final int recommendedClientPollingInterval;
+ 
+-	private final ExecutorService executorService = Executors.newCachedThreadPool();
++	private final ExecutorService executorService = Executors.newCachedThreadPool(ExecutorThreadFactory.INSTANCE);
+ 
+ 	private final static int SLEEPINTERVAL = 1000;
+ 
+diff --git a/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/taskmanager/TaskManager.java b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/taskmanager/TaskManager.java
+index 1576404..63252ee 100644
+--- a/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/taskmanager/TaskManager.java
++++ b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/taskmanager/TaskManager.java
+@@ -75,6 +75,7 @@ import eu.stratosphere.nephele.services.memorymanager.MemoryManager;
+ import eu.stratosphere.nephele.services.memorymanager.spi.DefaultMemoryManager;
+ import eu.stratosphere.nephele.taskmanager.bytebuffered.ByteBufferedChannelManager;
+ import eu.stratosphere.nephele.taskmanager.bytebuffered.InsufficientResourcesException;
++import eu.stratosphere.nephele.taskmanager.runtime.ExecutorThreadFactory;
+ import eu.stratosphere.nephele.taskmanager.runtime.RuntimeTask;
+ import eu.stratosphere.nephele.util.SerializableArrayList;
+ import eu.stratosphere.nephele.util.StringUtils;
+@@ -96,7 +97,7 @@ public class TaskManager implements TaskOperationProtocol {
+ 
+ 	private final ChannelLookupProtocol lookupService;
+ 
+-	private final ExecutorService executorService = Executors.newCachedThreadPool();
++	private final ExecutorService executorService = Executors.newCachedThreadPool(ExecutorThreadFactory.INSTANCE);
+ 
+ 	private static final int handlerCount = 1;
+ 
+diff --git a/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/taskmanager/runtime/ExecutorThreadFactory.java b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/taskmanager/runtime/ExecutorThreadFactory.java
+new file mode 100644
+index 0000000..a88c34d
+--- /dev/null
++++ b/nephele/nephele-server/src/main/java/eu/stratosphere/nephele/taskmanager/runtime/ExecutorThreadFactory.java
+@@ -0,0 +1,37 @@
++/***********************************************************************************************************************
++ *
++ * Copyright (C) 2010-2013 by the Stratosphere project (http://stratosphere.eu)
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
++ * the License. You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
++ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
++ * specific language governing permissions and limitations under the License.
++ *
++ **********************************************************************************************************************/
++package eu.stratosphere.nephele.taskmanager.runtime;
++
++import java.util.concurrent.ThreadFactory;
++import java.util.concurrent.atomic.AtomicInteger;
++
++public class ExecutorThreadFactory implements ThreadFactory {
++	
++	public static final ExecutorThreadFactory INSTANCE = new ExecutorThreadFactory();
++
++	private static final String THREAD_NAME = "Nephele Executor Thread ";
++	
++	private final AtomicInteger threadNumber = new AtomicInteger(1);
++	
++	
++	private ExecutorThreadFactory() {}
++	
++	
++	public Thread newThread(Runnable target) {
++		Thread t = new Thread(target, THREAD_NAME + threadNumber.getAndIncrement());
++		t.setDaemon(true);
++		return t;
++	}
++}
+\ No newline at end of file

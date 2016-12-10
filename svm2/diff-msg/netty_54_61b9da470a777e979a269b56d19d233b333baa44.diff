@@ -1,0 +1,35 @@
+commit 61b9da470a777e979a269b56d19d233b333baa44
+Author: Norman Maurer <norman_maurer@apple.com>
+Date:   Tue Jul 7 17:14:12 2015 +0200
+
+    [#3945] Http2ConnectionHandler breaks channelReadComplete pipeline notification
+    
+    Motivation:
+    
+    Http2ConnectionHandler missed to forward channelReadComplete(...) events.
+    
+    Modifications:
+    
+    Ensure we notify the next handler in the pipeline via ctx.fireChannelReadComplete().
+    
+    Result:
+    
+    Correctly forwarding of event.
+
+diff --git a/codec-http2/src/main/java/io/netty/handler/codec/http2/Http2ConnectionHandler.java b/codec-http2/src/main/java/io/netty/handler/codec/http2/Http2ConnectionHandler.java
+index 844cef3..36073ed 100644
+--- a/codec-http2/src/main/java/io/netty/handler/codec/http2/Http2ConnectionHandler.java
++++ b/codec-http2/src/main/java/io/netty/handler/codec/http2/Http2ConnectionHandler.java
+@@ -455,7 +455,11 @@ public class Http2ConnectionHandler extends ByteToMessageDecoder implements Http
+     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+         // Trigger flush after read on the assumption that flush is cheap if there is nothing to write and that
+         // for flow-control the read may release window that causes data to be written that can now be flushed.
+-        flush(ctx);
++        try {
++            flush(ctx);
++        } finally {
++            super.channelReadComplete(ctx);
++        }
+     }
+ 
+     /**

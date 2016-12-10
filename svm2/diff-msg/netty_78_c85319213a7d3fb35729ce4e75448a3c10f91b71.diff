@@ -1,0 +1,115 @@
+commit c85319213a7d3fb35729ce4e75448a3c10f91b71
+Author: Norman Maurer <nmaurer@redhat.com>
+Date:   Mon Jul 21 08:21:27 2014 +0200
+
+    [#2675] Replace synchronization performed on util.concurrent instance in TrafficCounter
+    
+    Motivation:
+    
+    Message from FindBugs:
+    This method performs synchronization an object that is an instance of a class from the java.util.concurrent package (or its subclasses). Instances of these classes have their own concurrency control mechanisms that are orthogonal to the synchronization provided by the Java keyword synchronized. For example, synchronizing on an AtomicBoolean will not prevent other threads from modifying the AtomicBoolean.
+    Such code may be correct, but should be carefully reviewed and documented, and may confuse people who have to maintain the code at a later date.
+    
+    Modification:
+    
+    Use synchronized(this)
+    
+    Result:
+    
+    Less confusing code
+
+diff --git a/handler/src/main/java/io/netty/handler/traffic/TrafficCounter.java b/handler/src/main/java/io/netty/handler/traffic/TrafficCounter.java
+index ee09c4f..5d6d873 100644
+--- a/handler/src/main/java/io/netty/handler/traffic/TrafficCounter.java
++++ b/handler/src/main/java/io/netty/handler/traffic/TrafficCounter.java
+@@ -163,37 +163,33 @@ public class TrafficCounter {
+     /**
+      * Start the monitoring process
+      */
+-    public void start() {
+-        synchronized (lastTime) {
+-            if (monitorActive.get()) {
+-                return;
+-            }
+-            lastTime.set(System.currentTimeMillis());
+-            if (checkInterval.get() > 0) {
+-                monitorActive.set(true);
+-                monitor = new TrafficMonitoringTask(trafficShapingHandler, this);
+-                scheduledFuture =
+-                    executor.schedule(monitor, checkInterval.get(), TimeUnit.MILLISECONDS);
+-            }
++    public synchronized void start() {
++        if (monitorActive.get()) {
++            return;
++        }
++        lastTime.set(System.currentTimeMillis());
++        if (checkInterval.get() > 0) {
++            monitorActive.set(true);
++            monitor = new TrafficMonitoringTask(trafficShapingHandler, this);
++            scheduledFuture =
++                executor.schedule(monitor, checkInterval.get(), TimeUnit.MILLISECONDS);
+         }
+     }
+ 
+     /**
+      * Stop the monitoring process
+      */
+-    public void stop() {
+-        synchronized (lastTime) {
+-            if (!monitorActive.get()) {
+-                return;
+-            }
+-            monitorActive.set(false);
+-            resetAccounting(System.currentTimeMillis());
+-            if (trafficShapingHandler != null) {
+-                trafficShapingHandler.doAccounting(this);
+-            }
+-            if (scheduledFuture != null) {
+-                scheduledFuture.cancel(true);
+-            }
++    public synchronized void stop() {
++        if (!monitorActive.get()) {
++            return;
++        }
++        monitorActive.set(false);
++        resetAccounting(System.currentTimeMillis());
++        if (trafficShapingHandler != null) {
++            trafficShapingHandler.doAccounting(this);
++        }
++        if (scheduledFuture != null) {
++            scheduledFuture.cancel(true);
+         }
+     }
+ 
+@@ -202,20 +198,18 @@ public class TrafficCounter {
+      *
+      * @param newLastTime the millisecond unix timestamp that we should be considered up-to-date for
+      */
+-    void resetAccounting(long newLastTime) {
+-        synchronized (lastTime) {
+-            long interval = newLastTime - lastTime.getAndSet(newLastTime);
+-            if (interval == 0) {
+-                // nothing to do
+-                return;
+-            }
+-            lastReadBytes = currentReadBytes.getAndSet(0);
+-            lastWrittenBytes = currentWrittenBytes.getAndSet(0);
+-            lastReadThroughput = lastReadBytes / interval * 1000;
+-            // nb byte / checkInterval in ms * 1000 (1s)
+-            lastWriteThroughput = lastWrittenBytes / interval * 1000;
+-            // nb byte / checkInterval in ms * 1000 (1s)
++    synchronized void resetAccounting(long newLastTime) {
++        long interval = newLastTime - lastTime.getAndSet(newLastTime);
++        if (interval == 0) {
++            // nothing to do
++            return;
+         }
++        lastReadBytes = currentReadBytes.getAndSet(0);
++        lastWrittenBytes = currentWrittenBytes.getAndSet(0);
++        lastReadThroughput = lastReadBytes / interval * 1000;
++        // nb byte / checkInterval in ms * 1000 (1s)
++        lastWriteThroughput = lastWrittenBytes / interval * 1000;
++        // nb byte / checkInterval in ms * 1000 (1s)
+     }
+ 
+     /**

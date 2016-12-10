@@ -1,0 +1,32 @@
+commit e3244fd51e13b980a72d2b0f44515a376ac7f4bd
+Author: Mark Thomas <markt@apache.org>
+Date:   Fri Sep 11 18:14:33 2015 +0000
+
+    Make the completion handlers final since they are set once in the constructor.
+    The completion threads access the handshake status fields so make them volatile.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1702531 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/tomcat/util/net/SecureNio2Channel.java b/java/org/apache/tomcat/util/net/SecureNio2Channel.java
+index 2953c49..b7be2ea 100644
+--- a/java/org/apache/tomcat/util/net/SecureNio2Channel.java
++++ b/java/org/apache/tomcat/util/net/SecureNio2Channel.java
+@@ -62,14 +62,14 @@ public class SecureNio2Channel extends Nio2Channel  {
+ 
+     protected boolean sniComplete = false;
+ 
+-    protected boolean handshakeComplete;
+-    protected HandshakeStatus handshakeStatus; //gets set by handshake
++    private volatile boolean handshakeComplete;
++    private volatile HandshakeStatus handshakeStatus; //gets set by handshake
+ 
+     protected boolean closed;
+     protected boolean closing;
+ 
+-    private CompletionHandler<Integer, SocketWrapperBase<Nio2Channel>> handshakeReadCompletionHandler;
+-    private CompletionHandler<Integer, SocketWrapperBase<Nio2Channel>> handshakeWriteCompletionHandler;
++    private final CompletionHandler<Integer, SocketWrapperBase<Nio2Channel>> handshakeReadCompletionHandler;
++    private final CompletionHandler<Integer, SocketWrapperBase<Nio2Channel>> handshakeWriteCompletionHandler;
+ 
+     public SecureNio2Channel(SocketBufferHandler bufHandler, Nio2Endpoint endpoint) {
+         super(bufHandler);

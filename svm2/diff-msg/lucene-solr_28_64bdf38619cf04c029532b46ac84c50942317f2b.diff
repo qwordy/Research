@@ -1,0 +1,22 @@
+commit 64bdf38619cf04c029532b46ac84c50942317f2b
+Author: Uwe Schindler <uschindler@apache.org>
+Date:   Thu Aug 19 10:44:35 2010 +0000
+
+    Make compileAutomaton synchronized, as it can break for queries that are shared constants (like a drop down list in a web interface that provides predefined query constraints. These types of queries are in most places somewhere predefined in your code and then used by different threads/servlets/whatever). As the three transient vars cannot be set atomically, a parallel running thread may see half of the fields assigned and will get NPE).
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@987118 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/lucene/src/java/org/apache/lucene/search/AutomatonQuery.java b/lucene/src/java/org/apache/lucene/search/AutomatonQuery.java
+index d779634..0d2d5ee 100644
+--- a/lucene/src/java/org/apache/lucene/search/AutomatonQuery.java
++++ b/lucene/src/java/org/apache/lucene/search/AutomatonQuery.java
+@@ -75,7 +75,8 @@ public class AutomatonQuery extends MultiTermQuery {
+     MinimizationOperations.minimize(automaton);
+   }
+ 
+-  private void compileAutomaton() {
++  private synchronized void compileAutomaton() {
++    // this method must be synchronized, as setting the three transient fields is not atomic:
+     if (runAutomaton == null) {
+       runAutomaton = new ByteRunAutomaton(automaton);
+       isFinite = SpecialOperations.isFinite(automaton);

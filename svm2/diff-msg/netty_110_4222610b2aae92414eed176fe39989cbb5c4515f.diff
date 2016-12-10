@@ -1,0 +1,56 @@
+commit 4222610b2aae92414eed176fe39989cbb5c4515f
+Author: Norman Maurer <nmaurer@redhat.com>
+Date:   Mon Jul 29 08:33:20 2013 +0200
+
+    Remove synchronized in SPDY code
+
+diff --git a/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyFrameEncoder.java b/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyFrameEncoder.java
+index e2a9f06..83ebb72 100644
+--- a/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyFrameEncoder.java
++++ b/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyFrameEncoder.java
+@@ -65,9 +65,7 @@ public class SpdyFrameEncoder extends MessageToByteEncoder<SpdyFrame> {
+         ctx.channel().closeFuture().addListener(new ChannelFutureListener() {
+             @Override
+             public void operationComplete(ChannelFuture future) throws Exception {
+-                synchronized (headerBlockEncoder) {
+-                    headerBlockEncoder.end();
+-                }
++                headerBlockEncoder.end();
+             }
+         });
+     }
+diff --git a/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyHeaderBlockJZlibEncoder.java b/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyHeaderBlockJZlibEncoder.java
+index 912b7d8..1e66a18 100644
+--- a/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyHeaderBlockJZlibEncoder.java
++++ b/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyHeaderBlockJZlibEncoder.java
+@@ -98,7 +98,7 @@ class SpdyHeaderBlockJZlibEncoder extends SpdyHeaderBlockRawEncoder {
+     }
+ 
+     @Override
+-    public synchronized ByteBuf encode(ChannelHandlerContext ctx, SpdyHeadersFrame frame) throws Exception {
++    public ByteBuf encode(ChannelHandlerContext ctx, SpdyHeadersFrame frame) throws Exception {
+         if (frame == null) {
+             throw new IllegalArgumentException("frame");
+         }
+@@ -119,7 +119,7 @@ class SpdyHeaderBlockJZlibEncoder extends SpdyHeaderBlockRawEncoder {
+     }
+ 
+     @Override
+-    public synchronized void end() {
++    public void end() {
+         if (finished) {
+             return;
+         }
+diff --git a/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyHeaderBlockZlibEncoder.java b/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyHeaderBlockZlibEncoder.java
+index b6971a4..320167d 100644
+--- a/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyHeaderBlockZlibEncoder.java
++++ b/codec-http/src/main/java/io/netty/handler/codec/spdy/SpdyHeaderBlockZlibEncoder.java
+@@ -59,7 +59,7 @@ class SpdyHeaderBlockZlibEncoder extends SpdyHeaderBlockRawEncoder {
+     }
+ 
+     @Override
+-    public synchronized ByteBuf encode(ChannelHandlerContext ctx, SpdyHeadersFrame frame) throws Exception {
++    public ByteBuf encode(ChannelHandlerContext ctx, SpdyHeadersFrame frame) throws Exception {
+         if (frame == null) {
+             throw new IllegalArgumentException("frame");
+         }

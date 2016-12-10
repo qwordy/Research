@@ -1,0 +1,39 @@
+commit b24b17c10c778d47413f15d3a24e318d6b0a365b
+Author: Filip Hanik <fhanik@apache.org>
+Date:   Wed May 18 17:46:01 2011 +0000
+
+    make fields volatile
+    https://issues.apache.org/bugzilla/show_bug.cgi?id=51212
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1124352 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/modules/jdbc-pool/src/main/java/org/apache/tomcat/jdbc/pool/interceptor/SlowQueryReport.java b/modules/jdbc-pool/src/main/java/org/apache/tomcat/jdbc/pool/interceptor/SlowQueryReport.java
+index 85b0779..ed4757a 100644
+--- a/modules/jdbc-pool/src/main/java/org/apache/tomcat/jdbc/pool/interceptor/SlowQueryReport.java
++++ b/modules/jdbc-pool/src/main/java/org/apache/tomcat/jdbc/pool/interceptor/SlowQueryReport.java
+@@ -255,15 +255,15 @@ public class SlowQueryReport extends AbstractQueryReport  {
+         };
+ 
+         private final String query;
+-        private int nrOfInvocations;
+-        private long maxInvocationTime = Long.MIN_VALUE;
+-        private long maxInvocationDate;
+-        private long minInvocationTime = Long.MAX_VALUE;
+-        private long minInvocationDate;
+-        private long totalInvocationTime;
+-        private long failures;
+-        private int prepareCount;
+-        private long prepareTime;
++        private volatile int nrOfInvocations;
++        private volatile long maxInvocationTime = Long.MIN_VALUE;
++        private volatile long maxInvocationDate;
++        private volatile long minInvocationTime = Long.MAX_VALUE;
++        private volatile long minInvocationDate;
++        private volatile long totalInvocationTime;
++        private volatile long failures;
++        private volatile int prepareCount;
++        private volatile long prepareTime;
+         private volatile long lastInvocation = 0;
+         
+         public static String[] getFieldNames() {

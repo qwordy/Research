@@ -1,0 +1,36 @@
+commit 3472e3bd6c50558870b86c9ccfea5072385fa991
+Author: Benoy Antony <benoy@apache.org>
+Date:   Mon Feb 2 10:34:47 2015 -0800
+
+    HADOOP-11494. Lock acquisition on WrappedInputStream#unwrappedRpcBuffer may race with another thread. Contributed by Ted Yu.
+
+diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/security/SaslRpcClient.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/security/SaslRpcClient.java
+index dfb0898..4a1a397 100644
+--- a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/security/SaslRpcClient.java
++++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/security/SaslRpcClient.java
+@@ -573,17 +573,15 @@ public int read(byte b[]) throws IOException {
+     }
+ 
+     @Override
+-    public int read(byte[] buf, int off, int len) throws IOException {
+-      synchronized(unwrappedRpcBuffer) {
+-        // fill the buffer with the next RPC message
+-        if (unwrappedRpcBuffer.remaining() == 0) {
+-          readNextRpcPacket();
+-        }
+-        // satisfy as much of the request as possible
+-        int readLen = Math.min(len, unwrappedRpcBuffer.remaining());
+-        unwrappedRpcBuffer.get(buf, off, readLen);
+-        return readLen;
++    public synchronized int read(byte[] buf, int off, int len) throws IOException {
++      // fill the buffer with the next RPC message
++      if (unwrappedRpcBuffer.remaining() == 0) {
++        readNextRpcPacket();
+       }
++      // satisfy as much of the request as possible
++      int readLen = Math.min(len, unwrappedRpcBuffer.remaining());
++      unwrappedRpcBuffer.get(buf, off, readLen);
++      return readLen;
+     }
+     
+     // all messages must be RPC SASL wrapped, else an exception is thrown

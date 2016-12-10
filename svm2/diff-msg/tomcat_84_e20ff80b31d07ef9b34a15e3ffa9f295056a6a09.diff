@@ -1,0 +1,60 @@
+commit e20ff80b31d07ef9b34a15e3ffa9f295056a6a09
+Author: Keiichi Fujino <kfujino@apache.org>
+Date:   Thu Sep 1 10:26:13 2011 +0000
+
+    Avoid IllegalArgumentException when setting maxActive less than or equal to 0.
+    ArrayBlockingQueue doesn't allow capacity of 0 or less.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1163986 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/modules/jdbc-pool/src/main/java/org/apache/tomcat/jdbc/pool/ConnectionPool.java b/modules/jdbc-pool/src/main/java/org/apache/tomcat/jdbc/pool/ConnectionPool.java
+index b2a7644..232a829 100644
+--- a/modules/jdbc-pool/src/main/java/org/apache/tomcat/jdbc/pool/ConnectionPool.java
++++ b/modules/jdbc-pool/src/main/java/org/apache/tomcat/jdbc/pool/ConnectionPool.java
+@@ -394,22 +394,6 @@ public class ConnectionPool {
+      */
+     protected void init(PoolConfiguration properties) throws SQLException {
+         poolProperties = properties;
+-        //make space for 10 extra in case we flow over a bit
+-        busy = new ArrayBlockingQueue<PooledConnection>(properties.getMaxActive(),false);
+-        //busy = new FairBlockingQueue<PooledConnection>();
+-        //make space for 10 extra in case we flow over a bit
+-        if (properties.isFairQueue()) {
+-            idle = new FairBlockingQueue<PooledConnection>();
+-            //idle = new MultiLockFairBlockingQueue<PooledConnection>();
+-        } else {
+-            idle = new ArrayBlockingQueue<PooledConnection>(properties.getMaxActive(),properties.isFairQueue());
+-        }
+-
+-        //if the evictor thread is supposed to run, start it now
+-        if (properties.isPoolSweeperEnabled()) {
+-            poolCleaner = new PoolCleaner("[Pool-Cleaner]:" + properties.getName(), this, properties.getTimeBetweenEvictionRunsMillis());
+-            poolCleaner.start();
+-        } //end if
+ 
+         //make sure the pool is properly configured
+         if (properties.getMaxActive()<1) {
+@@ -432,6 +416,23 @@ public class ConnectionPool {
+             log.warn("maxIdle is smaller than minIdle, setting maxIdle to: "+properties.getMinIdle());
+             properties.setMaxIdle(properties.getMinIdle());
+         }
++
++        //make space for 10 extra in case we flow over a bit
++        busy = new ArrayBlockingQueue<PooledConnection>(properties.getMaxActive(),false);
++        //busy = new FairBlockingQueue<PooledConnection>();
++        //make space for 10 extra in case we flow over a bit
++        if (properties.isFairQueue()) {
++            idle = new FairBlockingQueue<PooledConnection>();
++            //idle = new MultiLockFairBlockingQueue<PooledConnection>();
++        } else {
++            idle = new ArrayBlockingQueue<PooledConnection>(properties.getMaxActive(),properties.isFairQueue());
++        }
++
++        //if the evictor thread is supposed to run, start it now
++        if (properties.isPoolSweeperEnabled()) {
++            poolCleaner = new PoolCleaner("[Pool-Cleaner]:" + properties.getName(), this, properties.getTimeBetweenEvictionRunsMillis());
++            poolCleaner.start();
++        } //end if
+         
+         //create JMX MBean
+         if (this.getPoolProperties().isJmxEnabled()) createMBean();

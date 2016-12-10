@@ -1,0 +1,23 @@
+commit 607b06e2c1a3ec9da72a21e32e8f640047cf9448
+Author: Filip Hanik <fhanik@apache.org>
+Date:   Wed May 9 14:18:25 2007 +0000
+
+    volatile should ensure double locking to work properly
+    
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@536540 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/tribes/io/BufferPool.java b/java/org/apache/catalina/tribes/io/BufferPool.java
+index 39f6e44..db9a1cb 100644
+--- a/java/org/apache/catalina/tribes/io/BufferPool.java
++++ b/java/org/apache/catalina/tribes/io/BufferPool.java
+@@ -33,7 +33,7 @@ public class BufferPool {
+ 
+ 
+ 
+-    protected static BufferPool instance = null;
++    protected static volatile BufferPool instance = null;
+     protected BufferPoolAPI pool = null;
+ 
+     private BufferPool(BufferPoolAPI pool) {

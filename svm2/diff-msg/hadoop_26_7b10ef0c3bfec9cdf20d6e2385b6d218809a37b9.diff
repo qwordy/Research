@@ -1,0 +1,46 @@
+commit 7b10ef0c3bfec9cdf20d6e2385b6d218809a37b9
+Author: yliu <yliu@apache.org>
+Date:   Fri Feb 6 06:31:03 2015 +0800
+
+    HDFS-7741. Remove unnecessary synchronized in FSDataInputStream and HdfsDataInputStream. (yliu)
+
+diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/fs/FSDataInputStream.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/fs/FSDataInputStream.java
+index c8609d4..6d39d1e 100644
+--- a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/fs/FSDataInputStream.java
++++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/fs/FSDataInputStream.java
+@@ -58,7 +58,7 @@ public FSDataInputStream(InputStream in) {
+    * @param desired offset to seek to
+    */
+   @Override
+-  public synchronized void seek(long desired) throws IOException {
++  public void seek(long desired) throws IOException {
+     ((Seekable)in).seek(desired);
+   }
+ 
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+index 756b70f..78aa992 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
++++ b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+@@ -851,6 +851,9 @@ Release 2.7.0 - UNRELEASED
+     HDFS-7698. Fix locking on HDFS read statistics and add a method for
+     clearing them. (Colin P. McCabe via yliu)
+ 
++    HDFS-7741. Remove unnecessary synchronized in FSDataInputStream and
++    HdfsDataInputStream. (yliu)
++
+ Release 2.6.1 - UNRELEASED
+ 
+   INCOMPATIBLE CHANGES
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/client/HdfsDataInputStream.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/client/HdfsDataInputStream.java
+index 72c57a8..e8ac686 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/client/HdfsDataInputStream.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/client/HdfsDataInputStream.java
+@@ -83,7 +83,7 @@ public ExtendedBlock getCurrentBlock() {
+   /**
+    * Get the collection of blocks that has already been located.
+    */
+-  public synchronized List<LocatedBlock> getAllBlocks() throws IOException {
++  public List<LocatedBlock> getAllBlocks() throws IOException {
+     return getDFSInputStream().getAllBlocks();
+   }
+ 

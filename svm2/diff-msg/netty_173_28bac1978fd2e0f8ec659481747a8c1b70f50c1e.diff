@@ -1,0 +1,32 @@
+commit 28bac1978fd2e0f8ec659481747a8c1b70f50c1e
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Fri Feb 19 09:08:01 2010 +0000
+
+    This should be volatile anyhow
+
+diff --git a/src/main/java/org/jboss/netty/example/localtime/LocalTimeClientHandler.java b/src/main/java/org/jboss/netty/example/localtime/LocalTimeClientHandler.java
+index b4498e2..e2e7109 100644
+--- a/src/main/java/org/jboss/netty/example/localtime/LocalTimeClientHandler.java
++++ b/src/main/java/org/jboss/netty/example/localtime/LocalTimeClientHandler.java
+@@ -49,7 +49,7 @@ public class LocalTimeClientHandler extends SimpleChannelUpstreamHandler {
+             LocalTimeClientHandler.class.getName());
+ 
+     // Stateful properties
+-    private Channel channel;
++    private volatile Channel channel;
+     private final BlockingQueue<LocalTimes> answer = new LinkedBlockingQueue<LocalTimes>();
+ 
+     public List<String> getLocalTimes(Collection<String> cities) {
+@@ -106,10 +106,10 @@ public class LocalTimeClientHandler extends SimpleChannelUpstreamHandler {
+     }
+ 
+     @Override
+-    public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e)
++    public void channelOpen(ChannelHandlerContext ctx, ChannelStateEvent e)
+             throws Exception {
+         channel = e.getChannel();
+-        super.channelConnected(ctx, e);
++        super.channelOpen(ctx, e);
+     }
+ 
+     @Override

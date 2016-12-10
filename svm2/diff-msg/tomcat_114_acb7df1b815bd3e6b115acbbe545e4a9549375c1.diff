@@ -1,0 +1,21 @@
+commit acb7df1b815bd3e6b115acbbe545e4a9549375c1
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Fri Jul 10 10:10:18 2009 +0000
+
+    Needs to be volatile as it is used in double checked locking
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@792862 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/core/StandardWrapper.java b/java/org/apache/catalina/core/StandardWrapper.java
+index fe4d30d..1b363ec 100644
+--- a/java/org/apache/catalina/core/StandardWrapper.java
++++ b/java/org/apache/catalina/core/StandardWrapper.java
+@@ -135,7 +135,7 @@ public class StandardWrapper
+     /**
+      * The (single) initialized instance of this servlet.
+      */
+-    protected Servlet instance = null;
++    protected volatile Servlet instance = null;
+ 
+ 
+     /**

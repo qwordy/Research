@@ -1,0 +1,39 @@
+commit a182fc16b1816b7cb0ea9a2061814eafd92b612a
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Fri Jun 19 12:40:56 2009 +0000
+
+    Add an additional volatile from a review of the associated benchmark tests.
+    Add a sync to deal with the issue filip reported in the 5.5.x status file
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@786483 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/valves/AccessLogValve.java b/java/org/apache/catalina/valves/AccessLogValve.java
+index 7df2740..d5aba16 100644
+--- a/java/org/apache/catalina/valves/AccessLogValve.java
++++ b/java/org/apache/catalina/valves/AccessLogValve.java
+@@ -281,7 +281,7 @@ public class AccessLogValve
+      * The system time when we last updated the Date that this valve
+      * uses for log lines.
+      */
+-    private Date currentDate = null;
++    private volatile Date currentDate = null;
+     
+     private volatile long currentMillis = 0;
+ 
+@@ -690,10 +690,12 @@ public class AccessLogValve
+         }
+ 
+         // Log this message
+-        if (writer != null) {
+-            writer.println(message);
+-            if (!buffered) {
+-                writer.flush();
++        synchronized(this) {
++            if (writer != null) {
++                writer.println(message);
++                if (!buffered) {
++                    writer.flush();
++                }
+             }
+         }
+ 

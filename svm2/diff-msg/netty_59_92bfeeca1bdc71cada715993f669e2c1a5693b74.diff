@@ -1,0 +1,63 @@
+commit 92bfeeca1bdc71cada715993f669e2c1a5693b74
+Author: Norman Maurer <norman_maurer@apple.com>
+Date:   Wed May 13 13:50:22 2015 +0200
+
+    No need to release lock and acquire again when allocate normal size.
+    
+    Motiviation:
+    
+    When tried to allocate tiny and small sized and failed to serve these out of the PoolSubPage we exit the synchronization
+    block just to enter it again when call allocateNormal(...).
+    
+    Modification:
+    
+    Not exit the synchronized block until allocateNormal(...) is done.
+    
+    Result:
+    
+    Better performance.
+
+diff --git a/buffer/src/main/java/io/netty/buffer/PoolArena.java b/buffer/src/main/java/io/netty/buffer/PoolArena.java
+index a9ae9dd..6275f9d 100644
+--- a/buffer/src/main/java/io/netty/buffer/PoolArena.java
++++ b/buffer/src/main/java/io/netty/buffer/PoolArena.java
+@@ -144,8 +144,8 @@ abstract class PoolArena<T> {
+                 table = smallSubpagePools;
+             }
+ 
++            final PoolSubpage<T> head = table[tableIdx];
+             synchronized (this) {
+-                final PoolSubpage<T> head = table[tableIdx];
+                 final PoolSubpage<T> s = head.next;
+                 if (s != head) {
+                     assert s.doNotDestroy && s.elemSize == normCapacity;
+@@ -154,21 +154,25 @@ abstract class PoolArena<T> {
+                     s.chunk.initBufWithSubpage(buf, handle, reqCapacity);
+                     return;
+                 }
++                allocateNormal(buf, reqCapacity, normCapacity);
++                return;
+             }
+-        } else if (normCapacity <= chunkSize) {
++        }
++        if (normCapacity <= chunkSize) {
+             if (cache.allocateNormal(this, buf, reqCapacity, normCapacity)) {
+                 // was able to allocate out of the cache so move on
+                 return;
+             }
++            synchronized (this) {
++                allocateNormal(buf, reqCapacity, normCapacity);
++            }
+         } else {
+             // Huge allocations are never served via the cache so just call allocateHuge
+             allocateHuge(buf, reqCapacity);
+-            return;
+         }
+-        allocateNormal(buf, reqCapacity, normCapacity);
+     }
+ 
+-    private synchronized void allocateNormal(PooledByteBuf<T> buf, int reqCapacity, int normCapacity) {
++    private void allocateNormal(PooledByteBuf<T> buf, int reqCapacity, int normCapacity) {
+         if (q050.allocate(buf, reqCapacity, normCapacity) || q025.allocate(buf, reqCapacity, normCapacity) ||
+             q000.allocate(buf, reqCapacity, normCapacity) || qInit.allocate(buf, reqCapacity, normCapacity) ||
+             q075.allocate(buf, reqCapacity, normCapacity) || q100.allocate(buf, reqCapacity, normCapacity)) {

@@ -1,0 +1,50 @@
+commit e9cad4da3a814bcde46c10c0e4da2fc84f99d815
+Author: mjsax <mjsax@informatik.hu-berlin.de>
+Date:   Tue Jun 16 16:51:24 2015 +0200
+
+    [FLINK-2232] [storm-compat] Increased sleeping time for IT-Cases
+    
+    To make tests more stable as a temporal fix
+    additional bug fix: isRunning was not volatile in AbstractStormSpoutWrapper
+    
+    Closes #845
+
+diff --git a/flink-contrib/flink-storm-compatibility/flink-storm-compatibility-core/src/main/java/org/apache/flink/stormcompatibility/wrappers/AbstractStormSpoutWrapper.java b/flink-contrib/flink-storm-compatibility/flink-storm-compatibility-core/src/main/java/org/apache/flink/stormcompatibility/wrappers/AbstractStormSpoutWrapper.java
+index 65cde55..3021bcb 100644
+--- a/flink-contrib/flink-storm-compatibility/flink-storm-compatibility-core/src/main/java/org/apache/flink/stormcompatibility/wrappers/AbstractStormSpoutWrapper.java
++++ b/flink-contrib/flink-storm-compatibility/flink-storm-compatibility-core/src/main/java/org/apache/flink/stormcompatibility/wrappers/AbstractStormSpoutWrapper.java
+@@ -52,7 +52,7 @@ public abstract class AbstractStormSpoutWrapper<OUT> extends RichParallelSourceF
+ 	/**
+ 	 * Indicates, if the source is still running or was canceled.
+ 	 */
+-	protected boolean isRunning = true;
++	protected volatile boolean isRunning = true;
+ 
+ 	/**
+ 	 * Instantiates a new {@link AbstractStormSpoutWrapper} that wraps the given Storm {@link IRichSpout spout} such
+diff --git a/flink-contrib/flink-storm-compatibility/flink-storm-compatibility-examples/src/main/java/org/apache/flink/stormcompatibility/excamation/StormExclamationLocal.java b/flink-contrib/flink-storm-compatibility/flink-storm-compatibility-examples/src/main/java/org/apache/flink/stormcompatibility/excamation/StormExclamationLocal.java
+index c87fe8f..a25e5e0 100644
+--- a/flink-contrib/flink-storm-compatibility/flink-storm-compatibility-examples/src/main/java/org/apache/flink/stormcompatibility/excamation/StormExclamationLocal.java
++++ b/flink-contrib/flink-storm-compatibility/flink-storm-compatibility-examples/src/main/java/org/apache/flink/stormcompatibility/excamation/StormExclamationLocal.java
+@@ -42,7 +42,7 @@ public class StormExclamationLocal {
+ 		final FlinkLocalCluster cluster = FlinkLocalCluster.getLocalCluster();
+ 		cluster.submitTopology(topologyId, null, builder.createTopology());
+ 
+-		Utils.sleep(5 * 1000);
++		Utils.sleep(10 * 1000);
+ 
+ 		// TODO kill does no do anything so far
+ 		cluster.killTopology(topologyId);
+diff --git a/flink-contrib/flink-storm-compatibility/flink-storm-compatibility-examples/src/main/java/org/apache/flink/stormcompatibility/wordcount/StormWordCountLocal.java b/flink-contrib/flink-storm-compatibility/flink-storm-compatibility-examples/src/main/java/org/apache/flink/stormcompatibility/wordcount/StormWordCountLocal.java
+index 7b4f471..3fbd5b7 100644
+--- a/flink-contrib/flink-storm-compatibility/flink-storm-compatibility-examples/src/main/java/org/apache/flink/stormcompatibility/wordcount/StormWordCountLocal.java
++++ b/flink-contrib/flink-storm-compatibility/flink-storm-compatibility-examples/src/main/java/org/apache/flink/stormcompatibility/wordcount/StormWordCountLocal.java
+@@ -65,7 +65,7 @@ public class StormWordCountLocal {
+ 		final FlinkLocalCluster cluster = FlinkLocalCluster.getLocalCluster();
+ 		cluster.submitTopology(topologyId, null, builder.createTopology());
+ 
+-		Utils.sleep(5 * 1000);
++		Utils.sleep(10 * 1000);
+ 
+ 		// TODO kill does no do anything so far
+ 		cluster.killTopology(topologyId);

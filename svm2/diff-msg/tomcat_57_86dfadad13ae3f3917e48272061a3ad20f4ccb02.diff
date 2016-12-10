@@ -1,0 +1,33 @@
+commit 86dfadad13ae3f3917e48272061a3ad20f4ccb02
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Tue Dec 17 00:49:35 2013 +0000
+
+    Observed strange lock-up on OSX when two threads were writing concurrently to this Map. Switch to ConcurrentHashMap in an attempt to avoid the lock-up in future.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1551428 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/test/org/apache/tomcat/websocket/pojo/TestEncodingDecoding.java b/test/org/apache/tomcat/websocket/pojo/TestEncodingDecoding.java
+index cd36c26..40ee1eb 100644
+--- a/test/org/apache/tomcat/websocket/pojo/TestEncodingDecoding.java
++++ b/test/org/apache/tomcat/websocket/pojo/TestEncodingDecoding.java
+@@ -21,10 +21,10 @@ import java.net.URI;
+ import java.nio.ByteBuffer;
+ import java.util.ArrayList;
+ import java.util.Collections;
+-import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Queue;
++import java.util.concurrent.ConcurrentHashMap;
+ import java.util.concurrent.ConcurrentLinkedQueue;
+ 
+ import javax.servlet.ServletContextEvent;
+@@ -293,7 +293,7 @@ public class TestEncodingDecoding extends TomcatBaseTest {
+     public static class Server {
+ 
+         private Queue<Object> received = new ConcurrentLinkedQueue<>();
+-        static HashMap<String, Boolean> lifeCyclesCalled = new HashMap<>(8);
++        static Map<String, Boolean> lifeCyclesCalled = new ConcurrentHashMap<>(8);
+ 
+         @OnMessage
+         public MsgString rx(MsgString in) {

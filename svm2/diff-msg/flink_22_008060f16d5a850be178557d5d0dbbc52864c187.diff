@@ -1,0 +1,66 @@
+commit 008060f16d5a850be178557d5d0dbbc52864c187
+Author: Robert Metzger <rmetzger@apache.org>
+Date:   Tue Nov 24 16:49:35 2015 +0100
+
+    [hotfix] Register signal handler for JobManager and TaskManager
+    
+    This closes #1400
+
+diff --git a/flink-runtime/src/main/java/org/apache/flink/runtime/blob/BlobCache.java b/flink-runtime/src/main/java/org/apache/flink/runtime/blob/BlobCache.java
+index fd768a1..ede4d9b 100644
+--- a/flink-runtime/src/main/java/org/apache/flink/runtime/blob/BlobCache.java
++++ b/flink-runtime/src/main/java/org/apache/flink/runtime/blob/BlobCache.java
+@@ -203,6 +203,8 @@ public final class BlobCache implements BlobService {
+ 	@Override
+ 	public void shutdown() {
+ 		if (shutdownRequested.compareAndSet(false, true)) {
++			LOG.info("Shutting down BlobCache");
++
+ 			// Clean up the storage directory
+ 			try {
+ 				FileUtils.deleteDirectory(storageDir);
+diff --git a/flink-runtime/src/main/java/org/apache/flink/runtime/util/SignalHandler.java b/flink-runtime/src/main/java/org/apache/flink/runtime/util/SignalHandler.java
+index bcd3dc4..0f85e71 100644
+--- a/flink-runtime/src/main/java/org/apache/flink/runtime/util/SignalHandler.java
++++ b/flink-runtime/src/main/java/org/apache/flink/runtime/util/SignalHandler.java
+@@ -46,6 +46,7 @@ public class SignalHandler {
+ 		@Override
+ 		public void handle(Signal signal) {
+ 			LOG.error("RECEIVED SIGNAL " + signal.getNumber() + ": SIG" + signal.getName());
++			LOG.error("This JVM will shut down because it was killed from the outside.");
+ 			prevHandler.handle(signal);
+ 		}
+ 	}
+diff --git a/flink-runtime/src/main/scala/org/apache/flink/runtime/jobmanager/JobManager.scala b/flink-runtime/src/main/scala/org/apache/flink/runtime/jobmanager/JobManager.scala
+index 3fad676..c4d0fbb 100644
+--- a/flink-runtime/src/main/scala/org/apache/flink/runtime/jobmanager/JobManager.scala
++++ b/flink-runtime/src/main/scala/org/apache/flink/runtime/jobmanager/JobManager.scala
+@@ -1382,6 +1382,7 @@ object JobManager {
+     // startup checks and logging
+     EnvironmentInformation.logEnvironmentInfo(LOG.logger, "JobManager", args)
+     EnvironmentInformation.checkJavaVersion()
++    SignalHandler.register(LOG.logger)
+ 
+     // parsing the command line arguments
+     val (configuration: Configuration,
+diff --git a/flink-runtime/src/main/scala/org/apache/flink/runtime/taskmanager/TaskManager.scala b/flink-runtime/src/main/scala/org/apache/flink/runtime/taskmanager/TaskManager.scala
+index 41533ea..f8f5204 100644
+--- a/flink-runtime/src/main/scala/org/apache/flink/runtime/taskmanager/TaskManager.scala
++++ b/flink-runtime/src/main/scala/org/apache/flink/runtime/taskmanager/TaskManager.scala
+@@ -64,7 +64,7 @@ import org.apache.flink.util.NetUtils
+ import org.apache.flink.runtime.process.ProcessReaper
+ import org.apache.flink.runtime.security.SecurityUtils
+ import org.apache.flink.runtime.security.SecurityUtils.FlinkSecuredRunner
+-import org.apache.flink.runtime.util.{LeaderRetrievalUtils, MathUtils, EnvironmentInformation}
++import org.apache.flink.runtime.util.{SignalHandler, LeaderRetrievalUtils, MathUtils, EnvironmentInformation}
+ 
+ import scala.concurrent._
+ import scala.concurrent.duration._
+@@ -1204,6 +1204,7 @@ object TaskManager {
+     // startup checks and logging
+     EnvironmentInformation.logEnvironmentInfo(LOG.logger, "TaskManager", args)
+     EnvironmentInformation.checkJavaVersion()
++    SignalHandler.register(LOG.logger)
+ 
+     val maxOpenFileHandles = EnvironmentInformation.getOpenFileHandlesLimit()
+     if (maxOpenFileHandles != -1) {

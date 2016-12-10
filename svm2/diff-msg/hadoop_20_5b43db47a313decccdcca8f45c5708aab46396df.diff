@@ -1,0 +1,95 @@
+commit 5b43db47a313decccdcca8f45c5708aab46396df
+Author: Kihwal Lee <kihwal@apache.org>
+Date:   Tue Oct 13 10:04:18 2015 -0500
+
+    HDFS-8676. Delayed rolling upgrade finalization can cause heartbeat expiration. Contributed by Walter Su.
+
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+index 65eab19..d7b6bd3 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
++++ b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+@@ -2090,6 +2090,9 @@ Release 2.7.2 - UNRELEASED
+     HDFS-9178. Slow datanode I/O can cause a wrong node to be marked bad
+     (kihwal)
+ 
++    HDFS-8676. Delayed rolling upgrade finalization can cause heartbeat
++    expiration. (Walter Su via kihwal)
++
+ Release 2.7.1 - 2015-07-06
+ 
+   INCOMPATIBLE CHANGES
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/BlockPoolSliceStorage.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/BlockPoolSliceStorage.java
+index 09a2d8b..1bbeeee 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/BlockPoolSliceStorage.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/BlockPoolSliceStorage.java
+@@ -36,6 +36,7 @@
+ 
+ import java.io.File;
+ import java.io.IOException;
++import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.Iterator;
+ import java.util.List;
+@@ -92,6 +93,7 @@
+       "^(.*)(" + BLOCK_POOL_ID_PATTERN_BASE + ")(" + TRASH_ROOT_DIR + ")(.*)$");
+ 
+   private String blockpoolID = ""; // id of the blockpool
++  private Daemon trashCleaner;
+ 
+   public BlockPoolSliceStorage(StorageInfo storageInfo, String bpid) {
+     super(storageInfo);
+@@ -738,11 +740,39 @@ String getRestoreDirectory(File blockFile) {
+    * Delete all files and directories in the trash directories.
+    */
+   public void clearTrash() {
++    final List<File> trashRoots = new ArrayList<>();
+     for (StorageDirectory sd : storageDirs) {
+       File trashRoot = getTrashRootDir(sd);
+-      Preconditions.checkState(!(trashRoot.exists() && sd.getPreviousDir().exists()));
+-      FileUtil.fullyDelete(trashRoot);
+-      LOG.info("Cleared trash for storage directory " + sd);
++      if (trashRoot.exists() && sd.getPreviousDir().exists()) {
++        LOG.error("Trash and PreviousDir shouldn't both exist for storage "
++            + "directory " + sd);
++        assert false;
++      } else {
++        trashRoots.add(trashRoot);
++      }
++    }
++
++    stopTrashCleaner();
++    trashCleaner = new Daemon(new Runnable() {
++      @Override
++      public void run() {
++        for(File trashRoot : trashRoots){
++          FileUtil.fullyDelete(trashRoot);
++          LOG.info("Cleared trash for storage directory " + trashRoot);
++        }
++      }
++
++      @Override
++      public String toString() {
++        return "clearTrash() for " + blockpoolID;
++      }
++    });
++    trashCleaner.start();
++  }
++
++  public void stopTrashCleaner() {
++    if (trashCleaner != null) {
++      trashCleaner.interrupt();
+     }
+   }
+ 
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DataStorage.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DataStorage.java
+index 76789f9..8b8c6c5 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DataStorage.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DataStorage.java
+@@ -160,6 +160,7 @@ public synchronized boolean createStorageID(
+    */
+   public void enableTrash(String bpid) {
+     if (trashEnabledBpids.add(bpid)) {
++      getBPStorage(bpid).stopTrashCleaner();
+       LOG.info("Enabled trash for bpid " + bpid);
+     }
+   }

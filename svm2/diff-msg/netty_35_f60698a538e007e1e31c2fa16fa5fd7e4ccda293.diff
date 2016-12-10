@@ -1,0 +1,61 @@
+commit f60698a538e007e1e31c2fa16fa5fd7e4ccda293
+Author: Scott Mitchell <scott_mitchell@apple.com>
+Date:   Tue Apr 19 10:02:01 2016 -0700
+
+    EpollEventLoopGroup support Executor
+    
+    Motivation:
+    NioEventLoopGroup supports constructors which take an executor but EpollEventLoopGroup does not. EPOLL should be consistent with NIO where ever possible.
+    
+    Modifications:
+    - Add constructors to EpollEventLoopGroup which accept an Executor as a parameter
+    
+    Result:
+    EpollEventLoopGroup is more consistent with NioEventLoopGroup
+    Fixes https://github.com/netty/netty/issues/5161
+
+diff --git a/transport-native-epoll/src/main/java/io/netty/channel/epoll/EpollEventLoopGroup.java b/transport-native-epoll/src/main/java/io/netty/channel/epoll/EpollEventLoopGroup.java
+index c151806..6a7b316 100644
+--- a/transport-native-epoll/src/main/java/io/netty/channel/epoll/EpollEventLoopGroup.java
++++ b/transport-native-epoll/src/main/java/io/netty/channel/epoll/EpollEventLoopGroup.java
+@@ -15,8 +15,8 @@
+  */
+ package io.netty.channel.epoll;
+ 
+-import io.netty.channel.EventLoop;
+ import io.netty.channel.DefaultSelectStrategyFactory;
++import io.netty.channel.EventLoop;
+ import io.netty.channel.EventLoopGroup;
+ import io.netty.channel.MultithreadEventLoopGroup;
+ import io.netty.channel.SelectStrategyFactory;
+@@ -50,7 +50,7 @@ public final class EpollEventLoopGroup extends MultithreadEventLoopGroup {
+      */
+     @SuppressWarnings("deprecation")
+     public EpollEventLoopGroup(int nThreads, SelectStrategyFactory selectStrategyFactory) {
+-        this(nThreads, null, selectStrategyFactory);
++        this(nThreads, (ThreadFactory) null, selectStrategyFactory);
+     }
+ 
+     /**
+@@ -61,6 +61,10 @@ public final class EpollEventLoopGroup extends MultithreadEventLoopGroup {
+         this(nThreads, threadFactory, 0);
+     }
+ 
++    public EpollEventLoopGroup(int nThreads, Executor executor) {
++        this(nThreads, executor, DefaultSelectStrategyFactory.INSTANCE);
++    }
++
+     /**
+      * Create a new instance using the specified number of threads and the given {@link ThreadFactory}.
+      */
+@@ -93,6 +97,10 @@ public final class EpollEventLoopGroup extends MultithreadEventLoopGroup {
+         super(nThreads, threadFactory, maxEventsAtOnce, selectStrategyFactory);
+     }
+ 
++    public EpollEventLoopGroup(int nThreads, Executor executor, SelectStrategyFactory selectStrategyFactory) {
++        super(nThreads, executor, 0, selectStrategyFactory);
++    }
++
+     /**
+      * Sets the percentage of the desired amount of time spent for I/O in the child event loops.  The default value is
+      * {@code 50}, which means the event loop will try to spend the same amount of time for I/O as for non-I/O tasks.

@@ -1,0 +1,152 @@
+commit 569feedfe9f49e1de0c176431d11f5d0dc9045fe
+Author: Jonathan Ellis <jbellis@apache.org>
+Date:   Fri Jan 28 18:21:59 2011 +0000
+
+    replace ExecutorService.submit with .execute where a Future is not required
+    patch by jbellis
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/branches/cassandra-0.7@1064807 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/java/org/apache/cassandra/db/BinaryMemtable.java b/src/java/org/apache/cassandra/db/BinaryMemtable.java
+index 54aa6d7..09dc1f5 100644
+--- a/src/java/org/apache/cassandra/db/BinaryMemtable.java
++++ b/src/java/org/apache/cassandra/db/BinaryMemtable.java
+@@ -141,12 +141,12 @@ public class BinaryMemtable implements IFlushable
+ 
+     public void flushAndSignal(final CountDownLatch latch, ExecutorService sorter, final ExecutorService writer)
+     {
+-        sorter.submit(new Runnable()
++        sorter.execute(new Runnable()
+         {
+             public void run()
+             {
+                 final List<DecoratedKey> sortedKeys = getSortedKeys();
+-                writer.submit(new WrappedRunnable()
++                writer.execute(new WrappedRunnable()
+                 {
+                     public void runMayThrow() throws IOException
+                     {
+diff --git a/src/java/org/apache/cassandra/db/commitlog/CommitLog.java b/src/java/org/apache/cassandra/db/commitlog/CommitLog.java
+index b02ddc8..8b0b91d 100644
+--- a/src/java/org/apache/cassandra/db/commitlog/CommitLog.java
++++ b/src/java/org/apache/cassandra/db/commitlog/CommitLog.java
+@@ -434,8 +434,8 @@ public class CommitLog
+             {
+                 logger.info("Discarding obsolete commit log:" + segment);
+                 segment.close();
+-                DeletionService.submitDelete(segment.getHeaderPath());
+-                DeletionService.submitDelete(segment.getPath());
++                DeletionService.executeDelete(segment.getHeaderPath());
++                DeletionService.executeDelete(segment.getPath());
+                 // usually this will be the first (remaining) segment, but not always, if segment A contains
+                 // writes to a CF that is unflushed but is followed by segment B whose CFs are all flushed.
+                 iter.remove();
+diff --git a/src/java/org/apache/cassandra/io/DeletionService.java b/src/java/org/apache/cassandra/io/DeletionService.java
+index 4be5756..bf26399 100644
+--- a/src/java/org/apache/cassandra/io/DeletionService.java
++++ b/src/java/org/apache/cassandra/io/DeletionService.java
+@@ -36,17 +36,16 @@ public class DeletionService
+ 
+     public static final ExecutorService executor = new JMXEnabledThreadPoolExecutor("FILEUTILS-DELETE-POOL");
+ 
+-    public static void submitDelete(final String file)
++    public static void executeDelete(final String file)
+     {
+         Runnable deleter = new WrappedRunnable()
+         {
+-            @Override
+             protected void runMayThrow() throws IOException
+             {
+                 FileUtils.deleteWithConfirm(new File(file));
+             }
+         };
+-        executor.submit(deleter);
++        executor.execute(deleter);
+     }
+     
+     public static void waitFor() throws InterruptedException, ExecutionException
+diff --git a/src/java/org/apache/cassandra/service/AntiEntropyService.java b/src/java/org/apache/cassandra/service/AntiEntropyService.java
+index 0e34bf4..2013f58 100644
+--- a/src/java/org/apache/cassandra/service/AntiEntropyService.java
++++ b/src/java/org/apache/cassandra/service/AntiEntropyService.java
+@@ -261,7 +261,7 @@ public class AntiEntropyService
+      * 2. add() - 0 or more times, to add hashes to the tree.
+      * 3. complete() - Enqueues any operations that were blocked waiting for a valid tree.
+      */
+-    public static class Validator implements Callable<Object>
++    public static class Validator implements Runnable
+     {
+         public final TreeRequest request;
+         public final MerkleTree tree;
+@@ -408,7 +408,7 @@ public class AntiEntropyService
+                 for (MerkleTree.RowHash minrow : minrows)
+                     range.addHash(minrow);
+ 
+-            StageManager.getStage(Stage.ANTI_ENTROPY).submit(this);
++            StageManager.getStage(Stage.ANTI_ENTROPY).execute(this);
+             logger.debug("Validated " + validated + " rows into AEService tree for " + request);
+         }
+         
+@@ -417,13 +417,10 @@ public class AntiEntropyService
+          *
+          * @return A meaningless object.
+          */
+-        public Object call() throws Exception
++        public void run()
+         {
+             // respond to the request that triggered this validation
+             AntiEntropyService.instance.respond(this, FBUtilities.getLocalAddress());
+-
+-            // return any old object
+-            return AntiEntropyService.class;
+         }
+     }
+ 
+diff --git a/src/java/org/apache/cassandra/service/StorageProxy.java b/src/java/org/apache/cassandra/service/StorageProxy.java
+index 689d504..bd1cb4e 100644
+--- a/src/java/org/apache/cassandra/service/StorageProxy.java
++++ b/src/java/org/apache/cassandra/service/StorageProxy.java
+@@ -369,7 +369,7 @@ public class StorageProxy implements StorageProxyMBean
+             {
+                 if (logger.isDebugEnabled())
+                     logger.debug("reading data for " + command + " locally");
+-                StageManager.getStage(Stage.READ).submit(new LocalReadRunnable(command, handler));
++                StageManager.getStage(Stage.READ).execute(new LocalReadRunnable(command, handler));
+             }
+             else
+             {
+@@ -388,7 +388,7 @@ public class StorageProxy implements StorageProxyMBean
+                 {
+                     if (logger.isDebugEnabled())
+                         logger.debug("reading digest for " + command + " locally");
+-                    StageManager.getStage(Stage.READ).submit(new LocalReadRunnable(digestCommand, handler));
++                    StageManager.getStage(Stage.READ).execute(new LocalReadRunnable(digestCommand, handler));
+                 }
+                 else
+                 {
+diff --git a/test/unit/org/apache/cassandra/EmbeddedServer.java b/test/unit/org/apache/cassandra/EmbeddedServer.java
+index f148496..5b830eb 100644
+--- a/test/unit/org/apache/cassandra/EmbeddedServer.java
++++ b/test/unit/org/apache/cassandra/EmbeddedServer.java
+@@ -48,7 +48,7 @@ public class EmbeddedServer extends CleanupHelper
+     public static void startCassandra() throws IOException
+ 
+     {
+-        executor.submit(new Runnable()
++        executor.execute(new Runnable()
+         {
+             public void run()
+             {
+diff --git a/test/unit/org/apache/cassandra/concurrent/DebuggableThreadPoolExecutorTest.java b/test/unit/org/apache/cassandra/concurrent/DebuggableThreadPoolExecutorTest.java
+index 734c9ae..4f8993a 100644
+--- a/test/unit/org/apache/cassandra/concurrent/DebuggableThreadPoolExecutorTest.java
++++ b/test/unit/org/apache/cassandra/concurrent/DebuggableThreadPoolExecutorTest.java
+@@ -50,7 +50,7 @@ public class DebuggableThreadPoolExecutorTest
+         long start = System.currentTimeMillis();
+         for (int i = 0; i < 10; i++)
+         {
+-            executor.submit(runnable);
++            executor.execute(runnable);
+         }
+         assert q.size() > 0 : q.size();
+         while (executor.getCompletedTaskCount() < 10)

@@ -10,7 +10,6 @@ public class ConcurrentKeywords {
   public static List<String> list = Arrays.asList(
       "synchronized",
       "volatile",
-      "wait",
       "notify",
       "notifyAll",
       "await",

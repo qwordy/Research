@@ -1,0 +1,19 @@
+commit 87efff0bca06ef4f90081a7f687e7da816ba1206
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Wed Feb 13 15:17:10 2013 -0800
+
+    DefaultChannelHandlerContext.removed doesn't need to be volatile
+
+diff --git a/transport/src/main/java/io/netty/channel/DefaultChannelHandlerContext.java b/transport/src/main/java/io/netty/channel/DefaultChannelHandlerContext.java
+index b75b372..1267c76 100755
+--- a/transport/src/main/java/io/netty/channel/DefaultChannelHandlerContext.java
++++ b/transport/src/main/java/io/netty/channel/DefaultChannelHandlerContext.java
+@@ -101,7 +101,7 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements
+     private Runnable invokeFreeInboundBuffer0Task;
+     private Runnable invokeFreeOutboundBuffer0Task;
+     private Runnable invokeRead0Task;
+-    volatile boolean removed;
++    boolean removed;
+ 
+     @SuppressWarnings("unchecked")
+     DefaultChannelHandlerContext(

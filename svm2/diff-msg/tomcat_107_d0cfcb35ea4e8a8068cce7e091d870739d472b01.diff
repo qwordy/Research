@@ -1,0 +1,83 @@
+commit d0cfcb35ea4e8a8068cce7e091d870739d472b01
+Author: Filip Hanik <fhanik@apache.org>
+Date:   Wed Jan 13 17:00:26 2010 +0000
+
+    Following changes
+    1. Default bufferSize is 0 - rely on system behavior
+    2. bufferSize of <0 will automatically flush the writer on each write
+    3. autoFlush for printWriter is false, otherwise we are duplicating the effort
+    4. date is a volatile variable so that a write to the variable gets propagated properly
+    
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@898836 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/juli/FileHandler.java b/java/org/apache/juli/FileHandler.java
+index 244348a..1469464 100644
+--- a/java/org/apache/juli/FileHandler.java
++++ b/java/org/apache/juli/FileHandler.java
+@@ -71,7 +71,7 @@ public class FileHandler
+      * The as-of date for the currently open log file, or a zero-length
+      * string if there is no open log file.
+      */
+-    private String date = "";
++    private volatile String date = "";
+ 
+ 
+     /**
+@@ -100,7 +100,7 @@ public class FileHandler
+     /**
+      * Log buffer size
+      */
+-    private int bufferSize = 8192;
++    private int bufferSize = 0;
+ 
+ 
+     // --------------------------------------------------------- Public Methods
+@@ -145,15 +145,9 @@ public class FileHandler
+         try {
+             PrintWriter writer = this.writer;
+             if (writer!=null) {
+-                if (bufferSize > 0) {
+-                    writer.write(result);
+-                } else {
+-                    synchronized (this) {
+-                        // OutputStreamWriter performs buffering inside its StreamEncoder,
+-                        // and so to run without a buffer we have to flush explicitly
+-                        writer.write(result);
+-                        writer.flush();
+-                    }
++                writer.write(result);
++                if (bufferSize < 0) {
++                    writer.flush();
+                 }
+             } else {
+                 reportError("FileHandler is closed or not yet initialized, unable to log ["+result+"]", null, ErrorManager.WRITE_FAILURE);
+@@ -314,7 +308,7 @@ public class FileHandler
+             OutputStream os = bufferSize>0?new BufferedOutputStream(fos,bufferSize):fos;
+             writer = new PrintWriter(
+                     (encoding != null) ? new OutputStreamWriter(os, encoding)
+-                                       : new OutputStreamWriter(os), true);
++                                       : new OutputStreamWriter(os), false);
+             writer.write(getFormatter().getHead(this));
+         } catch (Exception e) {
+             reportError(null, e, ErrorManager.OPEN_FAILURE);
+diff --git a/webapps/docs/logging.xml b/webapps/docs/logging.xml
+index 3e79d42..b9be2a4 100644
+--- a/webapps/docs/logging.xml
++++ b/webapps/docs/logging.xml
+@@ -128,9 +128,11 @@
+       boolean value.</li>
+       <li>The root logger can define its set of handlers using a
+       <code>.handlers</code> property.</li>
+-      <li>Logging is buffered using a default buffer size of 8192 bytes.
+-      To change buffersize, use the <code>bufferSize</code> property of a handler.
+-      The value of <code>0</code> disables buffering.</li>
++      <li>Logging is buffered using a default buffer size of 0 bytes.
++      To change bufferSize, use the <code>bufferSize</code> property of a handler.
++      The value of <code>0</code> uses system default buffering.
++      The value of <code>&lt;0</code> forces a writer flush upon each log write.
++      A value <code>&gt;0</code> uses a BufferedOutputStream with the defined value.</li>
+       <li>System property replacement is performed for property values which
+       contain ${systemPropertyName}.</li>
+     </ul>

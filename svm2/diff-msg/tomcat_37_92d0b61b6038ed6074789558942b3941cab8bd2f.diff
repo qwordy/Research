@@ -1,0 +1,30 @@
+commit 92d0b61b6038ed6074789558942b3941cab8bd2f
+Author: Mark Thomas <markt@apache.org>
+Date:   Sun Feb 15 09:44:12 2015 +0000
+
+    Make readTimeout and wrietTimeout volatile because they are written on a different thread than they are read on within a single request.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1659906 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/tomcat/util/net/SocketWrapperBase.java b/java/org/apache/tomcat/util/net/SocketWrapperBase.java
+index e445180..5375cf5 100644
+--- a/java/org/apache/tomcat/util/net/SocketWrapperBase.java
++++ b/java/org/apache/tomcat/util/net/SocketWrapperBase.java
+@@ -37,12 +37,15 @@ public abstract class SocketWrapperBase<E> {
+     private volatile E socket;
+     private final AbstractEndpoint<E> endpoint;
+ 
++    // Volatile because I/O and setting the timeout values occurs on a different
++    // thread to the thread checking the timeout.
+     private volatile long lastRead = System.currentTimeMillis();
+     private volatile long lastWrite = lastRead;
+     private volatile long lastAsyncStart = 0;
+     private volatile long asyncTimeout = -1;
+-    private long readTimeout = -1;
+-    private long writeTimeout = -1;
++    private volatile long readTimeout = -1;
++    private volatile long writeTimeout = -1;
++
+     private IOException error = null;
+     private volatile int keepAliveLeft = 100;
+     private volatile boolean async = false;

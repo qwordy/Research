@@ -1,0 +1,268 @@
+commit c0384f0363f51f77987cf519489056908b9e4731
+Author: Mark Thomas <markt@apache.org>
+Date:   Mon Oct 31 16:51:05 2016 +0000
+
+    Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=60319
+    When using an Executor, disconnect it from the Connector attributes maxThreads minSpareThreads and threadPriority to enable the configuration settings to be consistently reported. These Connector attributes will be reported as -1 when an Executor is in use. The values used by the executor may be set and obtained via the Executor.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1767328 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/connector/mbeans-descriptors.xml b/java/org/apache/catalina/connector/mbeans-descriptors.xml
+index 49e91ce..e17a7b1 100644
+--- a/java/org/apache/catalina/connector/mbeans-descriptors.xml
++++ b/java/org/apache/catalina/connector/mbeans-descriptors.xml
+@@ -117,11 +117,11 @@
+ 
+     <!-- Common -->
+     <attribute   name="maxThreads"
+-          description="The maximum number of request processing threads to be created"
++          description="The maximum number of request processing threads to be created for the internal Executor. -1 indicates an external Executor is being used."
+                  type="int"/>
+ 
+     <attribute   name="minSpareThreads"
+-          description="The number of request processing threads that will be created"
++          description="The number of request processing threads that will be created for the internal Executor. -1 indicates an external Executor is being used."
+                  type="int"/>
+ 
+     <!-- Common -->
+@@ -189,7 +189,7 @@
+ 
+     <!-- Common -->
+     <attribute    name="threadPriority"
+-           description="The thread priority for processors"
++           description="The thread priority for processors using the internal Executor. -1 indicates an external Executor is being used."
+                   type="int"/>
+ 
+     <attribute   name="URIEncoding"
+diff --git a/java/org/apache/tomcat/util/net/AbstractEndpoint.java b/java/org/apache/tomcat/util/net/AbstractEndpoint.java
+index 0bdfb5b..5701b8e 100644
+--- a/java/org/apache/tomcat/util/net/AbstractEndpoint.java
++++ b/java/org/apache/tomcat/util/net/AbstractEndpoint.java
+@@ -160,7 +160,7 @@ public abstract class AbstractEndpoint<S> {
+     /**
+      * Are we using an internal executor
+      */
+-    protected volatile boolean internalExecutor = false;
++    protected volatile boolean internalExecutor = true;
+ 
+ 
+     /**
+@@ -461,21 +461,29 @@ public abstract class AbstractEndpoint<S> {
+ 
+ 
+     private int minSpareThreads = 10;
+-    public int getMinSpareThreads() {
+-        return Math.min(minSpareThreads,getMaxThreads());
+-    }
+     public void setMinSpareThreads(int minSpareThreads) {
+         this.minSpareThreads = minSpareThreads;
+         Executor executor = this.executor;
+-        if (running && executor != null) {
+-            if (executor instanceof java.util.concurrent.ThreadPoolExecutor) {
+-                ((java.util.concurrent.ThreadPoolExecutor) executor).setCorePoolSize(minSpareThreads);
+-            } else if (executor instanceof ResizableExecutor) {
+-                ((ResizableExecutor) executor).resizePool(minSpareThreads, maxThreads);
+-            }
++        if (internalExecutor && executor instanceof java.util.concurrent.ThreadPoolExecutor) {
++            // The internal executor should always be an instance of
++            // j.u.c.ThreadPoolExecutor but it may be null if the endpoint is
++            // not running.
++            // This check also avoids various threading issues.
++            ((java.util.concurrent.ThreadPoolExecutor) executor).setCorePoolSize(minSpareThreads);
++        }
++    }
++    public int getMinSpareThreads() {
++        return Math.min(getMinSpareThreadsInternal(), getMaxThreads());
++    }
++    private int getMinSpareThreadsInternal() {
++        if (internalExecutor) {
++            return minSpareThreads;
++        } else {
++            return -1;
+         }
+     }
+ 
++
+     /**
+      * Maximum amount of worker threads.
+      */
+@@ -483,32 +491,40 @@ public abstract class AbstractEndpoint<S> {
+     public void setMaxThreads(int maxThreads) {
+         this.maxThreads = maxThreads;
+         Executor executor = this.executor;
+-        if (running && executor != null) {
+-            if (executor instanceof java.util.concurrent.ThreadPoolExecutor) {
+-                ((java.util.concurrent.ThreadPoolExecutor) executor).setMaximumPoolSize(maxThreads);
+-            } else if (executor instanceof ResizableExecutor) {
+-                ((ResizableExecutor) executor).resizePool(minSpareThreads, maxThreads);
+-            }
++        if (internalExecutor && executor instanceof java.util.concurrent.ThreadPoolExecutor) {
++            // The internal executor should always be an instance of
++            // j.u.c.ThreadPoolExecutor but it may be null if the endpoint is
++            // not running.
++            // This check also avoids various threading issues.
++            ((java.util.concurrent.ThreadPoolExecutor) executor).setMaximumPoolSize(maxThreads);
+         }
+     }
+     public int getMaxThreads() {
+-        return getMaxThreadsExecutor(running);
++        if (internalExecutor) {
++            return maxThreads;
++        } else {
++            return -1;
++        }
+     }
+-    protected int getMaxThreadsExecutor(boolean useExecutor) {
+-        Executor executor = this.executor;
+-        if (useExecutor && executor != null) {
+-            if (executor instanceof java.util.concurrent.ThreadPoolExecutor) {
+-                return ((java.util.concurrent.ThreadPoolExecutor)executor).getMaximumPoolSize();
+-            } else if (executor instanceof ResizableExecutor) {
+-                return ((ResizableExecutor)executor).getMaxThreads();
+-            } else {
+-                return -1;
+-            }
++
++
++    /**
++     * Priority of the worker threads.
++     */
++    protected int threadPriority = Thread.NORM_PRIORITY;
++    public void setThreadPriority(int threadPriority) {
++        // Can't change this once the executor has started
++        this.threadPriority = threadPriority;
++    }
++    public int getThreadPriority() {
++        if (internalExecutor) {
++            return threadPriority;
+         } else {
+-            return maxThreads;
++            return -1;
+         }
+     }
+ 
++
+     /**
+      * Max keep alive requests
+      */
+@@ -549,13 +565,6 @@ public abstract class AbstractEndpoint<S> {
+     public boolean getDaemon() { return daemon; }
+ 
+ 
+-    /**
+-     * Priority of the worker threads.
+-     */
+-    protected int threadPriority = Thread.NORM_PRIORITY;
+-    public void setThreadPriority(int threadPriority) { this.threadPriority = threadPriority; }
+-    public int getThreadPriority() { return threadPriority; }
+-
+     protected abstract boolean getDeferAccept();
+ 
+ 
+diff --git a/webapps/docs/changelog.xml b/webapps/docs/changelog.xml
+index 6e7b49d..eb047f7 100644
+--- a/webapps/docs/changelog.xml
++++ b/webapps/docs/changelog.xml
+@@ -156,6 +156,15 @@
+         <code>soTimeout</code> that were renamed several major versions ago.
+         (markt)
+       </scode>
++      <fix>
++        <bug>60319</bug>: When using an Executor, disconnect it from the
++        Connector attributes <code>maxThreads</code>,
++        <code>minSpareThreads</code> and <code>threadPriority</code> to enable
++        the configuration settings to be consistently reported. These Connector
++        attributes will be reported as <code>-1</code> when an Executor is in
++        use. The values used by the executor may be set and obtained via the
++        Executor. (markt) 
++      </fix>      
+     </changelog>
+   </subsection>
+   <subsection name="Jasper">
+diff --git a/webapps/docs/config/ajp.xml b/webapps/docs/config/ajp.xml
+index b6c7b76..4da1b87 100644
+--- a/webapps/docs/config/ajp.xml
++++ b/webapps/docs/config/ajp.xml
+@@ -398,12 +398,20 @@
+       maximum number of simultaneous requests that can be handled.  If
+       not specified, this attribute is set to 200. If an executor is associated
+       with this connector, this attribute is ignored as the connector will
+-      execute tasks using the executor rather than an internal thread pool.</p>
++      execute tasks using the executor rather than an internal thread pool. Note
++      that if an executor is configured any value set for this attribute will be
++      recorded correctly but it will be reported (e.g. via JMX) as
++      <code>-1</code> to make clear that it is not used.</p>
+     </attribute>
+ 
+     <attribute name="minSpareThreads" required="false">
+       <p>The minimum number of threads always kept running. If not specified,
+-      the default of <code>10</code> is used.</p>
++      the default of <code>10</code> is used. If an executor is associated
++      with this connector, this attribute is ignored as the connector will
++      execute tasks using the executor rather than an internal thread pool. Note
++      that if an executor is configured any value set for this attribute will be
++      recorded correctly but it will be reported (e.g. via JMX) as
++      <code>-1</code> to make clear that it is not used.</p>
+     </attribute>
+ 
+     <attribute name="packetSize" required="false">
+@@ -442,8 +450,12 @@
+       The default value is <code>5</code> (the value of the
+       <code>java.lang.Thread.NORM_PRIORITY</code> constant). See the JavaDoc
+       for the <code>java.lang.Thread</code> class for more details on what
+-      this priority means.
+-      </p>
++      this priority means.If an executor is associated
++      with this connector, this attribute is ignored as the connector will
++      execute tasks using the executor rather than an internal thread pool. Note
++      that if an executor is configured any value set for this attribute will be
++      recorded correctly but it will be reported (e.g. via JMX) as
++      <code>-1</code> to make clear that it is not used.</p>
+     </attribute>
+ 
+     <attribute name="throwOnFailure" required="false">
+diff --git a/webapps/docs/config/http.xml b/webapps/docs/config/http.xml
+index 942fb9b..3206672 100644
+--- a/webapps/docs/config/http.xml
++++ b/webapps/docs/config/http.xml
+@@ -495,7 +495,10 @@
+       maximum number of simultaneous requests that can be handled.  If
+       not specified, this attribute is set to 200. If an executor is associated
+       with this connector, this attribute is ignored as the connector will
+-      execute tasks using the executor rather than an internal thread pool.</p>
++      execute tasks using the executor rather than an internal thread pool. Note
++      that if an executor is configured any value set for this attribute will be
++      recorded correctly but it will be reported (e.g. via JMX) as
++      <code>-1</code> to make clear that it is not used.</p>
+     </attribute>
+ 
+     <attribute name="maxTrailerSize" required="false">
+@@ -507,7 +510,12 @@
+ 
+     <attribute name="minSpareThreads" required="false">
+       <p>The minimum number of threads always kept running. If not specified,
+-      the default of <code>10</code> is used.</p>
++      the default of <code>10</code> is used. If an executor is associated
++      with this connector, this attribute is ignored as the connector will
++      execute tasks using the executor rather than an internal thread pool. Note
++      that if an executor is configured any value set for this attribute will be
++      recorded correctly but it will be reported (e.g. via JMX) as
++      <code>-1</code> to make clear that it is not used.</p>
+     </attribute>
+ 
+     <attribute name="noCompressionUserAgents" required="false">
+@@ -575,8 +583,12 @@
+       The default value is <code>5</code> (the value of the
+       <code>java.lang.Thread.NORM_PRIORITY</code> constant). See the JavaDoc
+       for the <code>java.lang.Thread</code> class for more details on what
+-      this priority means.
+-      </p>
++      this priority means. If an executor is associated
++      with this connector, this attribute is ignored as the connector will
++      execute tasks using the executor rather than an internal thread pool. Note
++      that if an executor is configured any value set for this attribute will be
++      recorded correctly but it will be reported (e.g. via JMX) as
++      <code>-1</code> to make clear that it is not used.</p>
+     </attribute>
+ 
+     <attribute name="throwOnFailure" required="false">

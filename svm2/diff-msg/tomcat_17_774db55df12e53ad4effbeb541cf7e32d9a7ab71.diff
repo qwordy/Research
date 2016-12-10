@@ -1,0 +1,31 @@
+commit 774db55df12e53ad4effbeb541cf7e32d9a7ab71
+Author: Felix Schumacher <fschumacher@apache.org>
+Date:   Sun Mar 13 11:28:01 2016 +0000
+
+    Use ConcurrentMap as interface instead of simple Map.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1734785 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/tribes/transport/SenderState.java b/java/org/apache/catalina/tribes/transport/SenderState.java
+index 3e7b2c2..6fed593 100644
+--- a/java/org/apache/catalina/tribes/transport/SenderState.java
++++ b/java/org/apache/catalina/tribes/transport/SenderState.java
+@@ -16,8 +16,8 @@
+  */
+ package org.apache.catalina.tribes.transport;
+ 
+-import java.util.Map;
+ import java.util.concurrent.ConcurrentHashMap;
++import java.util.concurrent.ConcurrentMap;
+ 
+ import org.apache.catalina.tribes.Member;
+ 
+@@ -27,7 +27,7 @@ public class SenderState {
+     public static final int SUSPECT = 1;
+     public static final int FAILING = 2;
+ 
+-    protected static final Map<Member, SenderState> memberStates = new ConcurrentHashMap<>();
++    protected static final ConcurrentMap<Member, SenderState> memberStates = new ConcurrentHashMap<>();
+ 
+     public static SenderState getSenderState(Member member) {
+         return getSenderState(member, true);

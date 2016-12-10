@@ -1,0 +1,26 @@
+commit 778f4a3cbcb203a47fb5400c268481809e20770d
+Author: Norman Maurer <norman@apache.org>
+Date:   Sat Apr 7 21:56:58 2012 +0200
+
+    Make sure Future get notified before event is fired. See #254
+
+diff --git a/transport/src/main/java/io/netty/channel/socket/oio/OioWorker.java b/transport/src/main/java/io/netty/channel/socket/oio/OioWorker.java
+index 5d4eb6a..fa4578d 100644
+--- a/transport/src/main/java/io/netty/channel/socket/oio/OioWorker.java
++++ b/transport/src/main/java/io/netty/channel/socket/oio/OioWorker.java
+@@ -110,13 +110,13 @@ class OioWorker extends AbstractOioWorker<OioSocketChannel> {
+                     a.getBytes(a.readerIndex(), out, length);
+                 }
+             }
+-
++            
++            future.setSuccess();
+             if (iothread) {
+                 fireWriteComplete(channel, length);
+             } else {
+                 fireWriteCompleteLater(channel, length);
+             }
+-            future.setSuccess();
+  
+         } catch (Throwable t) {
+             // Convert 'SocketException: Socket closed' to

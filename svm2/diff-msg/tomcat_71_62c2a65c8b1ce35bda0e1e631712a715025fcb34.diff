@@ -1,0 +1,104 @@
+commit 62c2a65c8b1ce35bda0e1e631712a715025fcb34
+Author: Konstantin Kolinko <kkolinko@apache.org>
+Date:   Tue Jun 12 16:58:38 2012 +0000
+
+    Review of Context.getApplicationLifecycleListeners() calls:
+    Do less work if there are no listeners or 'notify' flag is false.
+    I do not expect much effect from this change, because implementation of Context.getApplicationLifecycleListeners() in StandardContext is lightweight: it returns a field value. Note that by default it returns an empty array, not null.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1349439 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/core/StandardContext.java b/java/org/apache/catalina/core/StandardContext.java
+index b95e131..f1e4a31 100644
+--- a/java/org/apache/catalina/core/StandardContext.java
++++ b/java/org/apache/catalina/core/StandardContext.java
+@@ -4658,7 +4658,7 @@ public class StandardContext extends ContainerBase
+         context.setNewServletContextListenerAllowed(false);
+ 
+         Object instances[] = getApplicationLifecycleListeners();
+-        if (instances == null)
++        if (instances == null || instances.length == 0)
+             return (ok);
+         ServletContextEvent event =
+           new ServletContextEvent(getServletContext());
+@@ -4699,7 +4699,7 @@ public class StandardContext extends ContainerBase
+ 
+         boolean ok = true;
+         Object listeners[] = getApplicationLifecycleListeners();
+-        if (listeners != null) {
++        if (listeners != null && listeners.length > 0) {
+             ServletContextEvent event =
+                 new ServletContextEvent(getServletContext());
+             for (int i = 0; i < listeners.length; i++) {
+diff --git a/java/org/apache/catalina/session/StandardSession.java b/java/org/apache/catalina/session/StandardSession.java
+index f1bc359..b66333c 100644
+--- a/java/org/apache/catalina/session/StandardSession.java
++++ b/java/org/apache/catalina/session/StandardSession.java
+@@ -402,7 +402,7 @@ public class StandardSession implements HttpSession, Session, Serializable {
+         // Notify interested application event listeners
+         Context context = (Context) manager.getContainer();
+         Object listeners[] = context.getApplicationLifecycleListeners();
+-        if (listeners != null) {
++        if (listeners != null && listeners.length > 0) {
+             HttpSessionEvent event =
+                 new HttpSessionEvent(getSession());
+             for (int i = 0; i < listeners.length; i++) {
+@@ -770,32 +770,34 @@ public class StandardSession implements HttpSession, Session, Serializable {
+                 }
+             }
+             try {
+-                Object listeners[] = context.getApplicationLifecycleListeners();
+-                if (notify && (listeners != null)) {
+-                    HttpSessionEvent event =
+-                        new HttpSessionEvent(getSession());
+-                    for (int i = 0; i < listeners.length; i++) {
+-                        int j = (listeners.length - 1) - i;
+-                        if (!(listeners[j] instanceof HttpSessionListener))
+-                            continue;
+-                        HttpSessionListener listener =
+-                            (HttpSessionListener) listeners[j];
+-                        try {
+-                            context.fireContainerEvent("beforeSessionDestroyed",
+-                                    listener);
+-                            listener.sessionDestroyed(event);
+-                            context.fireContainerEvent("afterSessionDestroyed",
+-                                    listener);
+-                        } catch (Throwable t) {
+-                            ExceptionUtils.handleThrowable(t);
++                if (notify) {
++                    Object listeners[] = context.getApplicationLifecycleListeners();
++                    if (listeners != null && listeners.length > 0) {
++                        HttpSessionEvent event =
++                            new HttpSessionEvent(getSession());
++                        for (int i = 0; i < listeners.length; i++) {
++                            int j = (listeners.length - 1) - i;
++                            if (!(listeners[j] instanceof HttpSessionListener))
++                                continue;
++                            HttpSessionListener listener =
++                                (HttpSessionListener) listeners[j];
+                             try {
+-                                context.fireContainerEvent(
+-                                        "afterSessionDestroyed", listener);
+-                            } catch (Exception e) {
+-                                // Ignore
++                                context.fireContainerEvent("beforeSessionDestroyed",
++                                        listener);
++                                listener.sessionDestroyed(event);
++                                context.fireContainerEvent("afterSessionDestroyed",
++                                        listener);
++                            } catch (Throwable t) {
++                                ExceptionUtils.handleThrowable(t);
++                                try {
++                                    context.fireContainerEvent(
++                                            "afterSessionDestroyed", listener);
++                                } catch (Exception e) {
++                                    // Ignore
++                                }
++                                manager.getContainer().getLogger().error
++                                    (sm.getString("standardSession.sessionEvent"), t);
+                             }
+-                            manager.getContainer().getLogger().error
+-                                (sm.getString("standardSession.sessionEvent"), t);
+                         }
+                     }
+                 }

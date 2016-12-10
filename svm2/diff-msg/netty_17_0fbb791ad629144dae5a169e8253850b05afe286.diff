@@ -1,0 +1,31 @@
+commit 0fbb791ad629144dae5a169e8253850b05afe286
+Author: buchgr <jakob.buchgraber@tum.de>
+Date:   Wed Jul 6 16:40:14 2016 +0200
+
+    Make AbstractChannel.outboundBuffer volatile.
+    
+    Motivation:
+    
+    The field can be read from arbitrary threads via Channel.(isWritable()|bytesBeforeWritable()|bytesBeforeUnwritable()), WriteAndFlushTask.newInstance(), PendingWriteQueue, etc.
+    
+    Modifications:
+    
+    Make AbstractChannel.outboundBuffer volatile.
+    
+    Result:
+    
+    More correct in a concurrent use case.
+
+diff --git a/transport/src/main/java/io/netty/channel/AbstractChannel.java b/transport/src/main/java/io/netty/channel/AbstractChannel.java
+index af27830..7552873 100644
+--- a/transport/src/main/java/io/netty/channel/AbstractChannel.java
++++ b/transport/src/main/java/io/netty/channel/AbstractChannel.java
+@@ -413,7 +413,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
+      */
+     protected abstract class AbstractUnsafe implements Unsafe {
+ 
+-        private ChannelOutboundBuffer outboundBuffer = new ChannelOutboundBuffer(AbstractChannel.this);
++        private volatile ChannelOutboundBuffer outboundBuffer = new ChannelOutboundBuffer(AbstractChannel.this);
+         private RecvByteBufAllocator.Handle recvHandle;
+         private boolean inFlush0;
+         /** true if the channel has never been registered, false otherwise */

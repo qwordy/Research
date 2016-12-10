@@ -1,0 +1,39 @@
+commit 1e5d2c612bd63e45307eff505b242917ecb4b328
+Author: Junping Du <junping_du@apache.org>
+Date:   Thu May 15 07:07:18 2014 +0000
+
+    MAPREDUCE-5861. finishedSubMaps field in LocalContainerLauncher does not need to be volatile. (Contributed by Tsuyoshi OZAWA)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1594795 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/hadoop-mapreduce-project/CHANGES.txt b/hadoop-mapreduce-project/CHANGES.txt
+index 3b8749d..88652df 100644
+--- a/hadoop-mapreduce-project/CHANGES.txt
++++ b/hadoop-mapreduce-project/CHANGES.txt
+@@ -194,6 +194,9 @@ Release 2.5.0 - UNRELEASED
+     MAPREDUCE-5652. NM Recovery. ShuffleHandler should handle NM restarts.
+     (Jason Lowe via kasha)
+ 
++    MAPREDUCE-5861. finishedSubMaps field in LocalContainerLauncher does not 
++    need to be volatile. (Tsuyoshi OZAWA via junping_du)
++
+   OPTIMIZATIONS
+ 
+   BUG FIXES 
+diff --git a/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-app/src/main/java/org/apache/hadoop/mapred/LocalContainerLauncher.java b/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-app/src/main/java/org/apache/hadoop/mapred/LocalContainerLauncher.java
+index a21b3d5..6425144 100644
+--- a/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-app/src/main/java/org/apache/hadoop/mapred/LocalContainerLauncher.java
++++ b/hadoop-mapreduce-project/hadoop-mapreduce-client/hadoop-mapreduce-client-app/src/main/java/org/apache/hadoop/mapred/LocalContainerLauncher.java
+@@ -177,8 +177,10 @@ public void handle(ContainerLauncherEvent event) {
+    */
+   private class EventHandler implements Runnable {
+ 
+-    private volatile boolean doneWithMaps = false;
+-    private volatile int finishedSubMaps = 0;
++    // doneWithMaps and finishedSubMaps are accessed from only
++    // one thread. Therefore, no need to make them volatile.
++    private boolean doneWithMaps = false;
++    private int finishedSubMaps = 0;
+ 
+     private final Map<TaskAttemptId,Future<?>> futures =
+         new ConcurrentHashMap<TaskAttemptId,Future<?>>();

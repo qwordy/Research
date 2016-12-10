@@ -1,0 +1,323 @@
+commit 3288cacf8dee818a7432b3baae41d617ba168b96
+Author: agonigberg <agonigberg@netflix.com>
+Date:   Wed Jun 15 00:19:15 2016 -0700
+
+    Pluggable resource leak detector
+    
+    Allow users of Netty to plug in their own leak detector for the purpose
+    of instrumentation.
+    
+    Motivation:
+    
+    We are rolling out a large Netty deployment and want to be able to
+    track the amount of leaks we're seeing in production via custom
+    instrumentation. In order to achieve this today, I had to plug in a
+    custom `ByteBufAllocator` into the bootstrap and have it initialize a
+    custom `ResourceLeakDetector`. Due to these classes mostly being marked
+    `final` or having private or static methods, a lot of the code had to
+    be copy-pasted and it's quite ugly.
+    
+    Modifications:
+    
+    * I've added a static loader method for the `ResourceLeakDetector` in
+    `AbstractByteBuf` that tries to instantiate the class passed in via the
+    `-Dio.netty.customResourceLeakDetector`, otherwise falling back to the
+    default one.
+    * I've modified `ResourceLeakDetector` to be non-final and to have the
+    reporting broken out in to methods that can be overridden.
+    
+    Result:
+    
+    You can instrument leaks in your application by just adding something
+    like the following:
+    
+    ```java
+    public class InstrumentedResourceLeakDetector<T> extends
+    ResourceLeakDetector<T> {
+    
+        @Monitor("InstanceLeakCounter")
+        private final AtomicInteger instancesLeakCounter;
+    
+        @Monitor("LeakCounter")
+        private final AtomicInteger leakCounter;
+    
+        public InstrumentedResourceLeakDetector(Class<T> resource) {
+            super(resource);
+            this.instancesLeakCounter = new AtomicInteger();
+            this.leakCounter = new AtomicInteger();
+        }
+    
+        @Override
+        protected void reportTracedLeak(String records) {
+            super.reportTracedLeak(records);
+            leakCounter.incrementAndGet();
+        }
+    
+        @Override
+        protected void reportUntracedLeak() {
+            super.reportUntracedLeak();
+            leakCounter.incrementAndGet();
+        }
+    
+        @Override
+        protected void reportInstancesLeak() {
+            super.reportInstancesLeak();
+            instancesLeakCounter.incrementAndGet();
+        }
+    }
+    ```
+
+diff --git a/buffer/src/main/java/io/netty/buffer/AbstractByteBuf.java b/buffer/src/main/java/io/netty/buffer/AbstractByteBuf.java
+index 5b1d29c..9c4a2be 100644
+--- a/buffer/src/main/java/io/netty/buffer/AbstractByteBuf.java
++++ b/buffer/src/main/java/io/netty/buffer/AbstractByteBuf.java
+@@ -19,6 +19,7 @@ import io.netty.util.ByteProcessor;
+ import io.netty.util.CharsetUtil;
+ import io.netty.util.IllegalReferenceCountException;
+ import io.netty.util.ResourceLeakDetector;
++import io.netty.util.ResourceLeakDetectorFactory;
+ import io.netty.util.internal.PlatformDependent;
+ import io.netty.util.internal.StringUtil;
+ import io.netty.util.internal.SystemPropertyUtil;
+@@ -52,7 +53,8 @@ public abstract class AbstractByteBuf extends ByteBuf {
+         }
+     }
+ 
+-    static final ResourceLeakDetector<ByteBuf> leakDetector = new ResourceLeakDetector<ByteBuf>(ByteBuf.class);
++    static final ResourceLeakDetector<ByteBuf> leakDetector =
++            ResourceLeakDetectorFactory.instance().newResourceLeakDetector(ByteBuf.class);
+ 
+     int readerIndex;
+     int writerIndex;
+diff --git a/codec-dns/src/main/java/io/netty/handler/codec/dns/AbstractDnsMessage.java b/codec-dns/src/main/java/io/netty/handler/codec/dns/AbstractDnsMessage.java
+index 41b18e3..bdd5378 100644
+--- a/codec-dns/src/main/java/io/netty/handler/codec/dns/AbstractDnsMessage.java
++++ b/codec-dns/src/main/java/io/netty/handler/codec/dns/AbstractDnsMessage.java
+@@ -20,6 +20,7 @@ import io.netty.util.ReferenceCountUtil;
+ import io.netty.util.ReferenceCounted;
+ import io.netty.util.ResourceLeak;
+ import io.netty.util.ResourceLeakDetector;
++import io.netty.util.ResourceLeakDetectorFactory;
+ import io.netty.util.internal.StringUtil;
+ import io.netty.util.internal.UnstableApi;
+ 
+@@ -35,7 +36,7 @@ import static io.netty.util.internal.ObjectUtil.checkNotNull;
+ public abstract class AbstractDnsMessage extends AbstractReferenceCounted implements DnsMessage {
+ 
+     private static final ResourceLeakDetector<DnsMessage> leakDetector =
+-            new ResourceLeakDetector<DnsMessage>(DnsMessage.class);
++            ResourceLeakDetectorFactory.instance().newResourceLeakDetector(DnsMessage.class);
+ 
+     private static final int SECTION_QUESTION = DnsSection.QUESTION.ordinal();
+     private static final int SECTION_COUNT = 4;
+diff --git a/common/src/main/java/io/netty/util/ResourceLeakDetector.java b/common/src/main/java/io/netty/util/ResourceLeakDetector.java
+index df25e4c..1ef4899 100644
+--- a/common/src/main/java/io/netty/util/ResourceLeakDetector.java
++++ b/common/src/main/java/io/netty/util/ResourceLeakDetector.java
+@@ -34,7 +34,7 @@ import static io.netty.util.internal.StringUtil.EMPTY_STRING;
+ import static io.netty.util.internal.StringUtil.NEWLINE;
+ import static io.netty.util.internal.StringUtil.simpleClassName;
+ 
+-public final class ResourceLeakDetector<T> {
++public class ResourceLeakDetector<T> {
+ 
+     private static final String PROP_LEVEL_OLD = "io.netty.leakDetectionLevel";
+     private static final String PROP_LEVEL = "io.netty.leakDetection.level";
+@@ -234,9 +234,7 @@ public final class ResourceLeakDetector<T> {
+         // Report too many instances.
+         int samplingInterval = level == Level.PARANOID? 1 : this.samplingInterval;
+         if (active * samplingInterval > maxActive && loggedTooManyActive.compareAndSet(false, true)) {
+-            logger.error("LEAK: You are creating too many " + resourceType + " instances.  " +
+-                    resourceType + " is a shared resource that must be reused across the JVM," +
+-                    "so that only a few instances are created.");
++            reportInstancesLeak(resourceType);
+         }
+ 
+         // Detect and report previous leaks.
+@@ -256,22 +254,48 @@ public final class ResourceLeakDetector<T> {
+             String records = ref.toString();
+             if (reportedLeaks.putIfAbsent(records, Boolean.TRUE) == null) {
+                 if (records.isEmpty()) {
+-                    logger.error("LEAK: {}.release() was not called before it's garbage-collected. " +
+-                            "Enable advanced leak reporting to find out where the leak occurred. " +
+-                            "To enable advanced leak reporting, " +
+-                            "specify the JVM option '-D{}={}' or call {}.setLevel() " +
+-                            "See http://netty.io/wiki/reference-counted-objects.html for more information.",
+-                            resourceType, PROP_LEVEL, Level.ADVANCED.name().toLowerCase(), simpleClassName(this));
++                    reportUntracedLeak(resourceType);
+                 } else {
+-                    logger.error(
+-                            "LEAK: {}.release() was not called before it's garbage-collected. " +
+-                            "See http://netty.io/wiki/reference-counted-objects.html for more information.{}",
+-                            resourceType, records);
++                    reportTracedLeak(resourceType, records);
+                 }
+             }
+         }
+     }
+ 
++    /**
++     * This method is called when a traced leak is detected. It can be overridden for tracking how many times leaks
++     * have been detected.
++     */
++    protected void reportTracedLeak(String resourceType, String records) {
++        logger.error(
++                "LEAK: {}.release() was not called before it's garbage-collected. " +
++                "See http://netty.io/wiki/reference-counted-objects.html for more information.{}",
++                resourceType, records);
++    }
++
++    /**
++     * This method is called when an untraced leak is detected. It can be overridden for tracking how many times leaks
++     * have been detected.
++     */
++    protected void reportUntracedLeak(String resourceType) {
++        logger.error("LEAK: {}.release() was not called before it's garbage-collected. " +
++                "Enable advanced leak reporting to find out where the leak occurred. " +
++                "To enable advanced leak reporting, " +
++                "specify the JVM option '-D{}={}' or call {}.setLevel() " +
++                "See http://netty.io/wiki/reference-counted-objects.html for more information.",
++                resourceType, PROP_LEVEL, Level.ADVANCED.name().toLowerCase(), simpleClassName(this));
++    }
++
++    /**
++     * This method is called when instance leaks are detected. It can be overridden for tracking how many times leaks
++     * have been detected.
++     */
++    protected void reportInstancesLeak(String resourceType) {
++        logger.error("LEAK: You are creating too many " + resourceType + " instances.  " +
++                resourceType + " is a shared resource that must be reused across the JVM," +
++                "so that only a few instances are created.");
++    }
++
+     private final class DefaultResourceLeak extends PhantomReference<Object> implements ResourceLeak {
+         private final String creationRecord;
+         private final Deque<String> lastRecords = new ArrayDeque<String>();
+diff --git a/common/src/main/java/io/netty/util/ResourceLeakDetectorFactory.java b/common/src/main/java/io/netty/util/ResourceLeakDetectorFactory.java
+new file mode 100644
+index 0000000..c2fb716
+--- /dev/null
++++ b/common/src/main/java/io/netty/util/ResourceLeakDetectorFactory.java
+@@ -0,0 +1,122 @@
++/*
++ * Copyright 2016 The Netty Project
++ *
++ * The Netty Project licenses this file to you under the Apache License,
++ * version 2.0 (the "License"); you may not use this file except in compliance
++ * with the License. You may obtain a copy of the License at:
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations
++ * under the License.
++ */
++
++package io.netty.util;
++
++import io.netty.util.internal.ObjectUtil;
++import io.netty.util.internal.PlatformDependent;
++import io.netty.util.internal.SystemPropertyUtil;
++import io.netty.util.internal.logging.InternalLogger;
++import io.netty.util.internal.logging.InternalLoggerFactory;
++
++import java.lang.reflect.Constructor;
++import java.security.AccessController;
++import java.security.PrivilegedAction;
++
++/**
++ * This static factory should be used to load {@link ResourceLeakDetector}s as needed
++ */
++public abstract class ResourceLeakDetectorFactory {
++    private static final InternalLogger logger = InternalLoggerFactory.getInstance(ResourceLeakDetectorFactory.class);
++
++    private static volatile ResourceLeakDetectorFactory factoryInstance = new DefaultResourceLeakDetectorFactory();
++
++    /**
++     * Get the singleton instance of this factory class.
++     *
++     * @return - the current {@link ResourceLeakDetectorFactory}
++     */
++    public static ResourceLeakDetectorFactory instance() {
++        return factoryInstance;
++    }
++
++    /**
++     * Set the factory's singleton instance. This has to be called before the static initializer of the
++     * {@link ResourceLeakDetector} is called by all the callers of this factory. That is, before initializing a
++     * Netty Bootstrap.
++     *
++     * @param factory - the instance that will become the current {@link ResourceLeakDetectorFactory}'s singleton
++     */
++    public static void setResourceLeakDetectorFactory(ResourceLeakDetectorFactory factory) {
++        factoryInstance = ObjectUtil.checkNotNull(factory, "factory");
++    }
++
++    /**
++     * Returns a new instance of a {@link ResourceLeakDetector} with the given resource class.
++     *
++     * @param resource - the resource class used to initialize the {@link ResourceLeakDetector}
++     * @param <T> - the type of the resource class
++     * @return - a new instance of {@link ResourceLeakDetector}
++     */
++    public abstract <T> ResourceLeakDetector<T> newResourceLeakDetector(final Class<T> resource);
++
++    /**
++     * Default implementation that loads custom leak detector via system property
++     */
++    private static final class DefaultResourceLeakDetectorFactory extends ResourceLeakDetectorFactory {
++
++        private final String customLeakDetector;
++        private final Constructor customClassConstructor;
++
++        public DefaultResourceLeakDetectorFactory() {
++            this.customLeakDetector = AccessController.doPrivileged(new PrivilegedAction<String>() {
++                @Override
++                public String run() {
++                    return SystemPropertyUtil.get("io.netty.customResourceLeakDetector");
++                }
++            });
++
++            this.customClassConstructor = customClassConstructor();
++        }
++
++        private Constructor customClassConstructor() {
++            try {
++                if (customLeakDetector != null) {
++                    final Class<?> detectorClass = Class.forName(customLeakDetector, true,
++                            PlatformDependent.getSystemClassLoader());
++
++                    if (ResourceLeakDetector.class.isAssignableFrom(detectorClass)) {
++                        return detectorClass.getConstructor(Class.class);
++                    } else {
++                        logger.error("Class {} does not inherit from ResourceLeakDetector.", customLeakDetector);
++                    }
++                }
++            } catch (Throwable t) {
++                logger.error("Could not load custom resource leak detector class provided: " + customLeakDetector, t);
++            }
++            return null;
++        }
++
++        @Override
++        public <T> ResourceLeakDetector<T> newResourceLeakDetector(final Class<T> resource) {
++            try {
++                if (customClassConstructor != null) {
++                    ResourceLeakDetector<T> leakDetector =
++                            (ResourceLeakDetector<T>) customClassConstructor.newInstance(resource);
++                    logger.debug("Loaded custom ResourceLeakDetector: {}", customLeakDetector);
++                    return leakDetector;
++                }
++            } catch (Throwable t) {
++                logger.error("Could not load custom resource leak detector provided: {} with the given resource: {}",
++                        customLeakDetector, resource, t);
++            }
++
++            ResourceLeakDetector<T> resourceLeakDetector = new ResourceLeakDetector<T>(resource);
++            logger.debug("Loaded default ResourceLeakDetector: {}", resourceLeakDetector);
++            return resourceLeakDetector;
++        }
++    }
++}

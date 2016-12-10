@@ -1,0 +1,46 @@
+commit 9e22ce1a3d9dae7a7a035518d4830a0b4d3012a0
+Author: Felix Schumacher <fschumacher@apache.org>
+Date:   Sun Feb 1 15:38:42 2015 +0000
+
+    Guard the digester with its own lock object. Otherwise two threads could create
+    two digester instances, lock on them and then use still the same one at the
+    same time. Remove the now unneeded volatile marker from digester. Issue
+    reported by Coverity Scan.
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1656319 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/tomcat/util/modeler/modules/MbeansDescriptorsDigesterSource.java b/java/org/apache/tomcat/util/modeler/modules/MbeansDescriptorsDigesterSource.java
+index 3874f15..bd439ec 100644
+--- a/java/org/apache/tomcat/util/modeler/modules/MbeansDescriptorsDigesterSource.java
++++ b/java/org/apache/tomcat/util/modeler/modules/MbeansDescriptorsDigesterSource.java
+@@ -36,10 +36,11 @@ public class MbeansDescriptorsDigesterSource extends ModelerSource
+ {
+     private static final Log log =
+             LogFactory.getLog(MbeansDescriptorsDigesterSource.class);
++    private static final Object dLock = new Object();
+ 
+     private Registry registry;
+     private final List<ObjectName> mbeans = new ArrayList<>();
+-    private static volatile Digester digester = null;
++    private static Digester digester = null;
+ 
+     private static Digester createDigester() {
+ 
+@@ -156,12 +157,11 @@ public class MbeansDescriptorsDigesterSource extends ModelerSource
+ 
+         InputStream stream = (InputStream) source;
+ 
+-        if (digester == null) {
+-            digester = createDigester();
+-        }
+         ArrayList<ManagedBean> loadedMbeans = new ArrayList<>();
+-
+-        synchronized (digester) {
++        synchronized(dLock) {
++            if (digester == null) {
++                digester = createDigester();
++            }
+ 
+             // Process the input file to configure our registry
+             try {

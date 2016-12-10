@@ -1,0 +1,87 @@
+commit 32933821bb488c683e6bf8acad54be7f9a7b033b
+Author: Scott Mitchell <scott_mitchell@apple.com>
+Date:   Mon Dec 7 18:23:03 2015 -0800
+
+    AbstractFuture should not wrap CancellationException
+    
+    Motivation:
+    AbstractFuture currently wraps CancellationException in a ExecutionException. However the interface of Future says that this exception should be directly thrown.
+    
+    Modifications:
+    - Throw CancellationException from AbstractFuture.get
+    
+    Result:
+    Interface contract for CancellationException is honored in AbstractFuture.
+
+diff --git a/common/src/main/java/io/netty/util/concurrent/AbstractFuture.java b/common/src/main/java/io/netty/util/concurrent/AbstractFuture.java
+index b6073b6..c0a95de 100644
+--- a/common/src/main/java/io/netty/util/concurrent/AbstractFuture.java
++++ b/common/src/main/java/io/netty/util/concurrent/AbstractFuture.java
+@@ -15,6 +15,7 @@
+  */
+ package io.netty.util.concurrent;
+ 
++import java.util.concurrent.CancellationException;
+ import java.util.concurrent.ExecutionException;
+ import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.TimeoutException;
+@@ -34,6 +35,9 @@ public abstract class AbstractFuture<V> implements Future<V> {
+         if (cause == null) {
+             return getNow();
+         }
++        if (cause instanceof CancellationException) {
++            throw (CancellationException) cause;
++        }
+         throw new ExecutionException(cause);
+     }
+ 
+@@ -44,6 +48,9 @@ public abstract class AbstractFuture<V> implements Future<V> {
+             if (cause == null) {
+                 return getNow();
+             }
++            if (cause instanceof CancellationException) {
++                throw (CancellationException) cause;
++            }
+             throw new ExecutionException(cause);
+         }
+         throw new TimeoutException();
+diff --git a/common/src/test/java/io/netty/util/concurrent/DefaultPromiseTest.java b/common/src/test/java/io/netty/util/concurrent/DefaultPromiseTest.java
+index 59085d6..58e9890 100644
+--- a/common/src/test/java/io/netty/util/concurrent/DefaultPromiseTest.java
++++ b/common/src/test/java/io/netty/util/concurrent/DefaultPromiseTest.java
+@@ -19,10 +19,13 @@ package io.netty.util.concurrent;
+ import org.junit.Test;
+ 
+ import java.util.concurrent.BlockingQueue;
++import java.util.concurrent.CancellationException;
+ import java.util.concurrent.CountDownLatch;
++import java.util.concurrent.ExecutionException;
+ import java.util.concurrent.Executors;
+ import java.util.concurrent.LinkedBlockingQueue;
+ import java.util.concurrent.TimeUnit;
++import java.util.concurrent.TimeoutException;
+ import java.util.concurrent.atomic.AtomicInteger;
+ 
+ import static org.hamcrest.CoreMatchers.is;
+@@ -34,6 +37,21 @@ import static org.junit.Assert.assertTrue;
+ @SuppressWarnings("unchecked")
+ public class DefaultPromiseTest {
+ 
++    @Test(expected = CancellationException.class)
++    public void testCancellationExceptionIsThrownWhenBlockingGet() throws InterruptedException, ExecutionException {
++        final Promise<Void> promise = new DefaultPromise<Void>(ImmediateEventExecutor.INSTANCE);
++        promise.cancel(false);
++        promise.get();
++    }
++
++    @Test(expected = CancellationException.class)
++    public void testCancellationExceptionIsThrownWhenBlockingGetWithTimeout() throws InterruptedException,
++            ExecutionException, TimeoutException {
++        final Promise<Void> promise = new DefaultPromise<Void>(ImmediateEventExecutor.INSTANCE);
++        promise.cancel(false);
++        promise.get(1, TimeUnit.SECONDS);
++    }
++
+     @Test
+     public void testNoStackOverflowErrorWithImmediateEventExecutorA() throws Exception {
+         final Promise<Void>[] p = new DefaultPromise[128];

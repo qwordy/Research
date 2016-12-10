@@ -1,0 +1,61 @@
+commit 167829ccf6fdbafb36cd7ebd5d3722e140452514
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Thu Sep 30 21:47:46 2010 +0000
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=49856
+    Add an executorName attribute to Connectors so it is possible to trace ThreadPool to Connector to Executor via JMX.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1003304 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/connector/Connector.java b/java/org/apache/catalina/connector/Connector.java
+index f100a53..a3c9efe 100644
+--- a/java/org/apache/catalina/connector/Connector.java
++++ b/java/org/apache/catalina/connector/Connector.java
+@@ -774,6 +774,15 @@ public class Connector extends LifecycleMBeanBase  {
+         return useIPVHosts;
+     }
+ 
++
++    public String getExecutorName() {
++        Object obj = protocolHandler.getExecutor();
++        if (obj instanceof org.apache.catalina.Executor) {
++            return ((org.apache.catalina.Executor) obj).getName();
++        }
++        return "Internal";
++    }
++
+     // --------------------------------------------------------- Public Methods
+ 
+ 
+diff --git a/java/org/apache/catalina/connector/mbeans-descriptors.xml b/java/org/apache/catalina/connector/mbeans-descriptors.xml
+index e14960f..738d546 100644
+--- a/java/org/apache/catalina/connector/mbeans-descriptors.xml
++++ b/java/org/apache/catalina/connector/mbeans-descriptors.xml
+@@ -71,6 +71,11 @@
+           description="The 'enable DNS lookups' flag for this Connector"
+                  type="boolean"/>
+ 
++    <attribute   name="executorName"
++          description="The name of the executor - if any - associated with this Connector"
++                 type="java.lang.String"
++            writeable="false"/>
++
+     <!-- Common -->
+     <attribute   name="keepAliveTimeout"
+           description="The number of seconds Tomcat will wait for a subsequent request before closing the connection"
+diff --git a/webapps/docs/changelog.xml b/webapps/docs/changelog.xml
+index 0b6b885..2b8095e 100644
+--- a/webapps/docs/changelog.xml
++++ b/webapps/docs/changelog.xml
+@@ -138,6 +138,11 @@
+         and Tomcat 7. (markt)
+       </fix>
+       <fix>
++        <bug>49856</bug>: Add an executorName attribute to Connectors so it is
++        possible to trace ThreadPool to Connector to Executor via the JMX
++        interface. (markt)
++      </fix>
++      <fix>
+         <bug>49865</bug>: Tomcat failed to start if catalina.properties was not
+         present. (markt)
+       </fix>

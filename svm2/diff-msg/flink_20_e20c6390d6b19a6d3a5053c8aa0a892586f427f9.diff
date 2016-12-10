@@ -1,0 +1,51 @@
+commit e20c6390d6b19a6d3a5053c8aa0a892586f427f9
+Author: Aljoscha Krettek <aljoscha.krettek@gmail.com>
+Date:   Mon Dec 14 18:49:45 2015 +0100
+
+    [hotfix] Fix Long.MAX_VALUE watermark emit
+    
+    Before, when the Kafka Source would emit a final Long.MAX_VALUE
+    watermark to signal the end of elements (i.e. no partition assigned).
+    This would trip up the AutomaticWatermarkContext and the
+    NonWatermarkContext.
+    
+    Now, a Long.MAX_VALUE watermark is allowed through.
+
+diff --git a/flink-streaming-java/src/main/java/org/apache/flink/streaming/api/operators/StreamSource.java b/flink-streaming-java/src/main/java/org/apache/flink/streaming/api/operators/StreamSource.java
+index 996e32c..63271c5 100644
+--- a/flink-streaming-java/src/main/java/org/apache/flink/streaming/api/operators/StreamSource.java
++++ b/flink-streaming-java/src/main/java/org/apache/flink/streaming/api/operators/StreamSource.java
+@@ -151,9 +151,15 @@ public class StreamSource<T> extends AbstractUdfStreamOperator<T, SourceFunction
+ 
+ 		@Override
+ 		public void emitWatermark(Watermark mark) {
+-			throw new UnsupportedOperationException("Automatic-Timestamp sources cannot emit" +
++			if (mark.getTimestamp() == Long.MAX_VALUE) {
++				// allow it since this is the special end-watermark that for example the Kafka
++				// source emits
++				output.emitWatermark(mark);
++			} else {
++				throw new UnsupportedOperationException("Automatic-Timestamp sources cannot emit" +
+ 					" elements with a timestamp. See interface EventTimeSourceFunction" +
+ 					" if you want to manually assign timestamps to elements.");
++			}
+ 		}
+ 
+ 		@Override
+@@ -236,9 +242,15 @@ public class StreamSource<T> extends AbstractUdfStreamOperator<T, SourceFunction
+ 
+ 		@Override
+ 		public void emitWatermark(Watermark mark) {
+-			throw new UnsupportedOperationException("Automatic-Timestamp sources cannot emit" +
++			if (mark.getTimestamp() == Long.MAX_VALUE) {
++				// allow it since this is the special end-watermark that for example the Kafka
++				// source emits
++				output.emitWatermark(mark);
++			} else {
++				throw new UnsupportedOperationException("Automatic-Timestamp sources cannot emit" +
+ 					" elements with a timestamp. See interface EventTimeSourceFunction" +
+ 					" if you want to manually assign timestamps to elements.");
++			}
+ 		}
+ 
+ 		@Override

@@ -1,0 +1,4784 @@
+commit d739ee2532e0fd49ef37508b1c2e4a355473aaa5
+Author: Ufuk Celebi <uce@apache.org>
+Date:   Tue Dec 1 18:47:07 2015 +0100
+
+    [FLINK-2976] [runtime, tests] Add SavepointCoordinator
+    
+    [comments] Rename config keys
+    
+    [comments] Fix docs and don't overload savepoint backend configuration with checkpoint backend configuration
+    
+    [comments] Use ConcurrentMap in HeapStateStore
+    
+    [comments] Fix typo and add missing serialVersionUID
+    
+    [comments] Fix Scala style
+    
+    [comments] Fix Scala style
+    
+    [docs] Emphasize dangers and recommended approaches
+    
+    Add test to show inf restart loop on submission with unknown savepoint path
+    
+    [comments] Suppress resart of savepoint recovery failure
+    
+    This closes #1434.
+
+diff --git a/docs/apis/savepoints.md b/docs/apis/savepoints.md
+index 2f4dd82..80bd83d 100644
+--- a/docs/apis/savepoints.md
++++ b/docs/apis/savepoints.md
+@@ -21,7 +21,7 @@ specific language governing permissions and limitations
+ under the License.
+ -->
+ 
+-Programs written in the [Data Stream API]({{ site.baseurl }}/apis/streaming_guide.html) can resume execution from a **savepoint**. Savepoints allow both updating your programs and your Flink cluster without loosing any state. This page covers all steps to trigger, restore, and dispose savepoints. For more details on how Flink handles state and failures, check out the [State in Streaming Programs]({{ site.baseurl }}/apis/state_backends.html) and [Fault Tolerance]({{ site.baseurl }}/apis/fault_tolerance.html) pages.
++Programs written in the [Data Stream API]({{ site.baseurl }}/apis/streaming_guide.html) can resume execution from a **savepoint**. Savepoints allow both updating your programs and your Flink cluster without losing any state. This page covers all steps to trigger, restore, and dispose savepoints. For more details on how Flink handles state and failures, check out the [State in Streaming Programs]({{ site.baseurl }}/apis/state_backends.html) and [Fault Tolerance]({{ site.baseurl }}/apis/fault_tolerance.html) pages.
+ 
+ * toc
+ {:toc}
+@@ -46,40 +46,40 @@ Savepoints point to regular checkpoints and store their state in a configured [s
+ 
+ This is the **default backend** for savepoints.
+ 
+-Savepoints are stored on the heap of the job manager. They are *lost* after the job manager is shut down. This mode is only useful if you want to *stop* and *resume* your program while the **same cluster** keeps running. It is *not recommended* for production use. Savepoints are *not* part the [job manager's highly availabile]({{ site.baseurl }}/setup/jobmanager_high_availability.html) state.
++Savepoints are stored on the heap of the job manager. They are *lost* after the job manager is shut down. This mode is only useful if you want to *stop* and *resume* your program while the **same cluster** keeps running. It is *not recommended* for production use. Savepoints are *not* part of the [job manager's highly available]({{ site.baseurl }}/setup/jobmanager_high_availability.html) state.
+ 
+ <pre>
+-state.backend.savepoints: jobmanager
++savepoints.state.backend: jobmanager
+ </pre>
+ 
+-**Note**: If you don't configure a specific state backend for the savepoints, the default state backend (config key `state.backend`) will be used.
++**Note**: If you don't configure a specific state backend for the savepoints, the jobmanager backend will be used.
+ 
+ ### File system
+ 
+ Savepoints are stored in the configured **file system directory**. They are available between cluster instances and allow to move your program to another cluster.
+ 
+ <pre>
+-state.backend.savepoints: filesystem
+-state.backend.savepoints.fs.dir: hdfs:///flink/savepoints
++savepoints.state.backend: filesystem
++savepoints.state.backend.fs.dir: hdfs:///flink/savepoints
+ </pre>
+ 
+-**Note**: If you don't configure a specific directory, the checkpoint directory (config key `state.backend.fs.checkpointdir`) will be used.
++**Note**: If you don't configure a specific directory, the job manager backend will be used.
+ 
+-**Important**: A savepoint is a pointer to completed checkpoint. That means that the state of a savepoint is not only found in the savepoint file itself, but also needs the actual checkpoint data (e.g. in a set of further files).
++**Important**: A savepoint is a pointer to a completed checkpoint. That means that the state of a savepoint is not only found in the savepoint file itself, but also needs the actual checkpoint data (e.g. in a set of further files). Therefore, using the *filesystem* backend for savepoints and the *jobmanager* backend for checkpoints does not work, because the required checkpoint data won't be available after a job manager restart.
+ 
+ ## Changes to your program
+ 
+ Savepoints **work out of the box**, but it is **highly recommended** that you slightly adjust your programs in order to be able to work with savepoints in future versions of your program.
+ 
+-<img src="fig/savepoints-program_ids.png" class="center" />'
++<img src="fig/savepoints-program_ids.png" class="center" />
+ 
+ For savepoints **only stateful tasks matter**. In the above example, the source and map tasks are stateful whereas the sink is not stateful. Therefore, only the state of the source and map tasks are part of the savepoint.
+ 
+ Each task is identified by its **generated task IDs** and **subtask index**. In the above example the state of the source (**s<sub>1</sub>**, **s<sub>2</sub>**) and map tasks (**m<sub>1</sub>**, **m<sub>2</sub>**) is identified by their respective task ID (*0xC322EC* for the source tasks and *0x27B3EF* for the map tasks) and subtask index. There is no state for the sinks (**t<sub>1</sub>**, **t<sub>2</sub>**). Their IDs therefore do not matter.
+ 
+-The IDs are generated **deterministically** from your program structure. This means that if your program does not change, the IDs do not change. In this case, it is straight forward to restore the state from a savepoint by mapping it back to the same task IDs and subtask indexes. This allows you to work with savepoints out of the box, but gets problematic as soon as you make changes to your program, because they result in changed IDs and the savepoint state cannot be mapped to your program any more.
++<span class="label label-danger">Important</span> The IDs are generated **deterministically** from your program structure. This means that as long as your program does not change, the IDs do not change. **The only allowed changes are within the user function, e.g. you can change the implemented `MapFunction` without changing the typology**. In this case, it is straight forward to restore the state from a savepoint by mapping it back to the same task IDs and subtask indexes. This allows you to work with savepoints out of the box, but gets problematic as soon as you make changes to the topology, because they result in changed IDs and the savepoint state cannot be mapped to your program any more.
+ 
+-In order to be able to change your program and **have fixed IDs**, the *DataStream* API provides a method to manually specify the task IDs. Each operator provides a **`uid(String)`** method to override the generated ID. The ID is a String, which will be deterministically hashed to a 16-byte hash value. It is **important** that the specified IDs are **unique per transformation and job**. If this is not the case, job submission will fail.
++<span class="label label-info">Recommended</span> In order to be able to change your program and **have fixed IDs**, the *DataStream* API provides a method to manually specify the task IDs. Each operator provides a **`uid(String)`** method to override the generated ID. The ID is a String, which will be deterministically hashed to a 16-byte hash value. It is **important** that the specified IDs are **unique per transformation and job**. If this is not the case, job submission will fail.
+ 
+ {% highlight scala %}
+ DataStream<String> stream = env.
+@@ -103,6 +103,6 @@ You control the savepoints via the [command line client]({{site.baseurl}}/apis/c
+ 
+ - **Parallelism**: When restoring a savepoint, the parallelism of the program has to match the parallelism of the original program from which the savepoint was drawn. There is no mechanism to re-partition the savepoint's state yet.
+ 
+-- **Chaining**: Chained operators are identified by the ID of the first task. It's not possible to manually assign an ID to an intermediate chained task, e.g. in the chain `[  a -> b -> c ]` only **a** can have its ID assigned manually, but not **b** or **c**.
++- **Chaining**: Chained operators are identified by the ID of the first task. It's not possible to manually assign an ID to an intermediate chained task, e.g. in the chain `[  a -> b -> c ]` only **a** can have its ID assigned manually, but not **b** or **c**. To work around this, you can [manually define the task chains](streaming_guide.html#task-chaining-and-resource-groups). If you rely on the automatic ID assignment, a change in the chaining behaviour will also change the IDs.
+ 
+-- **Disposing custom state**: Disposing an old savepoint does not work with custom state, because the user code class loader is not available during disposal.
++- **Disposing custom state handles**: Disposing an old savepoint does not work with custom state handles (if you are using a custom state backend), because the user code class loader is not available during disposal.
+diff --git a/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/CheckpointCoordinator.java b/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/CheckpointCoordinator.java
+index 8d6674b..70997c9 100644
+--- a/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/CheckpointCoordinator.java
++++ b/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/CheckpointCoordinator.java
+@@ -70,7 +70,7 @@ public class CheckpointCoordinator {
+ 	private static final int NUM_GHOST_CHECKPOINT_IDS = 16;
+ 
+ 	/** Coordinator-wide lock to safeguard the checkpoint updates */
+-	private final Object lock = new Object();
++	protected final Object lock = new Object();
+ 
+ 	/** The job whose checkpoint this coordinator coordinates */
+ 	private final JobID job;
+@@ -96,7 +96,7 @@ public class CheckpointCoordinator {
+ 
+ 	/** Checkpoint ID counter to ensure ascending IDs. In case of job manager failures, these
+ 	 * need to be ascending across job managers. */
+-	private final CheckpointIDCounter checkpointIdCounter;
++	protected final CheckpointIDCounter checkpointIdCounter;
+ 
+ 	/** Class loader used to deserialize the state handles (as they may be user-defined) */
+ 	private final ClassLoader userClassLoader;
+@@ -238,6 +238,28 @@ public class CheckpointCoordinator {
+ 	}
+ 
+ 	// --------------------------------------------------------------------------------------------
++	// Callbacks
++	// --------------------------------------------------------------------------------------------
++
++	/**
++	 * Callback on shutdown of the coordinator. Called in lock scope.
++	 */
++	protected void onShutdown() {
++	}
++
++	/**
++	 * Callback on cancellation of a checkpoint. Called in lock scope.
++	 */
++	protected void onCancelCheckpoint(long canceledCheckpointId) {
++	}
++
++	/**
++	 * Callback on full acknowledgement of a checkpoint. Called in lock scope.
++	 */
++	protected void onFullyAcknowledgedCheckpoint(CompletedCheckpoint checkpoint) {
++	}
++
++	// --------------------------------------------------------------------------------------------
+ 	//  Clean shutdown
+ 	// --------------------------------------------------------------------------------------------
+ 
+@@ -276,6 +298,8 @@ public class CheckpointCoordinator {
+ 
+ 					// clean and discard all successful checkpoints
+ 					completedCheckpointStore.discardAllCheckpoints();
++
++					onShutdown();
+ 				}
+ 			}
+ 			finally {
+@@ -311,6 +335,18 @@ public class CheckpointCoordinator {
+ 	 * @param timestamp The timestamp for the checkpoint.
+ 	 */
+ 	public boolean triggerCheckpoint(long timestamp) throws Exception {
++		return triggerCheckpoint(timestamp, -1);
++	}
++
++	/**
++	 * Triggers a new checkpoint and uses the given timestamp as the checkpoint
++	 * timestamp.
++	 *
++	 * @param timestamp The timestamp for the checkpoint.
++	 * @param nextCheckpointId The checkpoint ID to use for this checkpoint or <code>-1</code> if
++	 *                         the checkpoint ID counter should be queried.
++	 */
++	public boolean triggerCheckpoint(long timestamp, long nextCheckpointId) throws Exception {
+ 		// make some eager pre-checks
+ 		synchronized (lock) {
+ 			// abort if the coordinator has been shutdown in the meantime
+@@ -367,15 +403,20 @@ public class CheckpointCoordinator {
+ 		// we will actually trigger this checkpoint!
+ 
+ 		final long checkpointID;
+-		try {
+-			// this must happen outside the locked scope, because it communicates
+-			// with external services (in HA mode) and may block for a while.
+-			checkpointID = checkpointIdCounter.getAndIncrement();
++		if (nextCheckpointId < 0) {
++			try {
++				// this must happen outside the locked scope, because it communicates
++				// with external services (in HA mode) and may block for a while.
++				checkpointID = checkpointIdCounter.getAndIncrement();
++			}
++			catch (Throwable t) {
++				int numUnsuccessful = ++numUnsuccessfulCheckpointsTriggers;
++				LOG.warn("Failed to trigger checkpoint (" + numUnsuccessful + " consecutive failed attempts so far)", t);
++				return false;
++			}
+ 		}
+-		catch (Throwable t) {
+-			int numUnsuccessful = ++numUnsuccessfulCheckpointsTriggers;
+-			LOG.warn("Failed to trigger checkpoint (" + numUnsuccessful + " consecutive failed attempts so far)", t);
+-			return false;
++		else {
++			checkpointID = nextCheckpointId;
+ 		}
+ 
+ 		LOG.info("Triggering checkpoint " + checkpointID + " @ " + timestamp);
+@@ -397,6 +438,8 @@ public class CheckpointCoordinator {
+ 							pendingCheckpoints.remove(checkpointID);
+ 							rememberRecentCheckpointId(checkpointID);
+ 
++							onCancelCheckpoint(checkpointID);
++
+ 							triggerQueuedRequests();
+ 						}
+ 					}
+@@ -461,29 +504,47 @@ public class CheckpointCoordinator {
+ 		}
+ 	}
+ 
+-	public void receiveAcknowledgeMessage(AcknowledgeCheckpoint message) throws Exception {
++	/**
++	 * Receives an AcknowledgeCheckpoint message and returns whether the
++	 * message was associated with a pending checkpoint.
++	 *
++	 * @param message Checkpoint ack from the task manager
++	 *
++	 * @return Flag indicating whether the ack'd checkpoint was associated
++	 * with a pending checkpoint.
++	 *
++	 * @throws Exception If the checkpoint cannot be added to the completed checkpoint store.
++	 */
++	public boolean receiveAcknowledgeMessage(AcknowledgeCheckpoint message) throws Exception {
+ 		if (shutdown || message == null) {
+-			return;
++			return false;
+ 		}
+ 		if (!job.equals(message.getJob())) {
+ 			LOG.error("Received AcknowledgeCheckpoint message for wrong job: {}", message);
+-			return;
++			return false;
+ 		}
+ 
+ 		final long checkpointId = message.getCheckpointId();
+ 
+ 		CompletedCheckpoint completed = null;
+ 		PendingCheckpoint checkpoint;
++
++		// Flag indicating whether the ack message was for a known pending
++		// checkpoint.
++		boolean isPendingCheckpoint;
++
+ 		synchronized (lock) {
+ 			// we need to check inside the lock for being shutdown as well, otherwise we
+ 			// get races and invalid error log messages
+ 			if (shutdown) {
+-				return;
++				return false;
+ 			}
+ 
+ 			checkpoint = pendingCheckpoints.get(checkpointId);
+ 
+ 			if (checkpoint != null && !checkpoint.isDiscarded()) {
++				isPendingCheckpoint = true;
++
+ 				if (checkpoint.acknowledgeTask(message.getTaskExecutionId(), message.getState(), message.getStateSize())) {
+ 					if (checkpoint.isFullyAcknowledged()) {
+ 						completed = checkpoint.toCompletedCheckpoint();
+@@ -499,6 +560,8 @@ public class CheckpointCoordinator {
+ 
+ 						dropSubsumedCheckpoints(completed.getTimestamp());
+ 
++						onFullyAcknowledgedCheckpoint(completed);
++
+ 						triggerQueuedRequests();
+ 					}
+ 				}
+@@ -516,10 +579,11 @@ public class CheckpointCoordinator {
+ 			else {
+ 				// message is for an unknown checkpoint, or comes too late (checkpoint disposed)
+ 				if (recentPendingCheckpoints.contains(checkpointId)) {
++					isPendingCheckpoint = true;
+ 					LOG.warn("Received late message for now expired checkpoint attempt " + checkpointId);
+ 				}
+ 				else {
+-					LOG.info("Received message for non-existing checkpoint " + checkpointId);
++					isPendingCheckpoint = false;
+ 				}
+ 			}
+ 		}
+@@ -540,6 +604,8 @@ public class CheckpointCoordinator {
+ 
+ 			statsTracker.onCompletedCheckpoint(completed);
+ 		}
++
++		return isPendingCheckpoint;
+ 	}
+ 
+ 	private void rememberRecentCheckpointId(long id) {
+@@ -558,6 +624,8 @@ public class CheckpointCoordinator {
+ 
+ 				p.discard(userClassLoader);
+ 
++				onCancelCheckpoint(p.getCheckpointId());
++
+ 				entries.remove();
+ 			}
+ 		}
+@@ -679,6 +747,27 @@ public class CheckpointCoordinator {
+ 		}
+ 	}
+ 
++	protected long getAndIncrementCheckpointId() {
++		try {
++			// this must happen outside the locked scope, because it communicates
++			// with external services (in HA mode) and may block for a while.
++			return checkpointIdCounter.getAndIncrement();
++		}
++		catch (Throwable t) {
++			int numUnsuccessful = ++numUnsuccessfulCheckpointsTriggers;
++			LOG.warn("Failed to trigger checkpoint (" + numUnsuccessful + " consecutive failed attempts so far)", t);
++			return -1;
++		}
++	}
++
++	protected ActorGateway getJobStatusListener() {
++		return jobStatusListener;
++	}
++
++	protected void setJobStatusListener(ActorGateway jobStatusListener) {
++		this.jobStatusListener = jobStatusListener;
++	}
++
+ 	// --------------------------------------------------------------------------------------------
+ 	//  Periodic scheduling of checkpoints
+ 	// --------------------------------------------------------------------------------------------
+@@ -689,7 +778,7 @@ public class CheckpointCoordinator {
+ 				throw new IllegalArgumentException("Checkpoint coordinator is shut down");
+ 			}
+ 
+-			// make sure all prior timers are cancelled 
++			// make sure all prior timers are cancelled
+ 			stopCheckpointScheduler();
+ 
+ 			periodicScheduling = true;
+@@ -718,7 +807,7 @@ public class CheckpointCoordinator {
+ 	}
+ 
+ 	// ------------------------------------------------------------------------
+-	//  job status listener that schedules / cancels periodic checkpoints 
++	//  job status listener that schedules / cancels periodic checkpoints
+ 	// ------------------------------------------------------------------------
+ 
+ 	public ActorGateway createActivatorDeactivator(ActorSystem actorSystem, UUID leaderSessionID) {
+diff --git a/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/HeapStateStore.java b/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/HeapStateStore.java
+index bc491f4..60a092b 100644
+--- a/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/HeapStateStore.java
++++ b/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/HeapStateStore.java
+@@ -19,8 +19,9 @@
+ package org.apache.flink.runtime.checkpoint;
+ 
+ import java.io.Serializable;
+-import java.util.HashMap;
+-import java.util.Map;
++import java.util.Collection;
++import java.util.concurrent.ConcurrentHashMap;
++import java.util.concurrent.ConcurrentMap;
+ import java.util.concurrent.atomic.AtomicInteger;
+ 
+ import static com.google.common.base.Preconditions.checkNotNull;
+@@ -32,7 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
+  */
+ class HeapStateStore<T extends Serializable> implements StateStore<T> {
+ 
+-	private final Map<Integer, T> stateMap = new HashMap<>();
++	private final ConcurrentMap<String, T> stateMap = new ConcurrentHashMap<>();
+ 
+ 	private final AtomicInteger idCounter = new AtomicInteger();
+ 
+@@ -40,16 +41,14 @@ class HeapStateStore<T extends Serializable> implements StateStore<T> {
+ 	public String putState(T state) throws Exception {
+ 		checkNotNull(state, "State");
+ 
+-		int id = idCounter.incrementAndGet();
+-		stateMap.put(id, state);
+-
+-		return String.valueOf(id);
++		String key = "jobmanager://savepoints/" + idCounter.incrementAndGet();
++		stateMap.put(key, state);
++		return key;
+ 	}
+ 
+ 	@Override
+ 	public T getState(String path) throws Exception {
+-		int id = Integer.valueOf(path);
+-		T state = stateMap.get(id);
++		T state = stateMap.get(path);
+ 
+ 		if (state != null) {
+ 			return state;
+@@ -61,11 +60,25 @@ class HeapStateStore<T extends Serializable> implements StateStore<T> {
+ 
+ 	@Override
+ 	public void disposeState(String path) throws Exception {
+-		int id = Integer.valueOf(path);
+-		T state = stateMap.remove(id);
++		T state = stateMap.remove(path);
+ 
+ 		if (state == null) {
+ 			throw new IllegalArgumentException("Invalid path '" + path + "'.");
+ 		}
+ 	}
++
++	/**
++	 * Returns all stored state.
++	 */
++	Collection<T> getAll() {
++		return stateMap.values();
++	}
++
++	/**
++	 * Clears all stored state.
++	 */
++	void clearAll() {
++		stateMap.clear();
++	}
++
+ }
+diff --git a/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/Savepoint.java b/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/Savepoint.java
+new file mode 100644
+index 0000000..96e8950
+--- /dev/null
++++ b/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/Savepoint.java
+@@ -0,0 +1,57 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.runtime.checkpoint;
++
++import org.apache.flink.api.common.ApplicationID;
++
++import java.io.Serializable;
++
++import static com.google.common.base.Preconditions.checkNotNull;
++
++/**
++ * A {@link CompletedCheckpoint} instance with the {@link ApplicationID} of the program it belongs
++ * to.
++ */
++public class Savepoint implements Serializable {
++
++	private static final long serialVersionUID = 840132134745425068L;
++
++	private final ApplicationID appId;
++
++	private final CompletedCheckpoint completedCheckpoint;
++
++	public Savepoint(ApplicationID appId, CompletedCheckpoint completedCheckpoint) {
++
++		this.appId = checkNotNull(appId);
++		this.completedCheckpoint = checkNotNull(completedCheckpoint);
++	}
++
++	public ApplicationID getApplicationId() {
++		return appId;
++	}
++
++	public CompletedCheckpoint getCompletedCheckpoint() {
++		return completedCheckpoint;
++	}
++
++	@Override
++	public String toString() {
++		return "Savepoint (appId=" + appId + ", checkpoint=" + completedCheckpoint + ")";
++	}
++}
+diff --git a/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/SavepointCoordinator.java b/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/SavepointCoordinator.java
+new file mode 100644
+index 0000000..2089aa2
+--- /dev/null
++++ b/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/SavepointCoordinator.java
+@@ -0,0 +1,364 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.runtime.checkpoint;
++
++import akka.actor.ActorSystem;
++import akka.actor.Props;
++import org.apache.flink.api.common.ApplicationID;
++import org.apache.flink.api.common.JobID;
++import org.apache.flink.runtime.checkpoint.stats.CheckpointStatsTracker;
++import org.apache.flink.runtime.execution.ExecutionState;
++import org.apache.flink.runtime.executiongraph.Execution;
++import org.apache.flink.runtime.executiongraph.ExecutionJobVertex;
++import org.apache.flink.runtime.executiongraph.ExecutionVertex;
++import org.apache.flink.runtime.instance.ActorGateway;
++import org.apache.flink.runtime.instance.AkkaActorGateway;
++import org.apache.flink.runtime.jobgraph.JobVertexID;
++import org.apache.flink.runtime.jobmanager.RecoveryMode;
++import org.apache.flink.types.IntValue;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++import scala.concurrent.Future;
++import scala.concurrent.Promise;
++
++import java.util.Collections;
++import java.util.HashMap;
++import java.util.List;
++import java.util.Map;
++import java.util.UUID;
++import java.util.concurrent.ConcurrentHashMap;
++
++import static com.google.common.base.Preconditions.checkNotNull;
++
++/**
++ * The savepoint coordinator is a slightly modified variant of the regular
++ * checkpoint coordinator. Checkpoints are not triggered periodically, but
++ * manually. The actual checkpointing mechanism is the same as for periodic
++ * checkpoints, only the control flow is modified.
++ *
++ * <p>The savepoint coordinator is meant to be used as a separate coordinator
++ * instance. Otherwise, there can be unwanted queueing effects like discarding
++ * savepoints, because of in-progress periodic checkpoints.
++ *
++ * <p>The savepoint coordinator registers callbacks on the regular checkpoint
++ * life-cycle and manages a map of promises, which are completed/failed as soon
++ * as the trigged checkpoint is done.
++ *
++ * <p><strong>Important</strong>: it's necessary that both the periodic
++ * checkpoint coordinator and the savepoint coordinator <em>share</em> the same
++ * instance of the {@link CheckpointIDCounter} to ensure that all task managers
++ * see ascending checkpoints IDs.
++ */
++public class SavepointCoordinator extends CheckpointCoordinator {
++
++	private static final Logger LOG = LoggerFactory.getLogger(SavepointCoordinator.class);
++
++	/**
++	 * The application ID of the job this coordinator belongs to. This is updated on reset to an
++	 * old savepoint.
++	 */
++	private ApplicationID appId;
++
++	/** Store for savepoints. */
++	private StateStore<Savepoint> savepointStore;
++
++	/** Mapping from checkpoint ID to promises for savepoints. */
++	private final Map<Long, Promise<String>> savepointPromises;
++
++	public SavepointCoordinator(
++			ApplicationID appId,
++			JobID jobId,
++			long baseInterval,
++			long checkpointTimeout,
++			ExecutionVertex[] tasksToTrigger,
++			ExecutionVertex[] tasksToWaitFor,
++			ExecutionVertex[] tasksToCommitTo,
++			ClassLoader userClassLoader,
++			CheckpointIDCounter checkpointIDCounter,
++			StateStore<Savepoint> savepointStore,
++			CheckpointStatsTracker statsTracker) throws Exception {
++
++		super(jobId,
++				baseInterval,
++				checkpointTimeout,
++				0L,
++				Integer.MAX_VALUE,
++				tasksToTrigger,
++				tasksToWaitFor,
++				tasksToCommitTo,
++				userClassLoader,
++				checkpointIDCounter,
++				IgnoreCompletedCheckpointsStore.INSTANCE,
++				RecoveryMode.STANDALONE,
++				statsTracker);
++
++		this.appId = checkNotNull(appId);
++		this.savepointStore = checkNotNull(savepointStore);
++		this.savepointPromises = new ConcurrentHashMap<>();
++	}
++
++	// ------------------------------------------------------------------------
++	// Savepoint trigger and reset
++	// ------------------------------------------------------------------------
++
++	/**
++	 * Triggers a new savepoint using the current system time as the checkpoint timestamp.
++	 */
++	public Future<String> triggerSavepoint(long timestamp) throws Exception {
++		final Promise<String> promise = new scala.concurrent.impl.Promise.DefaultPromise<>();
++
++		try {
++			// Get the checkpoint ID up front. If we fail to trigger the checkpoint,
++			// the ID will have changed, but this is OK as long as the checkpoint ID
++			// generates ascending IDs.
++			final long checkpointId = getAndIncrementCheckpointId();
++
++			if (checkpointId == -1) {
++				throw new IllegalStateException("Failed to get checkpoint Id");
++			}
++
++			// Important: make sure to add the promise to the map before calling
++			// any methods that might trigger callbacks, which require the promise.
++			// Otherwise, the might be race conditions.
++			if (savepointPromises.put(checkpointId, promise) == null) {
++				boolean success = false;
++
++				try {
++					// All good. The future will be completed as soon as the
++					// triggered checkpoint is done.
++					success = triggerCheckpoint(timestamp, checkpointId);
++				}
++				finally {
++					if (!success) {
++						savepointPromises.remove(checkpointId);
++						promise.failure(new Exception("Failed to trigger savepoint"));
++					}
++				}
++			}
++			else {
++				throw new IllegalStateException("Duplicate checkpoint ID");
++			}
++		}
++		catch (Throwable t) {
++			promise.failure(new Exception("Failed to trigger savepoint", t));
++		}
++
++		return promise.future();
++	}
++
++	/**
++	 * Resets the state of {@link Execution} instances back to the state of a savepoint.
++	 *
++	 * <p>The execution vertices need to be in state {@link ExecutionState#CREATED} when calling
++	 * this method. The operation might block. Make sure that calls don't block the job manager
++	 * actor.
++	 *
++	 * @param tasks         Tasks that will possibly be reset
++	 * @param savepointPath The path of the savepoint to rollback to
++	 * @return The application ID of the rolled back savepoint
++	 * @throws IllegalStateException If coordinator is shut down
++	 * @throws IllegalStateException If mismatch between program and savepoint state
++	 * @throws Exception             If savepoint store failure
++	 */
++	public ApplicationID restoreSavepoint(
++			Map<JobVertexID, ExecutionJobVertex> tasks,
++			String savepointPath) throws Exception {
++
++		checkNotNull(savepointPath, "Savepoint path");
++
++		synchronized (lock) {
++			if (isShutdown()) {
++				throw new IllegalStateException("CheckpointCoordinator is shut down");
++			}
++
++			long recoveryTimestamp = System.currentTimeMillis();
++
++			LOG.info("Rolling back to savepoint '{}'.", savepointPath);
++
++			Savepoint savepoint = savepointStore.getState(savepointPath);
++
++			CompletedCheckpoint checkpoint = savepoint.getCompletedCheckpoint();
++
++			LOG.info("Savepoint: {}@{}", checkpoint.getCheckpointID(), checkpoint.getTimestamp());
++
++			// Sanity check to ensure that the parallelism has not been changed. If the tasks have
++			// lower parallelism than the savepoint tasks, this will be noticed during reset, but
++			// the other way around (higher parallelism than savepoint tasks) might go unnoticed.
++			Map<JobVertexID, IntValue> vertexParallelism = new HashMap<>();
++
++			// Set the initial state of all tasks
++			for (StateForTask state : checkpoint.getStates()) {
++				ExecutionJobVertex vertex = tasks.get(state.getOperatorId());
++
++				if (vertex == null) {
++					String msg = String.format("Failed to rollback to savepoint %s. " +
++							"Cannot map old state for task %s to the new program. " +
++							"This indicates that the program has been changed after " +
++							"the savepoint.", savepoint, state.getOperatorId());
++					throw new IllegalStateException(msg);
++				}
++
++				IntValue parallelism = vertexParallelism.get(vertex.getJobVertexId());
++
++				if (parallelism == null) {
++					parallelism = new IntValue(vertex.getParallelism());
++					vertexParallelism.put(vertex.getJobVertexId(), parallelism);
++				}
++
++				Execution exec = vertex.getTaskVertices()[state.getSubtask()]
++						.getCurrentExecutionAttempt();
++
++				exec.setInitialState(state.getState(), recoveryTimestamp);
++
++				parallelism.setValue(parallelism.getValue() - 1);
++			}
++
++			// If the parallelism matches, each count is 0
++			for (IntValue parallelism : vertexParallelism.values()) {
++				if (parallelism.getValue() != 0) {
++					throw new IllegalStateException("Parallelism mismatch between savepoint " +
++							"tasks and new program. This indicates that the program has been " +
++							"changed after the savepoint.");
++				}
++			}
++
++			// Reset the checkpoint ID counter
++			long nextCheckpointId = checkpoint.getCheckpointID();
++			checkpointIdCounter.setCount(nextCheckpointId + 1);
++			LOG.info("Reset the checkpoint ID to {}", nextCheckpointId);
++
++			this.appId = savepoint.getApplicationId();
++			LOG.info("Reset the application ID to {}", appId);
++
++			return appId;
++		}
++	}
++
++	// ------------------------------------------------------------------------
++	// Checkpoint coordinator callbacks
++	// ------------------------------------------------------------------------
++
++	@Override
++	protected void onShutdown() {
++		// Fail all outstanding savepoint futures
++		for (Promise<String> promise : savepointPromises.values()) {
++			promise.failure(new Exception("Checkpoint coordinator shutdown"));
++		}
++		savepointPromises.clear();
++	}
++
++	@Override
++	protected void onCancelCheckpoint(long canceledCheckpointId) {
++		Promise<String> promise = savepointPromises.remove(canceledCheckpointId);
++
++		if (promise != null) {
++			promise.failure(new Exception("Savepoint expired before completing"));
++		}
++	}
++
++	@Override
++	protected void onFullyAcknowledgedCheckpoint(CompletedCheckpoint checkpoint) {
++		// Sanity check
++		Promise<String> promise = checkNotNull(savepointPromises
++				.remove(checkpoint.getCheckpointID()));
++
++		// Sanity check
++		if (promise.isCompleted()) {
++			throw new IllegalStateException("Savepoint promise completed");
++		}
++
++		try {
++			// Save the checkpoint
++			String savepointPath = savepointStore.putState(
++					new Savepoint(appId, checkpoint));
++			promise.success(savepointPath);
++		}
++		catch (Exception e) {
++			LOG.warn("Failed to store savepoint.", e);
++			promise.failure(e);
++		}
++	}
++
++	// ------------------------------------------------------------------------
++	// Job status listener
++	// ------------------------------------------------------------------------
++
++	@Override
++	public ActorGateway createActivatorDeactivator(
++			ActorSystem actorSystem,
++			UUID leaderSessionID) {
++
++		synchronized (lock) {
++			if (isShutdown()) {
++				throw new IllegalArgumentException("Checkpoint coordinator is shut down");
++			}
++
++			if (getJobStatusListener() == null) {
++				Props props = Props.create(
++						SavepointCoordinatorDeActivator.class,
++						this,
++						leaderSessionID);
++
++				// wrap the ActorRef in a AkkaActorGateway to support message decoration
++				setJobStatusListener(new AkkaActorGateway(
++						actorSystem.actorOf(props),
++						leaderSessionID));
++			}
++
++			return getJobStatusListener();
++		}
++	}
++
++	// ------------------------------------------------------------------------
++	// Completed checkpoints
++	// ------------------------------------------------------------------------
++
++	private static class IgnoreCompletedCheckpointsStore implements CompletedCheckpointStore {
++
++		private static final CompletedCheckpointStore INSTANCE = new IgnoreCompletedCheckpointsStore();
++
++		@Override
++		public void recover() throws Exception {
++		}
++
++		@Override
++		public void addCheckpoint(CompletedCheckpoint checkpoint) throws Exception {
++		}
++
++		@Override
++		public CompletedCheckpoint getLatestCheckpoint() throws Exception {
++			return null;
++		}
++
++		@Override
++		public void discardAllCheckpoints() throws Exception {
++		}
++
++		@Override
++		public List<CompletedCheckpoint> getAllCheckpoints() throws Exception {
++			return Collections.emptyList();
++		}
++
++		@Override
++		public int getNumberOfRetainedCheckpoints() {
++			return 0;
++		}
++	}
++
++}
+diff --git a/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/SavepointCoordinatorDeActivator.java b/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/SavepointCoordinatorDeActivator.java
+new file mode 100644
+index 0000000..290091f
+--- /dev/null
++++ b/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/SavepointCoordinatorDeActivator.java
+@@ -0,0 +1,63 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.runtime.checkpoint;
++
++import com.google.common.base.Preconditions;
++import org.apache.flink.runtime.akka.FlinkUntypedActor;
++import org.apache.flink.runtime.jobgraph.JobStatus;
++import org.apache.flink.runtime.messages.ExecutionGraphMessages;
++
++import java.util.UUID;
++
++/**
++ * This actor listens to changes in the JobStatus and deactivates the
++ * savepoint scheduler and discards all pending checkpoints.
++ */
++public class SavepointCoordinatorDeActivator extends FlinkUntypedActor {
++
++	private final CheckpointCoordinator coordinator;
++	private final UUID leaderSessionID;
++
++	public SavepointCoordinatorDeActivator(
++			SavepointCoordinator coordinator,
++			UUID leaderSessionID) {
++
++		LOG.info("Create SavepointCoordinatorDeActivator");
++
++		this.coordinator = Preconditions.checkNotNull(coordinator, "The checkpointCoordinator must not be null.");
++		this.leaderSessionID = leaderSessionID;
++	}
++
++	@Override
++	public void handleMessage(Object message) {
++		if (message instanceof ExecutionGraphMessages.JobStatusChanged) {
++			JobStatus status = ((ExecutionGraphMessages.JobStatusChanged) message).newJobStatus();
++			
++			if (status != JobStatus.RUNNING) {
++				// anything other than RUNNING should stop the trigger for now
++				coordinator.stopCheckpointScheduler();
++			}
++		}
++	}
++
++	@Override
++	public UUID getLeaderSessionID() {
++		return leaderSessionID;
++	}
++}
+diff --git a/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/SavepointStore.java b/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/SavepointStore.java
+new file mode 100644
+index 0000000..001674a
+--- /dev/null
++++ b/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/SavepointStore.java
+@@ -0,0 +1,65 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.runtime.checkpoint;
++
++/**
++ * Simple wrapper around the state store for savepoints.
++ */
++public class SavepointStore implements StateStore<Savepoint> {
++
++	private final StateStore<Savepoint> stateStore;
++
++	public SavepointStore(StateStore<Savepoint> stateStore) {
++		this.stateStore = stateStore;
++	}
++
++	public void start() {
++	}
++
++	public void stop() {
++		if (stateStore instanceof HeapStateStore) {
++			HeapStateStore<Savepoint> heapStateStore = (HeapStateStore<Savepoint>) stateStore;
++
++			for (Savepoint savepoint : heapStateStore.getAll()) {
++				savepoint.getCompletedCheckpoint().discard(ClassLoader.getSystemClassLoader());
++			}
++
++			heapStateStore.clearAll();
++		}
++	}
++
++	@Override
++	public String putState(Savepoint state) throws Exception {
++		return stateStore.putState(state);
++	}
++
++	@Override
++	public Savepoint getState(String path) throws Exception {
++		return stateStore.getState(path);
++	}
++
++	@Override
++	public void disposeState(String path) throws Exception {
++		stateStore.disposeState(path);
++	}
++
++	StateStore<Savepoint> getStateStore() {
++		return stateStore;
++	}
++}
+diff --git a/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/SavepointStoreFactory.java b/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/SavepointStoreFactory.java
+new file mode 100644
+index 0000000..2e14971
+--- /dev/null
++++ b/flink-runtime/src/main/java/org/apache/flink/runtime/checkpoint/SavepointStoreFactory.java
+@@ -0,0 +1,119 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.runtime.checkpoint;
++
++import org.apache.flink.configuration.ConfigConstants;
++import org.apache.flink.configuration.Configuration;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++
++import java.io.IOException;
++
++/**
++ * Factory for savepoint {@link StateStore} instances.
++ */
++public class SavepointStoreFactory {
++
++	public static final String SAVEPOINT_BACKEND_KEY = "savepoints.state.backend";
++	public static final String SAVEPOINT_DIRECTORY_KEY = "savepoints.state.backend.fs.dir";
++
++	public static final Logger LOG = LoggerFactory.getLogger(SavepointStoreFactory.class);
++
++	/**
++	 * Creates a {@link SavepointStore} from the specified Configuration.
++	 *
++	 * <p>You can configure a savepoint-specific backend for the savepoints. If
++	 * you don't configure anything, the regular checkpoint backend will be
++	 * used.
++	 *
++	 * <p>The default and fallback backend is the job manager, which loses the
++	 * savepoint after the job manager shuts down.
++	 *
++	 * @param config The configuration to parse the savepoint backend configuration.
++	 * @return A savepoint store.
++	 */
++	public static SavepointStore createFromConfig(
++			Configuration config) throws Exception {
++
++		// Try a the savepoint-specific configuration first.
++		String savepointBackend = config.getString(SAVEPOINT_BACKEND_KEY, null);
++
++		if (savepointBackend == null) {
++			LOG.info("No savepoint state backend configured. " +
++					"Using job manager savepoint state backend.");
++			return createJobManagerSavepointStore();
++		}
++		else if (savepointBackend.equals("jobmanager")) {
++			LOG.info("Using job manager savepoint state backend.");
++			return createJobManagerSavepointStore();
++		}
++		else if (savepointBackend.equals("filesystem")) {
++			// Sanity check that the checkpoints are not stored on the job manager only
++			String checkpointBackend = config.getString(
++					ConfigConstants.STATE_BACKEND, "jobmanager");
++
++			if (checkpointBackend.equals("jobmanager")) {
++				LOG.warn("The combination of file system backend for savepoints and " +
++						"jobmanager backend for checkpoints does not work. The savepoint " +
++						"will *not* be recoverable after the job manager shuts down. " +
++						"Falling back to job manager savepoint state backend.");
++
++				return createJobManagerSavepointStore();
++			}
++			else {
++				String rootPath = config.getString(SAVEPOINT_DIRECTORY_KEY, null);
++
++				if (rootPath == null) {
++					LOG.warn("Using filesystem as savepoint state backend, " +
++							"but did not specify directory. Please set the " +
++							"following configuration key: '" + SAVEPOINT_DIRECTORY_KEY +
++							"' (e.g. " + SAVEPOINT_DIRECTORY_KEY + ": hdfs:///flink/savepoints/). " +
++							"Falling back to job manager savepoint backend.");
++
++					return createJobManagerSavepointStore();
++				}
++				else {
++					LOG.info("Using filesystem savepoint backend (root path: {}).", rootPath);
++
++					return createFileSystemSavepointStore(rootPath);
++				}
++			}
++		}
++		else {
++			// Fallback
++			LOG.warn("Unexpected savepoint backend configuration '{}'. " +
++					"Falling back to job manager savepoint state backend.", savepointBackend);
++
++			return createJobManagerSavepointStore();
++		}
++	}
++
++	// ------------------------------------------------------------------------
++	// Savepoint stores
++	// ------------------------------------------------------------------------
++
++	private static SavepointStore createJobManagerSavepointStore() {
++		return new SavepointStore(new HeapStateStore<Savepoint>());
++	}
++
++	private static SavepointStore createFileSystemSavepointStore(String rootPath) throws IOException {
++		return new SavepointStore(new FileSystemStateStore<Savepoint>(rootPath, "savepoint-"));
++	}
++
++}
+diff --git a/flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/ExecutionGraph.java b/flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/ExecutionGraph.java
+index e3e15ee..9085483 100755
+--- a/flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/ExecutionGraph.java
++++ b/flink-runtime/src/main/java/org/apache/flink/runtime/executiongraph/ExecutionGraph.java
+@@ -20,6 +20,7 @@ package org.apache.flink.runtime.executiongraph;
+ 
+ import akka.actor.ActorSystem;
+ 
++import org.apache.flink.api.common.ApplicationID;
+ import org.apache.flink.api.common.ExecutionConfig;
+ import org.apache.flink.api.common.accumulators.Accumulator;
+ import org.apache.flink.api.common.accumulators.AccumulatorHelper;
+@@ -33,6 +34,9 @@ import org.apache.flink.runtime.blob.BlobKey;
+ import org.apache.flink.runtime.checkpoint.CheckpointCoordinator;
+ import org.apache.flink.runtime.checkpoint.CheckpointIDCounter;
+ import org.apache.flink.runtime.checkpoint.CompletedCheckpointStore;
++import org.apache.flink.runtime.checkpoint.Savepoint;
++import org.apache.flink.runtime.checkpoint.SavepointCoordinator;
++import org.apache.flink.runtime.checkpoint.StateStore;
+ import org.apache.flink.runtime.checkpoint.stats.CheckpointStatsTracker;
+ import org.apache.flink.runtime.checkpoint.stats.DisabledCheckpointStatsTracker;
+ import org.apache.flink.runtime.checkpoint.stats.SimpleCheckpointStatsTracker;
+@@ -123,7 +127,12 @@ public class ExecutionGraph implements Serializable {
+ 	/** The lock used to secure all access to mutable fields, especially the tracking of progress
+ 	 * within the job. */
+ 	private final SerializableObject progressLock = new SerializableObject();
+-	
++
++	/** The ID of the application this graph has been built for. This is
++	 * generated when the graph is created and reset if necessary (currently
++	 * only after {@link #restoreSavepoint(String)}). */
++	private ApplicationID appId = new ApplicationID();
++
+ 	/** The ID of the job this graph has been built for. */
+ 	private final JobID jobID;
+ 
+@@ -215,6 +224,9 @@ public class ExecutionGraph implements Serializable {
+ 	@SuppressWarnings("NonSerializableFieldInSerializableClass")
+ 	private CheckpointCoordinator checkpointCoordinator;
+ 
++	/** The coordinator for savepoints, if snapshot checkpoints are enabled */
++	private transient SavepointCoordinator savepointCoordinator;
++
+ 	/** Checkpoint stats tracker seperate from the coordinator in order to be
+ 	 * available after archiving. */
+ 	private CheckpointStatsTracker checkpointStatsTracker;
+@@ -357,7 +369,8 @@ public class ExecutionGraph implements Serializable {
+ 			UUID leaderSessionID,
+ 			CheckpointIDCounter checkpointIDCounter,
+ 			CompletedCheckpointStore completedCheckpointStore,
+-			RecoveryMode recoveryMode) throws Exception {
++			RecoveryMode recoveryMode,
++			StateStore<Savepoint> savepointStore) throws Exception {
+ 
+ 		// simple sanity checks
+ 		if (interval < 10 || checkpointTimeout < 10) {
+@@ -378,7 +391,6 @@ public class ExecutionGraph implements Serializable {
+ 				ConfigConstants.JOB_MANAGER_WEB_CHECKPOINTS_DISABLE,
+ 				ConfigConstants.DEFAULT_JOB_MANAGER_WEB_CHECKPOINTS_DISABLE);
+ 
+-		CheckpointStatsTracker statsTracker;
+ 		if (isStatsDisabled) {
+ 			checkpointStatsTracker = new DisabledCheckpointStatsTracker();
+ 		}
+@@ -410,6 +422,25 @@ public class ExecutionGraph implements Serializable {
+ 		// job status changes (running -> on, all other states -> off)
+ 		registerJobStatusListener(
+ 				checkpointCoordinator.createActivatorDeactivator(actorSystem, leaderSessionID));
++
++		// Savepoint Coordinator
++		savepointCoordinator = new SavepointCoordinator(
++				appId,
++				jobID,
++				interval,
++				checkpointTimeout,
++				tasksToTrigger,
++				tasksToWaitFor,
++				tasksToCommitTo,
++				userClassLoader,
++				// Important: this counter needs to be shared with the periodic
++				// checkpoint coordinator.
++				checkpointIDCounter,
++				savepointStore,
++				checkpointStatsTracker);
++
++		registerJobStatusListener(savepointCoordinator
++				.createActivatorDeactivator(actorSystem, leaderSessionID));
+ 	}
+ 
+ 	/**
+@@ -428,12 +459,21 @@ public class ExecutionGraph implements Serializable {
+ 			checkpointCoordinator = null;
+ 			checkpointStatsTracker = null;
+ 		}
++
++		if (savepointCoordinator != null) {
++			savepointCoordinator.shutdown();
++			savepointCoordinator = null;
++		}
+ 	}
+ 
+ 	public CheckpointCoordinator getCheckpointCoordinator() {
+ 		return checkpointCoordinator;
+ 	}
+ 
++	public SavepointCoordinator getSavepointCoordinator() {
++		return savepointCoordinator;
++	}
++
+ 	public CheckpointStatsTracker getCheckpointStatsTracker() {
+ 		return checkpointStatsTracker;
+ 	}
+@@ -848,6 +888,39 @@ public class ExecutionGraph implements Serializable {
+ 	}
+ 
+ 	/**
++	 * Restores the execution state back to a savepoint.
++	 *
++	 * <p>The execution vertices need to be in state {@link ExecutionState#CREATED} when calling
++	 * this method. The operation might block. Make sure that calls don't block the job manager
++	 * actor.
++	 *
++	 * <p><strong>Note</strong>: a call to this method changes the {@link #appId} of the execution
++	 * graph if the operation is successful.
++	 *
++	 * @param savepointPath The path of the savepoint to rollback to.
++	 * @throws IllegalStateException If checkpointing is disabled
++	 * @throws IllegalStateException If checkpoint coordinator is shut down
++	 * @throws Exception If failure during rollback
++	 */
++	public void restoreSavepoint(String savepointPath) throws Exception {
++		synchronized (progressLock) {
++			if (savepointCoordinator != null) {
++				LOG.info("Restoring savepoint: " + savepointPath + ".");
++
++				ApplicationID oldAppId = appId;
++				this.appId = savepointCoordinator.restoreSavepoint(
++						getAllVertices(), savepointPath);
++
++				LOG.info("Set application ID to {} (from: {}).", appId, oldAppId);
++			}
++			else {
++				// Sanity check
++				throw new IllegalStateException("Checkpointing disabled.");
++			}
++		}
++	}
++
++	/**
+ 	 * This method cleans fields that are irrelevant for the archived execution attempt.
+ 	 */
+ 	public void prepareForArchiving() {
+@@ -1008,6 +1081,17 @@ public class ExecutionGraph implements Serializable {
+ 		catch (Exception e) {
+ 			LOG.error("Error while cleaning up after execution", e);
+ 		}
++
++		try {
++			CheckpointCoordinator coord = this.savepointCoordinator;
++			this.savepointCoordinator = null;
++			if (coord != null) {
++				coord.shutdown();
++			}
++		}
++		catch (Exception e) {
++			LOG.error("Error while cleaning up after execution", e);
++		}
+ 	}
+ 
+ 	// --------------------------------------------------------------------------------------------
+diff --git a/flink-runtime/src/main/java/org/apache/flink/runtime/jobgraph/JobGraph.java b/flink-runtime/src/main/java/org/apache/flink/runtime/jobgraph/JobGraph.java
+index 566e44f..403ad67 100644
+--- a/flink-runtime/src/main/java/org/apache/flink/runtime/jobgraph/JobGraph.java
++++ b/flink-runtime/src/main/java/org/apache/flink/runtime/jobgraph/JobGraph.java
+@@ -18,6 +18,16 @@
+ 
+ package org.apache.flink.runtime.jobgraph;
+ 
++import org.apache.flink.api.common.InvalidProgramException;
++import org.apache.flink.api.common.JobID;
++import org.apache.flink.configuration.Configuration;
++import org.apache.flink.core.fs.FSDataInputStream;
++import org.apache.flink.core.fs.FileSystem;
++import org.apache.flink.core.fs.Path;
++import org.apache.flink.runtime.blob.BlobClient;
++import org.apache.flink.runtime.blob.BlobKey;
++import org.apache.flink.runtime.jobgraph.tasks.JobSnapshottingSettings;
++
+ import java.io.IOException;
+ import java.io.Serializable;
+ import java.net.InetSocketAddress;
+@@ -31,31 +41,21 @@ import java.util.List;
+ import java.util.Map;
+ import java.util.Set;
+ 
+-import org.apache.flink.api.common.InvalidProgramException;
+-import org.apache.flink.api.common.JobID;
+-import org.apache.flink.configuration.Configuration;
+-import org.apache.flink.core.fs.FSDataInputStream;
+-import org.apache.flink.core.fs.FileSystem;
+-import org.apache.flink.core.fs.Path;
+-import org.apache.flink.runtime.blob.BlobClient;
+-import org.apache.flink.runtime.blob.BlobKey;
+-import org.apache.flink.runtime.jobgraph.tasks.JobSnapshottingSettings;
+-
+ /**
+  * The JobGraph represents a Flink dataflow program, at the low level that the JobManager accepts.
+  * All programs from higher level APIs are transformed into JobGraphs.
+- * 
++ *
+  * <p>The JobGraph is a graph of vertices and intermediate results that are connected together to
+  * form a DAG. Note that iterations (feedback edges) are currently not encoded inside the JobGraph
+  * but inside certain special vertices that establish the feedback channel amongst themselves.</p>
+- * 
++ *
+  * <p>The JobGraph defines the job-wide configuration settings, while each vertex and intermediate result
+  * define the characteristics of the concrete operation and intermediate data.</p>
+  */
+ public class JobGraph implements Serializable {
+ 
+ 	private static final long serialVersionUID = 1L;
+-	
++
+ 	// --------------------------------------------------------------------------------------------
+ 	// Members that define the structure / topology of the graph
+ 	// --------------------------------------------------------------------------------------------
+@@ -77,22 +77,22 @@ public class JobGraph implements Serializable {
+ 
+ 	/** Name of this job. */
+ 	private final String jobName;
+-	
++
+ 	/** The number of times that failed tasks should be re-executed */
+ 	private int numExecutionRetries;
+-	
++
+ 	private long executionRetryDelay;
+ 
+ 	/** The number of seconds after which the corresponding ExecutionGraph is removed at the
+ 	 * job manager after it has been executed. */
+ 	private long sessionTimeout = 0;
+-	
++
+ 	/** flag to enable queued scheduling */
+ 	private boolean allowQueuedScheduling;
+ 
+ 	/** The mode in which the job is scheduled */
+ 	private ScheduleMode scheduleMode = ScheduleMode.FROM_SOURCES;
+-	
++
+ 	/** The settings for asynchronous snapshots */
+ 	private JobSnapshottingSettings snapshotSettings;
+ 
+@@ -100,7 +100,7 @@ public class JobGraph implements Serializable {
+ 	private List<URL> classpaths = Collections.<URL>emptyList();
+ 
+ 	// --------------------------------------------------------------------------------------------
+-	
++
+ 	/**
+ 	 * Constructs a new job graph with no name and a random job ID.
+ 	 */
+@@ -110,7 +110,7 @@ public class JobGraph implements Serializable {
+ 
+ 	/**
+ 	 * Constructs a new job graph with the given name, a random job ID.
+-	 * 
++	 *
+ 	 * @param jobName The name of the job
+ 	 */
+ 	public JobGraph(String jobName) {
+@@ -119,7 +119,7 @@ public class JobGraph implements Serializable {
+ 
+ 	/**
+ 	 * Constructs a new job graph with the given name and a random job ID if null supplied as an id.
+-	 * 
++	 *
+ 	 * @param jobId The id of the job. A random ID is generated, if {@code null} is passed.
+ 	 * @param jobName The name of the job.
+ 	 */
+@@ -127,10 +127,10 @@ public class JobGraph implements Serializable {
+ 		this.jobID = jobId == null ? new JobID() : jobId;
+ 		this.jobName = jobName == null ? "(unnamed job)" : jobName;
+ 	}
+-	
++
+ 	/**
+ 	 * Constructs a new job graph with no name and a random job ID if null supplied as an id.
+-	 * 
++	 *
+ 	 * @param vertices The vertices to add to the graph.
+ 	 */
+ 	public JobGraph(JobVertex... vertices) {
+@@ -139,34 +139,34 @@ public class JobGraph implements Serializable {
+ 
+ 	/**
+ 	 * Constructs a new job graph with the given name and a random job ID.
+-	 * 
++	 *
+ 	 * @param jobName The name of the job.
+ 	 * @param vertices The vertices to add to the graph.
+ 	 */
+ 	public JobGraph(String jobName, JobVertex... vertices) {
+ 		this(null, jobName, vertices);
+ 	}
+-	
++
+ 	/**
+ 	 * Constructs a new job graph with the given name and a random job ID if null supplied as an id.
+-	 * 
++	 *
+ 	 * @param jobId The id of the job. A random ID is generated, if {@code null} is passed.
+ 	 * @param jobName The name of the job.
+ 	 * @param vertices The vertices to add to the graph.
+ 	 */
+ 	public JobGraph(JobID jobId, String jobName, JobVertex... vertices) {
+ 		this(jobId, jobName);
+-		
++
+ 		for (JobVertex vertex : vertices) {
+ 			addVertex(vertex);
+ 		}
+ 	}
+ 
+ 	// --------------------------------------------------------------------------------------------
+-	
++
+ 	/**
+ 	 * Returns the ID of the job.
+-	 * 
++	 *
+ 	 * @return the ID of the job
+ 	 */
+ 	public JobID getJobID() {
+@@ -175,7 +175,7 @@ public class JobGraph implements Serializable {
+ 
+ 	/**
+ 	 * Returns the name assigned to the job graph.
+-	 * 
++	 *
+ 	 * @return the name assigned to the job graph
+ 	 */
+ 	public String getName() {
+@@ -185,18 +185,18 @@ public class JobGraph implements Serializable {
+ 	/**
+ 	 * Returns the configuration object for this job. Job-wide parameters should be set into that
+ 	 * configuration object.
+-	 * 
++	 *
+ 	 * @return The configuration object for this job.
+ 	 */
+ 	public Configuration getJobConfiguration() {
+ 		return this.jobConfiguration;
+ 	}
+-	
++
+ 	/**
+ 	 * Sets the number of times that failed tasks are re-executed. A value of zero
+ 	 * effectively disables fault tolerance. A value of {@code -1} indicates that the system
+ 	 * default value (as defined in the configuration) should be used.
+-	 * 
++	 *
+ 	 * @param numberOfExecutionRetries The number of times the system will try to re-execute failed tasks.
+ 	 */
+ 	public void setNumberOfExecutionRetries(int numberOfExecutionRetries) {
+@@ -206,18 +206,18 @@ public class JobGraph implements Serializable {
+ 		}
+ 		this.numExecutionRetries = numberOfExecutionRetries;
+ 	}
+-	
++
+ 	/**
+ 	 * Gets the number of times the system will try to re-execute failed tasks. A value
+ 	 * of {@code -1} indicates that the system default value (as defined in the configuration)
+ 	 * should be used.
+-	 * 
++	 *
+ 	 * @return The number of times the system will try to re-execute failed tasks.
+ 	 */
+ 	public int getNumberOfExecutionRetries() {
+ 		return numExecutionRetries;
+ 	}
+-	
++
+ 	/**
+ 	 * Gets the delay of time the system will try to re-execute failed tasks. A value of
+ 	 * {@code -1} indicates the system default value (as defined in the configuration)
+@@ -227,12 +227,12 @@ public class JobGraph implements Serializable {
+ 	public long getExecutionRetryDelay() {
+ 		return executionRetryDelay;
+ 	}
+-	
++
+ 	/**
+ 	 * Sets the delay that failed tasks are re-executed. A value of zero
+ 	 * effectively disables fault tolerance. A value of {@code -1} indicates that the system
+ 	 * default value (as defined in the configuration) should be used.
+-	 * 
++	 *
+ 	 * @param executionRetryDelay The delay of time the system will wait to re-execute failed tasks.
+ 	 */
+ 	public void setExecutionRetryDelay(long executionRetryDelay){
+@@ -260,7 +260,7 @@ public class JobGraph implements Serializable {
+ 	public void setSessionTimeout(long sessionTimeout) {
+ 		this.sessionTimeout = sessionTimeout;
+ 	}
+-	
++
+ 	public void setAllowQueuedScheduling(boolean allowQueuedScheduling) {
+ 		this.allowQueuedScheduling = allowQueuedScheduling;
+ 	}
+@@ -279,14 +279,14 @@ public class JobGraph implements Serializable {
+ 
+ 	/**
+ 	 * Adds a new task vertex to the job graph if it is not already included.
+-	 * 
++	 *
+ 	 * @param vertex
+ 	 *        the new task vertex to be added
+ 	 */
+ 	public void addVertex(JobVertex vertex) {
+ 		final JobVertexID id = vertex.getID();
+ 		JobVertex previous = taskVertices.put(id, vertex);
+-		
++
+ 		// if we had a prior association, restore and throw an exception
+ 		if (previous != null) {
+ 			taskVertices.put(id, previous);
+@@ -296,17 +296,17 @@ public class JobGraph implements Serializable {
+ 
+ 	/**
+ 	 * Returns an Iterable to iterate all vertices registered with the job graph.
+-	 * 
++	 *
+ 	 * @return an Iterable to iterate all vertices registered with the job graph
+ 	 */
+ 	public Iterable<JobVertex> getVertices() {
+ 		return this.taskVertices.values();
+ 	}
+-	
++
+ 	/**
+ 	 * Returns an array of all job vertices that are registered with the job graph. The order in which the vertices
+ 	 * appear in the list is not defined.
+-	 * 
++	 *
+ 	 * @return an array of all job vertices that are registered with the job graph
+ 	 */
+ 	public JobVertex[] getVerticesAsArray() {
+@@ -315,7 +315,7 @@ public class JobGraph implements Serializable {
+ 
+ 	/**
+ 	 * Returns the number of all vertices.
+-	 * 
++	 *
+ 	 * @return The number of all vertices.
+ 	 */
+ 	public int getNumberOfVertices() {
+@@ -335,7 +335,7 @@ public class JobGraph implements Serializable {
+ 	/**
+ 	 * Gets the settings for asynchronous snapshots. This method returns null, when
+ 	 * snapshotting is not enabled.
+-	 * 
++	 *
+ 	 * @return The snapshot settings, or null, if snapshotting is not enabled.
+ 	 */
+ 	public JobSnapshottingSettings getSnapshotSettings() {
+@@ -344,7 +344,7 @@ public class JobGraph implements Serializable {
+ 
+ 	/**
+ 	 * Searches for a vertex with a matching ID and returns it.
+-	 * 
++	 *
+ 	 * @param id
+ 	 *        the ID of the vertex to search for
+ 	 * @return the vertex with the matching ID or <code>null</code> if no vertex with such ID could be found
+@@ -355,7 +355,7 @@ public class JobGraph implements Serializable {
+ 
+ 	/**
+ 	 * Sets the classpaths required to run the job on a task manager.
+-	 * 
++	 *
+ 	 * @param paths paths of the directories/JAR files required to run the job on a task manager
+ 	 */
+ 	public void setClasspaths(List<URL> paths) {
+@@ -366,6 +366,22 @@ public class JobGraph implements Serializable {
+ 		return classpaths;
+ 	}
+ 
++	/**
++	 * Sets the savepoint path to rollback the deployment to.
++	 *
++	 * @param savepointPath The savepoint path
++	 */
++	public void setSavepointPath(String savepointPath) {
++		if (savepointPath != null) {
++			if (snapshotSettings == null) {
++				throw new IllegalStateException("Checkpointing disabled");
++			}
++			else {
++				snapshotSettings.setSavepointPath(savepointPath);
++			}
++		}
++	}
++
+ 	// --------------------------------------------------------------------------------------------
+ 
+ 	public List<JobVertex> getVerticesSortedTopologicallyFromSources() throws InvalidProgramException {
+@@ -373,69 +389,69 @@ public class JobGraph implements Serializable {
+ 		if (this.taskVertices.isEmpty()) {
+ 			return Collections.emptyList();
+ 		}
+-		
++
+ 		List<JobVertex> sorted = new ArrayList<JobVertex>(this.taskVertices.size());
+ 		Set<JobVertex> remaining = new LinkedHashSet<JobVertex>(this.taskVertices.values());
+-		
++
+ 		// start by finding the vertices with no input edges
+ 		// and the ones with disconnected inputs (that refer to some standalone data set)
+ 		{
+ 			Iterator<JobVertex> iter = remaining.iterator();
+ 			while (iter.hasNext()) {
+ 				JobVertex vertex = iter.next();
+-				
++
+ 				if (vertex.hasNoConnectedInputs()) {
+ 					sorted.add(vertex);
+ 					iter.remove();
+ 				}
+ 			}
+ 		}
+-		
++
+ 		int startNodePos = 0;
+-		
++
+ 		// traverse from the nodes that were added until we found all elements
+ 		while (!remaining.isEmpty()) {
+-			
++
+ 			// first check if we have more candidates to start traversing from. if not, then the
+ 			// graph is cyclic, which is not permitted
+ 			if (startNodePos >= sorted.size()) {
+ 				throw new InvalidProgramException("The job graph is cyclic.");
+ 			}
+-			
++
+ 			JobVertex current = sorted.get(startNodePos++);
+ 			addNodesThatHaveNoNewPredecessors(current, sorted, remaining);
+ 		}
+-		
++
+ 		return sorted;
+ 	}
+-	
++
+ 	private void addNodesThatHaveNoNewPredecessors(JobVertex start, List<JobVertex> target, Set<JobVertex> remaining) {
+-		
++
+ 		// forward traverse over all produced data sets and all their consumers
+ 		for (IntermediateDataSet dataSet : start.getProducedDataSets()) {
+ 			for (JobEdge edge : dataSet.getConsumers()) {
+-				
++
+ 				// a vertex can be added, if it has no predecessors that are still in the 'remaining' set
+ 				JobVertex v = edge.getTarget();
+ 				if (!remaining.contains(v)) {
+ 					continue;
+ 				}
+-				
++
+ 				boolean hasNewPredecessors = false;
+-				
++
+ 				for (JobEdge e : v.getInputs()) {
+ 					// skip the edge through which we came
+ 					if (e == edge) {
+ 						continue;
+ 					}
+-					
++
+ 					IntermediateDataSet source = e.getSource();
+ 					if (remaining.contains(source.getProducer())) {
+ 						hasNewPredecessors = true;
+ 						break;
+ 					}
+ 				}
+-				
++
+ 				if (!hasNewPredecessors) {
+ 					target.add(v);
+ 					remaining.remove(v);
+@@ -448,10 +464,10 @@ public class JobGraph implements Serializable {
+ 	// --------------------------------------------------------------------------------------------
+ 	//  Handling of attached JAR files
+ 	// --------------------------------------------------------------------------------------------
+-	
++
+ 	/**
+ 	 * Adds the path of a JAR file required to run the job on a task manager.
+-	 * 
++	 *
+ 	 * @param jar
+ 	 *        path of the JAR file required to run the job on a task manager
+ 	 */
+diff --git a/flink-runtime/src/main/java/org/apache/flink/runtime/jobgraph/tasks/JobSnapshottingSettings.java b/flink-runtime/src/main/java/org/apache/flink/runtime/jobgraph/tasks/JobSnapshottingSettings.java
+index d58be52..ab701b5 100644
+--- a/flink-runtime/src/main/java/org/apache/flink/runtime/jobgraph/tasks/JobSnapshottingSettings.java
++++ b/flink-runtime/src/main/java/org/apache/flink/runtime/jobgraph/tasks/JobSnapshottingSettings.java
+@@ -47,7 +47,9 @@ public class JobSnapshottingSettings implements java.io.Serializable{
+ 	private final long minPauseBetweenCheckpoints;
+ 	
+ 	private final int maxConcurrentCheckpoints;
+-	
++
++	/** Path to savepoint to reset state back to (optional, can be null) */
++	private String savepointPath;
+ 	
+ 	public JobSnapshottingSettings(List<JobVertexID> verticesToTrigger,
+ 									List<JobVertexID> verticesToAcknowledge,
+@@ -101,6 +103,26 @@ public class JobSnapshottingSettings implements java.io.Serializable{
+ 		return maxConcurrentCheckpoints;
+ 	}
+ 
++	/**
++	 * Sets the savepoint path.
++	 *
++	 * This is only set if the job shall be resumed from a savepoint on submission.
++	 *
++	 * @param savepointPath The path of the savepoint to resume from.
++	 */
++	public void setSavepointPath(String savepointPath) {
++		this.savepointPath = savepointPath;
++	}
++
++	/**
++	 * Returns the configured savepoint path or <code>null</code> if none is configured.
++	 *
++	 * @return The configured savepoint path or <code>null</code> if none is configured.
++	 */
++	public String getSavepointPath() {
++		return savepointPath;
++	}
++
+ 	// --------------------------------------------------------------------------------------------
+ 	
+ 	@Override
+diff --git a/flink-runtime/src/main/scala/org/apache/flink/runtime/jobmanager/JobManager.scala b/flink-runtime/src/main/scala/org/apache/flink/runtime/jobmanager/JobManager.scala
+index 36d6f77..2a83fde 100644
+--- a/flink-runtime/src/main/scala/org/apache/flink/runtime/jobmanager/JobManager.scala
++++ b/flink-runtime/src/main/scala/org/apache/flink/runtime/jobmanager/JobManager.scala
+@@ -22,18 +22,19 @@ import java.io.{File, IOException}
+ import java.net.{UnknownHostException, InetAddress, InetSocketAddress}
+ import java.util.UUID
+ 
+-import akka.actor.Status.Failure
++import akka.actor.Status.{Success, Failure}
+ import akka.actor._
+ import akka.pattern.ask
+ import grizzled.slf4j.Logger
+-import org.apache.flink.api.common.{ExecutionConfig, JobID}
++import org.apache.flink.api.common.{ApplicationID, ExecutionConfig, JobID}
+ import org.apache.flink.configuration.{ConfigConstants, Configuration, GlobalConfiguration}
+ import org.apache.flink.core.io.InputSplitAssigner
+ import org.apache.flink.runtime.accumulators.AccumulatorSnapshot
+ import org.apache.flink.runtime.akka.{AkkaUtils, ListeningBehaviour}
+ import org.apache.flink.runtime.blob.BlobServer
+-import org.apache.flink.runtime.checkpoint.{CheckpointRecoveryFactory, StandaloneCheckpointRecoveryFactory, ZooKeeperCheckpointRecoveryFactory}
++import org.apache.flink.runtime.checkpoint._
+ import org.apache.flink.runtime.client._
++import org.apache.flink.runtime.execution.UnrecoverableException
+ import org.apache.flink.runtime.execution.librarycache.BlobLibraryCacheManager
+ import org.apache.flink.runtime.executiongraph.{ExecutionGraph, ExecutionJobVertex}
+ import org.apache.flink.runtime.instance.{AkkaActorGateway, InstanceManager}
+@@ -67,7 +68,6 @@ import scala.concurrent.duration._
+ import scala.concurrent.forkjoin.ForkJoinPool
+ import scala.language.postfixOps
+ 
+-
+ /**
+  * The job manager is responsible for receiving Flink jobs, scheduling the tasks, gathering the
+  * job status and managing the task managers. It is realized as an actor and receives amongst others
+@@ -136,6 +136,9 @@ class JobManager(
+   val webMonitorPort : Int = flinkConfiguration.getInteger(
+     ConfigConstants.JOB_MANAGER_WEB_PORT_KEY, -1)
+ 
++  protected val savepointStore : SavepointStore =
++    SavepointStoreFactory.createFromConfig(flinkConfiguration)
++
+   /**
+    * Run when the job manager is started. Simply logs an informational message.
+    * The method also starts the leader election service.
+@@ -167,6 +170,14 @@ class JobManager(
+         log.error("Could not start the checkpoint recovery service.", e)
+         throw new RuntimeException("Could not start the checkpoint recovery service.", e)
+     }
++
++    try {
++      savepointStore.start()
++    } catch {
++      case e: Exception =>
++        log.error("Could not start the savepoint store.", e)
++        throw new RuntimeException("Could not start the  savepoint store store.", e)
++    }
+   }
+ 
+   override def postStop(): Unit = {
+@@ -191,6 +202,14 @@ class JobManager(
+     }
+ 
+     try {
++      savepointStore.stop()
++    } catch {
++      case e: Exception =>
++        log.error("Could not stop the savepoint store.", e)
++        throw new RuntimeException("Could not stop the  savepoint store store.", e)
++    }
++
++    try {
+       // revoke leadership and stop leader election service
+       leaderElectionService.stop()
+     } catch {
+@@ -502,6 +521,74 @@ class JobManager(
+     case checkpointMessage : AbstractCheckpointMessage =>
+       handleCheckpointMessage(checkpointMessage)
+ 
++    case TriggerSavepoint(jobId) =>
++      currentJobs.get(jobId) match {
++        case Some((graph, _)) =>
++          val savepointCoordinator = graph.getSavepointCoordinator()
++
++          if (savepointCoordinator != null) {
++            // Immutable copy for the future
++            val senderRef = sender()
++
++            future {
++              try {
++                // Do this async, because checkpoint coordinator operations can
++                // contain blocking calls to the state backend or ZooKeeper.
++                val savepointFuture = savepointCoordinator.triggerSavepoint(
++                  System.currentTimeMillis())
++
++                savepointFuture.onComplete {
++                  // Success, respond with the savepoint path
++                  case scala.util.Success(savepointPath) =>
++                    senderRef ! TriggerSavepointSuccess(jobId, savepointPath)
++
++                  // Failure, respond with the cause
++                  case scala.util.Failure(t) =>
++                    senderRef ! TriggerSavepointFailure(
++                      jobId,
++                      new Exception("Failed to complete savepoint", t))
++                }(context.dispatcher)
++              } catch {
++                case e: Exception =>
++                  senderRef ! TriggerSavepointFailure(jobId, new Exception(
++                    "Failed to trigger savepoint", e))
++              }
++            }(context.dispatcher)
++          } else {
++            sender() ! TriggerSavepointFailure(jobId, new IllegalStateException(
++              "Checkpointing disabled. You can enable it via the execution environment of " +
++                "your job."))
++          }
++
++        case None =>
++          sender() ! TriggerSavepointFailure(jobId, new IllegalArgumentException("Unknown job."))
++      }
++
++    case DisposeSavepoint(savepointPath) =>
++      val senderRef = sender()
++      future {
++        try {
++          log.info(s"Disposing savepoint at '$savepointPath'.")
++
++          val savepoint = savepointStore.getState(savepointPath)
++
++          log.debug(s"$savepoint")
++
++          // Discard the associated checkpoint
++          savepoint.getCompletedCheckpoint.discard(getClass.getClassLoader)
++
++          // Dispose the savepoint
++          savepointStore.disposeState(savepointPath)
++
++          senderRef ! DisposeSavepointSuccess
++        } catch {
++          case t: Throwable =>
++            log.error(s"Failed to dispose savepoint at '$savepointPath'.", t)
++
++            senderRef ! DisposeSavepointFailure(t)
++        }
++      }(context.dispatcher)
++
+     case JobStatusChanged(jobID, newJobStatus, timeStamp, error) =>
+       currentJobs.get(jobID) match {
+         case Some((executionGraph, jobInfo)) => executionGraph.getJobName
+@@ -761,6 +848,7 @@ class JobManager(
+    * @param isRecovery Flag indicating whether this is a recovery or initial submission
+    */
+   private def submitJob(jobGraph: JobGraph, jobInfo: JobInfo, isRecovery: Boolean = false): Unit = {
++
+     if (jobGraph == null) {
+       jobInfo.client ! decorateMessage(JobResultFailure(
+         new SerializedThrowable(
+@@ -929,7 +1017,8 @@ class JobManager(
+             leaderSessionID.orNull,
+             checkpointIdCounter,
+             completedCheckpoints,
+-            recoveryMode)
++            recoveryMode,
++            savepointStore)
+         }
+ 
+         // get notified about job status changes
+@@ -973,6 +1062,21 @@ class JobManager(
+             executionGraph.restoreLatestCheckpointedState()
+           }
+           else {
++            val snapshotSettings = jobGraph.getSnapshotSettings
++            if (snapshotSettings != null) {
++              val savepointPath = snapshotSettings.getSavepointPath()
++
++              // Reset state back to savepoint
++              if (savepointPath != null) {
++                try {
++                  executionGraph.restoreSavepoint(savepointPath)
++                } catch {
++                  case e: Exception =>
++                    throw new UnrecoverableException(e)
++                }
++              }
++            }
++
+             submittedJobGraphs.putJobGraph(new SubmittedJobGraph(jobGraph, jobInfo))
+           }
+ 
+@@ -1021,11 +1125,23 @@ class JobManager(
+         val jid = ackMessage.getJob()
+         currentJobs.get(jid) match {
+           case Some((graph, _)) =>
+-            val coordinator = graph.getCheckpointCoordinator()
+-            if (coordinator != null) {
++            val checkpointCoordinator = graph.getCheckpointCoordinator()
++            val savepointCoordinator = graph.getSavepointCoordinator()
++
++            if (checkpointCoordinator != null && savepointCoordinator != null) {
+               future {
+                 try {
+-                  coordinator.receiveAcknowledgeMessage(ackMessage)
++                  if (checkpointCoordinator.receiveAcknowledgeMessage(ackMessage)) {
++                    // OK, this is the common case
++                  }
++                  else {
++                    // Try the savepoint coordinator if the message was not addressed
++                    // to the periodic checkpoint coordinator.
++                    if (!savepointCoordinator.receiveAcknowledgeMessage(ackMessage)) {
++                      log.info("Received message for non-existing checkpoint " +
++                        ackMessage.getCheckpointId)
++                    }
++                  }
+                 }
+                 catch {
+                   case t: Throwable =>
+@@ -1037,7 +1153,7 @@ class JobManager(
+               log.error(
+                 s"Received ConfirmCheckpoint message for job $jid with no CheckpointCoordinator")
+             }
+-            
++
+           case None => log.error(s"Received ConfirmCheckpoint for unavailable job $jid")
+         }
+ 
+diff --git a/flink-runtime/src/main/scala/org/apache/flink/runtime/messages/JobManagerMessages.scala b/flink-runtime/src/main/scala/org/apache/flink/runtime/messages/JobManagerMessages.scala
+index bb5f598..267e231 100644
+--- a/flink-runtime/src/main/scala/org/apache/flink/runtime/messages/JobManagerMessages.scala
++++ b/flink-runtime/src/main/scala/org/apache/flink/runtime/messages/JobManagerMessages.scala
+@@ -23,12 +23,13 @@ import java.util.UUID
+ import akka.actor.ActorRef
+ import org.apache.flink.api.common.JobID
+ import org.apache.flink.runtime.akka.ListeningBehaviour
+-import org.apache.flink.runtime.client.{SerializedJobExecutionResult, JobStatusMessage}
++import org.apache.flink.runtime.client.{JobStatusMessage, SerializedJobExecutionResult}
+ import org.apache.flink.runtime.executiongraph.{ExecutionAttemptID, ExecutionGraph}
+-import org.apache.flink.runtime.instance.{InstanceID, Instance}
++import org.apache.flink.runtime.instance.{Instance, InstanceID}
+ import org.apache.flink.runtime.io.network.partition.ResultPartitionID
+ import org.apache.flink.runtime.jobgraph.{IntermediateDataSetID, JobGraph, JobStatus, JobVertexID}
+ import org.apache.flink.runtime.jobmanager.SubmittedJobGraph
++import org.apache.flink.runtime.messages.checkpoint.AbstractCheckpointMessage
+ import org.apache.flink.runtime.util.SerializedThrowable
+ 
+ import scala.collection.JavaConverters._
+@@ -121,7 +122,7 @@ object JobManagerMessages {
+    * Requests the current state of the partition.
+    *
+    * The state of a partition is currently bound to the state of the producing execution.
+-   * 
++   *
+    * @param jobId The job ID of the job, which produces the partition.
+    * @param partitionId The partition ID of the partition to request the state of.
+    * @param taskExecutionId The execution attempt ID of the task requesting the partition state.
+@@ -206,7 +207,7 @@ object JobManagerMessages {
+    * @param jobId Ths job's ID.
+    */
+   case class JobSubmitSuccess(jobId: JobID)
+-  
++
+   /**
+    * Denotes a successful job execution.
+    * @param result The result of the job execution, in serialized form.
+@@ -390,6 +391,50 @@ object JobManagerMessages {
+    */
+   case class ResponseWebMonitorPort(port: Integer)
+ 
++  /**
++    * Triggers a savepoint for the specified job.
++    *
++    * This is not a subtype of [[AbstractCheckpointMessage]], because it is a
++    * control-flow message, which is *not* part of the checkpointing mechanism
++    * of triggering and acknowledging checkpoints.
++    *
++    * @param jobId The JobID of the job to trigger the savepoint for.
++    */
++  case class TriggerSavepoint(jobId: JobID) extends RequiresLeaderSessionID
++
++  /**
++    * Response after a successful savepoint trigger containing the savepoint path.
++    *
++    * @param jobId The job ID for which the savepoint was triggered.
++    * @param savepointPath The path of the savepoint.
++    */
++  case class TriggerSavepointSuccess(jobId: JobID, savepointPath: String)
++
++  /**
++    * Response after a failed savepoint trigger containing the failure cause.
++    *
++    * @param jobId The job ID for which the savepoint was triggered.
++    * @param cause The cause of the failure.
++    */
++  case class TriggerSavepointFailure(jobId: JobID, cause: Throwable)
++
++  /**
++    * Disposes a savepoint.
++    *
++    * @param savepointPath The path of the savepoint to dispose.
++    */
++  case class DisposeSavepoint(savepointPath: String) extends RequiresLeaderSessionID
++
++  /** Response after a successful savepoint dispose. */
++  case object DisposeSavepointSuccess
++
++  /**
++    * Response after a failed savepoint dispose containing the failure cause.
++    *
++    * @param cause The cause of the failure.
++    */
++  case class DisposeSavepointFailure(cause: Throwable)
++
+   // --------------------------------------------------------------------------
+   // Utility methods to allow simpler case object access from Java
+   // --------------------------------------------------------------------------
+@@ -397,19 +442,19 @@ object JobManagerMessages {
+   def getRequestJobStatus(jobId : JobID) : AnyRef = {
+     RequestJobStatus(jobId)
+   }
+-  
++
+   def getRequestNumberRegisteredTaskManager : AnyRef = {
+     RequestNumberRegisteredTaskManager
+   }
+-  
++
+   def getRequestTotalNumberOfSlots : AnyRef = {
+     RequestTotalNumberOfSlots
+   }
+-  
++
+   def getRequestBlobManagerPort : AnyRef = {
+     RequestBlobManagerPort
+   }
+-  
++
+   def getRequestRunningJobs : AnyRef = {
+     RequestRunningJobs
+   }
+@@ -421,11 +466,11 @@ object JobManagerMessages {
+   def getRequestRegisteredTaskManagers : AnyRef = {
+     RequestRegisteredTaskManagers
+   }
+-  
++
+   def getRequestJobManagerStatus : AnyRef = {
+     RequestJobManagerStatus
+   }
+-  
++
+   def getJobManagerStatusAlive : AnyRef = {
+     JobManagerStatusAlive
+   }
+@@ -441,8 +486,12 @@ object JobManagerMessages {
+   def getRecoverAllJobs: AnyRef = {
+     RecoverAllJobs
+   }
+-  
++
+   def getRequestWebMonitorPort: AnyRef = {
+     RequestWebMonitorPort
+   }
++
++  def getDisposeSavepointSuccess: AnyRef = {
++    DisposeSavepointSuccess
++  }
+ }
+diff --git a/flink-runtime/src/test/java/org/apache/flink/runtime/checkpoint/ExecutionGraphCheckpointCoordinatorTest.java b/flink-runtime/src/test/java/org/apache/flink/runtime/checkpoint/ExecutionGraphCheckpointCoordinatorTest.java
+new file mode 100644
+index 0000000..e921e92
+--- /dev/null
++++ b/flink-runtime/src/test/java/org/apache/flink/runtime/checkpoint/ExecutionGraphCheckpointCoordinatorTest.java
+@@ -0,0 +1,95 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.runtime.checkpoint;
++
++import akka.actor.ActorSystem;
++import org.apache.flink.api.common.JobID;
++import org.apache.flink.configuration.Configuration;
++import org.apache.flink.runtime.akka.AkkaUtils;
++import org.apache.flink.runtime.blob.BlobKey;
++import org.apache.flink.runtime.executiongraph.ExecutionGraph;
++import org.apache.flink.runtime.executiongraph.ExecutionJobVertex;
++import org.apache.flink.runtime.jobmanager.RecoveryMode;
++import org.apache.flink.runtime.testingUtils.TestingUtils;
++import org.junit.Test;
++import scala.concurrent.duration.FiniteDuration;
++
++import java.lang.reflect.Field;
++import java.net.URL;
++import java.util.Collections;
++import java.util.UUID;
++import java.util.concurrent.TimeUnit;
++
++import static org.junit.Assert.assertEquals;
++
++public class ExecutionGraphCheckpointCoordinatorTest {
++
++	@Test
++	public void testCheckpointAndSavepointCoordinatorShareCheckpointIDCounter() throws Exception {
++		ExecutionGraph executionGraph = new ExecutionGraph(
++				TestingUtils.defaultExecutionContext(),
++				new JobID(),
++				"test",
++				new Configuration(),
++				new FiniteDuration(1, TimeUnit.DAYS),
++				Collections.<BlobKey>emptyList(),
++				Collections.<URL>emptyList(),
++				ClassLoader.getSystemClassLoader());
++
++		ActorSystem actorSystem = AkkaUtils.createDefaultActorSystem();
++
++		try {
++			executionGraph.enableSnapshotCheckpointing(
++					100,
++					100,
++					100,
++					1,
++					Collections.<ExecutionJobVertex>emptyList(),
++					Collections.<ExecutionJobVertex>emptyList(),
++					Collections.<ExecutionJobVertex>emptyList(),
++					actorSystem,
++					UUID.randomUUID(),
++					new StandaloneCheckpointIDCounter(),
++					new StandaloneCompletedCheckpointStore(1, ClassLoader.getSystemClassLoader()),
++					RecoveryMode.STANDALONE,
++					new HeapStateStore<Savepoint>());
++
++			CheckpointCoordinator checkpointCoordinator = executionGraph.getCheckpointCoordinator();
++			SavepointCoordinator savepointCoordinator = executionGraph.getSavepointCoordinator();
++
++			// Both the checkpoint and savepoint coordinator need to operate\
++			// with the same checkpoint ID counter.
++			Field counterField = CheckpointCoordinator.class.getDeclaredField("checkpointIdCounter");
++
++			CheckpointIDCounter counterCheckpointCoordinator = (CheckpointIDCounter) counterField
++					.get(checkpointCoordinator);
++
++			CheckpointIDCounter counterSavepointCoordinator = (CheckpointIDCounter) counterField
++					.get(savepointCoordinator);
++
++			assertEquals(counterCheckpointCoordinator, counterSavepointCoordinator);
++		}
++		finally {
++			if (actorSystem != null) {
++				actorSystem.shutdown();
++			}
++		}
++
++	}
++}
+diff --git a/flink-runtime/src/test/java/org/apache/flink/runtime/checkpoint/SavepointCoordinatorTest.java b/flink-runtime/src/test/java/org/apache/flink/runtime/checkpoint/SavepointCoordinatorTest.java
+new file mode 100644
+index 0000000..4dc9c5c
+--- /dev/null
++++ b/flink-runtime/src/test/java/org/apache/flink/runtime/checkpoint/SavepointCoordinatorTest.java
+@@ -0,0 +1,1126 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.runtime.checkpoint;
++
++import org.apache.commons.io.FileUtils;
++import org.apache.flink.api.common.ApplicationID;
++import org.apache.flink.api.common.JobID;
++import org.apache.flink.runtime.checkpoint.stats.DisabledCheckpointStatsTracker;
++import org.apache.flink.runtime.execution.ExecutionState;
++import org.apache.flink.runtime.executiongraph.Execution;
++import org.apache.flink.runtime.executiongraph.ExecutionAttemptID;
++import org.apache.flink.runtime.executiongraph.ExecutionJobVertex;
++import org.apache.flink.runtime.executiongraph.ExecutionVertex;
++import org.apache.flink.runtime.jobgraph.JobVertexID;
++import org.apache.flink.runtime.messages.checkpoint.AcknowledgeCheckpoint;
++import org.apache.flink.runtime.messages.checkpoint.NotifyCheckpointComplete;
++import org.apache.flink.runtime.messages.checkpoint.TriggerCheckpoint;
++import org.apache.flink.runtime.state.LocalStateHandle;
++import org.apache.flink.runtime.state.StateHandle;
++import org.apache.flink.runtime.testutils.CommonTestUtils;
++import org.apache.flink.util.SerializedValue;
++import org.junit.Test;
++import scala.concurrent.Await;
++import scala.concurrent.Future;
++import scala.concurrent.Promise;
++import scala.concurrent.duration.Deadline;
++import scala.concurrent.duration.FiniteDuration;
++
++import java.io.File;
++import java.io.IOException;
++import java.io.Serializable;
++import java.lang.reflect.Field;
++import java.util.ArrayList;
++import java.util.Collections;
++import java.util.HashMap;
++import java.util.List;
++import java.util.Map;
++
++import static org.junit.Assert.assertEquals;
++import static org.junit.Assert.assertFalse;
++import static org.junit.Assert.assertNotNull;
++import static org.junit.Assert.assertTrue;
++import static org.junit.Assert.fail;
++import static org.mockito.Matchers.any;
++import static org.mockito.Matchers.anyLong;
++import static org.mockito.Matchers.anyString;
++import static org.mockito.Matchers.eq;
++import static org.mockito.Mockito.doThrow;
++import static org.mockito.Mockito.mock;
++import static org.mockito.Mockito.spy;
++import static org.mockito.Mockito.times;
++import static org.mockito.Mockito.verify;
++import static org.mockito.Mockito.when;
++
++/**
++ * Tests for the savepoint coordinator.
++ */
++public class SavepointCoordinatorTest {
++
++	// ------------------------------------------------------------------------
++	// Trigger and acknowledge
++	// ------------------------------------------------------------------------
++
++	/**
++	 * Simple trigger-acknowledge test for a single savepoint.
++	 */
++	@Test
++	public void testSimpleTriggerSavepoint() throws Exception {
++		ApplicationID appId = new ApplicationID();
++		JobID jobId = new JobID();
++		long checkpointTimeout = 60 * 1000;
++		long timestamp = 1272635;
++		ExecutionVertex[] vertices = new ExecutionVertex[] {
++				mockExecutionVertex(jobId),
++				mockExecutionVertex(jobId) };
++		MockCheckpointIdCounter checkpointIdCounter = new MockCheckpointIdCounter();
++		HeapStateStore<Savepoint> savepointStore = new HeapStateStore<>();
++
++		SavepointCoordinator coordinator = createSavepointCoordinator(
++				appId,
++				jobId,
++				checkpointTimeout,
++				vertices,
++				vertices,
++				vertices,
++				checkpointIdCounter,
++				savepointStore);
++
++		// Trigger the savepoint
++		Future<String> savepointPathFuture = coordinator.triggerSavepoint(timestamp);
++		assertFalse(savepointPathFuture.isCompleted());
++
++		long checkpointId = checkpointIdCounter.getLastReturnedCount();
++		assertEquals(0, checkpointId);
++
++		// Verify send trigger messages
++		for (ExecutionVertex vertex : vertices) {
++			verifyTriggerCheckpoint(vertex, checkpointId, timestamp);
++		}
++
++		PendingCheckpoint pendingCheckpoint = coordinator.getPendingCheckpoints()
++				.get(checkpointId);
++
++		verifyPendingCheckpoint(pendingCheckpoint, jobId, checkpointId,
++				timestamp, 0, 2, 0, false, false);
++
++		// Acknowledge tasks
++		for (ExecutionVertex vertex : vertices) {
++			coordinator.receiveAcknowledgeMessage(new AcknowledgeCheckpoint(
++					jobId, vertex.getCurrentExecutionAttempt().getAttemptId(),
++					checkpointId, createSerializedStateHandle(vertex), 0));
++		}
++
++		// The pending checkpoint is completed
++		assertTrue(pendingCheckpoint.isDiscarded());
++		assertEquals(0, coordinator.getSuccessfulCheckpoints().size());
++
++		// Verify send notify complete messages
++		for (ExecutionVertex vertex : vertices) {
++			verifyNotifyCheckpointComplete(vertex, checkpointId, timestamp);
++		}
++
++		// Verify that the future has been completed
++		assertTrue(savepointPathFuture.isCompleted());
++		String savepointPath = Await.result(savepointPathFuture, FiniteDuration.Zero());
++
++		// Verify the savepoint
++		Savepoint savepoint = savepointStore.getState(savepointPath);
++		verifySavepoint(savepoint, appId, jobId, checkpointId, timestamp,
++				vertices);
++
++		// Verify all promises removed
++		assertEquals(0, getSavepointPromises(coordinator).size());
++
++		coordinator.shutdown();
++	}
++
++	// ------------------------------------------------------------------------
++	// Rollback
++	// ------------------------------------------------------------------------
++
++	@Test
++	@SuppressWarnings("unchecked")
++	public void testSimpleRollbackSavepoint() throws Exception {
++		ApplicationID appId = new ApplicationID();
++		JobID jobId = new JobID();
++
++		ExecutionJobVertex[] jobVertices = new ExecutionJobVertex[] {
++				mockExecutionJobVertex(jobId, new JobVertexID(), 4),
++				mockExecutionJobVertex(jobId, new JobVertexID(), 4) };
++
++		ExecutionVertex[] triggerVertices = jobVertices[0].getTaskVertices();
++		ExecutionVertex[] ackVertices = new ExecutionVertex[8];
++
++		int i = 0;
++		for (ExecutionJobVertex jobVertex : jobVertices) {
++			for (ExecutionVertex vertex : jobVertex.getTaskVertices()) {
++				ackVertices[i++] = vertex;
++			}
++		}
++
++		StateStore<Savepoint> savepointStore = new HeapStateStore<>();
++
++		SavepointCoordinator coordinator = createSavepointCoordinator(
++				appId,
++				jobId,
++				60 * 1000,
++				triggerVertices,
++				ackVertices,
++				new ExecutionVertex[] {},
++				new MockCheckpointIdCounter(),
++				savepointStore);
++
++		Future<String> savepointPathFuture = coordinator.triggerSavepoint(1231273123);
++
++		// Acknowledge all tasks
++		for (ExecutionVertex vertex : ackVertices) {
++			ExecutionAttemptID attemptId = vertex.getCurrentExecutionAttempt().getAttemptId();
++			coordinator.receiveAcknowledgeMessage(new AcknowledgeCheckpoint(
++					jobId, attemptId, 0, createSerializedStateHandle(vertex), 0));
++		}
++
++		String savepointPath = Await.result(savepointPathFuture, FiniteDuration.Zero());
++		assertNotNull(savepointPath);
++
++		// Rollback
++		assertEquals(appId, coordinator.restoreSavepoint(
++				createExecutionJobVertexMap(jobVertices),
++				savepointPath));
++
++		// Verify all executions have been reset
++		for (ExecutionVertex vertex : ackVertices) {
++			verify(vertex.getCurrentExecutionAttempt(), times(1)).setInitialState(
++					any(SerializedValue.class), anyLong());
++		}
++
++		// Verify all promises removed
++		assertEquals(0, getSavepointPromises(coordinator).size());
++
++		coordinator.shutdown();
++	}
++
++	@Test
++	public void testRollbackParallelismMismatch() throws Exception {
++		ApplicationID appId = new ApplicationID();
++		JobID jobId = new JobID();
++
++		ExecutionJobVertex[] jobVertices = new ExecutionJobVertex[] {
++				mockExecutionJobVertex(jobId, new JobVertexID(), 4),
++				mockExecutionJobVertex(jobId, new JobVertexID(), 4) };
++
++		ExecutionVertex[] triggerVertices = jobVertices[0].getTaskVertices();
++		ExecutionVertex[] ackVertices = new ExecutionVertex[8];
++
++		int index = 0;
++		for (ExecutionJobVertex jobVertex : jobVertices) {
++			for (ExecutionVertex vertex : jobVertex.getTaskVertices()) {
++				ackVertices[index++] = vertex;
++			}
++		}
++
++		StateStore<Savepoint> savepointStore = new HeapStateStore<>();
++
++		SavepointCoordinator coordinator = createSavepointCoordinator(
++				appId,
++				jobId,
++				60 * 1000,
++				triggerVertices,
++				ackVertices,
++				new ExecutionVertex[] {},
++				new MockCheckpointIdCounter(),
++				savepointStore);
++
++		Future<String> savepointPathFuture = coordinator.triggerSavepoint(1231273123);
++
++		// Acknowledge all tasks
++		for (ExecutionVertex vertex : ackVertices) {
++			ExecutionAttemptID attemptId = vertex.getCurrentExecutionAttempt().getAttemptId();
++			coordinator.receiveAcknowledgeMessage(new AcknowledgeCheckpoint(
++					jobId, attemptId, 0, createSerializedStateHandle(vertex), 0));
++		}
++
++		String savepointPath = Await.result(savepointPathFuture, FiniteDuration.Zero());
++		assertNotNull(savepointPath);
++
++		// Change parallelism higher than original (subtask without matching state)
++		for (int i = 0; i < jobVertices.length; i++) {
++			jobVertices[i] = mockExecutionJobVertex(jobId, jobVertices[i].getJobVertexId(), 8);
++		}
++
++		try {
++			// Rollback
++			coordinator.restoreSavepoint(
++					createExecutionJobVertexMap(jobVertices),
++					savepointPath);
++			fail("Did not throw expected Exception after rollback with parallelism mismatch.");
++		}
++		catch (Exception ignored) {
++		}
++
++		// Change parallelism lower than original (state without matching subtask)
++		for (int i = 0; i < jobVertices.length; i++) {
++			jobVertices[i] = mockExecutionJobVertex(jobId, jobVertices[i].getJobVertexId(), 2);
++		}
++
++		try {
++			// Rollback
++			coordinator.restoreSavepoint(
++					createExecutionJobVertexMap(jobVertices),
++					savepointPath);
++			fail("Did not throw expected Exception after rollback with parallelism mismatch.");
++		}
++		catch (Exception ignored) {
++		}
++
++		// Verify all promises removed
++		assertEquals(0, getSavepointPromises(coordinator).size());
++
++		coordinator.shutdown();
++	}
++
++	@Test
++	public void testRollbackStateStoreFailure() throws Exception {
++		ApplicationID appId = new ApplicationID();
++		JobID jobId = new JobID();
++		ExecutionJobVertex jobVertex = mockExecutionJobVertex(jobId, new JobVertexID(), 4);
++		HeapStateStore<Savepoint> savepointStore = spy(
++				new HeapStateStore<Savepoint>());
++
++		SavepointCoordinator coordinator = createSavepointCoordinator(
++				appId,
++				jobId,
++				60 * 1000,
++				jobVertex.getTaskVertices(),
++				jobVertex.getTaskVertices(),
++				new ExecutionVertex[] {},
++				new MockCheckpointIdCounter(),
++				savepointStore);
++
++		Future<String> savepointPathFuture = coordinator.triggerSavepoint(1231273123);
++
++		// Acknowledge all tasks
++		for (ExecutionVertex vertex : jobVertex.getTaskVertices()) {
++			ExecutionAttemptID attemptId = vertex.getCurrentExecutionAttempt().getAttemptId();
++			coordinator.receiveAcknowledgeMessage(new AcknowledgeCheckpoint(
++					jobId, attemptId, 0, createSerializedStateHandle(vertex), 0));
++		}
++
++		String savepointPath = Await.result(savepointPathFuture, FiniteDuration.Zero());
++		assertNotNull(savepointPath);
++
++		// Failure on getState
++		doThrow(new Exception("TestException")).when(savepointStore).getState(anyString());
++
++		try {
++			// Rollback
++			coordinator.restoreSavepoint(
++					createExecutionJobVertexMap(jobVertex),
++					savepointPath);
++
++			fail("Did not throw expected Exception after rollback with savepoint store failure.");
++		}
++		catch (Exception ignored) {
++		}
++
++		// Verify all promises removed
++		assertEquals(0, getSavepointPromises(coordinator).size());
++
++		coordinator.shutdown();
++	}
++
++	@Test
++	public void testRollbackUpdatesApplicationID() throws Exception {
++		ApplicationID appId = new ApplicationID();
++
++		CompletedCheckpoint checkpoint = mock(CompletedCheckpoint.class);
++		when(checkpoint.getStates()).thenReturn(Collections.<StateForTask>emptyList());
++		when(checkpoint.getCheckpointID()).thenReturn(12312312L);
++
++		Savepoint savepoint = new Savepoint(appId, checkpoint);
++
++		StateStore<Savepoint> savepointStore = mock(StateStore.class);
++		when(savepointStore.getState(anyString())).thenReturn(savepoint);
++
++		SavepointCoordinator coordinator = createSavepointCoordinator(
++				new ApplicationID(),
++				new JobID(),
++				60 * 1000,
++				new ExecutionVertex[] {},
++				new ExecutionVertex[] {},
++				new ExecutionVertex[] {},
++				new MockCheckpointIdCounter(),
++				savepointStore);
++
++		assertEquals(appId, coordinator.restoreSavepoint(createExecutionJobVertexMap(), "any"));
++
++		coordinator.shutdown();
++	}
++
++	@Test
++	public void testRollbackSetsCheckpointID() throws Exception {
++		ApplicationID appId = new ApplicationID();
++
++		CompletedCheckpoint checkpoint = mock(CompletedCheckpoint.class);
++		when(checkpoint.getStates()).thenReturn(Collections.<StateForTask>emptyList());
++		when(checkpoint.getCheckpointID()).thenReturn(12312312L);
++
++		Savepoint savepoint = new Savepoint(appId, checkpoint);
++
++		CheckpointIDCounter checkpointIdCounter = mock(CheckpointIDCounter.class);
++
++		StateStore<Savepoint> savepointStore = mock(StateStore.class);
++		when(savepointStore.getState(anyString())).thenReturn(savepoint);
++
++		SavepointCoordinator coordinator = createSavepointCoordinator(
++				new ApplicationID(),
++				new JobID(),
++				60 * 1000,
++				new ExecutionVertex[] {},
++				new ExecutionVertex[] {},
++				new ExecutionVertex[] {},
++				checkpointIdCounter,
++				savepointStore);
++
++		assertEquals(appId, coordinator.restoreSavepoint(createExecutionJobVertexMap(), "any"));
++
++		verify(checkpointIdCounter).setCount(eq(12312312L + 1));
++
++		coordinator.shutdown();
++	}
++
++	// ------------------------------------------------------------------------
++	// Savepoint aborts and future notifications
++	// ------------------------------------------------------------------------
++
++	@Test
++	public void testAbortSavepointIfTriggerTasksNotExecuted() throws Exception {
++		ApplicationID appId = new ApplicationID();
++		JobID jobId = new JobID();
++		ExecutionVertex[] triggerVertices = new ExecutionVertex[] {
++				mock(ExecutionVertex.class),
++				mock(ExecutionVertex.class) };
++		ExecutionVertex[] ackVertices = new ExecutionVertex[] {
++				mockExecutionVertex(jobId),
++				mockExecutionVertex(jobId) };
++
++		SavepointCoordinator coordinator = createSavepointCoordinator(
++				appId,
++				jobId,
++				60 * 1000,
++				triggerVertices,
++				ackVertices,
++				new ExecutionVertex[] {},
++				new MockCheckpointIdCounter(),
++				new HeapStateStore<Savepoint>());
++
++		// Trigger savepoint
++		Future<String> savepointPathFuture = coordinator.triggerSavepoint(1238123);
++
++		// Abort the savepoint, because the vertices are not running
++		assertTrue(savepointPathFuture.isCompleted());
++
++		try {
++			Await.result(savepointPathFuture, FiniteDuration.Zero());
++			fail("Did not throw expected Exception after shutdown");
++		}
++		catch (Exception ignored) {
++		}
++
++		// Verify all promises removed
++		assertEquals(0, getSavepointPromises(coordinator).size());
++
++		coordinator.shutdown();
++	}
++
++	@Test
++	public void testAbortSavepointIfTriggerTasksAreFinished() throws Exception {
++		ApplicationID appId = new ApplicationID();
++		JobID jobId = new JobID();
++		ExecutionVertex[] triggerVertices = new ExecutionVertex[] {
++				mockExecutionVertex(jobId),
++				mockExecutionVertex(jobId, ExecutionState.FINISHED) };
++		ExecutionVertex[] ackVertices = new ExecutionVertex[] {
++				mockExecutionVertex(jobId),
++				mockExecutionVertex(jobId) };
++
++		SavepointCoordinator coordinator = createSavepointCoordinator(
++				appId,
++				jobId,
++				60 * 1000,
++				triggerVertices,
++				ackVertices,
++				new ExecutionVertex[] {},
++				new MockCheckpointIdCounter(),
++				new HeapStateStore<Savepoint>());
++
++		// Trigger savepoint
++		Future<String> savepointPathFuture = coordinator.triggerSavepoint(1238123);
++
++		// Abort the savepoint, because the vertices are not running
++		assertTrue(savepointPathFuture.isCompleted());
++
++		try {
++			Await.result(savepointPathFuture, FiniteDuration.Zero());
++			fail("Did not throw expected Exception after shutdown");
++		}
++		catch (Exception ignored) {
++		}
++
++		// Verify all promises removed
++		assertEquals(0, getSavepointPromises(coordinator).size());
++
++		coordinator.shutdown();
++	}
++
++	@Test
++	public void testAbortSavepointIfAckTasksAreNotExecuted() throws Exception {
++		ApplicationID appId = new ApplicationID();
++		JobID jobId = new JobID();
++		ExecutionVertex[] triggerVertices = new ExecutionVertex[] {
++				mockExecutionVertex(jobId),
++				mockExecutionVertex(jobId) };
++		ExecutionVertex[] ackVertices = new ExecutionVertex[] {
++				mock(ExecutionVertex.class),
++				mock(ExecutionVertex.class) };
++
++		SavepointCoordinator coordinator = createSavepointCoordinator(
++				appId,
++				jobId,
++				60 * 1000,
++				triggerVertices,
++				ackVertices,
++				new ExecutionVertex[] {},
++				new MockCheckpointIdCounter(),
++				new HeapStateStore<Savepoint>());
++
++		// Trigger savepoint
++		Future<String> savepointPathFuture = coordinator.triggerSavepoint(1238123);
++
++		// Abort the savepoint, because the vertices are not running
++		assertTrue(savepointPathFuture.isCompleted());
++
++		try {
++			Await.result(savepointPathFuture, FiniteDuration.Zero());
++			fail("Did not throw expected Exception after shutdown");
++		}
++		catch (Exception ignored) {
++		}
++
++		// Verify all promises removed
++		assertEquals(0, getSavepointPromises(coordinator).size());
++
++		coordinator.shutdown();
++	}
++
++	@Test
++	public void testAbortOnCheckpointTimeout() throws Exception {
++		ApplicationID appId = new ApplicationID();
++		JobID jobId = new JobID();
++		ExecutionVertex[] vertices = new ExecutionVertex[] {
++				mockExecutionVertex(jobId),
++				mockExecutionVertex(jobId) };
++		ExecutionVertex commitVertex = mockExecutionVertex(jobId);
++		MockCheckpointIdCounter checkpointIdCounter = new MockCheckpointIdCounter();
++
++		SavepointCoordinator coordinator = createSavepointCoordinator(
++				appId,
++				jobId,
++				20,
++				vertices,
++				vertices,
++				new ExecutionVertex[] { commitVertex },
++				checkpointIdCounter,
++				new HeapStateStore<Savepoint>());
++
++		// Trigger the savepoint
++		Future<String> savepointPathFuture = coordinator.triggerSavepoint(12731273);
++		assertFalse(savepointPathFuture.isCompleted());
++
++		long checkpointId = checkpointIdCounter.getLastReturnedCount();
++
++		// Acknowledge single task
++		coordinator.receiveAcknowledgeMessage(new AcknowledgeCheckpoint(
++				jobId, vertices[0].getCurrentExecutionAttempt().getAttemptId(),
++				checkpointId, createSerializedStateHandle(vertices[0]), 0));
++
++		PendingCheckpoint pendingCheckpoint = coordinator.getPendingCheckpoints()
++				.get(checkpointId);
++
++		assertFalse(pendingCheckpoint.isDiscarded());
++
++		// Wait for savepoint to timeout
++		Deadline deadline = FiniteDuration.apply(5, "s").fromNow();
++		while (deadline.hasTimeLeft()
++				&& !pendingCheckpoint.isDiscarded()
++				&& coordinator.getNumberOfPendingCheckpoints() > 0) {
++
++			Thread.sleep(250);
++		}
++
++		// Verify discarded
++		assertTrue(pendingCheckpoint.isDiscarded());
++		assertEquals(0, coordinator.getNumberOfPendingCheckpoints());
++		assertEquals(0, coordinator.getNumberOfRetainedSuccessfulCheckpoints());
++
++		// No commit for timeout
++		verify(commitVertex, times(0)).sendMessageToCurrentExecution(
++				any(NotifyCheckpointComplete.class), any(ExecutionAttemptID.class));
++
++		assertTrue(savepointPathFuture.isCompleted());
++
++		try {
++			Await.result(savepointPathFuture, FiniteDuration.Zero());
++			fail("Did not throw expected Exception after timeout");
++		}
++		catch (Exception ignored) {
++		}
++
++		// Verify all promises removed
++		assertEquals(0, getSavepointPromises(coordinator).size());
++
++		coordinator.shutdown();
++	}
++
++	@Test
++	public void testAbortSavepointsOnShutdown() throws Exception {
++		ApplicationID appId = new ApplicationID();
++		JobID jobId = new JobID();
++		ExecutionVertex[] vertices = new ExecutionVertex[] {
++				mockExecutionVertex(jobId),
++				mockExecutionVertex(jobId) };
++
++		SavepointCoordinator coordinator = createSavepointCoordinator(
++				appId,
++				jobId,
++				60 * 1000,
++				vertices,
++				vertices,
++				vertices,
++				new MockCheckpointIdCounter(),
++				new HeapStateStore<Savepoint>());
++
++		// Trigger savepoints
++		List<Future<String>> savepointPathFutures = new ArrayList<>();
++		savepointPathFutures.add(coordinator.triggerSavepoint(12731273));
++		savepointPathFutures.add(coordinator.triggerSavepoint(12731273 + 123));
++
++		for (Future<String> future : savepointPathFutures) {
++			assertFalse(future.isCompleted());
++		}
++
++		coordinator.shutdown();
++
++		// Verify futures failed
++		for (Future<String> future : savepointPathFutures) {
++			assertTrue(future.isCompleted());
++
++			try {
++				Await.result(future, FiniteDuration.Zero());
++				fail("Did not throw expected Exception after shutdown");
++			}
++			catch (Exception ignored) {
++			}
++		}
++
++		// Verify all promises removed
++		assertEquals(0, getSavepointPromises(coordinator).size());
++	}
++
++	@Test
++	public void testAbortSavepointOnStateStoreFailure() throws Exception {
++		ApplicationID appId = new ApplicationID();
++		JobID jobId = new JobID();
++		ExecutionJobVertex jobVertex = mockExecutionJobVertex(jobId, new JobVertexID(), 4);
++		HeapStateStore<Savepoint> savepointStore = spy(
++				new HeapStateStore<Savepoint>());
++
++		SavepointCoordinator coordinator = createSavepointCoordinator(
++				appId,
++				jobId,
++				60 * 1000,
++				jobVertex.getTaskVertices(),
++				jobVertex.getTaskVertices(),
++				new ExecutionVertex[] {},
++				new MockCheckpointIdCounter(),
++				savepointStore);
++
++		// Failure on putState
++		doThrow(new Exception("TestException"))
++				.when(savepointStore).putState(any(Savepoint.class));
++
++		Future<String> savepointPathFuture = coordinator.triggerSavepoint(1231273123);
++
++		// Acknowledge all tasks
++		for (ExecutionVertex vertex : jobVertex.getTaskVertices()) {
++			ExecutionAttemptID attemptId = vertex.getCurrentExecutionAttempt().getAttemptId();
++			coordinator.receiveAcknowledgeMessage(new AcknowledgeCheckpoint(
++					jobId, attemptId, 0, createSerializedStateHandle(vertex), 0));
++		}
++
++		try {
++			Await.result(savepointPathFuture, FiniteDuration.Zero());
++			fail("Did not throw expected Exception after rollback with savepoint store failure.");
++		}
++		catch (Exception ignored) {
++		}
++
++		// Verify all promises removed
++		assertEquals(0, getSavepointPromises(coordinator).size());
++
++		coordinator.shutdown();
++	}
++
++	@Test
++	public void testAbortSavepointIfSubsumed() throws Exception {
++		ApplicationID appId = new ApplicationID();
++		JobID jobId = new JobID();
++		long checkpointTimeout = 60 * 1000;
++		long[] timestamps = new long[] { 1272635, 1272635 + 10 };
++		long[] checkpointIds = new long[2];
++		ExecutionVertex[] vertices = new ExecutionVertex[] {
++				mockExecutionVertex(jobId),
++				mockExecutionVertex(jobId) };
++		MockCheckpointIdCounter checkpointIdCounter = new MockCheckpointIdCounter();
++		HeapStateStore<Savepoint> savepointStore = new HeapStateStore<>();
++
++		SavepointCoordinator coordinator = createSavepointCoordinator(
++				appId,
++				jobId,
++				checkpointTimeout,
++				vertices,
++				vertices,
++				vertices,
++				checkpointIdCounter,
++				savepointStore);
++
++		// Trigger the savepoints
++		List<Future<String>> savepointPathFutures = new ArrayList<>();
++
++		savepointPathFutures.add(coordinator.triggerSavepoint(timestamps[0]));
++		checkpointIds[0] = checkpointIdCounter.getLastReturnedCount();
++
++		savepointPathFutures.add(coordinator.triggerSavepoint(timestamps[1]));
++		checkpointIds[1] = checkpointIdCounter.getLastReturnedCount();
++
++		for (Future<String> future : savepointPathFutures) {
++			assertFalse(future.isCompleted());
++		}
++
++		// Verify send trigger messages
++		for (ExecutionVertex vertex : vertices) {
++			verifyTriggerCheckpoint(vertex, checkpointIds[0], timestamps[0]);
++			verifyTriggerCheckpoint(vertex, checkpointIds[1], timestamps[1]);
++		}
++
++		PendingCheckpoint[] pendingCheckpoints = new PendingCheckpoint[] {
++				coordinator.getPendingCheckpoints().get(checkpointIds[0]),
++				coordinator.getPendingCheckpoints().get(checkpointIds[1]) };
++
++		verifyPendingCheckpoint(pendingCheckpoints[0], jobId, checkpointIds[0],
++				timestamps[0], 0, 2, 0, false, false);
++
++		verifyPendingCheckpoint(pendingCheckpoints[1], jobId, checkpointIds[1],
++				timestamps[1], 0, 2, 0, false, false);
++
++		// Acknowledge second checkpoint...
++		for (ExecutionVertex vertex : vertices) {
++			coordinator.receiveAcknowledgeMessage(new AcknowledgeCheckpoint(
++					jobId, vertex.getCurrentExecutionAttempt().getAttemptId(),
++					checkpointIds[1], createSerializedStateHandle(vertex), 0));
++		}
++
++		// ...and one task of first checkpoint
++		coordinator.receiveAcknowledgeMessage(new AcknowledgeCheckpoint(
++				jobId, vertices[0].getCurrentExecutionAttempt().getAttemptId(),
++				checkpointIds[0], createSerializedStateHandle(vertices[0]), 0));
++
++		// The second pending checkpoint is completed and subsumes the first one
++		assertTrue(pendingCheckpoints[0].isDiscarded());
++		assertTrue(pendingCheckpoints[1].isDiscarded());
++		assertEquals(0, coordinator.getSuccessfulCheckpoints().size());
++
++		// Verify send notify complete messages for second checkpoint
++		for (ExecutionVertex vertex : vertices) {
++			verifyNotifyCheckpointComplete(vertex, checkpointIds[1], timestamps[1]);
++		}
++
++		Savepoint[] savepoints = new Savepoint[2];
++		String[] savepointPaths = new String[2];
++
++		// Verify that the futures have both been completed
++		assertTrue(savepointPathFutures.get(0).isCompleted());
++
++		try {
++			savepointPaths[0] = Await.result(savepointPathFutures.get(0), FiniteDuration.Zero());
++			fail("Did not throw expected exception");
++		}
++		catch (Exception ignored) {
++		}
++
++		// Verify the second savepoint
++		assertTrue(savepointPathFutures.get(1).isCompleted());
++		savepointPaths[1] = Await.result(savepointPathFutures.get(1), FiniteDuration.Zero());
++		savepoints[1] = savepointStore.getState(savepointPaths[1]);
++		verifySavepoint(savepoints[1], appId, jobId, checkpointIds[1], timestamps[1],
++				vertices);
++
++		// Verify all promises removed
++		assertEquals(0, getSavepointPromises(coordinator).size());
++
++		coordinator.shutdown();
++	}
++
++	@Test
++	public void testShutdownDoesNotCleanUpCompletedCheckpointsWithFileSystemStore() throws Exception {
++		ApplicationID appId = new ApplicationID();
++		JobID jobId = new JobID();
++		long checkpointTimeout = 60 * 1000;
++		long timestamp = 1272635;
++		ExecutionVertex[] vertices = new ExecutionVertex[] {
++				mockExecutionVertex(jobId),
++				mockExecutionVertex(jobId) };
++		MockCheckpointIdCounter checkpointIdCounter = new MockCheckpointIdCounter();
++
++		// Temporary directory for file state backend
++		final File tmpDir = CommonTestUtils.createTempDirectory();
++
++		try {
++			FileSystemStateStore<Savepoint> savepointStore = new FileSystemStateStore<>(
++					tmpDir.toURI().toString(), "sp-");
++
++			SavepointCoordinator coordinator = createSavepointCoordinator(
++					appId,
++					jobId,
++					checkpointTimeout,
++					vertices,
++					vertices,
++					vertices,
++					checkpointIdCounter,
++					savepointStore);
++
++			// Trigger the savepoint
++			Future<String> savepointPathFuture = coordinator.triggerSavepoint(timestamp);
++			assertFalse(savepointPathFuture.isCompleted());
++
++			long checkpointId = checkpointIdCounter.getLastReturnedCount();
++			assertEquals(0, checkpointId);
++
++			// Verify send trigger messages
++			for (ExecutionVertex vertex : vertices) {
++				verifyTriggerCheckpoint(vertex, checkpointId, timestamp);
++			}
++
++			PendingCheckpoint pendingCheckpoint = coordinator.getPendingCheckpoints()
++					.get(checkpointId);
++
++			verifyPendingCheckpoint(pendingCheckpoint, jobId, checkpointId,
++					timestamp, 0, 2, 0, false, false);
++
++			// Acknowledge tasks
++			for (ExecutionVertex vertex : vertices) {
++				coordinator.receiveAcknowledgeMessage(new AcknowledgeCheckpoint(
++						jobId, vertex.getCurrentExecutionAttempt().getAttemptId(),
++						checkpointId, createSerializedStateHandle(vertex), 0));
++			}
++
++			// The pending checkpoint is completed
++			assertTrue(pendingCheckpoint.isDiscarded());
++			assertEquals(0, coordinator.getSuccessfulCheckpoints().size());
++
++			// Verify send notify complete messages
++			for (ExecutionVertex vertex : vertices) {
++				verifyNotifyCheckpointComplete(vertex, checkpointId, timestamp);
++			}
++
++			// Verify that the future has been completed
++			assertTrue(savepointPathFuture.isCompleted());
++			String savepointPath = Await.result(savepointPathFuture, FiniteDuration.Zero());
++
++			// Verify all promises removed
++			assertEquals(0, getSavepointPromises(coordinator).size());
++
++			coordinator.shutdown();
++
++			// Verify the savepoint is still available
++			Savepoint savepoint = savepointStore.getState(savepointPath);
++			verifySavepoint(savepoint, appId, jobId, checkpointId, timestamp,
++					vertices);
++		}
++		finally {
++			FileUtils.deleteDirectory(tmpDir);
++		}
++	}
++
++	// ------------------------------------------------------------------------
++	// Test helpers
++	// ------------------------------------------------------------------------
++
++	private static SavepointCoordinator createSavepointCoordinator(
++			ApplicationID appId,
++			JobID jobId,
++			long checkpointTimeout,
++			ExecutionVertex[] triggerVertices,
++			ExecutionVertex[] ackVertices,
++			ExecutionVertex[] commitVertices,
++			CheckpointIDCounter checkpointIdCounter,
++			StateStore<Savepoint> savepointStore) throws Exception {
++
++		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
++
++		return new SavepointCoordinator(
++				appId,
++				jobId,
++				checkpointTimeout,
++				checkpointTimeout,
++				triggerVertices,
++				ackVertices,
++				commitVertices,
++				classLoader,
++				checkpointIdCounter,
++				savepointStore,
++				new DisabledCheckpointStatsTracker());
++	}
++
++	private static Map<JobVertexID, ExecutionJobVertex> createExecutionJobVertexMap(
++			ExecutionJobVertex... jobVertices) {
++
++		Map<JobVertexID, ExecutionJobVertex> jobVertexMap = new HashMap<>();
++
++		for (ExecutionJobVertex jobVertex : jobVertices) {
++			jobVertexMap.put(jobVertex.getJobVertexId(), jobVertex);
++		}
++
++		return jobVertexMap;
++	}
++
++	private static SerializedValue<StateHandle<?>> createSerializedStateHandle(
++			ExecutionVertex vertex) throws IOException {
++
++		return new SerializedValue<StateHandle<?>>(new LocalStateHandle<Serializable>(
++				vertex.getCurrentExecutionAttempt().getAttemptId()));
++	}
++
++	@SuppressWarnings("unchecked")
++	private Map<Long, Promise<String>> getSavepointPromises(
++			SavepointCoordinator coordinator)
++			throws NoSuchFieldException, IllegalAccessException {
++
++		Field field = SavepointCoordinator.class.getDeclaredField("savepointPromises");
++		field.setAccessible(true);
++		return (Map<Long, Promise<String>>) field.get(coordinator);
++	}
++
++	// ---- Verification ------------------------------------------------------
++
++	private static void verifyTriggerCheckpoint(
++			ExecutionVertex mockExecutionVertex,
++			long expectedCheckpointId,
++			long expectedTimestamp) {
++
++		ExecutionAttemptID attemptId = mockExecutionVertex
++				.getCurrentExecutionAttempt().getAttemptId();
++
++		TriggerCheckpoint expectedMsg = new TriggerCheckpoint(
++				mockExecutionVertex.getJobId(),
++				attemptId,
++				expectedCheckpointId,
++				expectedTimestamp);
++
++		verify(mockExecutionVertex).sendMessageToCurrentExecution(
++				eq(expectedMsg), eq(attemptId));
++	}
++
++	private static void verifyNotifyCheckpointComplete(
++			ExecutionVertex mockExecutionVertex,
++			long expectedCheckpointId,
++			long expectedTimestamp) {
++
++		ExecutionAttemptID attemptId = mockExecutionVertex
++				.getCurrentExecutionAttempt().getAttemptId();
++
++		NotifyCheckpointComplete expectedMsg = new NotifyCheckpointComplete(
++				mockExecutionVertex.getJobId(),
++				attemptId,
++				expectedCheckpointId,
++				expectedTimestamp);
++
++		verify(mockExecutionVertex).sendMessageToCurrentExecution(
++				eq(expectedMsg), eq(attemptId));
++	}
++
++	private static void verifyPendingCheckpoint(
++			PendingCheckpoint checkpoint,
++			JobID expectedJobId,
++			long expectedCheckpointId,
++			long expectedTimestamp,
++			int expectedNumberOfAcknowledgedTasks,
++			int expectedNumberOfNonAcknowledgedTasks,
++			int expectedNumberOfCollectedStates,
++			boolean expectedIsDiscarded,
++			boolean expectedIsFullyAcknowledged) {
++
++		assertNotNull(checkpoint);
++		assertEquals(expectedJobId, checkpoint.getJobId());
++		assertEquals(expectedCheckpointId, checkpoint.getCheckpointId());
++		assertEquals(expectedTimestamp, checkpoint.getCheckpointTimestamp());
++		assertEquals(expectedNumberOfAcknowledgedTasks, checkpoint.getNumberOfAcknowledgedTasks());
++		assertEquals(expectedNumberOfNonAcknowledgedTasks, checkpoint.getNumberOfNonAcknowledgedTasks());
++		assertEquals(expectedNumberOfCollectedStates, checkpoint.getCollectedStates().size());
++		assertEquals(expectedIsDiscarded, checkpoint.isDiscarded());
++		assertEquals(expectedIsFullyAcknowledged, checkpoint.isFullyAcknowledged());
++	}
++
++	private static void verifySavepoint(
++			Savepoint savepoint,
++			ApplicationID expectedAppId,
++			JobID expectedJobId,
++			long expectedCheckpointId,
++			long expectedTimestamp,
++			ExecutionVertex[] expectedVertices) throws Exception {
++
++		assertEquals(expectedAppId, savepoint.getApplicationId());
++
++		verifyCompletedCheckpoint(
++				savepoint.getCompletedCheckpoint(),
++				expectedJobId,
++				expectedCheckpointId,
++				expectedTimestamp,
++				expectedVertices
++		);
++	}
++
++	private static void verifyCompletedCheckpoint(
++			CompletedCheckpoint checkpoint,
++			JobID expectedJobId,
++			long expectedCheckpointId,
++			long expectedTimestamp,
++			ExecutionVertex[] expectedVertices) throws Exception {
++
++		assertNotNull(checkpoint);
++		assertEquals(expectedJobId, checkpoint.getJobId());
++		assertEquals(expectedCheckpointId, checkpoint.getCheckpointID());
++		assertEquals(expectedTimestamp, checkpoint.getTimestamp());
++
++		List<StateForTask> states = checkpoint.getStates();
++		assertEquals(expectedVertices.length, states.size());
++
++		for (ExecutionVertex vertex : expectedVertices) {
++			JobVertexID expectedOperatorId = vertex.getJobvertexId();
++
++			boolean success = false;
++			for (StateForTask state : states) {
++				if (state.getOperatorId().equals(expectedOperatorId)) {
++					ExecutionAttemptID vertexAttemptId = vertex.getCurrentExecutionAttempt().getAttemptId();
++					ExecutionAttemptID stateAttemptId = (ExecutionAttemptID) state.getState()
++							.deserializeValue(Thread.currentThread().getContextClassLoader())
++							.getState(Thread.currentThread().getContextClassLoader());
++
++					assertEquals(vertexAttemptId, stateAttemptId);
++					success = true;
++					break;
++				}
++			}
++
++			assertTrue(success);
++		}
++	}
++
++	// ---- Mocking -----------------------------------------------------------
++
++	private static ExecutionJobVertex mockExecutionJobVertex(
++			JobID jobId,
++			JobVertexID jobVertexId,
++			int parallelism) {
++
++		ExecutionJobVertex jobVertex = mock(ExecutionJobVertex.class);
++		when(jobVertex.getJobId()).thenReturn(jobId);
++		when(jobVertex.getJobVertexId()).thenReturn(jobVertexId);
++		when(jobVertex.getParallelism()).thenReturn(parallelism);
++
++		ExecutionVertex[] vertices = new ExecutionVertex[parallelism];
++
++		for (int i = 0; i < vertices.length; i++) {
++			vertices[i] = mockExecutionVertex(jobId, jobVertexId, i, ExecutionState.RUNNING);
++		}
++
++		when(jobVertex.getTaskVertices()).thenReturn(vertices);
++
++		return jobVertex;
++	}
++
++	private static ExecutionVertex mockExecutionVertex(JobID jobId) {
++		return mockExecutionVertex(jobId, ExecutionState.RUNNING);
++	}
++
++	private static ExecutionVertex mockExecutionVertex(
++			JobID jobId,
++			ExecutionState state) {
++
++		return mockExecutionVertex(jobId, new JobVertexID(), 0, state);
++	}
++
++	private static ExecutionVertex mockExecutionVertex(
++			JobID jobId,
++			JobVertexID jobVertexId,
++			int subtaskIndex,
++			ExecutionState executionState) {
++
++		Execution exec = mock(Execution.class);
++		when(exec.getAttemptId()).thenReturn(new ExecutionAttemptID());
++		when(exec.getState()).thenReturn(executionState);
++
++		ExecutionVertex vertex = mock(ExecutionVertex.class);
++		when(vertex.getJobId()).thenReturn(jobId);
++		when(vertex.getJobvertexId()).thenReturn(jobVertexId);
++		when(vertex.getParallelSubtaskIndex()).thenReturn(subtaskIndex);
++		when(vertex.getCurrentExecutionAttempt()).thenReturn(exec);
++
++		return vertex;
++	}
++
++	private static class MockCheckpointIdCounter implements CheckpointIDCounter {
++
++		private long count;
++		private long lastReturnedCount;
++
++		@Override
++		public void start() throws Exception {
++		}
++
++		@Override
++		public void stop() throws Exception {
++		}
++
++		@Override
++		public long getAndIncrement() throws Exception {
++			lastReturnedCount = count;
++			return count++;
++		}
++
++		@Override
++		public void setCount(long newCount) {
++			count = newCount;
++		}
++
++		long getLastReturnedCount() {
++			return lastReturnedCount;
++		}
++	}
++}
+diff --git a/flink-runtime/src/test/java/org/apache/flink/runtime/checkpoint/SavepointStoreFactoryTest.java b/flink-runtime/src/test/java/org/apache/flink/runtime/checkpoint/SavepointStoreFactoryTest.java
+new file mode 100644
+index 0000000..3d3238d
+--- /dev/null
++++ b/flink-runtime/src/test/java/org/apache/flink/runtime/checkpoint/SavepointStoreFactoryTest.java
+@@ -0,0 +1,88 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.runtime.checkpoint;
++
++import org.apache.flink.configuration.ConfigConstants;
++import org.apache.flink.configuration.Configuration;
++import org.apache.flink.core.fs.Path;
++import org.junit.Test;
++
++import static org.junit.Assert.assertEquals;
++import static org.junit.Assert.assertTrue;
++
++public class SavepointStoreFactoryTest {
++
++	@Test
++	public void testStateStoreWithDefaultConfig() throws Exception {
++		SavepointStore store = SavepointStoreFactory.createFromConfig(new Configuration());
++		assertTrue(store.getStateStore() instanceof HeapStateStore);
++	}
++
++	@Test
++	public void testSavepointBackendJobManager() throws Exception {
++		Configuration config = new Configuration();
++		config.setString(SavepointStoreFactory.SAVEPOINT_BACKEND_KEY, "jobmanager");
++		SavepointStore store = SavepointStoreFactory.createFromConfig(config);
++		assertTrue(store.getStateStore() instanceof HeapStateStore);
++	}
++
++	@Test
++	public void testSavepointBackendFileSystem() throws Exception {
++		Configuration config = new Configuration();
++		String rootPath = System.getProperty("java.io.tmpdir");
++		config.setString(ConfigConstants.STATE_BACKEND, "filesystem");
++		config.setString(SavepointStoreFactory.SAVEPOINT_BACKEND_KEY, "filesystem");
++		config.setString(SavepointStoreFactory.SAVEPOINT_DIRECTORY_KEY, rootPath);
++
++		SavepointStore store = SavepointStoreFactory.createFromConfig(config);
++		assertTrue(store.getStateStore() instanceof FileSystemStateStore);
++
++		FileSystemStateStore<Savepoint> stateStore = (FileSystemStateStore<Savepoint>)
++				store.getStateStore();
++		assertEquals(new Path(rootPath), stateStore.getRootPath());
++	}
++
++	@Test
++	public void testSavepointBackendFileSystemButCheckpointBackendJobManager() throws Exception {
++		Configuration config = new Configuration();
++
++		// This combination does not make sense, because the checkpoints will be
++		// lost after the job manager shuts down.
++		config.setString(ConfigConstants.STATE_BACKEND, "jobmanager");
++		config.setString(SavepointStoreFactory.SAVEPOINT_BACKEND_KEY, "filesystem");
++		SavepointStore store = SavepointStoreFactory.createFromConfig(config);
++		assertTrue(store.getStateStore() instanceof HeapStateStore);
++	}
++
++	@Test
++	public void testSavepointBackendFileSystemButNoDirectory() throws Exception {
++		Configuration config = new Configuration();
++		config.setString(SavepointStoreFactory.SAVEPOINT_BACKEND_KEY, "filesystem");
++		SavepointStore store = SavepointStoreFactory.createFromConfig(config);
++		assertTrue(store.getStateStore() instanceof HeapStateStore);
++	}
++
++	@Test
++	public void testUnexpectedSavepointBackend() throws Exception {
++		Configuration config = new Configuration();
++		config.setString(SavepointStoreFactory.SAVEPOINT_BACKEND_KEY, "unexpected");
++		SavepointStore store = SavepointStoreFactory.createFromConfig(config);
++		assertTrue(store.getStateStore() instanceof HeapStateStore);
++	}
++}
+diff --git a/flink-runtime/src/test/scala/org/apache/flink/runtime/jobmanager/JobManagerITCase.scala b/flink-runtime/src/test/scala/org/apache/flink/runtime/jobmanager/JobManagerITCase.scala
+index 0f800c9..ec54b7e 100644
+--- a/flink-runtime/src/test/scala/org/apache/flink/runtime/jobmanager/JobManagerITCase.scala
++++ b/flink-runtime/src/test/scala/org/apache/flink/runtime/jobmanager/JobManagerITCase.scala
+@@ -19,22 +19,25 @@
+ package org.apache.flink.runtime.jobmanager
+ 
+ 
+-import Tasks._
+ import akka.actor.ActorSystem
+-import akka.actor.Status.{Success, Failure}
+ import akka.testkit.{ImplicitSender, TestKit}
+ import akka.util.Timeout
++import org.apache.flink.api.common.JobID
+ import org.apache.flink.runtime.akka.ListeningBehaviour
++import org.apache.flink.runtime.checkpoint.{CheckpointCoordinator, SavepointCoordinator}
+ import org.apache.flink.runtime.client.JobExecutionException
+-import org.apache.flink.runtime.jobgraph.{JobVertex, DistributionPattern, JobGraph, ScheduleMode}
++import org.apache.flink.runtime.jobgraph.tasks.JobSnapshottingSettings
++import org.apache.flink.runtime.jobgraph.{DistributionPattern, JobGraph, JobVertex, ScheduleMode}
++import org.apache.flink.runtime.jobmanager.Tasks._
++import org.apache.flink.runtime.jobmanager.scheduler.{NoResourceAvailableException, SlotSharingGroup}
+ import org.apache.flink.runtime.messages.JobManagerMessages._
+-import org.apache.flink.runtime.testingUtils.{TestingUtils, ScalaTestingUtils}
+ import org.apache.flink.runtime.testingUtils.TestingJobManagerMessages._
+-import org.apache.flink.runtime.jobmanager.scheduler.{NoResourceAvailableException, SlotSharingGroup}
+-
++import org.apache.flink.runtime.testingUtils.{ScalaTestingUtils, TestingUtils}
++import org.apache.flink.runtime.testutils.JobManagerActorTestUtils
+ import org.junit.runner.RunWith
+-import org.scalatest.{Matchers, BeforeAndAfterAll, WordSpecLike}
++import org.mockito.Mockito._
+ import org.scalatest.junit.JUnitRunner
++import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+ 
+ import scala.concurrent.Await
+ import scala.concurrent.duration._
+@@ -733,6 +736,236 @@ class JobManagerITCase(_system: ActorSystem)
+       }
+     }
+ 
++    // ------------------------------------------------------------------------
++    // Savepoint messages
++    // ------------------------------------------------------------------------
++
++    "handle trigger savepoint response for non-existing job" in {
++      val deadline = TestingUtils.TESTING_DURATION.fromNow
++
++      val flinkCluster = TestingUtils.startTestingCluster(0, 0)
++
++      try {
++        within(deadline.timeLeft) {
++          val jobManager = flinkCluster
++            .getLeaderGateway(deadline.timeLeft)
++
++          val jobId = new JobID()
++
++          // Trigger savepoint for non-existing job
++          jobManager.tell(TriggerSavepoint(jobId), testActor)
++          val response = expectMsgType[TriggerSavepointFailure](deadline.timeLeft)
++
++          // Verify the response
++          response.jobId should equal(jobId)
++          response.cause.getClass should equal(classOf[IllegalArgumentException])
++        }
++      }
++      finally {
++        flinkCluster.stop()
++      }
++    }
++
++    "handle trigger savepoint response for job with disabled checkpointing" in {
++      val deadline = TestingUtils.TESTING_DURATION.fromNow
++
++      val flinkCluster = TestingUtils.startTestingCluster(1, 1)
++
++      try {
++        within(deadline.timeLeft) {
++          val jobManager = flinkCluster
++            .getLeaderGateway(deadline.timeLeft)
++
++          val jobVertex = new JobVertex("Blocking vertex")
++          jobVertex.setInvokableClass(classOf[BlockingNoOpInvokable])
++          val jobGraph = new JobGraph(jobVertex)
++
++          // Submit job w/o checkpointing configured
++          jobManager.tell(SubmitJob(jobGraph, ListeningBehaviour.DETACHED), testActor)
++          expectMsg(JobSubmitSuccess(jobGraph.getJobID()))
++
++          // Trigger savepoint for job with disabled checkpointing
++          jobManager.tell(TriggerSavepoint(jobGraph.getJobID()), testActor)
++          val response = expectMsgType[TriggerSavepointFailure](deadline.timeLeft)
++
++          // Verify the response
++          response.jobId should equal(jobGraph.getJobID())
++          response.cause.getClass should equal(classOf[IllegalStateException])
++          response.cause.getMessage should (include("disabled") or include("configured"))
++        }
++      }
++      finally {
++        flinkCluster.stop()
++      }
++    }
++
++    "handle trigger savepoint response after trigger savepoint failure" in {
++      val deadline = TestingUtils.TESTING_DURATION.fromNow
++
++      val flinkCluster = TestingUtils.startTestingCluster(1, 1)
++
++      try {
++        within(deadline.timeLeft) {
++          val jobManager = flinkCluster
++            .getLeaderGateway(deadline.timeLeft)
++
++          val jobVertex = new JobVertex("Blocking vertex")
++          jobVertex.setInvokableClass(classOf[BlockingNoOpInvokable])
++          val jobGraph = new JobGraph(jobVertex)
++          jobGraph.setSnapshotSettings(new JobSnapshottingSettings(
++            java.util.Collections.emptyList(),
++            java.util.Collections.emptyList(),
++            java.util.Collections.emptyList(),
++            60000, 60000, 60000, 1))
++
++          // Submit job...
++          jobManager.tell(SubmitJob(jobGraph, ListeningBehaviour.DETACHED), testActor)
++          expectMsg(JobSubmitSuccess(jobGraph.getJobID()))
++
++          // Request the execution graph and set a checkpoint coordinator mock
++          jobManager.tell(RequestExecutionGraph(jobGraph.getJobID), testActor)
++          val executionGraph = expectMsgType[ExecutionGraphFound](
++            deadline.timeLeft).executionGraph
++
++          // Mock the checkpoint coordinator
++          val savepointCoordinator = mock(classOf[SavepointCoordinator])
++          doThrow(new Exception("Expected Test Exception"))
++            .when(savepointCoordinator).triggerSavepoint(org.mockito.Matchers.anyLong())
++
++          // Update the savepoint coordinator field
++          val field = executionGraph.getClass.getDeclaredField("savepointCoordinator")
++          field.setAccessible(true)
++          field.set(executionGraph, savepointCoordinator)
++
++          // Trigger savepoint for job
++          jobManager.tell(TriggerSavepoint(jobGraph.getJobID()), testActor)
++          val response = expectMsgType[TriggerSavepointFailure](deadline.timeLeft)
++
++          // Verify the response
++          response.jobId should equal(jobGraph.getJobID())
++          response.cause.getCause.getClass should equal(classOf[Exception])
++          response.cause.getCause.getMessage should equal("Expected Test Exception")
++        }
++      }
++      finally {
++        flinkCluster.stop()
++      }
++    }
++
++    "handle trigger savepoint response after failed savepoint future" in {
++      val deadline = TestingUtils.TESTING_DURATION.fromNow
++
++      val flinkCluster = TestingUtils.startTestingCluster(1, 1)
++
++      try {
++        within(deadline.timeLeft) {
++          val jobManager = flinkCluster
++            .getLeaderGateway(deadline.timeLeft)
++
++          val jobVertex = new JobVertex("Blocking vertex")
++          jobVertex.setInvokableClass(classOf[BlockingNoOpInvokable])
++          val jobGraph = new JobGraph(jobVertex)
++          jobGraph.setSnapshotSettings(new JobSnapshottingSettings(
++            java.util.Collections.emptyList(),
++            java.util.Collections.emptyList(),
++            java.util.Collections.emptyList(),
++            60000, 60000, 60000, 1))
++
++          // Submit job...
++          jobManager.tell(SubmitJob(jobGraph, ListeningBehaviour.DETACHED), testActor)
++          expectMsg(JobSubmitSuccess(jobGraph.getJobID()))
++
++          // Mock the checkpoint coordinator
++          val savepointCoordinator = mock(classOf[SavepointCoordinator])
++          val savepointPathPromise = scala.concurrent.promise[String]
++          doReturn(savepointPathPromise.future)
++            .when(savepointCoordinator).triggerSavepoint(org.mockito.Matchers.anyLong())
++
++          // Request the execution graph and set a checkpoint coordinator mock
++          jobManager.tell(RequestExecutionGraph(jobGraph.getJobID), testActor)
++          val executionGraph = expectMsgType[ExecutionGraphFound](
++            deadline.timeLeft).executionGraph
++
++          // Update the savepoint coordinator field
++          val field = executionGraph.getClass.getDeclaredField("savepointCoordinator")
++          field.setAccessible(true)
++          field.set(executionGraph, savepointCoordinator)
++
++          // Trigger savepoint for job
++          jobManager.tell(TriggerSavepoint(jobGraph.getJobID()), testActor)
++
++          // Fail the promise
++          savepointPathPromise.failure(new Exception("Expected Test Exception"))
++
++          val response = expectMsgType[TriggerSavepointFailure](deadline.timeLeft)
++
++          // Verify the response
++          response.jobId should equal(jobGraph.getJobID())
++          response.cause.getCause.getClass should equal(classOf[Exception])
++          response.cause.getCause.getMessage should equal("Expected Test Exception")
++        }
++      }
++      finally {
++        flinkCluster.stop()
++      }
++    }
++
++    "handle trigger savepoint response after succeeded savepoint future" in {
++      val deadline = TestingUtils.TESTING_DURATION.fromNow
++
++      val flinkCluster = TestingUtils.startTestingCluster(1, 1)
++
++      try {
++        within(deadline.timeLeft) {
++          val jobManager = flinkCluster
++            .getLeaderGateway(deadline.timeLeft)
++
++          val jobVertex = new JobVertex("Blocking vertex")
++          jobVertex.setInvokableClass(classOf[BlockingNoOpInvokable])
++          val jobGraph = new JobGraph(jobVertex)
++          jobGraph.setSnapshotSettings(new JobSnapshottingSettings(
++            java.util.Collections.emptyList(),
++            java.util.Collections.emptyList(),
++            java.util.Collections.emptyList(),
++            60000, 60000, 60000, 1))
++
++          // Submit job...
++          jobManager.tell(SubmitJob(jobGraph, ListeningBehaviour.DETACHED), testActor)
++          expectMsg(JobSubmitSuccess(jobGraph.getJobID()))
++
++          // Mock the checkpoint coordinator
++          val savepointCoordinator = mock(classOf[SavepointCoordinator])
++          val savepointPathPromise = scala.concurrent.promise[String]
++          doReturn(savepointPathPromise.future)
++            .when(savepointCoordinator).triggerSavepoint(org.mockito.Matchers.anyLong())
++
++          // Request the execution graph and set a checkpoint coordinator mock
++          jobManager.tell(RequestExecutionGraph(jobGraph.getJobID), testActor)
++          val executionGraph = expectMsgType[ExecutionGraphFound](
++            deadline.timeLeft).executionGraph
++
++          // Update the savepoint coordinator field
++          val field = executionGraph.getClass.getDeclaredField("savepointCoordinator")
++          field.setAccessible(true)
++          field.set(executionGraph, savepointCoordinator)
++
++          // Trigger savepoint for job
++          jobManager.tell(TriggerSavepoint(jobGraph.getJobID()), testActor)
++
++          // Succeed the promise
++          savepointPathPromise.success("Expected test savepoint path")
++
++          val response = expectMsgType[TriggerSavepointSuccess](deadline.timeLeft)
++
++          // Verify the response
++          response.jobId should equal(jobGraph.getJobID())
++          response.savepointPath should equal("Expected test savepoint path")
++        }
++      }
++      finally {
++        flinkCluster.stop()
++      }
++    }
+   }
+ 
+   class WaitingOnFinalizeJobVertex(name: String, val waitingTime: Long) extends JobVertex(name){
+diff --git a/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingJobManagerLike.scala b/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingJobManagerLike.scala
+index b8f4ede..748d517 100644
+--- a/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingJobManagerLike.scala
++++ b/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingJobManagerLike.scala
+@@ -285,6 +285,16 @@ trait TestingJobManagerLike extends FlinkActor {
+     case DisablePostStop =>
+       postStopEnabled = false
+ 
++    case RequestSavepoint(savepointPath) =>
++      try {
++        val savepoint = savepointStore.getState(savepointPath)
++        sender ! ResponseSavepoint(savepoint)
++      }
++      catch {
++        case e: Exception =>
++          sender ! ResponseSavepoint(null)
++      }
++
+     case msg: Disconnect =>
+       if (!disconnectDisabled) {
+         super.handleMessage(msg)
+diff --git a/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingJobManagerMessages.scala b/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingJobManagerMessages.scala
+index e4d0a6f..1b1caec 100644
+--- a/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingJobManagerMessages.scala
++++ b/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingJobManagerMessages.scala
+@@ -22,6 +22,7 @@ import akka.actor.ActorRef
+ import org.apache.flink.api.common.JobID
+ import org.apache.flink.api.common.accumulators.Accumulator
+ import org.apache.flink.runtime.accumulators.AccumulatorRegistry
++import org.apache.flink.runtime.checkpoint.Savepoint
+ import org.apache.flink.runtime.executiongraph.{ExecutionAttemptID, ExecutionGraph}
+ import org.apache.flink.runtime.instance.ActorGateway
+ import org.apache.flink.runtime.jobgraph.JobStatus
+@@ -93,6 +94,21 @@ object TestingJobManagerMessages {
+     */
+   case object DisablePostStop
+ 
++  /**
++    * Requests a savepoint from the job manager.
++    *
++    * @param savepointPath The path of the savepoint to request.
++    */
++  case class RequestSavepoint(savepointPath: String)
++
++  /**
++    * Response to a savepoint request.
++    *
++    * @param savepoint The requested savepoint or null if none available.
++    */
++  case class ResponseSavepoint(savepoint: Savepoint)
++
+   def getNotifyWhenLeader(): AnyRef = NotifyWhenLeader
+   def getDisablePostStop(): AnyRef = DisablePostStop
++
+ }
+diff --git a/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingTaskManager.scala b/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingTaskManager.scala
+index 0b38c9c..dbe871d 100644
+--- a/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingTaskManager.scala
++++ b/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingTaskManager.scala
+@@ -18,27 +18,13 @@
+ 
+ package org.apache.flink.runtime.testingUtils
+ 
+-import akka.actor.{Terminated, ActorRef}
+-import org.apache.flink.runtime.execution.ExecutionState
+-import org.apache.flink.runtime.executiongraph.ExecutionAttemptID
+ import org.apache.flink.runtime.instance.InstanceConnectionInfo
+ import org.apache.flink.runtime.io.disk.iomanager.IOManager
+ import org.apache.flink.runtime.io.network.NetworkEnvironment
+ import org.apache.flink.runtime.leaderretrieval.LeaderRetrievalService
+ import org.apache.flink.runtime.memory.MemoryManager
+-import org.apache.flink.runtime.messages.JobManagerMessages.{ResponseLeaderSessionID,
+-RequestLeaderSessionID}
+-import org.apache.flink.runtime.messages.Messages.{Acknowledge, Disconnect}
+-import org.apache.flink.runtime.messages.RegistrationMessages.{AlreadyRegistered,
+-AcknowledgeRegistration}
+-import org.apache.flink.runtime.messages.TaskMessages.{UpdateTaskExecutionState, TaskInFinalState}
+-import org.apache.flink.runtime.taskmanager.{TaskManagerConfiguration, TaskManager}
+-import org.apache.flink.runtime.testingUtils.TestingJobManagerMessages.NotifyWhenJobRemoved
+-import org.apache.flink.runtime.testingUtils.TestingMessages.{CheckIfJobRemoved, Alive,
+-DisableDisconnect}
+-import org.apache.flink.runtime.testingUtils.TestingTaskManagerMessages._
++import org.apache.flink.runtime.taskmanager.{TaskManager, TaskManagerConfiguration}
+ 
+-import scala.concurrent.duration._
+ import scala.language.postfixOps
+ 
+ /** Subclass of the [[TaskManager]] to support testing messages
+diff --git a/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingTaskManagerLike.scala b/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingTaskManagerLike.scala
+index 0350675..c10e83e 100644
+--- a/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingTaskManagerLike.scala
++++ b/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingTaskManagerLike.scala
+@@ -19,7 +19,9 @@
+ package org.apache.flink.runtime.testingUtils
+ 
+ import akka.actor.{Terminated, ActorRef}
++import org.apache.flink.api.common.JobID
+ import org.apache.flink.runtime.FlinkActor
++import org.apache.flink.runtime.deployment.TaskDeploymentDescriptor
+ import org.apache.flink.runtime.execution.ExecutionState
+ import org.apache.flink.runtime.executiongraph.ExecutionAttemptID
+ import org.apache.flink.runtime.messages.JobManagerMessages.{ResponseLeaderSessionID,
+@@ -27,7 +29,7 @@ RequestLeaderSessionID}
+ import org.apache.flink.runtime.messages.Messages.{Acknowledge, Disconnect}
+ import org.apache.flink.runtime.messages.RegistrationMessages.{AlreadyRegistered,
+ AcknowledgeRegistration}
+-import org.apache.flink.runtime.messages.TaskMessages.{UpdateTaskExecutionState, TaskInFinalState}
++import org.apache.flink.runtime.messages.TaskMessages.{SubmitTask, UpdateTaskExecutionState, TaskInFinalState}
+ import org.apache.flink.runtime.taskmanager.TaskManager
+ import org.apache.flink.runtime.testingUtils.TestingJobManagerMessages.NotifyWhenJobRemoved
+ import org.apache.flink.runtime.testingUtils.TestingMessages.{DisableDisconnect,
+@@ -50,6 +52,9 @@ trait TestingTaskManagerLike extends FlinkActor {
+   val waitForRunning = scala.collection.mutable.HashMap[ExecutionAttemptID, Set[ActorRef]]()
+   val unregisteredTasks = scala.collection.mutable.HashSet[ExecutionAttemptID]()
+ 
++  /** Map of registered task submit listeners */
++  val registeredSubmitTaskListeners = scala.collection.mutable.HashMap[JobID, ActorRef]()
++
+   var disconnectDisabled = false
+ 
+   /**
+@@ -142,6 +147,19 @@ trait TestingTaskManagerLike extends FlinkActor {
+       val waiting = waitForJobManagerToBeTerminated.getOrElse(jobManager.path.name, Set())
+       waitForJobManagerToBeTerminated += jobManager.path.name -> (waiting + sender)
+ 
++    case RegisterSubmitTaskListener(jobId) =>
++      registeredSubmitTaskListeners.put(jobId, sender())
++
++    case msg@SubmitTask(tdd) =>
++      registeredSubmitTaskListeners.get(tdd.getJobID) match {
++        case Some(listenerRef) =>
++          listenerRef ! ResponseSubmitTaskListener(tdd)
++        case None =>
++        // Nothing to do
++      }
++
++      super.handleMessage(msg)
++
+     /**
+      * Message from task manager that accumulator values changed and need to be reported immediately
+      * instead of lazily through the
+diff --git a/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingTaskManagerMessages.scala b/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingTaskManagerMessages.scala
+index ca57245..69a65e2 100644
+--- a/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingTaskManagerMessages.scala
++++ b/flink-runtime/src/test/scala/org/apache/flink/runtime/testingUtils/TestingTaskManagerMessages.scala
+@@ -20,6 +20,7 @@ package org.apache.flink.runtime.testingUtils
+ 
+ import akka.actor.ActorRef
+ import org.apache.flink.api.common.JobID
++import org.apache.flink.runtime.deployment.TaskDeploymentDescriptor
+ import org.apache.flink.runtime.executiongraph.ExecutionAttemptID
+ import org.apache.flink.runtime.taskmanager.Task
+ 
+@@ -59,6 +60,24 @@ object TestingTaskManagerMessages {
+    */
+   case class AccumulatorsChanged(jobID: JobID)
+ 
++  /**
++    * Registers a listener for all [[org.apache.flink.runtime.messages.TaskMessages.SubmitTask]]
++    * messages of the given job.
++    *
++    * If a task is submitted with the given job ID the task deployment
++    * descriptor is forwarded to the listener.
++    *
++    * @param jobId The job ID to listen for.
++    */
++  case class RegisterSubmitTaskListener(jobId: JobID)
++
++  /**
++    * A response to a listened job ID containing the submitted task deployment descriptor.
++    *
++    * @param tdd The submitted task deployment descriptor.
++    */
++  case class ResponseSubmitTaskListener(tdd: TaskDeploymentDescriptor)
++
+   // --------------------------------------------------------------------------
+   // Utility methods to allow simpler case object access from Java
+   // --------------------------------------------------------------------------
+@@ -70,5 +89,6 @@ object TestingTaskManagerMessages {
+   def getRequestBroadcastVariablesWithReferencesMessage: AnyRef = {
+     RequestBroadcastVariablesWithReferences
+   }
++
+ }
+ 
+diff --git a/flink-tests/src/test/java/org/apache/flink/test/checkpointing/SavepointITCase.java b/flink-tests/src/test/java/org/apache/flink/test/checkpointing/SavepointITCase.java
+new file mode 100644
+index 0000000..809ca7d
+--- /dev/null
++++ b/flink-tests/src/test/java/org/apache/flink/test/checkpointing/SavepointITCase.java
+@@ -0,0 +1,851 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.flink.test.checkpointing;
++
++import akka.actor.ActorRef;
++import akka.actor.ActorSystem;
++import akka.testkit.JavaTestKit;
++import com.google.common.collect.HashMultimap;
++import com.google.common.collect.Multimap;
++import org.apache.commons.io.FileUtils;
++import org.apache.flink.api.common.ApplicationID;
++import org.apache.flink.api.common.JobID;
++import org.apache.flink.api.common.functions.RichMapFunction;
++import org.apache.flink.configuration.ConfigConstants;
++import org.apache.flink.configuration.Configuration;
++import org.apache.flink.runtime.akka.AkkaUtils;
++import org.apache.flink.runtime.checkpoint.CompletedCheckpoint;
++import org.apache.flink.runtime.checkpoint.Savepoint;
++import org.apache.flink.runtime.checkpoint.SavepointStoreFactory;
++import org.apache.flink.runtime.checkpoint.StateForTask;
++import org.apache.flink.runtime.deployment.TaskDeploymentDescriptor;
++import org.apache.flink.runtime.execution.UnrecoverableException;
++import org.apache.flink.runtime.instance.ActorGateway;
++import org.apache.flink.runtime.jobgraph.JobGraph;
++import org.apache.flink.runtime.jobgraph.JobVertex;
++import org.apache.flink.runtime.jobgraph.JobVertexID;
++import org.apache.flink.runtime.messages.JobManagerMessages.CancelJob;
++import org.apache.flink.runtime.messages.JobManagerMessages.DisposeSavepoint;
++import org.apache.flink.runtime.messages.JobManagerMessages.TriggerSavepoint;
++import org.apache.flink.runtime.messages.JobManagerMessages.TriggerSavepointSuccess;
++import org.apache.flink.runtime.state.filesystem.AbstractFileState;
++import org.apache.flink.runtime.state.filesystem.FsStateBackend;
++import org.apache.flink.runtime.state.filesystem.FsStateBackendFactory;
++import org.apache.flink.runtime.testingUtils.TestingJobManagerMessages.NotifyWhenJobRemoved;
++import org.apache.flink.runtime.testingUtils.TestingJobManagerMessages.RequestSavepoint;
++import org.apache.flink.runtime.testingUtils.TestingJobManagerMessages.ResponseSavepoint;
++import org.apache.flink.runtime.testingUtils.TestingTaskManagerMessages;
++import org.apache.flink.runtime.testingUtils.TestingTaskManagerMessages.ResponseSubmitTaskListener;
++import org.apache.flink.runtime.testutils.CommonTestUtils;
++import org.apache.flink.streaming.api.checkpoint.CheckpointNotifier;
++import org.apache.flink.streaming.api.checkpoint.Checkpointed;
++import org.apache.flink.streaming.api.datastream.DataStream;
++import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
++import org.apache.flink.streaming.api.functions.sink.SinkFunction;
++import org.apache.flink.streaming.api.functions.source.SourceFunction;
++import org.apache.flink.streaming.runtime.tasks.StreamTaskState;
++import org.apache.flink.streaming.runtime.tasks.StreamTaskStateList;
++import org.apache.flink.test.util.ForkableFlinkMiniCluster;
++import org.apache.flink.util.TestLogger;
++import org.junit.Test;
++import org.slf4j.Logger;
++import org.slf4j.LoggerFactory;
++import scala.concurrent.Await;
++import scala.concurrent.Future;
++import scala.concurrent.duration.Deadline;
++import scala.concurrent.duration.FiniteDuration;
++
++import java.io.File;
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.Collection;
++import java.util.List;
++import java.util.Random;
++import java.util.concurrent.CountDownLatch;
++import java.util.concurrent.TimeUnit;
++
++import static org.apache.flink.runtime.messages.JobManagerMessages.CancellationSuccess;
++import static org.apache.flink.runtime.messages.JobManagerMessages.getDisposeSavepointSuccess;
++import static org.junit.Assert.assertEquals;
++import static org.junit.Assert.assertFalse;
++import static org.junit.Assert.assertNull;
++import static org.junit.Assert.assertTrue;
++import static org.junit.Assert.fail;
++
++/**
++ * Integration test for triggering and resuming from savepoints.
++ */
++public class SavepointITCase extends TestLogger {
++
++	private static final Logger LOG = LoggerFactory.getLogger(SavepointITCase.class);
++
++	/**
++	 * Tests that it is possible to submit a job, trigger a savepoint, and
++	 * later restart the job on a new cluster. The savepoint is written to
++	 * a file.
++	 *
++	 * <ol>
++	 * <li>Submit job, wait for some checkpoints to complete</li>
++	 * <li>Trigger savepoint and verify that savepoint has been created</li>
++	 * <li>Shut down the cluster, re-submit the job from the savepoint, and
++	 * verify that the initial state has been reset</li>
++	 * <li>Cancel job, dispose the savepoint, and verify that everything
++	 * has been cleaned up</li>
++	 * </ol>
++	 */
++	@Test
++	public void testTriggerSavepointAndResume() throws Exception {
++		// Config
++		int numTaskManagers = 2;
++		int numSlotsPerTaskManager = 2;
++		int parallelism = numTaskManagers * numSlotsPerTaskManager;
++
++		// Test deadline
++		final Deadline deadline = new FiniteDuration(5, TimeUnit.MINUTES).fromNow();
++
++		// The number of checkpoints to complete before triggering the savepoint
++		final int numberOfCompletedCheckpoints = 10;
++
++		// Temporary directory for file state backend
++		final File tmpDir = CommonTestUtils.createTempDirectory();
++
++		LOG.info("Created temporary directory: " + tmpDir + ".");
++
++		ForkableFlinkMiniCluster flink = null;
++
++		try {
++			// Create a test actor system
++			ActorSystem testActorSystem = AkkaUtils.createDefaultActorSystem();
++
++			// Flink configuration
++			final Configuration config = new Configuration();
++			config.setInteger(ConfigConstants.LOCAL_NUMBER_TASK_MANAGER, numTaskManagers);
++			config.setInteger(ConfigConstants.TASK_MANAGER_NUM_TASK_SLOTS, numSlotsPerTaskManager);
++
++			final File checkpointDir = new File(tmpDir, "checkpoints");
++			final File savepointDir = new File(tmpDir, "savepoints");
++
++			if (!checkpointDir.mkdir() || !savepointDir.mkdirs()) {
++				fail("Test setup failed: failed to create temporary directories.");
++			}
++
++			LOG.info("Created temporary checkpoint directory: " + checkpointDir + ".");
++			LOG.info("Created temporary savepoint directory: " + savepointDir + ".");
++
++			config.setString(ConfigConstants.STATE_BACKEND, "filesystem");
++			config.setString(FsStateBackendFactory.CHECKPOINT_DIRECTORY_URI_CONF_KEY,
++					checkpointDir.toURI().toString());
++			config.setString(SavepointStoreFactory.SAVEPOINT_BACKEND_KEY, "filesystem");
++			config.setString(SavepointStoreFactory.SAVEPOINT_DIRECTORY_KEY,
++					savepointDir.toURI().toString());
++
++			LOG.info("Flink configuration: " + config + ".");
++
++			// Start Flink
++			flink = new ForkableFlinkMiniCluster(config);
++			LOG.info("Starting Flink cluster.");
++			flink.start();
++
++			// Retrieve the job manager
++			LOG.info("Retrieving JobManager.");
++			ActorGateway jobManager = Await.result(
++					flink.leaderGateway().future(),
++					deadline.timeLeft());
++			LOG.info("JobManager: " + jobManager + ".");
++
++			// Submit the job
++			final JobGraph jobGraph = createJobGraph(parallelism, 0, 1000);
++			final JobID jobId = jobGraph.getJobID();
++
++			// Wait for the source to be notified about the expected number
++			// of completed checkpoints
++			InfiniteTestSource.CheckpointCompleteLatch = new CountDownLatch(
++					numberOfCompletedCheckpoints);
++
++			LOG.info("Submitting job " + jobGraph.getJobID() + " in detached mode.");
++
++			flink.submitJobDetached(jobGraph);
++
++			LOG.info("Waiting for " + numberOfCompletedCheckpoints +
++					" checkpoint complete notifications.");
++
++			// Wait...
++			InfiniteTestSource.CheckpointCompleteLatch.await();
++
++			LOG.info("Received all " + numberOfCompletedCheckpoints +
++					" checkpoint complete notifications.");
++
++			// ...and then trigger the savepoint
++			LOG.info("Triggering a savepoint.");
++
++			Future<Object> savepointPathFuture = jobManager.ask(
++					new TriggerSavepoint(jobId), deadline.timeLeft());
++
++			final String savepointPath = ((TriggerSavepointSuccess) Await
++					.result(savepointPathFuture, deadline.timeLeft())).savepointPath();
++			LOG.info("Retrieved savepoint path: " + savepointPath + ".");
++
++			// Retrieve the savepoint from the testing job manager
++			LOG.info("Requesting the savepoint.");
++			Future<Object> savepointFuture = jobManager.ask(
++					new RequestSavepoint(savepointPath),
++					deadline.timeLeft());
++
++			Savepoint savepoint = ((ResponseSavepoint) Await.result(
++					savepointFuture, deadline.timeLeft())).savepoint();
++			LOG.info("Retrieved savepoint: " + savepoint + ".");
++
++			// Shut down the Flink cluster (thereby canceling the job)
++			LOG.info("Shutting down Flink cluster.");
++			flink.shutdown();
++
++			// - Verification START -------------------------------------------
++
++			final ApplicationID expectedAppId = savepoint.getApplicationId();
++			final CompletedCheckpoint expectedCheckpoint = savepoint.getCompletedCheckpoint();
++
++			// Only one checkpoint of the savepoint should exist
++			String errMsg = "Checkpoints directory not cleaned up properly.";
++			File[] files = checkpointDir.listFiles();
++			if (files != null) {
++				assertEquals(errMsg, 1, files.length);
++			}
++			else {
++				fail(errMsg);
++			}
++
++			// Only one savepoint should exist
++			errMsg = "Savepoints directory cleaned up.";
++			files = savepointDir.listFiles();
++			if (files != null) {
++				assertEquals(errMsg, 1, files.length);
++			}
++			else {
++				fail(errMsg);
++			}
++
++			// - Verification END ---------------------------------------------
++
++			// Restart the cluster
++			LOG.info("Restarting Flink cluster.");
++			flink.start();
++
++			// Retrieve the job manager
++			LOG.info("Retrieving JobManager.");
++			jobManager = Await.result(
++					flink.leaderGateway().future(),
++					deadline.timeLeft());
++			LOG.info("JobManager: " + jobManager + ".");
++
++			final Throwable[] error = new Throwable[1];
++			final ForkableFlinkMiniCluster finalFlink = flink;
++			final Multimap<JobVertexID, TaskDeploymentDescriptor> tdds = HashMultimap.create();
++			new JavaTestKit(testActorSystem) {{
++
++				new Within(deadline.timeLeft()) {
++					@Override
++					protected void run() {
++						try {
++							// Register to all submit task messages for job
++							for (ActorRef taskManager : finalFlink.getTaskManagersAsJava()) {
++								taskManager.tell(new TestingTaskManagerMessages
++										.RegisterSubmitTaskListener(jobId), getTestActor());
++							}
++
++							// Set the savepoint path
++							jobGraph.setSavepointPath(savepointPath);
++
++							LOG.info("Resubmitting job " + jobGraph.getJobID() + " with " +
++									"savepoint path " + savepointPath + " in detached mode.");
++
++							finalFlink.submitJobDetached(jobGraph);
++
++							int numTasks = 0;
++							for (JobVertex jobVertex : jobGraph.getVertices()) {
++								numTasks += jobVertex.getParallelism();
++							}
++
++							// Gather the task deployment descriptors
++							LOG.info("Gathering " + numTasks + " submitted " +
++									"TaskDeploymentDescriptor instances.");
++
++							for (int i = 0; i < numTasks; i++) {
++								ResponseSubmitTaskListener resp = (ResponseSubmitTaskListener)
++										expectMsgAnyClassOf(getRemainingTime(),
++												ResponseSubmitTaskListener.class);
++
++								TaskDeploymentDescriptor tdd = resp.tdd();
++
++								LOG.info("Received: " + tdd.toString() + ".");
++
++								tdds.put(tdd.getVertexID(), tdd);
++							}
++						}
++						catch (Throwable t) {
++							error[0] = t;
++						}
++					}
++				};
++			}};
++
++			// - Verification START -------------------------------------------
++
++			errMsg = "Error during gathering of TaskDeploymentDescriptors";
++			assertNull(errMsg, error[0]);
++
++			// Verify application IDs match
++			errMsg = "Application ID mismatch after redeployment.";
++			for (TaskDeploymentDescriptor tdd : tdds.values()) {
++				assertEquals(errMsg, expectedAppId, tdd.getApplicationID());
++			}
++
++			// Verify that all tasks, which are part of the savepoint
++			// have a matching task deployment descriptor.
++			for (StateForTask stateForTask : expectedCheckpoint.getStates()) {
++				Collection<TaskDeploymentDescriptor> taskTdds = tdds.get(
++						stateForTask.getOperatorId());
++
++				errMsg = "Missing task for savepoint state for operator "
++						+ stateForTask.getOperatorId() + ".";
++				assertTrue(errMsg, taskTdds.size() > 0);
++
++				boolean success = false;
++				for (TaskDeploymentDescriptor tdd : taskTdds) {
++					if (tdd.getIndexInSubtaskGroup() == stateForTask.getSubtask()) {
++						success = true;
++
++						errMsg = "Initial operator state mismatch.";
++						assertEquals(errMsg, stateForTask.getState(), tdd.getOperatorState());
++					}
++				}
++
++				errMsg = "No matching task deployment descriptor found.";
++				assertTrue(errMsg, success);
++			}
++
++			// - Verification END ---------------------------------------------
++
++			LOG.info("Cancelling job " + jobId + ".");
++			jobManager.tell(new CancelJob(jobId));
++
++			LOG.info("Disposing savepoint " + savepointPath + ".");
++			Future<Object> disposeFuture = jobManager.ask(
++					new DisposeSavepoint(savepointPath), deadline.timeLeft());
++
++			errMsg = "Failed to dispose savepoint " + savepointPath + ".";
++			Object resp = Await.result(disposeFuture, deadline.timeLeft());
++			assertTrue(errMsg, resp.getClass() ==
++					getDisposeSavepointSuccess().getClass());
++
++			// - Verification START -------------------------------------------
++
++			// The checkpoint files
++			List<File> checkpointFiles = new ArrayList<>();
++
++			for (StateForTask stateForTask : expectedCheckpoint.getStates()) {
++				StreamTaskStateList taskStateList = (StreamTaskStateList) stateForTask.getState()
++						.deserializeValue(ClassLoader.getSystemClassLoader());
++
++				for (StreamTaskState taskState : taskStateList.getState(
++						ClassLoader.getSystemClassLoader())) {
++
++					AbstractFileState fsState = (AbstractFileState) taskState.getFunctionState();
++					checkpointFiles.add(new File(fsState.getFilePath().toUri()));
++				}
++			}
++
++			// The checkpoint of the savepoint should have been discarded
++			for (File f : checkpointFiles) {
++				errMsg = "Checkpoint file " + f + " not cleaned up properly.";
++				assertFalse(errMsg, f.exists());
++			}
++
++			if (checkpointFiles.size() > 0) {
++				File parent = checkpointFiles.get(0).getParentFile();
++				errMsg = "Checkpoint parent directory " + parent + " not cleaned up properly.";
++				assertFalse(errMsg, parent.exists());
++			}
++
++			// All savepoints should have been cleaned up
++			errMsg = "Savepoints directory not cleaned up properly: " +
++					Arrays.toString(savepointDir.listFiles()) + ".";
++			assertNull(errMsg, savepointDir.listFiles());
++
++			// - Verification END ---------------------------------------------
++		}
++		finally {
++			if (flink != null) {
++				flink.shutdown();
++			}
++
++			if (tmpDir != null) {
++				FileUtils.deleteDirectory(tmpDir);
++			}
++		}
++	}
++
++	/**
++	 * Tests that removed checkpoint files which are part of a savepoint throw
++	 * a proper Exception on submission.
++	 */
++	@Test
++	public void testCheckpointHasBeenRemoved() throws Exception {
++		// Config
++		int numTaskManagers = 2;
++		int numSlotsPerTaskManager = 2;
++		int parallelism = numTaskManagers * numSlotsPerTaskManager;
++
++		// Test deadline
++		final Deadline deadline = new FiniteDuration(5, TimeUnit.MINUTES).fromNow();
++
++		// The number of checkpoints to complete before triggering the savepoint
++		final int numberOfCompletedCheckpoints = 10;
++
++		// Temporary directory for file state backend
++		final File tmpDir = CommonTestUtils.createTempDirectory();
++
++		LOG.info("Created temporary directory: " + tmpDir + ".");
++
++		ForkableFlinkMiniCluster flink = null;
++
++		try {
++			// Flink configuration
++			final Configuration config = new Configuration();
++			config.setInteger(ConfigConstants.LOCAL_NUMBER_TASK_MANAGER, numTaskManagers);
++			config.setInteger(ConfigConstants.TASK_MANAGER_NUM_TASK_SLOTS, numSlotsPerTaskManager);
++
++			final File checkpointDir = new File(tmpDir, "checkpoints");
++			final File savepointDir = new File(tmpDir, "savepoints");
++
++			if (!checkpointDir.mkdir() || !savepointDir.mkdirs()) {
++				fail("Test setup failed: failed to create temporary directories.");
++			}
++
++			LOG.info("Created temporary checkpoint directory: " + checkpointDir + ".");
++			LOG.info("Created temporary savepoint directory: " + savepointDir + ".");
++
++			config.setString(ConfigConstants.STATE_BACKEND, "filesystem");
++			config.setString(SavepointStoreFactory.SAVEPOINT_BACKEND_KEY, "fileystem");
++
++			config.setString(FsStateBackendFactory.CHECKPOINT_DIRECTORY_URI_CONF_KEY,
++					checkpointDir.toURI().toString());
++			config.setString(SavepointStoreFactory.SAVEPOINT_DIRECTORY_KEY,
++					savepointDir.toURI().toString());
++
++			LOG.info("Flink configuration: " + config + ".");
++
++			// Start Flink
++			flink = new ForkableFlinkMiniCluster(config);
++			LOG.info("Starting Flink cluster.");
++			flink.start();
++
++			// Retrieve the job manager
++			LOG.info("Retrieving JobManager.");
++			ActorGateway jobManager = Await.result(
++					flink.leaderGateway().future(),
++					deadline.timeLeft());
++			LOG.info("JobManager: " + jobManager + ".");
++
++			// Submit the job
++			final JobGraph jobGraph = createJobGraph(parallelism, 0, 1000);
++			final JobID jobId = jobGraph.getJobID();
++
++			// Wait for the source to be notified about the expected number
++			// of completed checkpoints
++			InfiniteTestSource.CheckpointCompleteLatch = new CountDownLatch(
++					numberOfCompletedCheckpoints);
++
++			LOG.info("Submitting job " + jobGraph.getJobID() + " in detached mode.");
++
++			flink.submitJobDetached(jobGraph);
++
++			LOG.info("Waiting for " + numberOfCompletedCheckpoints +
++					" checkpoint complete notifications.");
++
++			// Wait...
++			InfiniteTestSource.CheckpointCompleteLatch.await();
++
++			LOG.info("Received all " + numberOfCompletedCheckpoints +
++					" checkpoint complete notifications.");
++
++			// ...and then trigger the savepoint
++			LOG.info("Triggering a savepoint.");
++
++			Future<Object> savepointPathFuture = jobManager.ask(
++					new TriggerSavepoint(jobId), deadline.timeLeft());
++
++			final String savepointPath = ((TriggerSavepointSuccess) Await
++					.result(savepointPathFuture, deadline.timeLeft())).savepointPath();
++			LOG.info("Retrieved savepoint path: " + savepointPath + ".");
++
++			// Retrieve the savepoint from the testing job manager
++			LOG.info("Requesting the savepoint.");
++			Future<Object> savepointFuture = jobManager.ask(
++					new RequestSavepoint(savepointPath),
++					deadline.timeLeft());
++
++			Savepoint savepoint = ((ResponseSavepoint) Await.result(
++					savepointFuture, deadline.timeLeft())).savepoint();
++			LOG.info("Retrieved savepoint: " + savepoint + ".");
++
++			// Shut down the Flink cluster (thereby canceling the job)
++			LOG.info("Shutting down Flink cluster.");
++			flink.shutdown();
++
++			// Remove the checkpoint files
++			FileUtils.deleteDirectory(checkpointDir);
++
++			// Restart the cluster
++			LOG.info("Restarting Flink cluster.");
++			flink.start();
++
++			// Set the savepoint path
++			jobGraph.setSavepointPath(savepointPath);
++
++			LOG.info("Resubmitting job " + jobGraph.getJobID() + " with " +
++					"savepoint path " + savepointPath + " in detached mode.");
++
++			try {
++				flink.submitJobAndWait(jobGraph, false, deadline.timeLeft());
++				fail("Did not throw expected Exception because of missing checkpoint files");
++			}
++			catch (Exception ignored) {
++			}
++		}
++		finally {
++			if (flink != null) {
++				flink.shutdown();
++			}
++
++			if (tmpDir != null) {
++				FileUtils.deleteDirectory(tmpDir);
++			}
++		}
++	}
++
++	/**
++	 * Tests that a job manager backed savepoint is removed when the checkpoint
++	 * coordinator is shut down, because the associated checkpoints files will
++	 * linger around otherwise.
++	 */
++	@Test
++	public void testCheckpointsRemovedWithJobManagerBackendOnShutdown() throws Exception {
++		// Config
++		int numTaskManagers = 2;
++		int numSlotsPerTaskManager = 2;
++		int parallelism = numTaskManagers * numSlotsPerTaskManager;
++
++		// Test deadline
++		final Deadline deadline = new FiniteDuration(5, TimeUnit.MINUTES).fromNow();
++
++		// The number of checkpoints to complete before triggering the savepoint
++		final int numberOfCompletedCheckpoints = 10;
++
++		// Temporary directory for file state backend
++		final File tmpDir = CommonTestUtils.createTempDirectory();
++
++		LOG.info("Created temporary directory: " + tmpDir + ".");
++
++		ForkableFlinkMiniCluster flink = null;
++		List<File> checkpointFiles = new ArrayList<>();
++
++		try {
++			// Flink configuration
++			final Configuration config = new Configuration();
++			config.setInteger(ConfigConstants.LOCAL_NUMBER_TASK_MANAGER, numTaskManagers);
++			config.setInteger(ConfigConstants.TASK_MANAGER_NUM_TASK_SLOTS, numSlotsPerTaskManager);
++
++			final File checkpointDir = new File(tmpDir, "checkpoints");
++
++			if (!checkpointDir.mkdir()) {
++				fail("Test setup failed: failed to create temporary directories.");
++			}
++
++			LOG.info("Created temporary checkpoint directory: " + checkpointDir + ".");
++
++			config.setString(SavepointStoreFactory.SAVEPOINT_BACKEND_KEY, "jobmanager");
++			config.setString(ConfigConstants.STATE_BACKEND, "filesystem");
++			config.setString(FsStateBackendFactory.CHECKPOINT_DIRECTORY_URI_CONF_KEY,
++					checkpointDir.toURI().toString());
++
++			LOG.info("Flink configuration: " + config + ".");
++
++			// Start Flink
++			flink = new ForkableFlinkMiniCluster(config);
++			LOG.info("Starting Flink cluster.");
++			flink.start();
++
++			// Retrieve the job manager
++			LOG.info("Retrieving JobManager.");
++			ActorGateway jobManager = Await.result(
++					flink.leaderGateway().future(),
++					deadline.timeLeft());
++			LOG.info("JobManager: " + jobManager + ".");
++
++			// Submit the job
++			final JobGraph jobGraph = createJobGraph(parallelism, 0, 1000);
++			final JobID jobId = jobGraph.getJobID();
++
++			// Wait for the source to be notified about the expected number
++			// of completed checkpoints
++			InfiniteTestSource.CheckpointCompleteLatch = new CountDownLatch(
++					numberOfCompletedCheckpoints);
++
++			LOG.info("Submitting job " + jobGraph.getJobID() + " in detached mode.");
++
++			flink.submitJobDetached(jobGraph);
++
++			LOG.info("Waiting for " + numberOfCompletedCheckpoints +
++					" checkpoint complete notifications.");
++
++			// Wait...
++			InfiniteTestSource.CheckpointCompleteLatch.await();
++
++			LOG.info("Received all " + numberOfCompletedCheckpoints +
++					" checkpoint complete notifications.");
++
++			// ...and then trigger the savepoint
++			LOG.info("Triggering a savepoint.");
++
++			Future<Object> savepointPathFuture = jobManager.ask(
++					new TriggerSavepoint(jobId), deadline.timeLeft());
++
++			final String savepointPath = ((TriggerSavepointSuccess) Await
++					.result(savepointPathFuture, deadline.timeLeft())).savepointPath();
++			LOG.info("Retrieved savepoint path: " + savepointPath + ".");
++
++			// Retrieve the savepoint from the testing job manager
++			LOG.info("Requesting the savepoint.");
++			Future<Object> savepointFuture = jobManager.ask(
++					new RequestSavepoint(savepointPath),
++					deadline.timeLeft());
++
++			Savepoint savepoint = ((ResponseSavepoint) Await.result(
++					savepointFuture, deadline.timeLeft())).savepoint();
++			LOG.info("Retrieved savepoint: " + savepoint + ".");
++
++			// Cancel the job
++			LOG.info("Cancelling job " + jobId + ".");
++			Future<Object> cancelRespFuture = jobManager.ask(
++					new CancelJob(jobId), deadline.timeLeft());
++			assertTrue(Await.result(cancelRespFuture, deadline.timeLeft())
++					instanceof CancellationSuccess);
++
++			LOG.info("Waiting for job " + jobId + " to be removed.");
++			Future<Object> removedRespFuture = jobManager.ask(
++					new NotifyWhenJobRemoved(jobId), deadline.timeLeft());
++			assertTrue((Boolean) Await.result(removedRespFuture, deadline.timeLeft()));
++
++			// Check that all checkpoint files have been removed
++			for (StateForTask stateForTask : savepoint.getCompletedCheckpoint().getStates()) {
++				StreamTaskStateList taskStateList = (StreamTaskStateList) stateForTask.getState()
++						.deserializeValue(ClassLoader.getSystemClassLoader());
++
++				for (StreamTaskState taskState : taskStateList.getState(
++						ClassLoader.getSystemClassLoader())) {
++
++					AbstractFileState fsState = (AbstractFileState) taskState.getFunctionState();
++					checkpointFiles.add(new File(fsState.getFilePath().toUri()));
++				}
++			}
++		}
++		finally {
++			if (flink != null) {
++				flink.shutdown();
++			}
++
++			// At least one checkpoint file
++			assertTrue(checkpointFiles.size() > 0);
++
++			// The checkpoint associated with the savepoint should have been
++			// discarded after shutdown
++			for (File f : checkpointFiles) {
++				String errMsg = "Checkpoint file " + f + " not cleaned up properly.";
++				assertFalse(errMsg, f.exists());
++			}
++
++			if (tmpDir != null) {
++				FileUtils.deleteDirectory(tmpDir);
++			}
++		}
++	}
++
++	@Test
++	public void testSubmitWithUnknownSavepointPath() throws Exception {
++		// Config
++		int numTaskManagers = 1;
++		int numSlotsPerTaskManager = 1;
++		int parallelism = numTaskManagers * numSlotsPerTaskManager;
++
++		// Test deadline
++		final Deadline deadline = new FiniteDuration(5, TimeUnit.MINUTES).fromNow();
++
++		ForkableFlinkMiniCluster flink = null;
++
++		try {
++			// Flink configuration
++			final Configuration config = new Configuration();
++			config.setInteger(ConfigConstants.LOCAL_NUMBER_TASK_MANAGER, numTaskManagers);
++			config.setInteger(ConfigConstants.TASK_MANAGER_NUM_TASK_SLOTS, numSlotsPerTaskManager);
++
++			// Long delay to ensure that the test times out if the job
++			// manager tries to restart the job.
++			config.setString(ConfigConstants.DEFAULT_EXECUTION_RETRY_DELAY_KEY, "1 hour");
++
++			LOG.info("Flink configuration: " + config + ".");
++
++			// Start Flink
++			flink = new ForkableFlinkMiniCluster(config);
++			LOG.info("Starting Flink cluster.");
++			flink.start();
++
++			// Retrieve the job manager
++			LOG.info("Retrieving JobManager.");
++			ActorGateway jobManager = Await.result(
++					flink.leaderGateway().future(),
++					deadline.timeLeft());
++			LOG.info("JobManager: " + jobManager + ".");
++
++			// High value to ensure timeouts if restarted.
++			int numberOfRetries = 1000;
++			// Submit the job
++			final JobGraph jobGraph = createJobGraph(parallelism, numberOfRetries, 1000);
++
++			// Set non-existing savepoint path
++			jobGraph.setSavepointPath("unknown path");
++			assertEquals("unknown path", jobGraph.getSnapshotSettings().getSavepointPath());
++
++			LOG.info("Submitting job " + jobGraph.getJobID() + " in detached mode.");
++
++			try {
++				flink.submitJobAndWait(jobGraph, false);
++			}
++			catch (Exception e) {
++				assertEquals(UnrecoverableException.class, e.getCause().getClass());
++				assertEquals(IllegalArgumentException.class, e.getCause().getCause().getClass());
++			}
++		}
++		finally {
++			if (flink != null) {
++				flink.shutdown();
++			}
++		}
++	}
++
++	// ------------------------------------------------------------------------
++	// Test program
++	// ------------------------------------------------------------------------
++
++	/**
++	 * Creates a streaming JobGraph from the StreamEnvironment.
++	 */
++	private JobGraph createJobGraph(
++			int parallelism,
++			int numberOfRetries,
++			int checkpointingInterval) {
++
++		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
++		env.setParallelism(parallelism);
++		env.setNumberOfExecutionRetries(numberOfRetries);
++		env.enableCheckpointing(checkpointingInterval);
++		env.disableOperatorChaining();
++		env.getConfig().disableSysoutLogging();
++
++		DataStream<Integer> stream = env
++				.addSource(new InfiniteTestSource())
++				.shuffle()
++				.map(new StatefulCounter());
++
++		// Discard
++		stream.addSink(new SinkFunction<Integer>() {
++			private static final long serialVersionUID = -8671189807690005893L;
++			@Override
++			public void invoke(Integer value) throws Exception {
++			}
++		});
++
++		return env.getStreamGraph().getJobGraph();
++	}
++
++	private static class InfiniteTestSource
++			implements SourceFunction<Integer>, CheckpointNotifier {
++
++		private static final long serialVersionUID = 1L;
++		private volatile boolean running = true;
++
++		// Test control
++		private static CountDownLatch CheckpointCompleteLatch = new CountDownLatch(0);
++
++		@Override
++		public void run(SourceContext<Integer> ctx) throws Exception {
++			while (running) {
++				ctx.collect(1);
++			}
++		}
++
++		@Override
++		public void cancel() {
++			running = false;
++		}
++
++		@Override
++		public void notifyCheckpointComplete(long checkpointId) throws Exception {
++			CheckpointCompleteLatch.countDown();
++		}
++	}
++
++	private static class StatefulCounter
++			extends RichMapFunction<Integer, Integer>
++			implements Checkpointed<byte[]> {
++
++		private static final long serialVersionUID = 7317800376639115920L;
++		private byte[] data;
++
++		@Override
++		public void open(Configuration parameters) throws Exception {
++			if (data == null) {
++				// We need this to be large, because we want to test with files
++				Random rand = new Random(getRuntimeContext().getIndexOfThisSubtask());
++				data = new byte[FsStateBackend.DEFAULT_FILE_STATE_THRESHOLD + 1];
++				rand.nextBytes(data);
++			}
++		}
++
++		@Override
++		public Integer map(Integer value) throws Exception {
++			for (int i = 0; i < data.length; i++) {
++				data[i] += 1;
++			}
++			return value;
++		}
++
++		@Override
++		public byte[] snapshotState(long checkpointId, long checkpointTimestamp) throws Exception {
++			LOG.info("snapshotState (" + checkpointId + "): " + Arrays.toString(data));
++			return data;
++		}
++
++		@Override
++		public void restoreState(byte[] data) throws Exception {
++			LOG.info("restoreState: " + Arrays.toString(data));
++			this.data = data;
++		}
++	}
++
++}

@@ -1,0 +1,72 @@
+commit a524187fde28ce82790dfbed84f084f3850c426e
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Mon Nov 23 00:31:43 2009 +0000
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=48248
+    Use volatile since field is accessed by multiple threads
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@883200 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/tribes/group/GroupChannel.java b/java/org/apache/catalina/tribes/group/GroupChannel.java
+index 1665c0e..5606926 100644
+--- a/java/org/apache/catalina/tribes/group/GroupChannel.java
++++ b/java/org/apache/catalina/tribes/group/GroupChannel.java
+@@ -644,7 +644,7 @@ public class GroupChannel extends ChannelInterceptorBase implements ManagedChann
+             return counter++;
+         }
+ 
+-        protected boolean doRun = true;
++        protected volatile boolean doRun = true;
+         protected GroupChannel channel;
+         protected long sleepTime;
+         public HeartbeatThread(GroupChannel channel, long sleepTime) {
+diff --git a/java/org/apache/catalina/tribes/group/interceptors/MessageDispatchInterceptor.java b/java/org/apache/catalina/tribes/group/interceptors/MessageDispatchInterceptor.java
+index 13051e5..e7ff8d2 100644
+--- a/java/org/apache/catalina/tribes/group/interceptors/MessageDispatchInterceptor.java
++++ b/java/org/apache/catalina/tribes/group/interceptors/MessageDispatchInterceptor.java
+@@ -42,7 +42,7 @@ public class MessageDispatchInterceptor extends ChannelInterceptorBase implement
+ 
+     protected long maxQueueSize = 1024*1024*64; //64MB
+     protected FastQueue queue = new FastQueue();
+-    protected boolean run = false;
++    protected volatile boolean run = false;
+     protected Thread msgDispatchThread = null;
+     protected long currentSize = 0;
+     protected boolean useDeepClone = true;
+diff --git a/java/org/apache/catalina/tribes/group/interceptors/TcpPingInterceptor.java b/java/org/apache/catalina/tribes/group/interceptors/TcpPingInterceptor.java
+index 2a31434..282eb7f 100644
+--- a/java/org/apache/catalina/tribes/group/interceptors/TcpPingInterceptor.java
++++ b/java/org/apache/catalina/tribes/group/interceptors/TcpPingInterceptor.java
+@@ -52,7 +52,7 @@ public class TcpPingInterceptor extends ChannelInterceptorBase {
+ 
+     protected boolean useThread = false;
+     protected boolean staticOnly = false;
+-    protected boolean running = true;
++    protected volatile boolean running = true;
+     protected PingThread thread = null;
+     protected static AtomicInteger cnt = new AtomicInteger(0);
+     
+diff --git a/java/org/apache/catalina/tribes/membership/McastServiceImpl.java b/java/org/apache/catalina/tribes/membership/McastServiceImpl.java
+index f090f13..c739e27 100644
+--- a/java/org/apache/catalina/tribes/membership/McastServiceImpl.java
++++ b/java/org/apache/catalina/tribes/membership/McastServiceImpl.java
+@@ -57,8 +57,8 @@ public class McastServiceImpl
+     /**
+      * Internal flag used for the listen thread that listens to the multicasting socket.
+      */
+-    protected boolean doRunSender = false;
+-    protected boolean doRunReceiver = false;
++    protected volatile boolean doRunSender = false;
++    protected volatile boolean doRunReceiver = false;
+     protected int startLevel = 0;
+     /**
+      * Socket that we intend to listen to
+@@ -575,7 +575,7 @@ public class McastServiceImpl
+     }//class SenderThread
+ 
+     protected static class RecoveryThread extends Thread {
+-        static boolean running = false;
++        static volatile boolean running = false;
+         McastServiceImpl parent = null;
+         public RecoveryThread(McastServiceImpl parent) {
+             this.parent = parent;

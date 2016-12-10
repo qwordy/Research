@@ -1,0 +1,53 @@
+commit 94dc09c33d41135c62ad524fd88ff580ff5b7639
+Author: Norman Maurer <nmaurer@redhat.com>
+Date:   Thu Dec 20 10:45:12 2012 +0100
+
+    Tighten up visibility as the user should use Channel.new*Future
+
+diff --git a/transport/src/main/java/io/netty/channel/CompleteChannelFuture.java b/transport/src/main/java/io/netty/channel/CompleteChannelFuture.java
+index b1fc7bb..446d8c4 100644
+--- a/transport/src/main/java/io/netty/channel/CompleteChannelFuture.java
++++ b/transport/src/main/java/io/netty/channel/CompleteChannelFuture.java
+@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
+  * A skeletal {@link ChannelFuture} implementation which represents a
+  * {@link ChannelFuture} which has been completed already.
+  */
+-public abstract class CompleteChannelFuture implements ChannelFuture {
++abstract class CompleteChannelFuture implements ChannelFuture {
+ 
+     private final Channel channel;
+ 
+diff --git a/transport/src/main/java/io/netty/channel/FailedChannelFuture.java b/transport/src/main/java/io/netty/channel/FailedChannelFuture.java
+index 9cb45e9..e74b2e1 100644
+--- a/transport/src/main/java/io/netty/channel/FailedChannelFuture.java
++++ b/transport/src/main/java/io/netty/channel/FailedChannelFuture.java
+@@ -15,7 +15,6 @@
+  */
+ package io.netty.channel;
+ 
+-import java.nio.channels.Channels;
+ import java.util.concurrent.ExecutionException;
+ import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.TimeoutException;
+@@ -25,7 +24,7 @@ import java.util.concurrent.TimeoutException;
+  * recommended to use {@link Channel#newFailedFuture(Throwable)}
+  * instead of calling the constructor of this future.
+  */
+-public class FailedChannelFuture extends CompleteChannelFuture {
++class FailedChannelFuture extends CompleteChannelFuture {
+ 
+     private final Throwable cause;
+ 
+diff --git a/transport/src/main/java/io/netty/channel/SucceededChannelFuture.java b/transport/src/main/java/io/netty/channel/SucceededChannelFuture.java
+index 97f762e..76ae3d4 100644
+--- a/transport/src/main/java/io/netty/channel/SucceededChannelFuture.java
++++ b/transport/src/main/java/io/netty/channel/SucceededChannelFuture.java
+@@ -24,7 +24,7 @@ import java.util.concurrent.TimeoutException;
+  * recommended to use {@link Channel#newSucceededFuture()} instead of
+  * calling the constructor of this future.
+  */
+-public class SucceededChannelFuture extends CompleteChannelFuture {
++ class SucceededChannelFuture extends CompleteChannelFuture {
+ 
+     /**
+      * Creates a new instance.

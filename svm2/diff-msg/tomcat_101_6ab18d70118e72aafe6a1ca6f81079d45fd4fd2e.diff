@@ -1,0 +1,116 @@
+commit 6ab18d70118e72aafe6a1ca6f81079d45fd4fd2e
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Sat May 1 14:18:05 2010 +0000
+
+    Get the shutdown hook working again.
+    Now LifecycleBase uses synchronized methods, Catalina can't extend it else the shutdown hook can't function.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@940036 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/startup/Catalina.java b/java/org/apache/catalina/startup/Catalina.java
+index 3ac5b4e..a8b2fa4 100644
+--- a/java/org/apache/catalina/startup/Catalina.java
++++ b/java/org/apache/catalina/startup/Catalina.java
+@@ -32,10 +32,8 @@ import java.util.logging.LogManager;
+ 
+ import org.apache.catalina.Container;
+ import org.apache.catalina.LifecycleException;
+-import org.apache.catalina.LifecycleState;
+ import org.apache.catalina.Server;
+ import org.apache.catalina.core.StandardServer;
+-import org.apache.catalina.util.LifecycleBase;
+ import org.apache.juli.ClassLoaderLogManager;
+ import org.apache.tomcat.util.IntrospectionUtils;
+ import org.apache.tomcat.util.digester.Digester;
+@@ -67,7 +65,7 @@ import org.xml.sax.InputSource;
+  * @version $Id$
+  */
+ 
+-public class Catalina extends LifecycleBase {
++public class Catalina {
+ 
+ 
+     /**
+@@ -557,16 +555,10 @@ public class Catalina extends LifecycleBase {
+     }
+ 
+ 
+-    @Override
+-    protected void initInternal() {
+-        // NOOP
+-    }
+-
+     /**
+      * Start a new server instance.
+      */
+-    @Override
+-    protected void startInternal() {
++    public void start() {
+ 
+         if (getServer() == null) {
+             load();
+@@ -579,8 +571,6 @@ public class Catalina extends LifecycleBase {
+ 
+         long t1 = System.nanoTime();
+ 
+-        setState(LifecycleState.STARTING);
+-
+         // Start the new server
+         try {
+             getServer().start();
+@@ -615,10 +605,8 @@ public class Catalina extends LifecycleBase {
+         }
+ 
+         if (await) {
+-            setState(LifecycleState.STARTED);
+-            fireLifecycleEvent(AFTER_START_EVENT, null);
+             await();
+-            setState(LifecycleState.MUST_STOP);
++            stop();
+         }
+ 
+     }
+@@ -627,11 +615,7 @@ public class Catalina extends LifecycleBase {
+     /**
+      * Stop an existing server instance.
+      */
+-    @Override
+-    protected void stopInternal() {
+-
+-        fireLifecycleEvent(STOP_EVENT, null);
+-        setState(LifecycleState.STOPPING);
++    public void stop() {
+ 
+         try {
+             // Remove the ShutdownHook first so that server.stop() 
+@@ -662,11 +646,6 @@ public class Catalina extends LifecycleBase {
+     }
+ 
+ 
+-    @Override
+-    protected void destroyInternal() {
+-        // NOOP
+-    }
+-
+     /**
+      * Await and shutdown.
+      */
+@@ -803,7 +782,7 @@ public class Catalina extends LifecycleBase {
+             if (getServer() != null) {
+                 try {
+                     Catalina.this.stop();
+-                } catch (LifecycleException e) {
++                } catch (Exception e) {
+                     log.error(sm.getString("catalina.shutdownHookFail"), e);
+                 }
+             }
+@@ -814,9 +793,7 @@ public class Catalina extends LifecycleBase {
+             if (logManager instanceof ClassLoaderLogManager) {
+                 ((ClassLoaderLogManager) logManager).shutdown();
+             }
+-
+         }
+-
+     }
+     
+     

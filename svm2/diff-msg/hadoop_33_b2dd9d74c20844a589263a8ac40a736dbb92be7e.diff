@@ -1,0 +1,58 @@
+commit b2dd9d74c20844a589263a8ac40a736dbb92be7e
+Author: Michael Stack <stack@apache.org>
+Date:   Tue Jan 21 05:14:10 2014 +0000
+
+    HBASE-10143 replace WritableFactories's hashmap with ConcurrentHashMap (Liang Xie via Stack)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1559923 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/hadoop-common-project/hadoop-common/CHANGES.txt b/hadoop-common-project/hadoop-common/CHANGES.txt
+index 12d9a19..896723d 100644
+--- a/hadoop-common-project/hadoop-common/CHANGES.txt
++++ b/hadoop-common-project/hadoop-common/CHANGES.txt
+@@ -113,6 +113,9 @@ Trunk (Unreleased)
+ 
+     HADOOP-10177. Create CLI tools for managing keys. (Larry McCay via omalley)
+ 
++    HADOOP-10143 replace WritableFactories's hashmap with ConcurrentHashMap
++    (Liang Xie via stack)
++
+   BUG FIXES
+ 
+     HADOOP-9451. Fault single-layer config if node group topology is enabled.
+diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/io/WritableFactories.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/io/WritableFactories.java
+index 49bd0b9..a8fdbfe 100644
+--- a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/io/WritableFactories.java
++++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/io/WritableFactories.java
+@@ -22,25 +22,26 @@
+ import org.apache.hadoop.classification.InterfaceStability;
+ import org.apache.hadoop.conf.*;
+ import org.apache.hadoop.util.ReflectionUtils;
+-import java.util.HashMap;
++import java.util.Map;
++import java.util.concurrent.ConcurrentHashMap;
+ 
+ /** Factories for non-public writables.  Defining a factory permits {@link
+  * ObjectWritable} to be able to construct instances of non-public classes. */
+ @InterfaceAudience.Public
+ @InterfaceStability.Stable
+ public class WritableFactories {
+-  private static final HashMap<Class, WritableFactory> CLASS_TO_FACTORY =
+-    new HashMap<Class, WritableFactory>();
++  private static final Map<Class, WritableFactory> CLASS_TO_FACTORY =
++    new ConcurrentHashMap<Class, WritableFactory>();
+ 
+   private WritableFactories() {}                  // singleton
+ 
+   /** Define a factory for a class. */
+-  public static synchronized void setFactory(Class c, WritableFactory factory) {
++  public static void setFactory(Class c, WritableFactory factory) {
+     CLASS_TO_FACTORY.put(c, factory);
+   }
+ 
+   /** Define a factory for a class. */
+-  public static synchronized WritableFactory getFactory(Class c) {
++  public static WritableFactory getFactory(Class c) {
+     return CLASS_TO_FACTORY.get(c);
+   }
+ 

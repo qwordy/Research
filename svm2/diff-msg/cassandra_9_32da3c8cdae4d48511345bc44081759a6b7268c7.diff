@@ -1,0 +1,19 @@
+commit 32da3c8cdae4d48511345bc44081759a6b7268c7
+Author: Aleksey Yeschenko <aleksey@apache.org>
+Date:   Wed Nov 5 16:30:08 2014 +0300
+
+    Make CFMetaData.memtableFlushPeriod volatile
+
+diff --git a/src/java/org/apache/cassandra/config/CFMetaData.java b/src/java/org/apache/cassandra/config/CFMetaData.java
+index 60eb70e..391341f 100644
+--- a/src/java/org/apache/cassandra/config/CFMetaData.java
++++ b/src/java/org/apache/cassandra/config/CFMetaData.java
+@@ -390,7 +390,7 @@ public final class CFMetaData
+     private volatile Double bloomFilterFpChance = null;
+     private volatile Caching caching = DEFAULT_CACHING_STRATEGY;
+     private volatile int indexInterval = DEFAULT_INDEX_INTERVAL;
+-    private int memtableFlushPeriod = 0;
++    private volatile int memtableFlushPeriod = 0;
+     private volatile int defaultTimeToLive = DEFAULT_DEFAULT_TIME_TO_LIVE;
+     private volatile SpeculativeRetry speculativeRetry = DEFAULT_SPECULATIVE_RETRY;
+     private volatile boolean populateIoCacheOnFlush = DEFAULT_POPULATE_IO_CACHE_ON_FLUSH;

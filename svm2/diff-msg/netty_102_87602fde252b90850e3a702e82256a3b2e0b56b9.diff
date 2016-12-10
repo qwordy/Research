@@ -1,0 +1,27 @@
+commit 87602fde252b90850e3a702e82256a3b2e0b56b9
+Author: Norman Maurer <nmaurer@redhat.com>
+Date:   Fri Feb 7 22:03:05 2014 +0100
+
+    [#2215] DefaultChannelHandlerContext tasks needs to be volatile to ensure every thread only see full initialized instances
+
+diff --git a/transport/src/main/java/io/netty/channel/DefaultChannelHandlerContext.java b/transport/src/main/java/io/netty/channel/DefaultChannelHandlerContext.java
+index 35e3943..6bb3d28 100644
+--- a/transport/src/main/java/io/netty/channel/DefaultChannelHandlerContext.java
++++ b/transport/src/main/java/io/netty/channel/DefaultChannelHandlerContext.java
+@@ -45,10 +45,12 @@ final class DefaultChannelHandlerContext extends DefaultAttributeMap implements
+     private ChannelFuture succeededFuture;
+ 
+     // Lazily instantiated tasks used to trigger events to a handler with different executor.
+-    private Runnable invokeChannelReadCompleteTask;
+-    private Runnable invokeReadTask;
+-    private Runnable invokeFlushTask;
+-    private Runnable invokeChannelWritableStateChangedTask;
++    // These needs to be volatile as otherwise an other Thread may see an half initialized instance.
++    // See the JMM for more details
++    private volatile Runnable invokeChannelReadCompleteTask;
++    private volatile Runnable invokeReadTask;
++    private volatile Runnable invokeChannelWritableStateChangedTask;
++    private volatile Runnable invokeFlushTask;
+ 
+     DefaultChannelHandlerContext(DefaultChannelPipeline pipeline, EventExecutorGroup group, String name,
+             ChannelHandler handler) {

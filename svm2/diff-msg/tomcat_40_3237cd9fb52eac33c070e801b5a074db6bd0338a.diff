@@ -1,0 +1,21 @@
+commit 3237cd9fb52eac33c070e801b5a074db6bd0338a
+Author: Mark Thomas <markt@apache.org>
+Date:   Thu Jan 15 14:56:48 2015 +0000
+
+    No need for volatile here.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1652121 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/tomcat/util/net/Nio2Endpoint.java b/java/org/apache/tomcat/util/net/Nio2Endpoint.java
+index 1f79e47..61f30d5 100644
+--- a/java/org/apache/tomcat/util/net/Nio2Endpoint.java
++++ b/java/org/apache/tomcat/util/net/Nio2Endpoint.java
+@@ -727,7 +727,7 @@ public class Nio2Endpoint extends AbstractEndpoint<Nio2Channel> {
+ 
+         private final CompletionHandler<Integer, SocketWrapperBase<Nio2Channel>> readCompletionHandler;
+         private final Semaphore readPending = new Semaphore(1);
+-        private volatile boolean readInterest = true;
++        private boolean readInterest = true; // Guarded by readCompletionHandler
+ 
+         private final CompletionHandler<Integer, ByteBuffer> writeCompletionHandler;
+         private final CompletionHandler<Long, ByteBuffer[]> gatheringWriteCompletionHandler;

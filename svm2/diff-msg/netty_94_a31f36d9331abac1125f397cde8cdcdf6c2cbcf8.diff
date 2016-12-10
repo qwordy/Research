@@ -1,0 +1,88 @@
+commit a31f36d9331abac1125f397cde8cdcdf6c2cbcf8
+Author: Trustin Lee <t@motd.kr>
+Date:   Sun Apr 20 17:54:57 2014 +0900
+
+    Stop ThreadLocalRandom's initial seed generation immediately on interruption
+    
+    Motivation:
+    
+    ThreadLocalRandomTest reveals that ThreadLocalRandom's initial seed generation loop becomes tight if the thread is interrupted.
+    We currently interrupt ourselves inside the wait loop, which will raise an InterruptedException again in the next iteration, resulting in infinite (up to 3 seconds) exception construction and thread interruptions.
+    
+    Modification:
+    
+    - When the initial seed generator thread is interrupted, break out of the wait loop immediately.
+    - Log properly when the initial seed generation failed due to interruption.
+    - When failed to generate the initial seed, interrupt the generator thread just in case the SecureRandom implementation handles it properly.
+    - Make the initial seed generator thread daemon and handle potential exceptions raised due to the interruption.
+    
+    Result:
+    
+    No more tight loop on interruption.  More robust generator thread termination. Fixes #2412
+
+diff --git a/common/src/main/java/io/netty/util/internal/ThreadLocalRandom.java b/common/src/main/java/io/netty/util/internal/ThreadLocalRandom.java
+index 0e9838a..d9f7de5 100644
+--- a/common/src/main/java/io/netty/util/internal/ThreadLocalRandom.java
++++ b/common/src/main/java/io/netty/util/internal/ThreadLocalRandom.java
+@@ -25,6 +25,7 @@ package io.netty.util.internal;
+ import io.netty.util.internal.logging.InternalLogger;
+ import io.netty.util.internal.logging.InternalLoggerFactory;
+ 
++import java.lang.Thread.UncaughtExceptionHandler;
+ import java.security.SecureRandom;
+ import java.util.Random;
+ import java.util.concurrent.BlockingQueue;
+@@ -90,17 +91,27 @@ public class ThreadLocalRandom extends Random {
+                     queue.add(random.generateSeed(8));
+                 }
+             };
++            generatorThread.setDaemon(true);
+             generatorThread.start();
++            generatorThread.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
++                @Override
++                public void uncaughtException(Thread t, Throwable e) {
++                    logger.debug("An exception has been raised by {}", t.getName(), e);
++                }
++            });
+ 
+             // Get the random seed from the thread with timeout.
+             final long timeoutSeconds = 3;
+             final long deadLine = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds);
++            boolean interrupted = false;
+             for (;;) {
+                 long waitTime = deadLine - System.nanoTime();
+                 if (waitTime <= 0) {
++                    generatorThread.interrupt();
+                     logger.warn(
+                             "Failed to generate a seed from SecureRandom within {} seconds. " +
+-                            "Not enough entrophy?", timeoutSeconds);
++                                    "Not enough entrophy?", timeoutSeconds
++                    );
+                     break;
+                 }
+ 
+@@ -119,8 +130,10 @@ public class ThreadLocalRandom extends Random {
+                         break;
+                     }
+                 } catch (InterruptedException e) {
+-                    // restore interrupt status because we don't know how to/don't need to handle it here
+-                    Thread.currentThread().interrupt();
++                    interrupted = true;
++                    generatorThread.interrupt();
++                    logger.warn("Failed to generate a seed from SecureRandom due to an InterruptedException.");
++                    break;
+                 }
+             }
+ 
+@@ -129,6 +142,11 @@ public class ThreadLocalRandom extends Random {
+             initialSeedUniquifier ^= Long.reverse(System.nanoTime());
+ 
+             ThreadLocalRandom.initialSeedUniquifier = initialSeedUniquifier;
++
++            if (interrupted) {
++                // restore interrupt status because we don't know how to/don't need to handle it here
++                Thread.currentThread().interrupt();
++            }
+         }
+ 
+         return initialSeedUniquifier;

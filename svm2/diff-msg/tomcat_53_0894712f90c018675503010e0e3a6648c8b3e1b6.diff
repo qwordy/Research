@@ -1,0 +1,65 @@
+commit 0894712f90c018675503010e0e3a6648c8b3e1b6
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Tue Mar 25 22:57:29 2014 +0000
+
+    Lock ouside try/catch/finally
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1581575 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/ha/session/DeltaManager.java b/java/org/apache/catalina/ha/session/DeltaManager.java
+index 62051fd..7999eaa 100644
+--- a/java/org/apache/catalina/ha/session/DeltaManager.java
++++ b/java/org/apache/catalina/ha/session/DeltaManager.java
+@@ -602,13 +602,13 @@ public class DeltaManager extends ClusterManagerBase{
+      */
+     protected DeltaRequest deserializeDeltaRequest(DeltaSession session, byte[] data)
+             throws ClassNotFoundException, IOException {
++        session.lock();
+         try {
+-            session.lock();
+             ReplicationStream ois = getReplicationStream(data);
+             session.getDeltaRequest().readExternal(ois);
+             ois.close();
+             return session.getDeltaRequest();
+-        }finally {
++        } finally {
+             session.unlock();
+         }
+     }
+@@ -623,10 +623,10 @@ public class DeltaManager extends ClusterManagerBase{
+      */
+     protected byte[] serializeDeltaRequest(DeltaSession session, DeltaRequest deltaRequest)
+             throws IOException {
++        session.lock();
+         try {
+-            session.lock();
+             return deltaRequest.serialize();
+-        }finally {
++        } finally {
+             session.unlock();
+         }
+     }
+@@ -1116,7 +1116,7 @@ public class DeltaManager extends ClusterManagerBase{
+             log.error(sm.getString("deltaManager.createMessage.unableCreateDeltaRequest",
+                     sessionId), x);
+             return null;
+-        }finally {
++        } finally {
+             if (session!=null) session.unlock();
+         }
+ 
+@@ -1354,12 +1354,12 @@ public class DeltaManager extends ClusterManagerBase{
+                 log.debug(sm.getString("deltaManager.receiveMessage.delta",
+                         getName(), msg.getSessionID()));
+             }
++            session.lock();
+             try {
+-                session.lock();
+                 DeltaRequest dreq = deserializeDeltaRequest(session, delta);
+                 dreq.execute(session, isNotifyListenersOnReplication());
+                 session.setPrimarySession(false);
+-            }finally {
++            } finally {
+                 session.unlock();
+             }
+         }

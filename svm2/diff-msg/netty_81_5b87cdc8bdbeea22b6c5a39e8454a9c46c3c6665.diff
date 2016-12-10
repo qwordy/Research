@@ -1,0 +1,425 @@
+commit 5b87cdc8bdbeea22b6c5a39e8454a9c46c3c6665
+Author: Trustin Lee <t@motd.kr>
+Date:   Fri Jul 4 14:14:37 2014 +0900
+
+    Reduce the perceived time taken to retrieve initialSeedUniquifier
+    
+    Motivation:
+    
+    When system is in short of entrophy, the initialization of
+    ThreadLocalRandom can take at most 3 seconds.  The initialization occurs
+    when ThreadLocalRandom.current() is invoked first time, which might be
+    much later than the moment when the application has started.  If we
+    start the initialization of ThreadLocalRandom as early as possible, we
+    can reduce the perceived time taken for the retrieval.
+    
+    Modification:
+    
+    Begin the initialization of ThreadLocalRandom in InternalLoggerFactory,
+    potentially one of the firstly initialized class in a Netty application.
+    
+    Make DefaultChannelId retrieve the current process ID before retrieving
+    the current machine ID, because retrieval of a machine ID is more likely
+    to use ThreadLocalRandom.current().
+    
+    Use a dummy channel ID for EmbeddedChannel, which prevents many unit
+    tests from creating a ThreadLocalRandom instance.
+    
+    Result:
+    
+    We gain extra 100ms at minimum for initialSeedUniquifier generation.  If
+    an application has its own initialization that takes long enough time
+    and generates good amount of entrophy, it is very likely that we will
+    gain a lot more.
+
+diff --git a/common/src/main/java/io/netty/util/internal/ThreadLocalRandom.java b/common/src/main/java/io/netty/util/internal/ThreadLocalRandom.java
+index 7fa15aa..963f90b 100644
+--- a/common/src/main/java/io/netty/util/internal/ThreadLocalRandom.java
++++ b/common/src/main/java/io/netty/util/internal/ThreadLocalRandom.java
+@@ -64,59 +64,76 @@ public final class ThreadLocalRandom extends Random {
+ 
+     private static final AtomicLong seedUniquifier = new AtomicLong();
+ 
+-    private static volatile long initialSeedUniquifier;
++    private static volatile long initialSeedUniquifier =
++            SystemPropertyUtil.getLong("io.netty.initialSeedUniquifier", 0);
+ 
+-    public static void setInitialSeedUniquifier(long initialSeedUniquifier) {
+-        ThreadLocalRandom.initialSeedUniquifier = initialSeedUniquifier;
+-    }
++    private static final Thread seedGeneratorThread;
++    private static final BlockingQueue<byte[]> seedQueue;
++    private static final long seedGeneratorStartTime;
++    private static volatile long seedGeneratorEndTime;
+ 
+-    public static synchronized long getInitialSeedUniquifier() {
+-        // Use the value set via the setter.
+-        long initialSeedUniquifier = ThreadLocalRandom.initialSeedUniquifier;
+-        if (initialSeedUniquifier == 0) {
+-            // Use the system property value.
+-            ThreadLocalRandom.initialSeedUniquifier = initialSeedUniquifier =
+-                    SystemPropertyUtil.getLong("io.netty.initialSeedUniquifier", 0);
+-        }
+-
+-        // Otherwise, generate one.
++    static {
+         if (initialSeedUniquifier == 0) {
+             // Try to generate a real random number from /dev/random.
+             // Get from a different thread to avoid blocking indefinitely on a machine without much entrophy.
+-            final BlockingQueue<byte[]> queue = new LinkedBlockingQueue<byte[]>();
+-            Thread generatorThread = new Thread("initialSeedUniquifierGenerator") {
++            seedGeneratorThread = new Thread("initialSeedUniquifierGenerator") {
+                 @Override
+                 public void run() {
+-                    SecureRandom random = new SecureRandom(); // Get the real random seed from /dev/random
+-                    queue.add(random.generateSeed(8));
++                    final SecureRandom random = new SecureRandom(); // Get the real random seed from /dev/random
++                    final byte[] seed = random.generateSeed(8);
++                    seedGeneratorEndTime = System.nanoTime();
++                    seedQueue.add(seed);
+                 }
+             };
+-            generatorThread.setDaemon(true);
+-            generatorThread.start();
+-            generatorThread.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
++            seedGeneratorThread.setDaemon(true);
++            seedGeneratorThread.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+                 @Override
+                 public void uncaughtException(Thread t, Throwable e) {
+                     logger.debug("An exception has been raised by {}", t.getName(), e);
+                 }
+             });
+ 
+-            // Get the random seed from the thread with timeout.
++            seedQueue = new LinkedBlockingQueue<byte[]>();
++            seedGeneratorStartTime = System.nanoTime();
++            seedGeneratorThread.start();
++        } else {
++            seedGeneratorThread = null;
++            seedQueue = null;
++            seedGeneratorStartTime = 0L;
++        }
++    }
++
++    public static void setInitialSeedUniquifier(long initialSeedUniquifier) {
++        ThreadLocalRandom.initialSeedUniquifier = initialSeedUniquifier;
++    }
++
++    public static long getInitialSeedUniquifier() {
++        // Use the value set via the setter.
++        long initialSeedUniquifier = ThreadLocalRandom.initialSeedUniquifier;
++        if (initialSeedUniquifier != 0) {
++            return initialSeedUniquifier;
++        }
++
++        synchronized (ThreadLocalRandom.class) {
++            initialSeedUniquifier = ThreadLocalRandom.initialSeedUniquifier;
++            if (initialSeedUniquifier != 0) {
++                return initialSeedUniquifier;
++            }
++
++            // Get the random seed from the generator thread with timeout.
+             final long timeoutSeconds = 3;
+-            final long deadLine = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds);
++            final long deadLine = seedGeneratorStartTime + TimeUnit.SECONDS.toNanos(timeoutSeconds);
+             boolean interrupted = false;
+             for (;;) {
+-                long waitTime = deadLine - System.nanoTime();
+-                if (waitTime <= 0) {
+-                    generatorThread.interrupt();
+-                    logger.warn(
+-                            "Failed to generate a seed from SecureRandom within {} seconds. " +
+-                                    "Not enough entrophy?", timeoutSeconds
+-                    );
+-                    break;
+-                }
+-
++                final long waitTime = deadLine - System.nanoTime();
+                 try {
+-                    byte[] seed = queue.poll(waitTime, TimeUnit.NANOSECONDS);
++                    final byte[] seed;
++                    if (waitTime <= 0) {
++                        seed = seedQueue.poll();
++                    } else {
++                        seed = seedQueue.poll(waitTime, TimeUnit.NANOSECONDS);
++                    }
++
+                     if (seed != null) {
+                         initialSeedUniquifier =
+                                 ((long) seed[0] & 0xff) << 56 |
+@@ -126,7 +143,7 @@ public final class ThreadLocalRandom extends Random {
+                                 ((long) seed[4] & 0xff) << 24 |
+                                 ((long) seed[5] & 0xff) << 16 |
+                                 ((long) seed[6] & 0xff) <<  8 |
+-                                 (long) seed[7] & 0xff;
++                                (long) seed[7] & 0xff;
+                         break;
+                     }
+                 } catch (InterruptedException e) {
+@@ -134,6 +151,15 @@ public final class ThreadLocalRandom extends Random {
+                     logger.warn("Failed to generate a seed from SecureRandom due to an InterruptedException.");
+                     break;
+                 }
++
++                if (waitTime <= 0) {
++                    seedGeneratorThread.interrupt();
++                    logger.warn(
++                            "Failed to generate a seed from SecureRandom within {} seconds. " +
++                            "Not enough entrophy?", timeoutSeconds
++                    );
++                    break;
++                }
+             }
+ 
+             // Just in case the initialSeedUniquifier is zero or some other constant
+@@ -148,15 +174,18 @@ public final class ThreadLocalRandom extends Random {
+ 
+                 // Interrupt the generator thread if it's still running,
+                 // in the hope that the SecureRandom provider raises an exception on interruption.
+-                generatorThread.interrupt();
++                seedGeneratorThread.interrupt();
++            }
++
++            if (seedGeneratorEndTime == 0) {
++                seedGeneratorEndTime = System.nanoTime();
+             }
+-        }
+ 
+-        return initialSeedUniquifier;
++            return initialSeedUniquifier;
++        }
+     }
+ 
+     private static long newSeed() {
+-        final long startTime = System.nanoTime();
+         for (;;) {
+             final long current = seedUniquifier.get();
+             final long actualCurrent = current != 0? current : getInitialSeedUniquifier();
+@@ -166,9 +195,14 @@ public final class ThreadLocalRandom extends Random {
+ 
+             if (seedUniquifier.compareAndSet(current, next)) {
+                 if (current == 0 && logger.isDebugEnabled()) {
+-                    logger.debug(String.format(
+-                            "-Dio.netty.initialSeedUniquifier: 0x%016x (took %d ms)",
+-                            actualCurrent, TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime)));
++                    if (seedGeneratorEndTime != 0) {
++                        logger.debug(String.format(
++                                "-Dio.netty.initialSeedUniquifier: 0x%016x (took %d ms)",
++                                actualCurrent,
++                                TimeUnit.NANOSECONDS.toMillis(seedGeneratorEndTime - seedGeneratorStartTime)));
++                    } else {
++                        logger.debug(String.format("-Dio.netty.initialSeedUniquifier: 0x%016x", actualCurrent));
++                    }
+                 }
+                 return next ^ System.nanoTime();
+             }
+diff --git a/common/src/main/java/io/netty/util/internal/logging/InternalLoggerFactory.java b/common/src/main/java/io/netty/util/internal/logging/InternalLoggerFactory.java
+index c98a050..3f1a6d2 100644
+--- a/common/src/main/java/io/netty/util/internal/logging/InternalLoggerFactory.java
++++ b/common/src/main/java/io/netty/util/internal/logging/InternalLoggerFactory.java
+@@ -15,6 +15,8 @@
+  */
+ package io.netty.util.internal.logging;
+ 
++import io.netty.util.internal.ThreadLocalRandom;
++
+ /**
+  * Creates an {@link InternalLogger} or changes the default factory
+  * implementation.  This factory allows you to choose what logging framework
+@@ -31,9 +33,20 @@ package io.netty.util.internal.logging;
+  * as possible and shouldn't be called more than once.
+  */
+ public abstract class InternalLoggerFactory {
++
+     private static volatile InternalLoggerFactory defaultFactory =
+             newDefaultFactory(InternalLoggerFactory.class.getName());
+ 
++    static {
++        // Initiate some time-consuming background jobs here,
++        // because this class is often initialized at the earliest time.
++        try {
++            Class.forName(ThreadLocalRandom.class.getName(), true, InternalLoggerFactory.class.getClassLoader());
++        } catch (Exception ignored) {
++            // Should not fail, but it does not harm to fail.
++        }
++    }
++
+     @SuppressWarnings("UnusedCatchParameter")
+     private static InternalLoggerFactory newDefaultFactory(String name) {
+         InternalLoggerFactory f;
+diff --git a/transport/src/main/java/io/netty/channel/AbstractChannel.java b/transport/src/main/java/io/netty/channel/AbstractChannel.java
+index 14991a3..1845bfa 100644
+--- a/transport/src/main/java/io/netty/channel/AbstractChannel.java
++++ b/transport/src/main/java/io/netty/channel/AbstractChannel.java
+@@ -50,7 +50,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
+     private MessageSizeEstimator.Handle estimatorHandle;
+ 
+     private final Channel parent;
+-    private final ChannelId id = DefaultChannelId.newInstance();
++    private final ChannelId id;
+     private final Unsafe unsafe;
+     private final DefaultChannelPipeline pipeline;
+     private final ChannelFuture succeededFuture = new SucceededChannelFuture(this, null);
+@@ -75,6 +75,20 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
+      */
+     protected AbstractChannel(Channel parent) {
+         this.parent = parent;
++        id = DefaultChannelId.newInstance();
++        unsafe = newUnsafe();
++        pipeline = new DefaultChannelPipeline(this);
++    }
++
++    /**
++     * Creates a new instance.
++     *
++     * @param parent
++     *        the parent of this channel. {@code null} if there's no parent.
++     */
++    protected AbstractChannel(Channel parent, ChannelId id) {
++        this.parent = parent;
++        this.id = id;
+         unsafe = newUnsafe();
+         pipeline = new DefaultChannelPipeline(this);
+     }
+diff --git a/transport/src/main/java/io/netty/channel/DefaultChannelId.java b/transport/src/main/java/io/netty/channel/DefaultChannelId.java
+index 1210c92..fb0e67b 100644
+--- a/transport/src/main/java/io/netty/channel/DefaultChannelId.java
++++ b/transport/src/main/java/io/netty/channel/DefaultChannelId.java
+@@ -65,26 +65,6 @@ final class DefaultChannelId implements ChannelId {
+     }
+ 
+     static {
+-        byte[] machineId = null;
+-        String customMachineId = SystemPropertyUtil.get("io.netty.machineId");
+-        if (customMachineId != null) {
+-            if (MACHINE_ID_PATTERN.matcher(customMachineId).matches()) {
+-                machineId = parseMachineId(customMachineId);
+-                logger.debug("-Dio.netty.machineId: {} (user-set)", customMachineId);
+-            } else {
+-                logger.warn("-Dio.netty.machineId: {} (malformed)", customMachineId);
+-            }
+-        }
+-
+-        if (machineId == null) {
+-            machineId = defaultMachineId();
+-            if (logger.isDebugEnabled()) {
+-                logger.debug("-Dio.netty.machineId: {} (auto-detected)", formatAddress(machineId));
+-            }
+-        }
+-
+-        MACHINE_ID = machineId;
+-
+         int processId = -1;
+         String customProcessId = SystemPropertyUtil.get("io.netty.processId");
+         if (customProcessId != null) {
+@@ -110,6 +90,26 @@ final class DefaultChannelId implements ChannelId {
+         }
+ 
+         PROCESS_ID = processId;
++
++        byte[] machineId = null;
++        String customMachineId = SystemPropertyUtil.get("io.netty.machineId");
++        if (customMachineId != null) {
++            if (MACHINE_ID_PATTERN.matcher(customMachineId).matches()) {
++                machineId = parseMachineId(customMachineId);
++                logger.debug("-Dio.netty.machineId: {} (user-set)", customMachineId);
++            } else {
++                logger.warn("-Dio.netty.machineId: {} (malformed)", customMachineId);
++            }
++        }
++
++        if (machineId == null) {
++            machineId = defaultMachineId();
++            if (logger.isDebugEnabled()) {
++                logger.debug("-Dio.netty.machineId: {} (auto-detected)", formatAddress(machineId));
++            }
++        }
++
++        MACHINE_ID = machineId;
+     }
+ 
+     @SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
+diff --git a/transport/src/main/java/io/netty/channel/embedded/EmbeddedChannel.java b/transport/src/main/java/io/netty/channel/embedded/EmbeddedChannel.java
+index 167946b..81683d3 100644
+--- a/transport/src/main/java/io/netty/channel/embedded/EmbeddedChannel.java
++++ b/transport/src/main/java/io/netty/channel/embedded/EmbeddedChannel.java
+@@ -74,7 +74,7 @@ public class EmbeddedChannel extends AbstractChannel {
+      * @param handlers the @link ChannelHandler}s which will be add in the {@link ChannelPipeline}
+      */
+     public EmbeddedChannel(ChannelHandler... handlers) {
+-        super(null);
++        super(null, EmbeddedChannelId.INSTANCE);
+ 
+         if (handlers == null) {
+             throw new NullPointerException("handlers");
+diff --git a/transport/src/main/java/io/netty/channel/embedded/EmbeddedChannelId.java b/transport/src/main/java/io/netty/channel/embedded/EmbeddedChannelId.java
+new file mode 100644
+index 0000000..01675c2
+--- /dev/null
++++ b/transport/src/main/java/io/netty/channel/embedded/EmbeddedChannelId.java
+@@ -0,0 +1,65 @@
++/*
++ * Copyright 2014 The Netty Project
++ *
++ * The Netty Project licenses this file to you under the Apache License,
++ * version 2.0 (the "License"); you may not use this file except in compliance
++ * with the License. You may obtain a copy of the License at:
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations
++ * under the License.
++ */
++
++package io.netty.channel.embedded;
++
++import io.netty.channel.ChannelId;
++
++/**
++ * A dummy {@link ChannelId} implementation.
++ */
++final class EmbeddedChannelId implements ChannelId {
++
++    private static final long serialVersionUID = -251711922203466130L;
++
++    static final ChannelId INSTANCE = new EmbeddedChannelId();
++
++    private EmbeddedChannelId() { }
++
++    @Override
++    public String asShortText() {
++        return toString();
++    }
++
++    @Override
++    public String asLongText() {
++        return toString();
++    }
++
++    @Override
++    public int compareTo(ChannelId o) {
++        if (o == INSTANCE) {
++            return 0;
++        }
++
++        return asLongText().compareTo(o.asLongText());
++    }
++
++    @Override
++    public int hashCode() {
++        return super.hashCode();
++    }
++
++    @Override
++    public boolean equals(Object obj) {
++        return super.equals(obj);
++    }
++
++    @Override
++    public String toString() {
++        return "embedded";
++    }
++}

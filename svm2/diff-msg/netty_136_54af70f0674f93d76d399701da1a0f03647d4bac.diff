@@ -1,0 +1,36 @@
+commit 54af70f0674f93d76d399701da1a0f03647d4bac
+Author: Brian Roach <roach@basho.com>
+Date:   Mon Jan 21 19:48:06 2013 -0700
+
+    Bootstrap thread safety
+    
+    Changed options and attrs from LinkedHashMap to ConcurrentHashMap to
+    avoid a possible ConcurrentModificationException if a thread was
+    adding/removing options/attrs while another was calling Bootstrap.init()
+    or Bootstrap.duplicate()
+
+diff --git a/transport/src/main/java/io/netty/bootstrap/AbstractBootstrap.java b/transport/src/main/java/io/netty/bootstrap/AbstractBootstrap.java
+index e0bc7c3..16bce3b 100644
+--- a/transport/src/main/java/io/netty/bootstrap/AbstractBootstrap.java
++++ b/transport/src/main/java/io/netty/bootstrap/AbstractBootstrap.java
+@@ -28,8 +28,8 @@ import io.netty.util.AttributeKey;
+ import java.net.InetAddress;
+ import java.net.InetSocketAddress;
+ import java.net.SocketAddress;
+-import java.util.LinkedHashMap;
+ import java.util.Map;
++import java.util.concurrent.ConcurrentHashMap;
+ 
+ /**
+  * {@link AbstractBootstrap} is a helper class that makes it easy to bootstrap a {@link Channel}. It support
+@@ -40,8 +40,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<?>> {
+     private EventLoopGroup group;
+     private ChannelFactory factory;
+     private SocketAddress localAddress;
+-    private final Map<ChannelOption<?>, Object> options = new LinkedHashMap<ChannelOption<?>, Object>();
+-    private final Map<AttributeKey<?>, Object> attrs = new LinkedHashMap<AttributeKey<?>, Object>();
++    private final Map<ChannelOption<?>, Object> options = new ConcurrentHashMap<ChannelOption<?>, Object>();
++    private final Map<AttributeKey<?>, Object> attrs = new ConcurrentHashMap<AttributeKey<?>, Object>();
+     private ChannelHandler handler;
+ 
+     /**

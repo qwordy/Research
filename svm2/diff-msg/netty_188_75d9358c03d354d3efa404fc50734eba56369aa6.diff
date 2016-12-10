@@ -1,0 +1,19 @@
+commit 75d9358c03d354d3efa404fc50734eba56369aa6
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Tue Jan 20 11:07:30 2009 +0000
+
+    Removed unnecessary synchronized modifier
+
+diff --git a/src/main/java/org/jboss/netty/handler/timeout/HashedWheelTimer.java b/src/main/java/org/jboss/netty/handler/timeout/HashedWheelTimer.java
+index ecf28df..954fe67 100644
+--- a/src/main/java/org/jboss/netty/handler/timeout/HashedWheelTimer.java
++++ b/src/main/java/org/jboss/netty/handler/timeout/HashedWheelTimer.java
+@@ -235,7 +235,7 @@ public class HashedWheelTimer implements Timer {
+             super();
+         }
+ 
+-        public synchronized void run() {
++        public void run() {
+             List<HashedWheelTimeout> expiredTimeouts =
+                 new ArrayList<HashedWheelTimeout>();
+ 

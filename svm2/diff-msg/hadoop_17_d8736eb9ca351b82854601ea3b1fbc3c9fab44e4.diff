@@ -1,0 +1,82 @@
+commit d8736eb9ca351b82854601ea3b1fbc3c9fab44e4
+Author: Arpit Agarwal <arp@apache.org>
+Date:   Mon Oct 26 15:45:02 2015 -0700
+
+    HDFS-9305. Delayed heartbeat processing causes storm of subsequent heartbeats. (Contributed by Arpit Agarwal)
+
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+index 478d48b..e26abcc 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
++++ b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+@@ -2218,6 +2218,9 @@ Release 2.7.2 - UNRELEASED
+     HDFS-9290. DFSClient#callAppend() is not backward compatible for slightly
+     older NameNodes. (Tony Wu via kihwal)
+ 
++    HDFS-9305. Delayed heartbeat processing causes storm of subsequent
++    heartbeats. (Arpit Agarwal)
++
+ Release 2.7.1 - 2015-07-06
+ 
+   INCOMPATIBLE CHANGES
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/BPServiceActor.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/BPServiceActor.java
+index 85ea6ae..575e7cc 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/BPServiceActor.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/BPServiceActor.java
+@@ -538,6 +538,7 @@ DatanodeCommand cacheReport() throws IOException {
+   
+   HeartbeatResponse sendHeartBeat(boolean requestBlockReportLease)
+       throws IOException {
++    scheduler.scheduleNextHeartbeat();
+     StorageReport[] reports =
+         dn.getFSDataset().getStorageReports(bpos.getBlockPoolId());
+     if (LOG.isDebugEnabled()) {
+@@ -651,7 +652,6 @@ private void offerService() throws Exception {
+           //
+           boolean requestBlockReportLease = (fullBlockReportLeaseId == 0) &&
+                   scheduler.isBlockReportDue(startTime);
+-          scheduler.scheduleNextHeartbeat();
+           if (!dn.areHeartbeatsDisabledForTests()) {
+             resp = sendHeartBeat(requestBlockReportLease);
+             assert resp != null;
+@@ -1064,7 +1064,7 @@ long scheduleHeartbeat() {
+ 
+     long scheduleNextHeartbeat() {
+       // Numerical overflow is possible here and is okay.
+-      nextHeartbeatTime += heartbeatIntervalMs;
++      nextHeartbeatTime = monotonicNow() + heartbeatIntervalMs;
+       return nextHeartbeatTime;
+     }
+ 
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/datanode/TestBpServiceActorScheduler.java b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/datanode/TestBpServiceActorScheduler.java
+index b9b6512..efdd87c 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/datanode/TestBpServiceActorScheduler.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/datanode/TestBpServiceActorScheduler.java
+@@ -144,6 +144,28 @@ public void testScheduleHeartbeat() {
+     }
+   }
+ 
++
++  /**
++   * Regression test for HDFS-9305.
++   * Delayed processing of a heartbeat can cause a subsequent heartbeat
++   * storm.
++   */
++  @Test
++  public void testScheduleDelayedHeartbeat() {
++    for (final long now : getTimestamps()) {
++      Scheduler scheduler = makeMockScheduler(now);
++      scheduler.scheduleNextHeartbeat();
++      assertFalse(scheduler.isHeartbeatDue(now));
++
++      // Simulate a delayed heartbeat e.g. due to slow processing by NN.
++      scheduler.nextHeartbeatTime = now - (HEARTBEAT_INTERVAL_MS * 10);
++      scheduler.scheduleNextHeartbeat();
++
++      // Ensure that the next heartbeat is not due immediately.
++      assertFalse(scheduler.isHeartbeatDue(now));
++    }
++  }
++
+   private Scheduler makeMockScheduler(long now) {
+     LOG.info("Using now = " + now);
+     Scheduler mockScheduler = spy(new Scheduler(HEARTBEAT_INTERVAL_MS, BLOCK_REPORT_INTERVAL_MS));

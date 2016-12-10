@@ -1,0 +1,35 @@
+commit fc8fd23835d91cbadca680663ea8670517d823a2
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Mon Mar 24 13:36:45 2014 +0000
+
+    Review after unexpected failed test on OSX
+    - completed needs to be volatile
+    - prevent infinite loop
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1580849 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/test/org/apache/catalina/connector/TestCoyoteAdapter.java b/test/org/apache/catalina/connector/TestCoyoteAdapter.java
+index 4e4156d..2979068 100644
+--- a/test/org/apache/catalina/connector/TestCoyoteAdapter.java
++++ b/test/org/apache/catalina/connector/TestCoyoteAdapter.java
+@@ -301,8 +301,10 @@ public class TestCoyoteAdapter extends TomcatBaseTest {
+         client.disconnect();
+ 
+         // Wait for server thread to stop
+-        while (servlet.getThread().isAlive()) {
++        int count = 0;
++        while (servlet.getThread().isAlive() && count < 10) {
+             Thread.sleep(250);
++            count ++;
+         }
+         Assert.assertTrue(servlet.isCompleted());
+     }
+@@ -314,7 +316,7 @@ public class TestCoyoteAdapter extends TomcatBaseTest {
+         // This is a hack that won't work generally as servlets are expected to
+         // handle more than one request.
+         private Thread t;
+-        private boolean completed = false;
++        private volatile boolean completed = false;
+ 
+         public Thread getThread() {
+             return t;

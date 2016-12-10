@@ -1,0 +1,22 @@
+commit 94b10d2d02d4a4fa0bd781caa5dcc40b1a4f72b7
+Author: norman <norman@apache.org>
+Date:   Fri Apr 27 07:47:37 2012 +0200
+
+    Remove volatile on two fields that don't need it
+
+diff --git a/example/src/main/java/io/netty/example/http/upload/HttpUploadServerHandler.java b/example/src/main/java/io/netty/example/http/upload/HttpUploadServerHandler.java
+index 15579d1..06d09a8 100644
+--- a/example/src/main/java/io/netty/example/http/upload/HttpUploadServerHandler.java
++++ b/example/src/main/java/io/netty/example/http/upload/HttpUploadServerHandler.java
+@@ -67,9 +67,9 @@ public class HttpUploadServerHandler extends SimpleChannelUpstreamHandler {
+     private static final InternalLogger logger =
+         InternalLoggerFactory.getInstance(HttpUploadServerHandler.class);
+ 
+-    private volatile HttpRequest request;
++    private HttpRequest request;
+ 
+-    private volatile boolean readingChunks;
++    private boolean readingChunks;
+ 
+     private final StringBuilder responseContent = new StringBuilder();
+ 

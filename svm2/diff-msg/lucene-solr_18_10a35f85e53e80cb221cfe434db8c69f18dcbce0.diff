@@ -1,0 +1,21 @@
+commit 10a35f85e53e80cb221cfe434db8c69f18dcbce0
+Author: Uwe Schindler <uschindler@apache.org>
+Date:   Mon Feb 20 00:21:23 2012 +0000
+
+    Remove volatile from IR.closed variable (its only used in already synchronized close() method)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1291097 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/lucene/core/src/java/org/apache/lucene/index/IndexReader.java b/lucene/core/src/java/org/apache/lucene/index/IndexReader.java
+index feea9e5..8f6a313 100644
+--- a/lucene/core/src/java/org/apache/lucene/index/IndexReader.java
++++ b/lucene/core/src/java/org/apache/lucene/index/IndexReader.java
+@@ -116,7 +116,7 @@ public abstract class IndexReader implements Closeable {
+     }
+   }
+ 
+-  private volatile boolean closed;
++  private boolean closed = false;
+   
+   private final AtomicInteger refCount = new AtomicInteger();
+ 

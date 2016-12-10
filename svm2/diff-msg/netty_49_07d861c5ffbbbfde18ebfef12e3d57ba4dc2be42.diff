@@ -1,0 +1,42 @@
+commit 07d861c5ffbbbfde18ebfef12e3d57ba4dc2be42
+Author: Trustin Lee <t@motd.kr>
+Date:   Fri Oct 30 12:53:05 2015 +0900
+
+    Fix a bug where DnsNameResolver attempts to send extra queries
+    
+    Motivation:
+    
+    When DnsNameResolverContext succeeds to get the address(es), it cancels
+    the promise of other queries in progress.
+    
+    Unlike expectation, DnsNameResolverContext.query() attempts to retry
+    even when the query has failed due to cancellation.
+    
+    As a result, the resolver sends unnecessary extra queries to a DNS
+    server and then tries to mark the promised that's been fulfilled
+    already, leading to unnecessarily verbose 'failed to notify success to a
+    promise' messages.
+    
+    Modifications:
+    
+    Do not perform an extra query when the previous query has failed due to
+    cancellation
+    
+    Result:
+    
+    DnsNameResolver does not send unnecessary extra queries and thus does
+    not log the 'failed to notify success to a promise' message.
+
+diff --git a/resolver-dns/src/main/java/io/netty/resolver/dns/DnsNameResolverContext.java b/resolver-dns/src/main/java/io/netty/resolver/dns/DnsNameResolverContext.java
+index 6ca2801..0e193f7 100644
+--- a/resolver-dns/src/main/java/io/netty/resolver/dns/DnsNameResolverContext.java
++++ b/resolver-dns/src/main/java/io/netty/resolver/dns/DnsNameResolverContext.java
+@@ -133,7 +133,7 @@ abstract class DnsNameResolverContext<T> {
+             public void operationComplete(Future<AddressedEnvelope<DnsResponse, InetSocketAddress>> future) {
+                 queriesInProgress.remove(future);
+ 
+-                if (promise.isDone()) {
++                if (promise.isDone() || future.isCancelled()) {
+                     return;
+                 }
+ 

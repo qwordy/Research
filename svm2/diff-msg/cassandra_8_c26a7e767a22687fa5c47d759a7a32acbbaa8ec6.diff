@@ -1,0 +1,31 @@
+commit c26a7e767a22687fa5c47d759a7a32acbbaa8ec6
+Author: Marcus Eriksson <marcuse@apache.org>
+Date:   Wed Dec 3 19:26:23 2014 +0100
+
+    Make HHOM.compact synchronized to avoid compacting the same sstables
+    
+    Patch by marcuse; reviewed by Aleksey Yeschenko for CASSANDRA-8416
+
+diff --git a/CHANGES.txt b/CHANGES.txt
+index 79c2d81..5573316 100644
+--- a/CHANGES.txt
++++ b/CHANGES.txt
+@@ -1,4 +1,5 @@
+ 2.0.12:
++ * Make HHOM.compact synchronized (CASSANDRA-8416)
+  * cancel latency-sampling task when CF is dropped (CASSANDRA-8401)
+  * don't block SocketThread for MessagingService (CASSANDRA-8188)
+  * Increase quarantine delay on replacement (CASSANDRA-8260)
+diff --git a/src/java/org/apache/cassandra/db/HintedHandOffManager.java b/src/java/org/apache/cassandra/db/HintedHandOffManager.java
+index c2e4d0d..87260b2 100644
+--- a/src/java/org/apache/cassandra/db/HintedHandOffManager.java
++++ b/src/java/org/apache/cassandra/db/HintedHandOffManager.java
+@@ -251,7 +251,7 @@ public class HintedHandOffManager implements HintedHandOffManagerMBean
+     }
+ 
+     @VisibleForTesting
+-    protected void compact()
++    protected synchronized void compact()
+     {
+         ArrayList<Descriptor> descriptors = new ArrayList<>();
+         for (SSTable sstable : hintStore.getDataTracker().getUncompactingSSTables())

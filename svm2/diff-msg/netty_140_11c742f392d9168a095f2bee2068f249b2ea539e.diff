@@ -1,0 +1,255 @@
+commit 11c742f392d9168a095f2bee2068f249b2ea539e
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Sat Aug 18 22:53:58 2012 +0900
+
+    [#59] Make ChannelFuture implement Future<Void>
+
+diff --git a/transport/src/main/java/io/netty/channel/ChannelFuture.java b/transport/src/main/java/io/netty/channel/ChannelFuture.java
+index bda7155..98dca98 100644
+--- a/transport/src/main/java/io/netty/channel/ChannelFuture.java
++++ b/transport/src/main/java/io/netty/channel/ChannelFuture.java
+@@ -15,6 +15,7 @@
+  */
+ package io.netty.channel;
+ 
++import java.util.concurrent.Future;
+ import java.util.concurrent.TimeUnit;
+ 
+ /**
+@@ -162,7 +163,7 @@ import java.util.concurrent.TimeUnit;
+  * @apiviz.landmark
+  * @apiviz.owns io.netty.channel.ChannelFutureListener - - notifies
+  */
+-public interface ChannelFuture {
++public interface ChannelFuture extends Future<Void> {
+ 
+     /**
+      * Returns a channel where the I/O operation associated with this
+@@ -175,12 +176,14 @@ public interface ChannelFuture {
+      * complete, regardless of whether the operation was successful, failed,
+      * or cancelled.
+      */
++    @Override
+     boolean isDone();
+ 
+     /**
+      * Returns {@code true} if and only if this future was
+      * cancelled by a {@link #cancel()} method.
+      */
++    @Override
+     boolean isCancelled();
+ 
+     /**
+diff --git a/transport/src/main/java/io/netty/channel/CompleteChannelFuture.java b/transport/src/main/java/io/netty/channel/CompleteChannelFuture.java
+index 8b43222..8aef62c 100644
+--- a/transport/src/main/java/io/netty/channel/CompleteChannelFuture.java
++++ b/transport/src/main/java/io/netty/channel/CompleteChannelFuture.java
+@@ -122,6 +122,11 @@ public abstract class CompleteChannelFuture implements ChannelFuture {
+     }
+ 
+     @Override
++    public boolean cancel(boolean mayInterruptIfRunning) {
++        return false;
++    }
++
++    @Override
+     public boolean isCancelled() {
+         return false;
+     }
+diff --git a/transport/src/main/java/io/netty/channel/DefaultChannelFuture.java b/transport/src/main/java/io/netty/channel/DefaultChannelFuture.java
+index 4dfdba1..2e9da87 100644
+--- a/transport/src/main/java/io/netty/channel/DefaultChannelFuture.java
++++ b/transport/src/main/java/io/netty/channel/DefaultChannelFuture.java
+@@ -24,7 +24,9 @@ import java.nio.channels.Channels;
+ import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.List;
++import java.util.concurrent.ExecutionException;
+ import java.util.concurrent.TimeUnit;
++import java.util.concurrent.TimeoutException;
+ 
+ /**
+  * The default {@link ChannelFuture} implementation.  It is recommended to
+@@ -181,6 +183,32 @@ public class DefaultChannelFuture extends FlushCheckpoint implements ChannelFutu
+         return this;
+     }
+ 
++    @Override
++    public Void get() throws InterruptedException, ExecutionException {
++        await();
++        Throwable cause = cause();
++        if (cause == null) {
++            return null;
++        } else {
++            throw new ExecutionException(cause);
++        }
++    }
++
++    @Override
++    public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException,
++            TimeoutException {
++        if (!await(timeout, unit)) {
++            throw new TimeoutException();
++        }
++
++        Throwable cause = cause();
++        if (cause == null) {
++            return null;
++        } else {
++            throw new ExecutionException(cause);
++        }
++    }
++
+     private void rethrowIfFailed() {
+         Throwable cause = cause();
+         if (cause == null) {
+@@ -388,6 +416,11 @@ public class DefaultChannelFuture extends FlushCheckpoint implements ChannelFutu
+         return true;
+     }
+ 
++    @Override
++    public boolean cancel(boolean mayInterruptIfRunning) {
++        return cancel();
++    }
++
+     private void notifyListeners() {
+         // This method doesn't need synchronization because:
+         // 1) This method is always called after synchronized (this) block.
+diff --git a/transport/src/main/java/io/netty/channel/FailedChannelFuture.java b/transport/src/main/java/io/netty/channel/FailedChannelFuture.java
+index 3a796b9..573ff09 100644
+--- a/transport/src/main/java/io/netty/channel/FailedChannelFuture.java
++++ b/transport/src/main/java/io/netty/channel/FailedChannelFuture.java
+@@ -16,6 +16,9 @@
+ package io.netty.channel;
+ 
+ import java.nio.channels.Channels;
++import java.util.concurrent.ExecutionException;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.TimeoutException;
+ 
+ /**
+  * The {@link CompleteChannelFuture} which is failed already.  It is
+@@ -71,4 +74,15 @@ public class FailedChannelFuture extends CompleteChannelFuture {
+ 
+         throw new ChannelException(cause);
+     }
++
++    @Override
++    public Void get() throws InterruptedException, ExecutionException {
++        throw new ExecutionException(cause);
++    }
++
++    @Override
++    public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException,
++            TimeoutException {
++        throw new ExecutionException(cause);
++    }
+ }
+diff --git a/transport/src/main/java/io/netty/channel/SucceededChannelFuture.java b/transport/src/main/java/io/netty/channel/SucceededChannelFuture.java
+index 244dee5..e989d5f 100644
+--- a/transport/src/main/java/io/netty/channel/SucceededChannelFuture.java
++++ b/transport/src/main/java/io/netty/channel/SucceededChannelFuture.java
+@@ -16,6 +16,9 @@
+ package io.netty.channel;
+ 
+ import java.nio.channels.Channels;
++import java.util.concurrent.ExecutionException;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.TimeoutException;
+ 
+ /**
+  * The {@link CompleteChannelFuture} which is succeeded already.  It is
+@@ -52,4 +55,16 @@ public class SucceededChannelFuture extends CompleteChannelFuture {
+     public ChannelFuture syncUninterruptibly() {
+         return this;
+     }
++
++    @Override
++    public Void get() throws InterruptedException, ExecutionException {
++        return null;
++    }
++
++    @Override
++    public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException,
++            TimeoutException {
++        return null;
++    }
++
+ }
+diff --git a/transport/src/main/java/io/netty/channel/VoidChannelFuture.java b/transport/src/main/java/io/netty/channel/VoidChannelFuture.java
+index d98509e..c9c8a7f 100644
+--- a/transport/src/main/java/io/netty/channel/VoidChannelFuture.java
++++ b/transport/src/main/java/io/netty/channel/VoidChannelFuture.java
+@@ -15,7 +15,9 @@
+  */
+ package io.netty.channel;
+ 
++import java.util.concurrent.ExecutionException;
+ import java.util.concurrent.TimeUnit;
++import java.util.concurrent.TimeoutException;
+ 
+ public class VoidChannelFuture implements ChannelFuture.Unsafe {
+ 
+@@ -121,6 +123,19 @@ public class VoidChannelFuture implements ChannelFuture.Unsafe {
+     }
+ 
+     @Override
++    public Void get() throws InterruptedException, ExecutionException {
++        fail();
++        return null;
++    }
++
++    @Override
++    public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException,
++            TimeoutException {
++        fail();
++        return null;
++    }
++
++    @Override
+     public boolean setProgress(long amount, long current, long total) {
+         return false;
+     }
+@@ -140,6 +155,11 @@ public class VoidChannelFuture implements ChannelFuture.Unsafe {
+         return false;
+     }
+ 
++    @Override
++    public boolean cancel(boolean mayInterruptIfRunning) {
++        return false;
++    }
++
+     private static void fail() {
+         throw new IllegalStateException("void future");
+     }
+diff --git a/transport/src/test/java/io/netty/channel/CompleteChannelFutureTest.java b/transport/src/test/java/io/netty/channel/CompleteChannelFutureTest.java
+index 378a8ef..577b56a 100644
+--- a/transport/src/test/java/io/netty/channel/CompleteChannelFutureTest.java
++++ b/transport/src/test/java/io/netty/channel/CompleteChannelFutureTest.java
+@@ -18,7 +18,9 @@ package io.netty.channel;
+ import static org.easymock.EasyMock.*;
+ import static org.junit.Assert.*;
+ 
++import java.util.concurrent.ExecutionException;
+ import java.util.concurrent.TimeUnit;
++import java.util.concurrent.TimeoutException;
+ 
+ import org.junit.Before;
+ import org.junit.Test;
+@@ -86,5 +88,16 @@ public class CompleteChannelFutureTest {
+         public ChannelFuture syncUninterruptibly() {
+             throw new Error();
+         }
++
++        @Override
++        public Void get() throws InterruptedException, ExecutionException {
++            throw new Error();
++        }
++
++        @Override
++        public Void get(long timeout, TimeUnit unit) throws InterruptedException,
++                ExecutionException, TimeoutException {
++            throw new Error();
++        }
+     }
+ }

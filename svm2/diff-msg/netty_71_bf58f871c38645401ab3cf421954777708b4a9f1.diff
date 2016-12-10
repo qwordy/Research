@@ -1,0 +1,463 @@
+commit bf58f871c38645401ab3cf421954777708b4a9f1
+Author: Trustin Lee <t@motd.kr>
+Date:   Thu Dec 4 18:19:50 2014 +0900
+
+    Overall clean-up of the initial SniHandler/DomainNameMapping work
+    
+    - Parameterize DomainNameMapping to make it useful for other use cases
+      than just mapping to SslContext
+    - Move DomainNameMapping to io.netty.util
+    - Clean-up the API documentation
+    - Make SniHandler.hostname and sslContext volatile because they can be
+      accessed by non-I/O threads
+
+diff --git a/common/src/main/java/io/netty/util/DomainNameMapping.java b/common/src/main/java/io/netty/util/DomainNameMapping.java
+new file mode 100644
+index 0000000..1d83431
+--- /dev/null
++++ b/common/src/main/java/io/netty/util/DomainNameMapping.java
+@@ -0,0 +1,144 @@
++/*
++ * Copyright 2014 The Netty Project
++ *
++ * The Netty Project licenses this file to you under the Apache License,
++ * version 2.0 (the "License"); you may not use this file except in compliance
++ * with the License. You may obtain a copy of the License at:
++ *
++ *   http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
++ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
++ * License for the specific language governing permissions and limitations
++ * under the License.
++ */
++
++package io.netty.util;
++
++import io.netty.util.internal.StringUtil;
++
++import java.net.IDN;
++import java.util.LinkedHashMap;
++import java.util.Locale;
++import java.util.Map;
++import java.util.regex.Pattern;
++
++/**
++ * Maps a domain name to its associated value object.
++ * <p>
++ * DNS wildcard is supported as hostname, so you can use {@code *.netty.io} to match both {@code netty.io}
++ * and {@code downloads.netty.io}.
++ * </p>
++ */
++public class DomainNameMapping<V> implements Mapping<String, V> {
++
++    private static final Pattern DNS_WILDCARD_PATTERN = Pattern.compile("^\\*\\..*");
++
++    private final Map<String, V> map;
++
++    private final V defaultValue;
++
++    /**
++     * Creates a default, order-sensitive mapping. If your hostnames are in conflict, the mapping
++     * will choose the one you add first.
++     *
++     * @param defaultValue the default value for {@link #map(String)} to return when nothing matches the input
++     */
++    public DomainNameMapping(V defaultValue) {
++        this(4, defaultValue);
++    }
++
++    /**
++     * Creates a default, order-sensitive mapping. If your hostnames are in conflict, the mapping
++     * will choose the one you add first.
++     *
++     * @param initialCapacity initial capacity for the internal map
++     * @param defaultValue the default value for {@link #map(String)} to return when nothing matches the input
++     */
++    public DomainNameMapping(int initialCapacity, V defaultValue) {
++        if (defaultValue == null) {
++            throw new NullPointerException("defaultValue");
++        }
++        map = new LinkedHashMap<String, V>(initialCapacity);
++        this.defaultValue = defaultValue;
++    }
++
++    /**
++     * Adds a mapping that maps the specified (optionally wildcard) host name to the specified output value.
++     * <p>
++     * <a href="http://en.wikipedia.org/wiki/Wildcard_DNS_record">DNS wildcard</a> is supported as hostname.
++     * For example, you can use {@code *.netty.io} to match {@code netty.io} and {@code downloads.netty.io}.
++     * </p>
++     *
++     * @param hostname the host name (optionally wildcard)
++     * @param output the output value that will be returned by {@link #map(String)} when the specified host name
++     *               matches the specified input host name
++     */
++    public DomainNameMapping<V> add(String hostname, V output) {
++        if (hostname == null) {
++            throw new NullPointerException("input");
++        }
++
++        if (output == null) {
++            throw new NullPointerException("output");
++        }
++
++        map.put(normalizeHostname(hostname), output);
++        return this;
++    }
++
++    /**
++     * Simple function to match <a href="http://en.wikipedia.org/wiki/Wildcard_DNS_record">DNS wildcard</a>.
++     */
++    private static boolean matches(String hostNameTemplate, String hostName) {
++        // note that inputs are converted and lowercased already
++        if (DNS_WILDCARD_PATTERN.matcher(hostNameTemplate).matches()) {
++            return hostNameTemplate.substring(2).equals(hostName) ||
++                    hostName.endsWith(hostNameTemplate.substring(1));
++        } else {
++            return hostNameTemplate.equals(hostName);
++        }
++    }
++
++    /**
++     * IDNA ASCII conversion and case normalization
++     */
++    private static String normalizeHostname(String hostname) {
++        if (needsNormalization(hostname)) {
++            hostname = IDN.toASCII(hostname, IDN.ALLOW_UNASSIGNED);
++
++        }
++        return hostname.toLowerCase(Locale.US);
++    }
++
++    private static boolean needsNormalization(String hostname) {
++        final int length = hostname.length();
++        for (int i = 0; i < length; i ++) {
++            int c = hostname.charAt(i);
++            if (c > 0x7F) {
++                return true;
++            }
++        }
++        return false;
++    }
++
++    @Override
++    public V map(String input) {
++        if (input != null) {
++            input = normalizeHostname(input);
++
++            for (Map.Entry<String, V> entry : map.entrySet()) {
++                if (matches(entry.getKey(), input)) {
++                    return entry.getValue();
++                }
++            }
++        }
++
++        return defaultValue;
++    }
++
++    public String toString() {
++        return StringUtil.simpleClassName(this) + "(default: " + defaultValue + ", map: " + map + ')';
++    }
++}
+diff --git a/common/src/main/java/io/netty/util/Mapping.java b/common/src/main/java/io/netty/util/Mapping.java
+index 2af3ffd..ca7738f 100644
+--- a/common/src/main/java/io/netty/util/Mapping.java
++++ b/common/src/main/java/io/netty/util/Mapping.java
+@@ -16,12 +16,12 @@
+ package io.netty.util;
+ 
+ /**
+- * An mapping which maintains a relationship from type of IN to type of OUT.
++ * Maintains the mapping from the objects of one type to the objects of the other type.
+  */
+ public interface Mapping<IN, OUT> {
+ 
+     /**
+-     * Returns mapped value of input.
++     * Returns mapped value of the specified input.
+      */
+     OUT map(IN input);
+ }
+diff --git a/handler/src/main/java/io/netty/handler/ssl/DomainNameMapping.java b/handler/src/main/java/io/netty/handler/ssl/DomainNameMapping.java
+deleted file mode 100644
+index ff4c818..0000000
+--- a/handler/src/main/java/io/netty/handler/ssl/DomainNameMapping.java
++++ /dev/null
+@@ -1,126 +0,0 @@
+-/*
+- * Copyright 2014 The Netty Project
+- *
+- * The Netty Project licenses this file to you under the Apache License,
+- * version 2.0 (the "License"); you may not use this file except in compliance
+- * with the License. You may obtain a copy of the License at:
+- *
+- *   http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+- * License for the specific language governing permissions and limitations
+- * under the License.
+- */
+-package io.netty.handler.ssl;
+-
+-import io.netty.util.Mapping;
+-import io.netty.util.internal.logging.InternalLogger;
+-import io.netty.util.internal.logging.InternalLoggerFactory;
+-
+-import java.net.IDN;
+-import java.util.LinkedHashMap;
+-import java.util.Map;
+-import java.util.regex.Pattern;
+-
+-/**
+- * <p>This class maps a domain name to a configured {@link SslContext}.</p>
+- *
+- * <p>DNS wildcard is supported as hostname, so you can use {@code *.netty.io} to match both {@code netty.io}
+- * and {@code downloads.netty.io}.</p>
+- */
+-public class DomainNameMapping implements Mapping<String, SslContext> {
+-
+-    private static final InternalLogger logger =
+-            InternalLoggerFactory.getInstance(DomainNameMapping.class);
+-
+-    private static final Pattern DNS_WILDCARD_PATTERN = Pattern.compile("^\\*\\..*");
+-
+-    private final Map<String, SslContext> userProvidedContexts;
+-
+-    private final SslContext defaultContext;
+-
+-    /**
+-     * Create a default, order-sensitive mapping. If your hostnames are in conflict, the mapping
+-     * will choose the one you add first.
+-     *
+-     * @param defaultContext default {@link SslContext} when the nothing matches input.
+-     */
+-    public DomainNameMapping(SslContext defaultContext) {
+-        this(4, defaultContext);
+-    }
+-
+-    /**
+-     * Create a default, order-sensitive mapping. If your hostnames are in conflict, the mapping
+-     * will choose the one you add first.
+-     *
+-     * @param initialCapacity initial capacity for internal map
+-     * @param defaultContext default {@link SslContext} when the handler fails to detect SNI extension
+-     */
+-    public DomainNameMapping(int initialCapacity, SslContext defaultContext) {
+-        if (defaultContext == null) {
+-            throw new NullPointerException("defaultContext");
+-        }
+-        userProvidedContexts = new LinkedHashMap<String, SslContext>(initialCapacity);
+-        this.defaultContext = defaultContext;
+-    }
+-
+-    /**
+-     * Add a {@link SslContext} to the handler.
+-     *
+-     * <a href="http://en.wikipedia.org/wiki/Wildcard_DNS_record">DNS wildcard</a> is supported as hostname.
+-     * For example, you can use {@code *.netty.io} to match {@code netty.io} and {@code downloads.netty.io}.
+-     *
+-     * @param hostname hostname for the certificate.
+-     * @param context the {@link SslContext}
+-     */
+-    public DomainNameMapping addContext(String hostname, SslContext context) {
+-        if (hostname == null) {
+-            throw new NullPointerException("hostname");
+-        }
+-
+-        if (context == null) {
+-            throw new NullPointerException("context");
+-        }
+-
+-        userProvidedContexts.put(normalizeHostname(hostname), context);
+-        return this;
+-    }
+-
+-    /**
+-     * <p>Simple function to match <a href="http://en.wikipedia.org/wiki/Wildcard_DNS_record">DNS wildcard</a>.
+-     * </p>
+-     */
+-    private static boolean matches(String hostNameTemplate, String hostName) {
+-        // note that inputs are converted and lowercased already
+-        if (DNS_WILDCARD_PATTERN.matcher(hostNameTemplate).matches()) {
+-            return hostNameTemplate.substring(2).equals(hostName) ||
+-                    hostName.endsWith(hostNameTemplate.substring(1));
+-        } else {
+-            return hostNameTemplate.equals(hostName);
+-        }
+-    }
+-
+-    /**
+-     * IDNA ASCII conversion and case normalization
+-     */
+-    static String normalizeHostname(String hostname) {
+-        return IDN.toASCII(hostname, IDN.ALLOW_UNASSIGNED).toLowerCase();
+-    }
+-
+-    @Override
+-    public SslContext map(String hostname) {
+-        if (hostname != null) {
+-            for (Map.Entry<String, SslContext> entry : userProvidedContexts.entrySet()) {
+-                if (matches(entry.getKey(), hostname)) {
+-                    return entry.getValue();
+-                }
+-            }
+-        }
+-        if (logger.isDebugEnabled()) {
+-            logger.debug("Using default SslContext");
+-        }
+-        return defaultContext;
+-    }
+-}
+diff --git a/handler/src/main/java/io/netty/handler/ssl/SniHandler.java b/handler/src/main/java/io/netty/handler/ssl/SniHandler.java
+index c567a7c..25b472e 100644
+--- a/handler/src/main/java/io/netty/handler/ssl/SniHandler.java
++++ b/handler/src/main/java/io/netty/handler/ssl/SniHandler.java
+@@ -20,10 +20,13 @@ import io.netty.buffer.ByteBufUtil;
+ import io.netty.channel.ChannelHandlerContext;
+ import io.netty.handler.codec.ByteToMessageDecoder;
+ import io.netty.util.CharsetUtil;
++import io.netty.util.DomainNameMapping;
+ import io.netty.util.internal.logging.InternalLogger;
+ import io.netty.util.internal.logging.InternalLoggerFactory;
+ 
++import java.net.IDN;
+ import java.util.List;
++import java.util.Locale;
+ 
+ /**
+  * <p>Enables <a href="https://tools.ietf.org/html/rfc3546#section-3.1">SNI
+@@ -37,11 +40,11 @@ public class SniHandler extends ByteToMessageDecoder {
+     private static final InternalLogger logger =
+             InternalLoggerFactory.getInstance(SniHandler.class);
+ 
+-    private final DomainNameMapping mapping;
+-    private String hostname;
++    private final DomainNameMapping<SslContext> mapping;
++
+     private boolean handshaken;
+-    private SslContext defaultContext;
+-    private SslContext selectedContext;
++    private volatile String hostname;
++    private volatile SslContext selectedContext;
+ 
+     /**
+      * Create a SNI detection handler with configured {@link SslContext}
+@@ -49,12 +52,13 @@ public class SniHandler extends ByteToMessageDecoder {
+      *
+      * @param mapping the mapping of domain name to {@link SslContext}
+      */
+-    public SniHandler(DomainNameMapping mapping) {
++    @SuppressWarnings("unchecked")
++    public SniHandler(DomainNameMapping<? extends SslContext> mapping) {
+         if (mapping == null) {
+             throw new NullPointerException("mapping");
+         }
+ 
+-        this.mapping = mapping;
++        this.mapping = (DomainNameMapping<SslContext>) mapping;
+         handshaken = false;
+     }
+ 
+@@ -76,18 +80,13 @@ public class SniHandler extends ByteToMessageDecoder {
+     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+         if (!handshaken && in.readableBytes() >= 5) {
+             String hostname = sniHostNameFromHandshakeInfo(in);
+-
+             if (hostname != null) {
+-                if (logger.isDebugEnabled()) {
+-                    logger.debug("Using hostname: {}", hostname);
+-                }
+-
+-                // toASCII conversion and case normalization
+-                this.hostname = DomainNameMapping.normalizeHostname(hostname);
++                hostname = IDN.toASCII(hostname, IDN.ALLOW_UNASSIGNED).toLowerCase(Locale.US);
+             }
++            this.hostname = hostname;
+ 
+             // the mapping will return default context when this.hostname is null
+-            selectedContext = mapping.map(this.hostname);
++            selectedContext = mapping.map(hostname);
+         }
+ 
+         if (handshaken) {
+diff --git a/handler/src/test/java/io/netty/handler/ssl/SniHandlerTest.java b/handler/src/test/java/io/netty/handler/ssl/SniHandlerTest.java
+index 0ed84d1..1171bf0 100644
+--- a/handler/src/test/java/io/netty/handler/ssl/SniHandlerTest.java
++++ b/handler/src/test/java/io/netty/handler/ssl/SniHandlerTest.java
+@@ -19,16 +19,14 @@ package io.netty.handler.ssl;
+ import io.netty.buffer.Unpooled;
+ import io.netty.channel.embedded.EmbeddedChannel;
+ import io.netty.handler.codec.DecoderException;
++import io.netty.util.DomainNameMapping;
+ import org.junit.Test;
+ 
+ import javax.xml.bind.DatatypeConverter;
+-
+ import java.io.File;
+ 
+-import static org.hamcrest.CoreMatchers.is;
+-import static org.hamcrest.CoreMatchers.nullValue;
+-import static org.junit.Assert.assertThat;
+-import static org.junit.Assert.fail;
++import static org.hamcrest.CoreMatchers.*;
++import static org.junit.Assert.*;
+ 
+ public class SniHandlerTest {
+ 
+@@ -45,15 +43,15 @@ public class SniHandlerTest {
+         SslContext leanContext = makeSslContext();
+         SslContext leanContext2 = makeSslContext();
+ 
+-        DomainNameMapping mapping = new DomainNameMapping(nettyContext);
+-        mapping.addContext("*.netty.io", nettyContext);
++        DomainNameMapping<SslContext> mapping = new DomainNameMapping<SslContext>(nettyContext);
++        mapping.add("*.netty.io", nettyContext);
+ 
+         // input with custom cases
+-        mapping.addContext("*.LEANCLOUD.CN", leanContext);
++        mapping.add("*.LEANCLOUD.CN", leanContext);
+ 
+         // a hostname conflict with previous one, since we are using order-sensitive config, the engine won't
+         // be used with the handler.
+-        mapping.addContext("chat4.leancloud.cn", leanContext2);
++        mapping.add("chat4.leancloud.cn", leanContext2);
+ 
+         SniHandler handler = new SniHandler(mapping);
+         EmbeddedChannel ch = new EmbeddedChannel(handler);
+@@ -89,21 +87,21 @@ public class SniHandlerTest {
+         SslContext leanContext = makeSslContext();
+         SslContext leanContext2 = makeSslContext();
+ 
+-        DomainNameMapping mapping = new DomainNameMapping(nettyContext);
+-        mapping.addContext("*.netty.io", nettyContext);
++        DomainNameMapping<SslContext> mapping = new DomainNameMapping<SslContext>(nettyContext);
++        mapping.add("*.netty.io", nettyContext);
+ 
+         // input with custom cases
+-        mapping.addContext("*.LEANCLOUD.CN", leanContext);
++        mapping.add("*.LEANCLOUD.CN", leanContext);
+ 
+         // a hostname conflict with previous one, since we are using order-sensitive config, the engine won't
+         // be used with the handler.
+-        mapping.addContext("chat4.leancloud.cn", leanContext2);
++        mapping.add("chat4.leancloud.cn", leanContext2);
+ 
+         SniHandler handler = new SniHandler(mapping);
+         EmbeddedChannel ch = new EmbeddedChannel(handler);
+ 
+         // invalid
+-        byte[] message = new byte[] {22, 3, 1, 0, 0};
++        byte[] message = { 22, 3, 1, 0, 0 };
+ 
+         try {
+             // Push the handshake message.
+@@ -116,5 +114,4 @@ public class SniHandlerTest {
+         assertThat(handler.hostname(), nullValue());
+         assertThat(handler.sslContext(), is(nettyContext));
+     }
+-
+ }

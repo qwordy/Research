@@ -1,0 +1,64 @@
+commit 2521b8e06c08c6405eb15e054754de609588de11
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Thu Jun 18 09:25:00 2009 +0000
+
+    Expand sync within rotatable block to fix a couple of issues:
+     - fileDateFormatter is a SimpleDateFormat which is not thread safe
+     - the rotationLastChecked needs to be volatile to ensure we don't execute the sync'd block multiple times
+    Although this is a sync on 'this' in log which gets called for every request:
+     - a similar sync occurs in getDate() for every request with minimal performance impact
+     - microbenchmarks suggest that a sync on 'this' has similar performance to using ThreadLocals
+    
+     Based on kkolinko's patch for Tomcat 5.5.x
+    
+     Note there remains an issue with writing to the log if the log files happens to be in the process of rotating
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@785983 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/valves/AccessLogValve.java b/java/org/apache/catalina/valves/AccessLogValve.java
+index 60211b8..7df2740 100644
+--- a/java/org/apache/catalina/valves/AccessLogValve.java
++++ b/java/org/apache/catalina/valves/AccessLogValve.java
+@@ -295,7 +295,7 @@ public class AccessLogValve
+     /**
+      * Instant when the log daily rotation was last checked.
+      */
+-    private long rotationLastChecked = 0L;
++    private volatile long rotationLastChecked = 0L;
+ 
+     /**
+      * Do we check for log file existence? Helpful if an external
+@@ -649,19 +649,21 @@ public class AccessLogValve
+             // Only do a logfile switch check once a second, max.
+             long systime = System.currentTimeMillis();
+             if ((systime - rotationLastChecked) > 1000) {
+-
+-                rotationLastChecked = systime;
+-
+-                // Check for a change of date
+-                String tsDate = fileDateFormatter.format(new Date(systime));
+-
+-                // If the date has changed, switch log files
+-                if (!dateStamp.equals(tsDate)) {
+-                    synchronized (this) {
++                synchronized(this) {
++                    if ((systime - rotationLastChecked) > 1000) {
++                        rotationLastChecked = systime;
++    
++                        String tsDate;
++                        // Check for a change of date
++                        tsDate = fileDateFormatter.format(new Date(systime));
++    
++                        // If the date has changed, switch log files
+                         if (!dateStamp.equals(tsDate)) {
+-                            close();
+-                            dateStamp = tsDate;
+-                            open();
++                            if (!dateStamp.equals(tsDate)) {
++                                close();
++                                dateStamp = tsDate;
++                                open();
++                            }
+                         }
+                     }
+                 }

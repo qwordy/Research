@@ -1,0 +1,50 @@
+commit a176ae4f3cad3d817e632d626a94ee2f880104f4
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Tue Jan 20 08:00:16 2009 +0000
+
+    Replaced ConcurrentHashMap with ConcurrentIdentityHashMap wherever possible
+
+diff --git a/src/main/java/org/jboss/netty/handler/execution/MemoryAwareThreadPoolExecutor.java b/src/main/java/org/jboss/netty/handler/execution/MemoryAwareThreadPoolExecutor.java
+index 07a51dc..b1b3e47 100644
+--- a/src/main/java/org/jboss/netty/handler/execution/MemoryAwareThreadPoolExecutor.java
++++ b/src/main/java/org/jboss/netty/handler/execution/MemoryAwareThreadPoolExecutor.java
+@@ -40,7 +40,7 @@ import org.jboss.netty.channel.ChannelState;
+ import org.jboss.netty.channel.ChannelStateEvent;
+ import org.jboss.netty.logging.InternalLogger;
+ import org.jboss.netty.logging.InternalLoggerFactory;
+-import org.jboss.netty.util.ConcurrentHashMap;
++import org.jboss.netty.util.ConcurrentIdentityHashMap;
+ import org.jboss.netty.util.LinkedTransferQueue;
+ 
+ /**
+@@ -90,7 +90,7 @@ public class MemoryAwareThreadPoolExecutor extends ThreadPoolExecutor {
+     private volatile Settings settings;
+ 
+     private final ConcurrentMap<Channel, AtomicLong> channelCounters =
+-        new ConcurrentHashMap<Channel, AtomicLong>();
++        new ConcurrentIdentityHashMap<Channel, AtomicLong>();
+     private final AtomicLong totalCounter = new AtomicLong();
+ 
+     private final Semaphore semaphore = new Semaphore(0);
+diff --git a/src/main/java/org/jboss/netty/handler/execution/OrderedMemoryAwareThreadPoolExecutor.java b/src/main/java/org/jboss/netty/handler/execution/OrderedMemoryAwareThreadPoolExecutor.java
+index 3675e31..26b7419 100644
+--- a/src/main/java/org/jboss/netty/handler/execution/OrderedMemoryAwareThreadPoolExecutor.java
++++ b/src/main/java/org/jboss/netty/handler/execution/OrderedMemoryAwareThreadPoolExecutor.java
+@@ -32,7 +32,7 @@ import org.jboss.netty.channel.Channel;
+ import org.jboss.netty.channel.ChannelEvent;
+ import org.jboss.netty.channel.ChannelState;
+ import org.jboss.netty.channel.ChannelStateEvent;
+-import org.jboss.netty.util.ConcurrentHashMap;
++import org.jboss.netty.util.ConcurrentIdentityHashMap;
+ 
+ /**
+  * A {@link MemoryAwareThreadPoolExecutor} which maintains the
+@@ -66,7 +66,7 @@ public class OrderedMemoryAwareThreadPoolExecutor extends
+         MemoryAwareThreadPoolExecutor {
+ 
+     private final ConcurrentMap<Channel, Executor> childExecutors =
+-        new ConcurrentHashMap<Channel, Executor>();
++        new ConcurrentIdentityHashMap<Channel, Executor>();
+ 
+     /**
+      * Creates a new instance.

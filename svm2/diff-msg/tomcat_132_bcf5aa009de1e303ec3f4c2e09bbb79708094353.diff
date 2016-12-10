@@ -1,0 +1,22 @@
+commit bcf5aa009de1e303ec3f4c2e09bbb79708094353
+Author: Filip Hanik <fhanik@apache.org>
+Date:   Fri Apr 13 15:32:19 2007 +0000
+
+    This write has to be synchronized since comet can write to the buffer and cause a buffer overflow if more than one thread is writing
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/tc6.0.x/trunk@528524 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/coyote/http11/InternalNioOutputBuffer.java b/java/org/apache/coyote/http11/InternalNioOutputBuffer.java
+index dae3e52..cf0c6bb 100644
+--- a/java/org/apache/coyote/http11/InternalNioOutputBuffer.java
++++ b/java/org/apache/coyote/http11/InternalNioOutputBuffer.java
+@@ -603,7 +603,7 @@ public class InternalNioOutputBuffer
+     }
+ 
+     int total = 0;
+-    private void addToBB(byte[] buf, int offset, int length) throws IOException {
++    private synchronized void addToBB(byte[] buf, int offset, int length) throws IOException {
+         if (socket.getBufHandler().getWriteBuffer().remaining() < length) {
+             flushBuffer();
+         }

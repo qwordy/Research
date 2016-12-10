@@ -1,0 +1,34 @@
+commit 89834193c769e1c736c46834c083ec7bca001777
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Fri Dec 23 21:11:49 2011 +0000
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=52354
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=52355
+    Make debug flags volatile as they are accessed by multiple threads
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1222852 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/tribes/transport/bio/util/FastQueue.java b/java/org/apache/catalina/tribes/transport/bio/util/FastQueue.java
+index 9b41154..7b19783 100644
+--- a/java/org/apache/catalina/tribes/transport/bio/util/FastQueue.java
++++ b/java/org/apache/catalina/tribes/transport/bio/util/FastQueue.java
+@@ -59,14 +59,12 @@ public class FastQueue {
+     /**
+      * check lock to detect strange threadings things
+      */
+-    private boolean checkLock = false;
++    private volatile boolean checkLock = false;
+ 
+-
+-    private boolean inAdd = false;
+-
+-    private boolean inRemove = false;
+-
+-    private boolean inMutex = false;
++    // Flags used to detect unexpected state
++    private volatile boolean inAdd = false;
++    private volatile boolean inRemove = false;
++    private volatile boolean inMutex = false;
+ 
+     /**
+      * limit the queue length ( default is unlimited)
