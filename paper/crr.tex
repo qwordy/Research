@@ -287,6 +287,8 @@ A concurrent keyword here is defined as one of the class names or interface name
 
 A string matching algorithm is used to check if a snippet contains a concurrent keyword. A keyword sometimes is not at the position which it should be. For example, a type name occurs in a string or a comment. But now that the keyword exists in the code for some reasons, the code tend to has some relationships with concurrency more or less. This method might omit some snippets that are concurrent related, but the selected ones are mostly concurrent related snippets indeed. So, string matching algorithm is acceptable and practical.
 
+We first identify the Java code of a commit log.
+
 \subsection{Classification}
 Most of the commits selected by the last step are not our targets since they usually add or modify functionalities  which are specific although they contain some concurrent keywords. The target commits to be analysed occupy a very small proportion of all the commits even we have already filtered them. So, we need some automatic methods to help finish the job.
 
