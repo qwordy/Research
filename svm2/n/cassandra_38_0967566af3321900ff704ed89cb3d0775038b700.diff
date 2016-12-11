@@ -1,0 +1,38 @@
+commit 0967566af3321900ff704ed89cb3d0775038b700
+Author: Jonathan Ellis <jbellis@apache.org>
+Date:   Fri Dec 11 04:25:00 2009 +0000
+
+    move size, count updates outside of synchronized block since they are already atomic.  patch by jbellis
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@889500 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/java/org/apache/cassandra/db/Memtable.java b/src/java/org/apache/cassandra/db/Memtable.java
+index aca6950..0953c73 100644
+--- a/src/java/org/apache/cassandra/db/Memtable.java
++++ b/src/java/org/apache/cassandra/db/Memtable.java
+@@ -153,16 +153,19 @@ public class Memtable implements Comparable<Memtable>, IFlushable<DecoratedKey>
+             currentObjectCount_.addAndGet(columnFamily.getColumnCount());
+             return;
+         }
++
++        int oldSize, newSize;
++        int oldObjectCount, newObjectCount;
+         synchronized (keyLocks[Math.abs(key.hashCode() % keyLocks.length)])
+         {
+-            int oldSize = oldCf.size();
+-            int oldObjectCount = oldCf.getColumnCount();
++            oldSize = oldCf.size();
++            oldObjectCount = oldCf.getColumnCount();
+             oldCf.resolve(columnFamily);
+-            int newSize = oldCf.size();
+-            int newObjectCount = oldCf.getColumnCount();
+-            resolveSize(oldSize, newSize);
+-            resolveCount(oldObjectCount, newObjectCount);
++            newSize = oldCf.size();
++            newObjectCount = oldCf.getColumnCount();
+         }
++        resolveSize(oldSize, newSize);
++        resolveCount(oldObjectCount, newObjectCount);
+     }
+ 
+     // for debugging
