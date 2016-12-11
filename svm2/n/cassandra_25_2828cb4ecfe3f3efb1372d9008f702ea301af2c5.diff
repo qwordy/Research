@@ -1,0 +1,22 @@
+commit 2828cb4ecfe3f3efb1372d9008f702ea301af2c5
+Author: Jonathan Ellis <jbellis@apache.org>
+Date:   Sat Apr 16 16:13:34 2011 +0000
+
+    make DD.defsVersion volatile
+    patch by Jeffrey Wang; reviewed by jbellis for CASSANDRA-2490
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/branches/cassandra-0.7@1094011 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/java/org/apache/cassandra/config/DatabaseDescriptor.java b/src/java/org/apache/cassandra/config/DatabaseDescriptor.java
+index 6d7d707..3460cd7 100644
+--- a/src/java/org/apache/cassandra/config/DatabaseDescriptor.java
++++ b/src/java/org/apache/cassandra/config/DatabaseDescriptor.java
+@@ -85,7 +85,7 @@ public class    DatabaseDescriptor
+     private static RequestSchedulerOptions requestSchedulerOptions;
+ 
+     public static final UUID INITIAL_VERSION = new UUID(4096, 0); // has type nibble set to 1, everything else to zero.
+-    private static UUID defsVersion = INITIAL_VERSION;
++    private static volatile UUID defsVersion = INITIAL_VERSION;
+ 
+     /**
+      * Inspect the classpath to find storage configuration file

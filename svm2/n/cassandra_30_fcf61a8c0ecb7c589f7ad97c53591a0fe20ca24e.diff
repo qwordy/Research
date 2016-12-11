@@ -1,0 +1,29 @@
+commit fcf61a8c0ecb7c589f7ad97c53591a0fe20ca24e
+Author: Jonathan Ellis <jbellis@apache.org>
+Date:   Wed Jan 5 07:09:00 2011 +0000
+
+    make RC.results a ConcurrentMap to emphasize that remove-while-iterating is OK
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/branches/cassandra-0.7@1055324 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/java/org/apache/cassandra/service/ReadResponseResolver.java b/src/java/org/apache/cassandra/service/ReadResponseResolver.java
+index 798fb03..baa3df9 100644
+--- a/src/java/org/apache/cassandra/service/ReadResponseResolver.java
++++ b/src/java/org/apache/cassandra/service/ReadResponseResolver.java
+@@ -27,6 +27,7 @@ import java.nio.ByteBuffer;
+ import java.util.ArrayList;
+ import java.util.List;
+ import java.util.Map;
++import java.util.concurrent.ConcurrentMap;
+ 
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+@@ -44,7 +45,7 @@ public class ReadResponseResolver implements IResponseResolver<Row>
+ {
+ 	private static Logger logger_ = LoggerFactory.getLogger(ReadResponseResolver.class);
+     private final String table;
+-    private final Map<Message, ReadResponse> results = new NonBlockingHashMap<Message, ReadResponse>();
++    private final ConcurrentMap<Message, ReadResponse> results = new NonBlockingHashMap<Message, ReadResponse>();
+     private DecoratedKey key;
+     private ByteBuffer digest;
+ 

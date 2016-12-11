@@ -1,0 +1,21 @@
+commit 264c7f01a3194313b14c311aeeb68b07bc80e89d
+Author: Jonathan Ellis <jbellis@apache.org>
+Date:   Fri Apr 1 22:25:19 2011 +0000
+
+    isFrozen needs to be volatile
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/trunk@1087921 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/java/org/apache/cassandra/db/Memtable.java b/src/java/org/apache/cassandra/db/Memtable.java
+index 33e4ec5..9cb2141 100644
+--- a/src/java/org/apache/cassandra/db/Memtable.java
++++ b/src/java/org/apache/cassandra/db/Memtable.java
+@@ -52,7 +52,7 @@ public class Memtable implements Comparable<Memtable>, IFlushable
+ {
+     private static final Logger logger = LoggerFactory.getLogger(Memtable.class);
+ 
+-    private boolean isFrozen;
++    private volatile boolean isFrozen;
+ 
+     private final AtomicLong currentThroughput = new AtomicLong(0);
+     private final AtomicLong currentOperations = new AtomicLong(0);

@@ -1,0 +1,313 @@
+commit 2e36c660b0f210d54a0d715d7a793551f606673f
+Author: Eric Evans <eevans@apache.org>
+Date:   Wed Jun 16 19:38:34 2010 +0000
+
+    make cassandra.genavro the canonical proto schema
+    
+    cassandra.avpr has been removed from version control is now generated
+    from cassandra.genavro by ant. Future changes to the protocol schema
+    should take place in cassandra.genavro; do not hand-edit the .avpr
+    
+    Patch by eevans
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/trunk@955358 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/build.xml b/build.xml
+index 8c17151..aec5823 100644
+--- a/build.xml
++++ b/build.xml
+@@ -165,7 +165,7 @@
+     -->
+     <target name="check-avro-generate">
+         <uptodate property="avroUpToDate"
+-                  srcfile="${interface.dir}/cassandra.avpr"
++                  srcfile="${interface.dir}/cassandra.genavro"
+                   targetfile="${interface.avro.dir}/org/apache/cassandra/avro/Cassandra.java" />
+       <taskdef name="protocol"
+                classname="org.apache.avro.specific.ProtocolTask">
+@@ -182,6 +182,15 @@
+     <target name="avro-generate" unless="avroUpToDate"
+             depends="init,check-avro-generate">
+       <echo>Generating avro code...</echo>
++      <!-- Generate json schema from genavro IDL -->
++      <java classname="org.apache.avro.tool.Main" fork="true">
++        <classpath refid="cassandra.classpath" />
++        <arg value="genavro" />
++        <arg value="interface/cassandra.genavro" />
++        <arg value="interface/cassandra.avpr" />
++      </java>
++
++      <!-- Generate java code from json protocol schema -->
+       <protocol destdir="${interface.avro.dir}">
+         <fileset dir="${interface.dir}">
+           <include name="**/*.avpr" />
+@@ -195,6 +204,7 @@
+       </schema>
+     </target>
+ 
++
+     <!--
+        Generate thrift code.  We have targets to build java because
+        Cassandra depends on it, and python because that is what the system
+diff --git a/interface/cassandra.avpr b/interface/cassandra.avpr
+deleted file mode 100644
+index c3b27de..0000000
+--- a/interface/cassandra.avpr
++++ /dev/null
+@@ -1,209 +0,0 @@
+-{
+-  "namespace":  "org.apache.cassandra.avro",
+-  "protocol":   "Cassandra",
+-
+-  "types": [
+-      {"name": "AccessLevel", "type": "enum",
+-          "symbols": [
+-            "NONE", "READONLY", "READWRITE", "FULL"
+-          ]
+-      },
+-      {"name": "ColumnPath", "type": "record",
+-          "fields": [
+-            {"name": "column_family", "type": "string"},
+-            {"name": "super_column", "type": ["bytes", "null"]},
+-            {"name": "column", "type": ["bytes", "null"]}
+-        ]
+-      },
+-      {"name": "ColumnParent", "type": "record",
+-          "fields": [
+-            {"name": "column_family", "type": "string"},
+-            {"name": "super_column", "type": ["bytes", "null"]}
+-        ]
+-      },
+-      {"name": "Clock", "type": "record",
+-          "fields": [
+-            {"name": "timestamp", "type": "long"}
+-        ]
+-      },
+-      {"name": "Column", "type": "record",
+-          "fields": [
+-            {"name": "name", "type": "bytes"},
+-            {"name": "value", "type": "bytes"},
+-            {"name": "clock", "type": "Clock"},
+-            {"name": "ttl", "type": ["int", "null"]}
+-        ]
+-      },
+-      {"name": "SuperColumn", "type": "record",
+-          "fields": [
+-            {"name": "name", "type": "bytes"},
+-            {"name": "columns", "type": {"type": "array", "items": "Column"}}
+-        ]
+-      },
+-      {"name": "ColumnOrSuperColumn", "type": "record",
+-          "fields": [
+-            {"name": "column", "type": ["Column", "null"]},
+-            {"name": "super_column", "type": ["SuperColumn", "null"]}
+-        ]
+-      },
+-      {"name": "SliceRange", "type": "record",
+-          "fields": [
+-            {"name": "start", "type": "bytes"},
+-            {"name": "finish", "type": "bytes"},
+-            {"name": "reversed", "type": "boolean"},
+-            {"name": "count", "type": "int"},
+-            {"name": "bitmasks", "type": {"type": "array", "items": "bytes"}}
+-          ]
+-      },
+-      {"name": "SlicePredicate", "type": "record",
+-          "fields": [
+-            {"name": "column_names",
+-                "type": [{"type": "array", "items": "bytes"}, "null"]},
+-            {"name": "slice_range", "type": ["SliceRange", "null"]}
+-          ]
+-      },
+-      {"name": "Deletion", "type": "record",
+-          "fields": [
+-            {"name": "clock", "type": "Clock"},
+-            {"name": "super_column", "type": ["bytes", "null"]},
+-            {"name": "predicate", "type": ["SlicePredicate", "null"]}
+-          ]
+-      },
+-      {"name": "Mutation", "type": "record",
+-          "fields": [
+-            {"name": "column_or_supercolumn", 
+-                "type": ["ColumnOrSuperColumn", "null"]},
+-            {"name": "deletion", "type": ["Deletion", "null"]}
+-          ]
+-      },
+-      {"name": "CfDef", "type": "record",
+-          "fields": [
+-            {"name": "keyspace", "type": "string"},
+-            {"name": "name", "type": "string"},
+-            {"name": "column_type", "type": ["string", "null"]},
+-            {"name": "clock_type", "type": ["string", "null"]},
+-            {"name": "comparator_type", "type": ["string", "null"]},
+-            {"name": "subcomparator_type", "type": ["string", "null"]},
+-            {"name": "reconciler", "type": ["string", "null"]},
+-            {"name": "comment", "type": ["string", "null"]},
+-            {"name": "row_cache_size", "type": ["double", "null"]},
+-            {"name": "preload_row_cache", "type": ["boolean", "null"]},
+-            {"name": "key_cache_size", "type": ["double", "null"]}
+-          ]
+-      },
+-      {"name": "KsDef", "type": "record",
+-          "fields": [
+-            {"name": "name", "type": "string"},
+-            {"name": "strategy_class", "type": "string"},
+-            {"name": "replication_factor", "type": "int"},
+-            {"name": "cf_defs", "type": {"type": "array", "items": "CfDef"}}
+-          ]
+-      },
+-      {"name": "MutationsMapEntry", "type": "record",
+-          "fields": [
+-            {"name": "key", "type" : "bytes"},
+-            {"name": "mutations", "type":
+-                {"type": "map",
+-                    "values": {"type": "array", "items": "Mutation"}
+-                }
+-            }
+-          ]
+-      },
+-      {"name": "ConsistencyLevel", "type": "enum",
+-          "symbols": [
+-            "ZERO", "ONE", "QUORUM", "DCQUORUM", "DCQUORUMSYNC", "ALL"
+-          ]
+-      },
+-      {"name": "InvalidRequestException", "type": "error",
+-          "fields": [
+-            {"name": "why", "type": ["string", "null"]}
+-          ]
+-      },
+-      {"name": "NotFoundException", "type": "error",
+-          "fields": [
+-            {"name": "why", "type": ["string", "null"]}
+-          ]
+-      },
+-      {"name": "UnavailableException", "type": "error",
+-          "fields": [
+-            {"name": "why", "type": ["string", "null"]}
+-          ]
+-      },
+-      {"name": "TimedOutException", "type": "error",
+-          "fields": [
+-            {"name": "why", "type": ["string", "null"]}
+-          ]
+-      }
+-  ],
+-
+-  "messages": {
+-    "get": {
+-        "request": [
+-            {"name": "key", "type": "bytes"},
+-            {"name": "column_path", "type": "ColumnPath"},
+-            {"name": "consistency_level", "type": "ConsistencyLevel"}
+-        ],
+-        "response": "ColumnOrSuperColumn",
+-        "errors": ["InvalidRequestException", "NotFoundException",
+-            "UnavailableException", "TimedOutException"]
+-    },
+-    "insert": {
+-        "request": [
+-            {"name": "key", "type": "bytes"},
+-            {"name": "column_parent", "type": "ColumnParent"},
+-            {"name": "column", "type": "Column"},
+-            {"name": "consistency_level", "type": "ConsistencyLevel"}
+-        ],
+-        "response": "null",
+-        "errors": ["InvalidRequestException", "UnavailableException",
+-            "TimedOutException"]
+-    },
+-    "remove": {
+-        "request": [
+-            {"name": "key", "type": "bytes"},
+-            {"name": "column_path", "type": "ColumnPath"},
+-            {"name": "clock", "type": "Clock"},
+-            {"name": "consistency_level", "type": "ConsistencyLevel"}
+-        ],
+-        "response": "null",
+-        "errors": ["InvalidRequestException", "UnavailableException",
+-            "TimedOutException"]
+-    },
+-    "batch_mutate": {
+-        "request": [
+-            {"name": "mutation_map", "type":
+-                {"type": "array", "items": "MutationsMapEntry"}
+-            },
+-            {"name": "consistency_level", "type": "ConsistencyLevel"}
+-        ],
+-        "response": "null",
+-        "errors": ["InvalidRequestException", "UnavailableException",
+-            "TimedOutException"]
+-    },
+-    "system_add_keyspace": {
+-        "request": [{"name": "ks_def", "type": "KsDef"}],
+-        "response": "null",
+-        "errors": ["InvalidRequestException"]
+-    },
+-    "set_keyspace": {
+-        "request": [{"name": "keyspace", "type": "string"}],
+-        "response": "null",
+-        "errors": ["InvalidRequestException"]
+-    },
+-    "describe_keyspaces": {
+-        "request": [],
+-        "response": {"type": "array", "items": "string"},
+-        "errors": []
+-    },
+-    "describe_cluster_name": {
+-        "request": [],
+-        "response": "string",
+-        "errors": []
+-    },
+-    "describe_version": {
+-        "request": [],
+-        "response": "string",
+-        "errors": []
+-    }
+-  }
+-}
+diff --git a/interface/cassandra.genavro b/interface/cassandra.genavro
+index 34fcf0a..244d2c3 100644
+--- a/interface/cassandra.genavro
++++ b/interface/cassandra.genavro
+@@ -1,4 +1,22 @@
+ /**
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements.  See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership.  The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * "License"); you may not use this file except in compliance
++ * with the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++/**
+  * Cassandra protocol
+  */
+ @namespace("org.apache.cassandra.avro")
+@@ -71,6 +89,7 @@ protocol Cassandra {
+         union { string, null } clock_type;
+         union { string, null } comparator_type;
+         union { string, null } subcomparator_type;
++        union { string, null } reconciler;
+         union { string, null } comment;
+         union { double, null } row_cache_size;
+         union { boolean, null } preload_row_cache;
+diff --git a/ivy.xml b/ivy.xml
+index 74fb3ce..e288eb1 100644
+--- a/ivy.xml
++++ b/ivy.xml
+@@ -28,6 +28,7 @@
+     <dependency org="commons-logging" name="commons-logging" rev="1.1.1"/>
+     <dependency org="org.apache.rat" name="apache-rat" rev="0.6" />
+     <dependency org="org.apache.hadoop" name="hadoop-core" rev="0.20.2"/>
++    <dependency org="net.sf.jopt-simple" name="jopt-simple" rev="3.2"/>
+   </dependencies>
+ </ivy-module>
+ 

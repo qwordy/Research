@@ -1,0 +1,25 @@
+commit 2e271233ffeaef9881fdc38704051d4879879021
+Author: Jonathan Ellis <jbellis@apache.org>
+Date:   Tue Dec 4 14:37:23 2012 -0600
+
+    switch from Callable-returns-null to Runnable
+
+diff --git a/src/java/org/apache/cassandra/service/MigrationManager.java b/src/java/org/apache/cassandra/service/MigrationManager.java
+index 53c3035..94c0dcc 100644
+--- a/src/java/org/apache/cassandra/service/MigrationManager.java
++++ b/src/java/org/apache/cassandra/service/MigrationManager.java
+@@ -210,12 +210,11 @@ public class MigrationManager implements IEndpointStateChangeSubscriber
+     // Returns a future on the local application of the schema
+     private static Future<?> announce(final Collection<RowMutation> schema)
+     {
+-        Future<?> f = StageManager.getStage(Stage.MIGRATION).submit(new Callable<Object>()
++        Future<?> f = StageManager.getStage(Stage.MIGRATION).submit(new WrappedRunnable()
+         {
+-            public Object call() throws Exception
++            protected void runMayThrow() throws IOException, ConfigurationException
+             {
+                 DefsTable.mergeSchema(schema);
+-                return null;
+             }
+         });
+ 

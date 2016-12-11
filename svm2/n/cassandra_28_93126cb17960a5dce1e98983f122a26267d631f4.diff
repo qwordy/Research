@@ -1,0 +1,35 @@
+commit 93126cb17960a5dce1e98983f122a26267d631f4
+Author: Jonathan Ellis <jbellis@apache.org>
+Date:   Fri Jan 28 18:25:13 2011 +0000
+
+    replace ExecutorService.submit with .execute where a Future is not required
+    patch by jbellis
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/branches/cassandra-0.7@1064808 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/java/org/apache/cassandra/db/HintedHandOffManager.java b/src/java/org/apache/cassandra/db/HintedHandOffManager.java
+index 584aa19..f4c0084 100644
+--- a/src/java/org/apache/cassandra/db/HintedHandOffManager.java
++++ b/src/java/org/apache/cassandra/db/HintedHandOffManager.java
+@@ -298,7 +298,7 @@ public class HintedHandOffManager
+                 deliverHintsToEndpoint(to);
+             }
+         };
+-    	executor_.submit(r);
++    	executor_.execute(r);
+     }
+ 
+     public void deliverHints(String to) throws UnknownHostException
+diff --git a/src/java/org/apache/cassandra/db/Memtable.java b/src/java/org/apache/cassandra/db/Memtable.java
+index bd9a020..1b13e46 100644
+--- a/src/java/org/apache/cassandra/db/Memtable.java
++++ b/src/java/org/apache/cassandra/db/Memtable.java
+@@ -167,7 +167,7 @@ public class Memtable implements Comparable<Memtable>, IFlushable
+     public void flushAndSignal(final CountDownLatch latch, ExecutorService sorter, final ExecutorService writer)
+     {
+         cfs.getMemtablesPendingFlush().add(this); // it's ok for the MT to briefly be both active and pendingFlush
+-        writer.submit(new WrappedRunnable()
++        writer.execute(new WrappedRunnable()
+         {
+             public void runMayThrow() throws IOException
+             {
