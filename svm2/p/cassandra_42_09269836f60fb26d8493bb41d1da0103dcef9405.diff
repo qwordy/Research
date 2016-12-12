@@ -1,0 +1,56 @@
+commit 09269836f60fb26d8493bb41d1da0103dcef9405
+Author: Jonathan Ellis <jbellis@apache.org>
+Date:   Tue Oct 6 19:41:57 2009 +0000
+
+    replace one-shot lock w/ synchronized block.  patch by jbellis
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@822459 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/java/org/apache/cassandra/service/StorageService.java b/src/java/org/apache/cassandra/service/StorageService.java
+index b44ed9e..a22edae 100644
+--- a/src/java/org/apache/cassandra/service/StorageService.java
++++ b/src/java/org/apache/cassandra/service/StorageService.java
+@@ -79,8 +79,6 @@ public final class StorageService implements IEndPointStateChangeSubscriber, Sto
+     public final static String rangeVerbHandler_ = "RANGE-VERB-HANDLER";
+ 
+     private static StorageService instance_;
+-    /* Used to lock the factory for creation of StorageService instance */
+-    private static Lock createLock_ = new ReentrantLock();
+     private static EndPoint tcpAddr_;
+     private static EndPoint udpAddr_;
+     private static IPartitioner partitioner_;
+@@ -126,29 +124,24 @@ public final class StorageService implements IEndPointStateChangeSubscriber, Sto
+     {
+         String bs = System.getProperty("bootstrap");
+         boolean bootstrap = bs != null && bs.contains("true");
+-        
+-        if ( instance_ == null )
++
++        if (instance_ == null)
+         {
+-            StorageService.createLock_.lock();
+-            try
++            synchronized (StorageService.class)
+             {
+-                if ( instance_ == null )
++                if (instance_ == null)
+                 {
+                     try
+                     {
+                         instance_ = new StorageService(bootstrap);
+                     }
+-                    catch ( Throwable th )
++                    catch (Throwable th)
+                     {
+                         logger_.error(LogUtil.throwableToString(th));
+                         System.exit(1);
+                     }
+                 }
+             }
+-            finally
+-            {
+-                createLock_.unlock();
+-            }
+         }
+         return instance_;
+     }

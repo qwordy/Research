@@ -343,6 +343,14 @@ guava cache or jdk concurrenthashmap
 atomicinteger, atomiclong, synchronized
 concurrentskiplistmap for performance
 atomicreference
+Use ThreadLocalRandom and remove FBUtilities.threadLocalRandom
+Use AtomicIntegerFieldUpdater in RefCountedMemory to save memory in row cache
+replace volatile regionCount w/ AtomicInteger
+replace one-shot lock w/ synchronized block
+use CallerRunsPolicy instead of rejecting runnables on multi-threaded executors w/ blocking queues
+Replace synchronization in Gossiper with concurrent data structures and volatile fields
+switch singleton implementation from double-checked-locking to synchronized (code is not performance-sensitive)
+use ConcurrentHashMap to simplify ugly loop (normal HashMap you cannot delete from during iteration)
 
 \section{Evaluation}
 

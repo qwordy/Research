@@ -103,6 +103,7 @@ public class GitLogParser {
       writeDiff(lines, Config.projectsDir + "/diff-msg",
           project + '_' + relatedCommitCount + '_' + commitId + ".diff");
     }
+
   }
 
   public void textFeature(List<String> lines, Feature feature) {
