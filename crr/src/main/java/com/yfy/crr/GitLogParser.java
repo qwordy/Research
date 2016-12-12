@@ -31,7 +31,7 @@ public class GitLogParser {
 
   public GitLogParser() throws Exception {
     //db = new Db();
-    pw = new PrintWriter("../svm/test");
+    pw = new PrintWriter("../svm2/test");
     pw2 = new PrintWriter("../svm/commitId");
   }
 
@@ -64,7 +64,6 @@ public class GitLogParser {
     Iterator<RevCommit> it = log.iterator();
 
     int commitCount = 0;
-    crFileCount = fileCount = 0;
     while (it.hasNext()) {
       RevCommit commit = it.next();
       String msg = commit.getFullMessage();
@@ -98,10 +97,11 @@ public class GitLogParser {
     codeFeature(lines, f);
     if (f.related()) {
       relatedCommitCount++;
-//      pw.println("-1 " + f.toStr());
+      fileCount++;
+      pw.println("1 " + f.toStr());
 //      pw2.println(project + ' ' + commitId);
-      writeDiff(lines, Config.projectsDir + "/diff-msg",
-          project + '_' + relatedCommitCount + '_' + commitId + ".diff");
+//      writeDiff(lines, Config.projectsDir + "/diff2", fileCount + "_" +
+//          project + '_' + commitId + ".diff");
     }
 
   }

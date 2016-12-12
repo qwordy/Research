@@ -15,9 +15,9 @@ public class Train {
   private PrintWriter pw;
 
   public Train() throws Exception {
-    pw = new PrintWriter("../svm/train");
-    feature(new File("../svm/positive"), 1);
-    feature(new File("../svm/negative"), 0);
+    pw = new PrintWriter("../svm2/train");
+    feature(new File("../svm2/p"), 1);
+    feature(new File("../svm2/n"), 0);
     pw.close();
   }
 

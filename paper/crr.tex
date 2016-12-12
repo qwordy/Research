@@ -351,6 +351,9 @@ use CallerRunsPolicy instead of rejecting runnables on multi-threaded executors 
 Replace synchronization in Gossiper with concurrent data structures and volatile fields
 switch singleton implementation from double-checked-locking to synchronized (code is not performance-sensitive)
 use ConcurrentHashMap to simplify ugly loop (normal HashMap you cannot delete from during iteration)
+volatile should ensure double locking to work properly
+Changed Counters to use ConcurrentSkipListMap for performance
+Use ThreadLocalRandom where possible
 
 \section{Evaluation}
 
