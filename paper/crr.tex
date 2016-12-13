@@ -354,6 +354,17 @@ use ConcurrentHashMap to simplify ugly loop (normal HashMap you cannot delete fr
 volatile should ensure double locking to work properly
 Changed Counters to use ConcurrentSkipListMap for performance
 Use ThreadLocalRandom where possible
+820
+1205
+3641 Code was used although I can't see why a simple AtomicInteger wasn't sufficient.
+
+Double checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like forgetting 'volatile' modifier of the member of object in Java.
+
+Concurrent data structures provide convenience for concurrent programming without caring about complicated thread-safe problems. So many commits turn to use these well-written libraries instead of synchronize on their own.
+
+AtomicIntegerFieldUpdater 
+
+ThreadLocalRandom is combination of ThreadLocal and Random. 
 
 \section{Evaluation}
 
