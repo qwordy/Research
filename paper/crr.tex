@@ -226,34 +226,27 @@ is available on the web page to help you with the
 \keywords{ACM proceedings; \LaTeX; text tagging}
 
 \section{Introduction}
-Concurrent programs are pervasive in nowadays software development activities. However, concurrent programs are known hard to write correctly for multiple threads accessing objects simultaneously or depending on each other usually need complex synchronization and hard to debug for the uncertainty of thread interleaving which makes it difficult to reproduce the bug. Developers struggle with various of concurrent APIs and subtle concurrent bugs. Research shows that software modifications are usually similar but not identical. One reason is when code clone need to change, the changes have similarities.
+Concurrent programs are pervasive in nowadays software development activities. However, concurrent programs are known hard to write correctly for multiple threads accessing objects simultaneously or depending on each other usually need complex synchronization and hard to debug for the uncertainty of thread interleaving which makes it difficult to reproduce the bug. Developers struggle with various of synchronization methods and subtle concurrent bugs.
 
-In order to understand the We proposed 3 research questions:
 
-\textbf{RQ1.} How frequent do concurrent related codes appear in Java open-source projects?
+Research shows that software modifications are usually similar but not identical. One reason is when code clone need to change, the changes have similarities.
 
-Concurrent programming is very popular in today's Java development with the rapid developments of multi-core techniques which help exploit the power of concurrent programming. Java programming language provides convenient built-in concurrent libraries and users can also invoke third-party libraries. We want to know how frequent do concurrent related codes appear in code repositories. How to define concurrent related code is a big question.
+
 
 \textbf{RQ2.} Is there any similar changes about concurrent related code?
 
 \textbf{RQ3.} What is the relationship between similar code changes and similar contexts?
 
-\textbf{RQ4.} How can similar code changes in history guide the new change in development?
+
 
 Our main contributions are:
 
 The rest of paper is organized as follows: Section 2 presents the methodology of our study. Section 3 presents our result and discussion. Section 4 presents related work. Section 5 presents future work and Section 6 concludes.
 
 \section{Methodology}
-This section presents the methodology of our study. The basic phases are collecting code snippets, extracting changes and calculating similarity. 
+This section presents the project sources of our study, research questions and methods of doing the study. We have  developed a tool supporting the empirical study.
 
-\textbf{Collecting code snippets} Prepare a database of concurrent related pair of code snippets. A pair means the original code and modified code.
-
-\textbf{Extracting changes} Extract changes of pair of code snippets. Changes consist of a sequence of edit operations like insert, delete and update.
-
-\textbf{Calculating similarity} 
-
-\subsection{Project Sources} We investigate 8 Java open-source projects from Github including Hadoop, Tomcat, Cassandra, Lucene-solr, Netty, Flink, Guava and Mahout. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. For example, the Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Table 1 shows the LOC in Java, the number of Java files and the number of commits of each project.
+\subsection{Project Sources} We investigate 8 Java open-source projects from Github including Hadoop, Tomcat, Cassandra, Lucene-solr, Netty, Flink, Guava and Mahout as shown in Table 1. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. For example, the Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Tomcat is the most popular implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technologies. Cassandra is a database system which can Manage massive amounts of data, fast, without losing sleep. Table 1 shows the lines of code in Java, the number of Java files and the number of commits of each project. All the projects are checked out for our study in November 2016.
 
 \begin{table}
 \centering
@@ -270,6 +263,20 @@ Guava&251205&1672&3850\\\hline
 Mahout&109584&1215&3703\\\hline
 \end{tabular}
 \end{table}
+
+\subsection{Research questions}
+In order to understand the evolution of concurrent code better, we proposed 3 research questions:
+
+\textbf{RQ1.} How frequent do concurrent related code modification appear in different kind of Java open-source projects?
+
+Concurrent programming is very popular in today's Java development with the rapid developments of multi-core techniques which help exploit the power of concurrent programming. Java programming language provides convenient built-in concurrent libraries and users can also invoke third-party libraries. We want to know how frequent do concurrent related code change in different kind of repositories.
+
+\textbf{RQ2.} Is there any change pattern in concurrent related code?
+
+\textbf{RQ3.} How can similar code changes in history guide the new modification in development?
+
+\subsection{Methods}
+All the projects of our study are under git which is one of the most popular version control systems in the world. Some projects of the study used svn or some other version control systems before because they have long histories, but they all support git now. We employ JGit, a  lightweight, pure java library implementation of git, to retrieve all the commit logs in projects' histories. Once we get commit id
 
 \subsection{Collecting code snippets}
 \subsubsection{Checking out versions}
@@ -336,7 +343,14 @@ Java concurrent package is a common-used concurrent libraries which provide many
 \textbf{Clustering}
 We believe that similar program pieces tend to have some similar changes in commit histories. Program pieces are clustered into several group based on concurrent keywords which are class name and interface name from the java concurrent package and 'synchronize'. We use a tfidf model to build a numeric vector for each snippet then employ weka clustering tools including kmeans and em algorithms to cluster the extracted snippets.
 
+\textbf{Collecting code snippets} Prepare a database of concurrent related pair of code snippets. A pair means the original code and modified code.
+
+\textbf{Extracting changes} Extract changes of pair of code snippets. Changes consist of a sequence of edit operations like insert, delete and update.
+
+\textbf{Calculating similarity} 
+
 \section{Results}
+
 use readlock instead of synchronized block
 use new class in jdk7 ThreadLocalRandom
 guava cache or jdk concurrenthashmap
