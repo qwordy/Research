@@ -228,15 +228,11 @@ is available on the web page to help you with the
 \section{Introduction}
 Concurrent programs are pervasive in nowadays software development activities. However, concurrent programs are known hard to write correctly for multiple threads accessing objects simultaneously or depending on each other usually need complex synchronization and hard to debug for the uncertainty of thread interleaving which makes it difficult to reproduce the bug. Developers struggle with various of synchronization methods and subtle concurrent bugs.
 
+Benefit
 
-Research shows that software modifications are usually similar but not identical. One reason is when code clone need to change, the changes have similarities.
+Challenge
 
-
-
-\textbf{RQ2.} Is there any similar changes about concurrent related code?
-
-\textbf{RQ3.} What is the relationship between similar code changes and similar contexts?
-
+Research shows that software modifications are usually similar but not identical.
 
 
 Our main contributions are:
@@ -276,7 +272,7 @@ Concurrent programming is very popular in today's Java development with the rapi
 \textbf{RQ3.} How can similar code changes in history guide the new modification in development?
 
 \subsection{Methods}
-All the projects of our study are under git which is one of the most popular version control systems in the world. Some projects of the study used svn or some other version control systems before because they have long histories, but they all support git now. We employ JGit, a  lightweight, pure java library implementation of git, to retrieve all the commit logs in projects' histories. Once we get commit id
+All the projects of our study are under git which is one of the most popular version control systems in the world. Some projects of the study used svn or some other version control systems before because they have long histories, but they all support git now. We employ JGit, a  lightweight, pure java library implementation of git, to retrieve all the commit logs in projects' histories. A typical commit log contains commit id which is a 20-character-long string uniquely identifying a commit, author, date and message. Once we get a commit id, we use "git show" command to show the log message and textual diff. The diff result contains one or more change files which contain one or more change hunks.
 
 \subsection{Collecting code snippets}
 \subsubsection{Checking out versions}
