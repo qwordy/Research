@@ -11,11 +11,11 @@ public class ConcurrentKeywords {
       "synchronized",
       "volatile",
 
-      "wait",
-      "notify",
+      //"wait",
+      //"notify",
       "notifyAll",
       "await",
-      "signal",
+      //"signal",
       "signalAll",
 
       "Thread",

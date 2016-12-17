@@ -1,0 +1,28 @@
+commit 5b9872492394026f3e6ac31b9937141ebedb1481
+Author: Maximilian Michels <mxm@apache.org>
+Date:   Tue May 24 15:59:19 2016 +0200
+
+    [FLINK-3963] AbstractReporter uses wrong ConcurrentHashMap
+    
+    We should use java.util.concurrent.ConcurrentHashMap because Netty's
+    ConcurrentHashMap is not available for Hadoop 1. Also, Netty's ConcurrentHashMap
+    is merely a copy of Java's to support Java versions prior 1.5.
+
+diff --git a/flink-core/src/main/java/org/apache/flink/metrics/reporter/AbstractReporter.java b/flink-core/src/main/java/org/apache/flink/metrics/reporter/AbstractReporter.java
+index 8e5e2f0..271e91a 100644
+--- a/flink-core/src/main/java/org/apache/flink/metrics/reporter/AbstractReporter.java
++++ b/flink-core/src/main/java/org/apache/flink/metrics/reporter/AbstractReporter.java
+@@ -18,12 +18,12 @@
+ 
+ package org.apache.flink.metrics.reporter;
+ 
+-import org.jboss.netty.util.internal.ConcurrentHashMap;
+ import org.apache.flink.metrics.Counter;
+ import org.apache.flink.metrics.Gauge;
+ import org.apache.flink.metrics.Metric;
+ 
+ import java.util.Map;
++import java.util.concurrent.ConcurrentHashMap;
+ 
+ public abstract class AbstractReporter implements MetricReporter {
+ 	

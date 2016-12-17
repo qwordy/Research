@@ -263,7 +263,7 @@ Mahout&109584&1215&3703\\\hline
 \end{table}
 
 \subsection{Research questions}
-In order to understand the evolution of concurrent code better, we proposed 3 research questions:
+In order to understand the evolution of concurrent code better, we proposed 4 research questions:
 
 \textbf{RQ1.} How frequent do concurrent related code modification appear in different kind of Java open-source projects?
 
@@ -297,7 +297,7 @@ A string matching algorithm is used to check if a snippet contains a concurrent 
 We first identify the Java code of a commit log.
 
 \subsection{Classification}
-Most of the commits selected by the last step are not our targets since they usually add or modify functionalities  which are specific although they contain some concurrent keywords. The target commits to be analysed occupy a very small proportion of all the commits even we have already filtered them. So, we need some automatic methods to help finish the job.
+Most of the commits selected by the last step are not our targets since they usually add or modify functionalities which are specific although they contain some concurrent keywords. The target commits to be analysed occupy a very small proportion of all the commits even we have already filtered them. So, we need some automatic methods to help finish the job.
 
 We use the SVM method to classify commits as concurrent-related or not. SVM is a supervised classification algorithm which needs both positive and negative training data. We extracted 12 features from each commit and labeled 65 instances manually as a training data set. Testing on the training set itself has an accuracy of 98.46\%. The classifier selects 96 positive instances from 9891 instances.
 
@@ -351,6 +351,28 @@ We believe that similar program pieces tend to have some similar changes in comm
 
 \section{Results}
 
+\subsection{RQ3.}
+Most changes to the concurrent code are due to logic change, new feature or bug fix, such as we should synchronize this method because it probably be accessed concurrently. They are usually specific and hard to apply them to other programs. It needs much effort to understand these changes because they heavily depend on the business logic. A small amount of these changes can be regarded as common transformation patterns which often appear in software evolution history and can be apply to other programs.
+
+We identify and categorise these transformation patterns into the following classes:
+
+(1).Use thread-safe class instead of handling synchronization problem manually.
+
+(2).Use thread synchronization instead of checking and sleep cyclically.
+
+(3).Replace a class with another class which has similar functionalities but offers some advantages in the scenario.
+
+We also have some other findings:
+
+(1).Developers are refactoring their code by using the later version of the JDK library.
+
+(2).Developers are using some code-checking tools like findbugs to help them inspect their code.
+
+(3).Some transformations have opposite directions.
+
+(4).
+
+
 use readlock instead of synchronized block
 use new class in jdk7 ThreadLocalRandom
 guava cache or jdk concurrenthashmap
@@ -401,9 +423,9 @@ The related work includes studies on concurrent program, transformation pattern 
 \section{Future work}
 We have learned that similar code changes of concurrent related code are common in history of software evolution. This indicates some automatic tools may help developers maintain their code. 
 
-Identify and extract transformation pattern in concurrent programs.
+Identify and extract transformation pattern in concurrent programs automatically.
 
-Apply the patterns to new suitable context.
+Apply the patterns to new suitable context automatically.
 
 \section{Conclusion}
 We conduct a study on similar code changes of concurrent related code.
