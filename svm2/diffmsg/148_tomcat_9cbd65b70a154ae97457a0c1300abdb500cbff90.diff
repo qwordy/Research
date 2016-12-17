@@ -1,0 +1,87 @@
+commit 9cbd65b70a154ae97457a0c1300abdb500cbff90
+Author: Mark Thomas <markt@apache.org>
+Date:   Mon Apr 25 11:14:08 2016 +0000
+
+    Add a wait for the session to close on the server. Some failures were observed on Gump when this hadn't happened by the time the test ended.
+    Add a check that no errors occurred on the server.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1740810 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/test/org/apache/tomcat/websocket/server/TestCloseBug58624.java b/test/org/apache/tomcat/websocket/server/TestCloseBug58624.java
+index 7f24431..909c45b 100644
+--- a/test/org/apache/tomcat/websocket/server/TestCloseBug58624.java
++++ b/test/org/apache/tomcat/websocket/server/TestCloseBug58624.java
+@@ -17,6 +17,7 @@
+ package org.apache.tomcat.websocket.server;
+ 
+ import java.net.URI;
++import java.util.concurrent.atomic.AtomicInteger;
+ 
+ import javax.servlet.ServletContextEvent;
+ import javax.websocket.ClientEndpoint;
+@@ -32,6 +33,7 @@ import javax.websocket.WebSocketContainer;
+ import javax.websocket.server.ServerContainer;
+ import javax.websocket.server.ServerEndpointConfig;
+ 
++import org.junit.Assert;
+ import org.junit.Test;
+ 
+ import org.apache.catalina.Context;
+@@ -60,6 +62,17 @@ public class TestCloseBug58624 extends WebSocketBaseTest {
+         Session session = wsContainer.connectToServer(client, uri);
+         session.close();
+ 
++        // Wait for session to close on the server
++        int count = 0;
++        while (count < 50 && Bug58624ServerEndpoint.getOpenSessionCount() > 0) {
++            count++;
++            Thread.sleep(100);
++        }
++        Assert.assertEquals(0,  Bug58624ServerEndpoint.getOpenSessionCount());
++
++        // Ensure no errors were reported on the server
++        Assert.assertEquals(0,  Bug58624ServerEndpoint.getErrorCount());
++
+         if (client.getError() != null) {
+             throw client.getError();
+         }
+@@ -107,9 +120,20 @@ public class TestCloseBug58624 extends WebSocketBaseTest {
+ 
+     public static class Bug58624ServerEndpoint {
+ 
++        private static AtomicInteger openSessionCount = new AtomicInteger(0);
++        private static AtomicInteger errorCount = new AtomicInteger(0);
++
++        public static int getOpenSessionCount() {
++            return openSessionCount.get();
++        }
++
++        public static int getErrorCount() {
++            return errorCount.get();
++        }
++
+         @OnOpen
+         public void onOpen() {
+-            System.out.println("Session opened");
++            openSessionCount.incrementAndGet();
+         }
+ 
+ 
+@@ -121,14 +145,14 @@ public class TestCloseBug58624 extends WebSocketBaseTest {
+ 
+         @OnError
+         public void onError(Throwable t) {
+-            System.out.println("HERE");
++            errorCount.incrementAndGet();
+             t.printStackTrace();
+         }
+ 
+ 
+         @OnClose
+-        public void onClose(CloseReason cr) {
+-            System.out.println("Session closed: " + cr);
++        public void onClose(@SuppressWarnings("unused") CloseReason cr) {
++            openSessionCount.decrementAndGet();
+         }
+     }
+ }

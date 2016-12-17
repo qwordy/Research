@@ -1,0 +1,19 @@
+commit a382149bba690626e8f64c67d87f4f293525b8bc
+Author: Norman Maurer <norman@apache.org>
+Date:   Thu Nov 24 11:32:05 2011 +0100
+
+    Catch InterruptedException and interrupt the current Thread so we at least give someone the chance todo something about it.
+
+diff --git a/src/main/java/org/jboss/netty/handler/execution/MemoryAwareThreadPoolExecutor.java b/src/main/java/org/jboss/netty/handler/execution/MemoryAwareThreadPoolExecutor.java
+index ca849d5..ad63bec 100644
+--- a/src/main/java/org/jboss/netty/handler/execution/MemoryAwareThreadPoolExecutor.java
++++ b/src/main/java/org/jboss/netty/handler/execution/MemoryAwareThreadPoolExecutor.java
+@@ -545,7 +545,7 @@ public class MemoryAwareThreadPoolExecutor extends ThreadPoolExecutor {
+                 try {
+                     wait();
+                 } catch (InterruptedException e) {
+-                    // Ignore
++                    Thread.currentThread().interrupt();
+                 } finally {
+                     waiters --;
+                 }

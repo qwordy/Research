@@ -1,0 +1,39 @@
+commit 6460f2a70f1a2e4db294564aa787fa39a88d3f96
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Tue Aug 19 10:06:55 2008 +0000
+
+    Runnable should be declared first as declared in the constructor
+
+diff --git a/src/main/java/org/jboss/netty/util/ThreadRenamingRunnable.java b/src/main/java/org/jboss/netty/util/ThreadRenamingRunnable.java
+index 041aa03..0c678cf 100644
+--- a/src/main/java/org/jboss/netty/util/ThreadRenamingRunnable.java
++++ b/src/main/java/org/jboss/netty/util/ThreadRenamingRunnable.java
+@@ -39,8 +39,8 @@ public class ThreadRenamingRunnable implements Runnable {
+     private static final InternalLogger logger =
+         InternalLoggerFactory.getInstance(ThreadRenamingRunnable.class);
+ 
+-    private final String threadName;
+     private final Runnable runnable;
++    private final String threadName;
+ 
+     /**
+      * Creates a new instance which wraps the specified {@code runnable}
+@@ -48,14 +48,14 @@ public class ThreadRenamingRunnable implements Runnable {
+      * specified {@code runnable} is running.
+      */
+     public ThreadRenamingRunnable(Runnable runnable, String threadName) {
+-        if (threadName == null) {
+-            throw new NullPointerException("threadName");
+-        }
+         if (runnable == null) {
+             throw new NullPointerException("runnable");
+         }
+-        this.threadName = threadName;
++        if (threadName == null) {
++            throw new NullPointerException("threadName");
++        }
+         this.runnable = runnable;
++        this.threadName = threadName;
+     }
+ 
+     public void run() {

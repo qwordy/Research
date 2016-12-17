@@ -1,0 +1,181 @@
+commit 245fb52c901a4de59d9444757fa5672a16bbbeec
+Author: Gaston Tonietti <gaston.tonietti@gmail.com>
+Date:   Fri Aug 26 02:41:34 2016 +1000
+
+    Provide extra info together with handshake complete event.
+    
+    Motivation:
+    
+    As described in #5734
+    
+    Before this change, if the server had to do some sort of setup after a
+    handshake was completed based on handshake's information, the only way
+    available was to wait (in a separate thread) for the handshaker to be
+    added as an attribute to the channel. Too much hassle.
+    
+    Modifications:
+    
+    Handshake completed event need to be stateful now, so I've added a tiny
+    class holding just the HTTP upgrade request and the selected subprotocol
+    which is fired as an event after the handshake has finished.
+    I've also deprecated the old enum used as stateless event and I left the
+    code that fires it for backward compatibility. It should be removed in
+    the next mayor release.
+    
+    Result:
+    
+    It should be much simpler now to do initialization stuff based on
+    subprotocol or request headers on handshake completion. No asynchronous
+    waiting needed anymore.
+
+diff --git a/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocketServerProtocolHandler.java b/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocketServerProtocolHandler.java
+index 1b30280..dc48516 100644
+--- a/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocketServerProtocolHandler.java
++++ b/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocketServerProtocolHandler.java
+@@ -26,6 +26,7 @@ import io.netty.channel.ChannelPipeline;
+ import io.netty.handler.codec.http.DefaultFullHttpResponse;
+ import io.netty.handler.codec.http.FullHttpRequest;
+ import io.netty.handler.codec.http.FullHttpResponse;
++import io.netty.handler.codec.http.HttpHeaders;
+ import io.netty.handler.codec.http.HttpResponseStatus;
+ import io.netty.util.AttributeKey;
+ 
+@@ -46,8 +47,9 @@ import static io.netty.handler.codec.http.HttpVersion.*;
+  * to the <tt>io.netty.example.http.websocketx.server.WebSocketServer</tt> example.
+  *
+  * To know once a handshake was done you can intercept the
+- * {@link ChannelInboundHandler#userEventTriggered(ChannelHandlerContext, Object)} and check if the event was of type
+- * {@link ServerHandshakeStateEvent#HANDSHAKE_COMPLETE}.
++ * {@link ChannelInboundHandler#userEventTriggered(ChannelHandlerContext, Object)} and check if the event was instance
++ * of {@link HandshakeComplete}, the event will contain extra information about the handshake such as the request and
++ * selected subprotocol.
+  */
+ public class WebSocketServerProtocolHandler extends WebSocketProtocolHandler {
+ 
+@@ -56,11 +58,42 @@ public class WebSocketServerProtocolHandler extends WebSocketProtocolHandler {
+      */
+     public enum ServerHandshakeStateEvent {
+         /**
+-         * The Handshake was complete succesful and so the channel was upgraded to websockets
++         * The Handshake was completed successfully and the channel was upgraded to websockets.
++         *
++         * @deprecated in favor of {@link HandshakeComplete} class,
++         * it provides extra information about the handshake
+          */
++        @Deprecated
+         HANDSHAKE_COMPLETE
+     }
+ 
++    /**
++     * The Handshake was completed successfully and the channel was upgraded to websockets.
++     */
++    public static final class HandshakeComplete {
++        private final String requestUri;
++        private final HttpHeaders requestHeaders;
++        private final String selectedSubprotocol;
++
++        HandshakeComplete(String requestUri, HttpHeaders requestHeaders, String selectedSubprotocol) {
++            this.requestUri = requestUri;
++            this.requestHeaders = requestHeaders;
++            this.selectedSubprotocol = selectedSubprotocol;
++        }
++
++        public String requestUri() {
++            return requestUri;
++        }
++
++        public HttpHeaders requestHeaders() {
++            return requestHeaders;
++        }
++
++        public String selectedSubprotocol() {
++            return selectedSubprotocol;
++        }
++    }
++
+     private static final AttributeKey<WebSocketServerHandshaker> HANDSHAKER_ATTR_KEY =
+             AttributeKey.valueOf(WebSocketServerHandshaker.class, "HANDSHAKER");
+ 
+diff --git a/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocketServerProtocolHandshakeHandler.java b/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocketServerProtocolHandshakeHandler.java
+index b1544fb..e63a715 100644
+--- a/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocketServerProtocolHandshakeHandler.java
++++ b/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocketServerProtocolHandshakeHandler.java
+@@ -54,7 +54,7 @@ class WebSocketServerProtocolHandshakeHandler extends ChannelInboundHandlerAdapt
+ 
+     @Override
+     public void channelRead(final ChannelHandlerContext ctx, Object msg) throws Exception {
+-        FullHttpRequest req = (FullHttpRequest) msg;
++        final FullHttpRequest req = (FullHttpRequest) msg;
+         if (!websocketPath.equals(req.uri())) {
+             ctx.fireChannelRead(msg);
+             return;
+@@ -80,8 +80,12 @@ class WebSocketServerProtocolHandshakeHandler extends ChannelInboundHandlerAdapt
+                         if (!future.isSuccess()) {
+                             ctx.fireExceptionCaught(future.cause());
+                         } else {
++                            // Kept for compatibility
+                             ctx.fireUserEventTriggered(
+                                     WebSocketServerProtocolHandler.ServerHandshakeStateEvent.HANDSHAKE_COMPLETE);
++                            ctx.fireUserEventTriggered(
++                                    new WebSocketServerProtocolHandler.HandshakeComplete(
++                                            req.uri(), req.headers(), handshaker.selectedSubprotocol()));
+                         }
+                     }
+                 });
+diff --git a/codec-http/src/test/java/io/netty/handler/codec/http/websocketx/WebSocketHandshakeHandOverTest.java b/codec-http/src/test/java/io/netty/handler/codec/http/websocketx/WebSocketHandshakeHandOverTest.java
+index 9d8fc1a..22f1d57 100644
+--- a/codec-http/src/test/java/io/netty/handler/codec/http/websocketx/WebSocketHandshakeHandOverTest.java
++++ b/codec-http/src/test/java/io/netty/handler/codec/http/websocketx/WebSocketHandshakeHandOverTest.java
+@@ -36,12 +36,14 @@ import static org.junit.Assert.*;
+ public class WebSocketHandshakeHandOverTest {
+ 
+     private boolean serverReceivedHandshake;
++    private WebSocketServerProtocolHandler.HandshakeComplete serverHandshakeComplete;
+     private boolean clientReceivedHandshake;
+     private boolean clientReceivedMessage;
+ 
+     @Before
+     public void setUp() {
+         serverReceivedHandshake = false;
++        serverHandshakeComplete = null;
+         clientReceivedHandshake = false;
+         clientReceivedMessage = false;
+     }
+@@ -55,6 +57,8 @@ public class WebSocketHandshakeHandOverTest {
+                     serverReceivedHandshake = true;
+                     // immediatly send a message to the client on connect
+                     ctx.writeAndFlush(new TextWebSocketFrame("abc"));
++                } else if (evt instanceof WebSocketServerProtocolHandler.HandshakeComplete) {
++                    serverHandshakeComplete = (WebSocketServerProtocolHandler.HandshakeComplete) evt;
+                 }
+             }
+             @Override
+@@ -80,6 +84,10 @@ public class WebSocketHandshakeHandOverTest {
+         // Transfer the handshake from the client to the server
+         transferAllDataWithMerge(clientChannel, serverChannel);
+         assertTrue(serverReceivedHandshake);
++        assertNotNull(serverHandshakeComplete);
++        assertEquals("/test", serverHandshakeComplete.requestUri());
++        assertEquals(8, serverHandshakeComplete.requestHeaders().size());
++        assertEquals("test-proto-2", serverHandshakeComplete.selectedSubprotocol());
+ 
+         // Transfer the handshake response and the websocket message to the client
+         transferAllDataWithMerge(serverChannel, clientChannel);
+@@ -124,7 +132,7 @@ public class WebSocketHandshakeHandOverTest {
+                 new HttpClientCodec(),
+                 new HttpObjectAggregator(8192),
+                 new WebSocketClientProtocolHandler(new URI("ws://localhost:1234/test"),
+-                                                   WebSocketVersion.V13, null,
++                                                   WebSocketVersion.V13, "test-proto-2",
+                                                    false, null, 65536),
+                 handler);
+     }
+@@ -133,7 +141,7 @@ public class WebSocketHandshakeHandOverTest {
+         return new EmbeddedChannel(
+                 new HttpServerCodec(),
+                 new HttpObjectAggregator(8192),
+-                new WebSocketServerProtocolHandler("/test", null, false),
++                new WebSocketServerProtocolHandler("/test", "test-proto-1, test-proto-2", false),
+                 handler);
+     }
+ }

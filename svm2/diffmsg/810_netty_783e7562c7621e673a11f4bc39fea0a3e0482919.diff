@@ -1,0 +1,63 @@
+commit 783e7562c7621e673a11f4bc39fea0a3e0482919
+Author: norman <norman@apache.org>
+Date:   Fri Oct 21 18:04:18 2011 +0200
+
+    Fire ChannelConnected events in a Worker Thread. See NETTY-439
+
+diff --git a/src/main/java/org/jboss/netty/channel/socket/nio/NioAcceptedSocketChannel.java b/src/main/java/org/jboss/netty/channel/socket/nio/NioAcceptedSocketChannel.java
+index ad7571b..dff5309 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/nio/NioAcceptedSocketChannel.java
++++ b/src/main/java/org/jboss/netty/channel/socket/nio/NioAcceptedSocketChannel.java
+@@ -48,6 +48,5 @@ final class NioAcceptedSocketChannel extends NioSocketChannel {
+         setConnected();
+         fireChannelOpen(this);
+         fireChannelBound(this, getLocalAddress());
+-        fireChannelConnected(this, getRemoteAddress());
+     }
+ }
+diff --git a/src/main/java/org/jboss/netty/channel/socket/nio/NioWorker.java b/src/main/java/org/jboss/netty/channel/socket/nio/NioWorker.java
+index 0bf1dc5..2fedb57 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/nio/NioWorker.java
++++ b/src/main/java/org/jboss/netty/channel/socket/nio/NioWorker.java
+@@ -782,6 +782,11 @@ class NioWorker implements Runnable {
+                 }
+                 fireChannelConnected(channel, remoteAddress);
+             }
++            
++            // Handle the channelConnected in the worker thread
++            if (channel instanceof NioAcceptedSocketChannel) {
++                fireChannelConnected(channel, channel.getRemoteAddress());
++            }
+         }
+     }
+ }
+diff --git a/src/main/java/org/jboss/netty/channel/socket/oio/OioAcceptedSocketChannel.java b/src/main/java/org/jboss/netty/channel/socket/oio/OioAcceptedSocketChannel.java
+index d42cb6f..16781e5 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/oio/OioAcceptedSocketChannel.java
++++ b/src/main/java/org/jboss/netty/channel/socket/oio/OioAcceptedSocketChannel.java
+@@ -63,7 +63,6 @@ class OioAcceptedSocketChannel extends OioSocketChannel {
+ 
+         fireChannelOpen(this);
+         fireChannelBound(this, getLocalAddress());
+-        fireChannelConnected(this, getRemoteAddress());
+     }
+ 
+     @Override
+diff --git a/src/main/java/org/jboss/netty/channel/socket/oio/OioWorker.java b/src/main/java/org/jboss/netty/channel/socket/oio/OioWorker.java
+index 945927f..4d5f6f7 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/oio/OioWorker.java
++++ b/src/main/java/org/jboss/netty/channel/socket/oio/OioWorker.java
+@@ -50,8 +50,13 @@ class OioWorker implements Runnable {
+     public void run() {
+         channel.workerThread = Thread.currentThread();
+         final PushbackInputStream in = channel.getInputStream();
++        boolean fireOpen = channel instanceof OioAcceptedSocketChannel;
+ 
+         while (channel.isOpen()) {
++            if (fireOpen) {
++                fireOpen = false;
++                fireChannelConnected(channel, channel.getRemoteAddress());
++            }
+             synchronized (channel.interestOpsLock) {
+                 while (!channel.isReadable()) {
+                     try {

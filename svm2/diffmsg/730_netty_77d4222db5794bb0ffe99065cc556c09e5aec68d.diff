@@ -1,0 +1,34 @@
+commit 77d4222db5794bb0ffe99065cc556c09e5aec68d
+Author: Norman Maurer <nmaurer@redhat.com>
+Date:   Sun Aug 25 21:22:53 2013 +0200
+
+    [#1777] Use correct Thread when close per channel
+
+diff --git a/transport/src/main/java/io/netty/channel/local/LocalChannel.java b/transport/src/main/java/io/netty/channel/local/LocalChannel.java
+index 7d558db..6b067d4 100644
+--- a/transport/src/main/java/io/netty/channel/local/LocalChannel.java
++++ b/transport/src/main/java/io/netty/channel/local/LocalChannel.java
+@@ -198,9 +198,21 @@ public class LocalChannel extends AbstractChannel {
+             state = 3;
+         }
+ 
+-        LocalChannel peer = this.peer;
++        final LocalChannel peer = this.peer;
+         if (peer != null && peer.isActive()) {
+-            peer.unsafe().close(unsafe().voidPromise());
++            // Need to execute the close in the correct EventLoop
++            // See https://github.com/netty/netty/issues/1777
++            EventLoop eventLoop = peer.eventLoop();
++            if (eventLoop.inEventLoop()) {
++                peer.unsafe().close(unsafe().voidPromise());
++            } else {
++                peer.eventLoop().execute(new Runnable() {
++                    @Override
++                    public void run() {
++                        peer.unsafe().close(unsafe().voidPromise());
++                    }
++                });
++            }
+             this.peer = null;
+         }
+     }

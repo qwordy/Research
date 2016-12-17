@@ -1,0 +1,38 @@
+commit 0eebea64f0be5a4c826a0bb0134ae41be2aa5141
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Sat Jul 31 14:02:29 2010 +0000
+
+    Revert r966596 - pollTime is in microseconds, wait is in milliseconds
+    Add an additional wait that prevents a JVM crash on shutdown detected in TestAsyncContextImpl tests
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@981061 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/tomcat/util/net/AprEndpoint.java b/java/org/apache/tomcat/util/net/AprEndpoint.java
+index bf60c98..7635a54 100644
+--- a/java/org/apache/tomcat/util/net/AprEndpoint.java
++++ b/java/org/apache/tomcat/util/net/AprEndpoint.java
+@@ -670,7 +670,7 @@ public class AprEndpoint extends AbstractEndpoint {
+             // in the poller can cause problems
+             try {
+                 synchronized (this) {
+-                    this.wait(pollTime);
++                    this.wait(pollTime / 1000);
+                 }
+             } catch (InterruptedException e) {
+                 // Ignore
+@@ -689,6 +689,15 @@ public class AprEndpoint extends AbstractEndpoint {
+                 }
+                 sendfiles = null;
+             }
++            // Wait another polltime to make sure everything is shutdown else
++            // the JVM will crash when we terminate the APR library
++            try {
++                synchronized (this) {
++                    this.wait(pollTime / 1000);
++                }
++            } catch (InterruptedException e) {
++                // Ignore
++            }
+         }
+         shutdownExecutor();
+     }

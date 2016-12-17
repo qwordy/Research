@@ -31,8 +31,8 @@ public class GitLogParser {
 
   public GitLogParser() throws Exception {
     //db = new Db();
-    pw = new PrintWriter("../svm2/test");
-    pw2 = new PrintWriter("../svm/commitId");
+    //pw = new PrintWriter("../svm2/test");
+    //pw2 = new PrintWriter("../svm/commitId");
   }
 
   public void parseAll() throws Exception {
@@ -44,8 +44,8 @@ public class GitLogParser {
     parse("lucene-solr"); // 40m 1h
     parse("netty"); // 4m 9m
     //parse("guava"); // 2m 4m
-    pw.close();
-    pw2.close();
+    //pw.close();
+    //pw2.close();
   }
 
   private void parse(String project) throws Exception {
@@ -98,10 +98,10 @@ public class GitLogParser {
     if (f.related()) {
       relatedCommitCount++;
       fileCount++;
-      pw.println("1 " + f.toStr());
+      //pw.println("1 " + f.toStr());
 //      pw2.println(project + ' ' + commitId);
-//      writeDiff(lines, Config.projectsDir + "/diff2", fileCount + "_" +
-//          project + '_' + commitId + ".diff");
+      writeDiff(lines, Config.projectsDir + "/diff2", fileCount + "_" +
+          project + '_' + commitId + ".diff");
     }
 
   }

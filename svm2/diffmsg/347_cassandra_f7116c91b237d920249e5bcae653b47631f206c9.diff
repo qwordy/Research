@@ -1,0 +1,75 @@
+commit f7116c91b237d920249e5bcae653b47631f206c9
+Author: Björn Hegerfors <bj0rn@spotify.com>
+Date:   Tue Mar 31 12:41:27 2015 +0200
+
+    Don't wait for min_threshold sstables in the same window in DTCS
+    
+    Patch by Björn Hegerfors; reviewed by marcuse for CASSANDRA-8360
+
+diff --git a/CHANGES.txt b/CHANGES.txt
+index ed40a78..0bcc5cb 100644
+--- a/CHANGES.txt
++++ b/CHANGES.txt
+@@ -1,4 +1,5 @@
+ 2.0.14:
++ * Do more aggressive compaction in old time windows in DTCS (CASSANDRA-8360)
+  * java.lang.AssertionError when reading saved cache (CASSANDRA-8740)
+  * "disk full" when running cleanup (CASSANDRA-9036)
+  * Make PasswordAuthenticator number of hashing rounds configurable (CASSANDRA-8085)
+diff --git a/src/java/org/apache/cassandra/db/compaction/DateTieredCompactionStrategy.java b/src/java/org/apache/cassandra/db/compaction/DateTieredCompactionStrategy.java
+index 9c708db..6b3e800 100644
+--- a/src/java/org/apache/cassandra/db/compaction/DateTieredCompactionStrategy.java
++++ b/src/java/org/apache/cassandra/db/compaction/DateTieredCompactionStrategy.java
+@@ -103,7 +103,11 @@ public class DateTieredCompactionStrategy extends AbstractCompactionStrategy
+         List<List<SSTableReader>> buckets = getBuckets(createSSTableAndMinTimestampPairs(candidates), options.baseTime, base, now);
+         logger.debug("Compaction buckets are {}", buckets);
+         updateEstimatedCompactionsByTasks(buckets);
+-        List<SSTableReader> mostInteresting = newestBucket(buckets, cfs.getMinimumCompactionThreshold(), cfs.getMaximumCompactionThreshold());
++        List<SSTableReader> mostInteresting = newestBucket(buckets,
++                                                           cfs.getMinimumCompactionThreshold(),
++                                                           cfs.getMaximumCompactionThreshold(),
++                                                           options.baseTime,
++                                                           now);
+         if (!mostInteresting.isEmpty())
+             return mostInteresting;
+         return null;
+@@ -298,12 +302,18 @@ public class DateTieredCompactionStrategy extends AbstractCompactionStrategy
+      * @return a bucket (list) of sstables to compact.
+      */
+     @VisibleForTesting
+-    static List<SSTableReader> newestBucket(List<List<SSTableReader>> buckets, int minThreshold, int maxThreshold)
++    static List<SSTableReader> newestBucket(List<List<SSTableReader>> buckets, int minThreshold, int maxThreshold, long now, long baseTime)
+     {
+-        // Skip buckets containing less than minThreshold sstables, and limit other buckets to maxThreshold sstables.
++        // If the "incoming window" has at least minThreshold SSTables, choose that one.
++        // For any other bucket, at least 2 SSTables is enough.
++        // In any case, limit to maxThreshold SSTables.
++        Target incomingWindow = getInitialTarget(now, baseTime);
+         for (List<SSTableReader> bucket : buckets)
+-            if (bucket.size() >= minThreshold)
++        {
++            if (bucket.size() >= minThreshold ||
++                    (bucket.size() >= 2 && !incomingWindow.onTarget(bucket.get(0).getMinTimestamp())))
+                 return trimToThreshold(bucket, maxThreshold);
++        }
+         return Collections.emptyList();
+     }
+ 
+diff --git a/test/unit/org/apache/cassandra/db/compaction/DateTieredCompactionStrategyTest.java b/test/unit/org/apache/cassandra/db/compaction/DateTieredCompactionStrategyTest.java
+index 7d48575..f98e372 100644
+--- a/test/unit/org/apache/cassandra/db/compaction/DateTieredCompactionStrategyTest.java
++++ b/test/unit/org/apache/cassandra/db/compaction/DateTieredCompactionStrategyTest.java
+@@ -213,8 +213,11 @@ public class DateTieredCompactionStrategyTest extends SchemaLoader
+ 
+         List<SSTableReader> sstrs = new ArrayList<>(cfs.getSSTables());
+ 
+-        List<SSTableReader> newBucket = newestBucket(Collections.singletonList(sstrs.subList(0, 2)), 4, 32);
+-        assertTrue("nothing should be returned when all buckets are below the min threshold", newBucket.isEmpty());
++        List<SSTableReader> newBucket = newestBucket(Collections.singletonList(sstrs.subList(0, 2)), 4, 32, 9, 10);
++        assertTrue("incoming bucket should not be accepted when it has below the min threshold SSTables", newBucket.isEmpty());
++
++        newBucket = newestBucket(Collections.singletonList(sstrs.subList(0, 2)), 4, 32, 10, 10);
++        assertFalse("non-incoming bucket should be accepted when it has at least 2 SSTables", newBucket.isEmpty());
+ 
+         assertEquals("an sstable with a single value should have equal min/max timestamps", sstrs.get(0).getMinTimestamp(), sstrs.get(0).getMaxTimestamp());
+         assertEquals("an sstable with a single value should have equal min/max timestamps", sstrs.get(1).getMinTimestamp(), sstrs.get(1).getMaxTimestamp());

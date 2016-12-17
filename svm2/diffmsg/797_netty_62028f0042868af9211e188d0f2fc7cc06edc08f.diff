@@ -1,0 +1,19 @@
+commit 62028f0042868af9211e188d0f2fc7cc06edc08f
+Author: norman <norman@apache.org>
+Date:   Wed Mar 7 14:15:42 2012 +0100
+
+    execute the wrapped Runnable
+
+diff --git a/transport-sctp/src/main/java/io/netty/channel/sctp/AbstractSctpChannelSink.java b/transport-sctp/src/main/java/io/netty/channel/sctp/AbstractSctpChannelSink.java
+index 35403ac..906fc35 100644
+--- a/transport-sctp/src/main/java/io/netty/channel/sctp/AbstractSctpChannelSink.java
++++ b/transport-sctp/src/main/java/io/netty/channel/sctp/AbstractSctpChannelSink.java
+@@ -30,7 +30,7 @@ public abstract class AbstractSctpChannelSink extends AbstractChannelSink {
+         if (ch instanceof SctpChannelImpl) {
+             SctpChannelImpl channel = (SctpChannelImpl) ch;
+             ChannelRunnableWrapper wrapper = new ChannelRunnableWrapper(channel, task);
+-            channel.worker.executeInIoThread(task);
++            channel.worker.executeInIoThread(wrapper);
+             return wrapper;
+              
+         } else {

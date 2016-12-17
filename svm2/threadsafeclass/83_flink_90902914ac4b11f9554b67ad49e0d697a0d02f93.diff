@@ -1,0 +1,104 @@
+commit 90902914ac4b11f9554b67ad49e0d697a0d02f93
+Author: Stephan Ewen <sewen@apache.org>
+Date:   Wed Aug 31 16:22:34 2016 +0200
+
+    [FLINK-4543] [network] Fix potential deadlock in SpilledSubpartitionViewAsyncIO.
+    
+    The deadlock could occur in cases where the SpilledSubpartitionViewAsyncIO would simultaneously try to
+    release a buffer and encounter an error in another thread.
+    
+    The field of congestion was the listener, which is now replaced by an AtomicReference, removing the
+    necessity to lock in the case of reporting the error.
+    
+    This closes #2444
+
+diff --git a/flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/SpilledSubpartitionViewAsyncIO.java b/flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/SpilledSubpartitionViewAsyncIO.java
+index daccd28..ca25536 100644
+--- a/flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/SpilledSubpartitionViewAsyncIO.java
++++ b/flink-runtime/src/main/java/org/apache/flink/runtime/io/network/partition/SpilledSubpartitionViewAsyncIO.java
+@@ -30,6 +30,7 @@ import org.apache.flink.runtime.util.event.NotificationListener;
+ import java.io.IOException;
+ import java.util.concurrent.ConcurrentLinkedQueue;
+ import java.util.concurrent.atomic.AtomicInteger;
++import java.util.concurrent.atomic.AtomicReference;
+ 
+ import static org.apache.flink.util.Preconditions.checkArgument;
+ import static org.apache.flink.util.Preconditions.checkNotNull;
+@@ -70,7 +71,7 @@ class SpilledSubpartitionViewAsyncIO implements ResultSubpartitionView {
+ 	private final ConcurrentLinkedQueue<Buffer> returnedBuffers = new ConcurrentLinkedQueue<Buffer>();
+ 
+ 	/** A data availability listener. */
+-	private NotificationListener registeredListener;
++	private final AtomicReference<NotificationListener> registeredListener;
+ 
+ 	/** Error, which has occurred in the I/O thread. */
+ 	private volatile IOException errorInIOThread;
+@@ -108,7 +109,8 @@ class SpilledSubpartitionViewAsyncIO implements ResultSubpartitionView {
+ 		this.parent = checkNotNull(parent);
+ 		this.bufferProvider = checkNotNull(bufferProvider);
+ 		this.bufferAvailabilityListener = new BufferProviderCallback(this);
+-
++		this.registeredListener = new AtomicReference<>();
++		
+ 		this.asyncFileReader = ioManager.createBufferFileReader(channelId, new IOThreadCallback(this));
+ 
+ 		if (initialSeekPosition > 0) {
+@@ -154,14 +156,12 @@ class SpilledSubpartitionViewAsyncIO implements ResultSubpartitionView {
+ 				return false;
+ 			}
+ 
+-			if (registeredListener == null) {
+-				registeredListener = listener;
+-
++			if (registeredListener.compareAndSet(null, listener)) {
+ 				return true;
++			} else {
++				throw new IllegalStateException("already registered listener");
+ 			}
+ 		}
+-
+-		throw new IllegalStateException("Already registered listener.");
+ 	}
+ 
+ 	@Override
+@@ -279,8 +279,8 @@ class SpilledSubpartitionViewAsyncIO implements ResultSubpartitionView {
+ 
+ 			returnedBuffers.add(buffer);
+ 
+-			listener = registeredListener;
+-			registeredListener = null;
++			// after this, the listener should be null
++			listener = registeredListener.getAndSet(null);
+ 
+ 			// If this was the last buffer before we reached EOF, set the corresponding flag to
+ 			// ensure that further buffers are correctly recycled and eventually no further reads
+@@ -303,13 +303,7 @@ class SpilledSubpartitionViewAsyncIO implements ResultSubpartitionView {
+ 			errorInIOThread = error;
+ 		}
+ 
+-		final NotificationListener listener;
+-
+-		synchronized (lock) {
+-			listener = registeredListener;
+-			registeredListener = null;
+-		}
+-
++		final NotificationListener listener = registeredListener.getAndSet(null);
+ 		if (listener != null) {
+ 			listener.onNotification();
+ 		}
+diff --git a/flink-runtime/src/test/java/org/apache/flink/runtime/checkpoint/CheckpointIDCounterTest.java b/flink-runtime/src/test/java/org/apache/flink/runtime/checkpoint/CheckpointIDCounterTest.java
+index dc43b47..49b5fe7 100644
+--- a/flink-runtime/src/test/java/org/apache/flink/runtime/checkpoint/CheckpointIDCounterTest.java
++++ b/flink-runtime/src/test/java/org/apache/flink/runtime/checkpoint/CheckpointIDCounterTest.java
+@@ -57,9 +57,7 @@ public abstract class CheckpointIDCounterTest extends TestLogger {
+ 
+ 		@AfterClass
+ 		public static void tearDown() throws Exception {
+-			if (ZooKeeper != null) {
+-				ZooKeeper.shutdown();
+-			}
++			ZooKeeper.shutdown();
+ 		}
+ 
+ 		@Before

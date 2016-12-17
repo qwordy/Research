@@ -1,0 +1,21 @@
+commit 231445f166d2f0e0933a553f0cfcb7b19be1648c
+Author: Mark Robert Miller <markrmiller@apache.org>
+Date:   Thu Jan 26 23:03:51 2012 +0000
+
+    raise the length of time that we are willing to wait for searchers to be closed
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1236440 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/solr/test-framework/src/java/org/apache/solr/SolrTestCaseJ4.java b/solr/test-framework/src/java/org/apache/solr/SolrTestCaseJ4.java
+index 2fea568..18e730a 100755
+--- a/solr/test-framework/src/java/org/apache/solr/SolrTestCaseJ4.java
++++ b/solr/test-framework/src/java/org/apache/solr/SolrTestCaseJ4.java
+@@ -127,7 +127,7 @@ public abstract class SolrTestCaseJ4 extends LuceneTestCase {
+      // wait a bit in case any ending threads have anything to release
+      int retries = 0;
+      while (endNumOpens - numOpens != endNumCloses - numCloses) {
+-       if (retries++ > 15) {
++       if (retries++ > 30) {
+          break;
+        }
+        try {

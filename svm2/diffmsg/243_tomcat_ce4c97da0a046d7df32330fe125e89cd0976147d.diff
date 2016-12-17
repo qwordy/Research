@@ -1,0 +1,34 @@
+commit ce4c97da0a046d7df32330fe125e89cd0976147d
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Thu Dec 1 19:11:56 2011 +0000
+
+    Re-order the connector.destroy() call to (hopefully) avoid the Gump
+    failures on this test. Of course, this is based on a guess that
+    sometimes the 100ms wait isn't quite long enough.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1209194 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/test/org/apache/catalina/comet/TestCometProcessor.java b/test/org/apache/catalina/comet/TestCometProcessor.java
+index 17a084d..f8cf0c1 100644
+--- a/test/org/apache/catalina/comet/TestCometProcessor.java
++++ b/test/org/apache/catalina/comet/TestCometProcessor.java
+@@ -266,9 +266,6 @@ public class TestCometProcessor extends TomcatBaseTest {
+         Thread.sleep(3000);
+ 
+         tomcat.getConnector().stop();
+-        // Allow the executor a chance to send the end event
+-        Thread.sleep(100);
+-        tomcat.getConnector().destroy();
+ 
+         // Wait for the write thread to stop
+         int count = 0;
+@@ -283,6 +280,9 @@ public class TestCometProcessor extends TomcatBaseTest {
+             count ++;
+         }
+ 
++        // Destroy the connector once the executor has sent the end event
++        tomcat.getConnector().destroy();
++
+         // Write should trigger an exception once the connector stops since the
+         // socket should be closed
+         assertNotNull("No exception in writing thread",

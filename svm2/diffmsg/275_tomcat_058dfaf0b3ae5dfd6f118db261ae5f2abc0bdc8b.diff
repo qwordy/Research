@@ -1,0 +1,34 @@
+commit 058dfaf0b3ae5dfd6f118db261ae5f2abc0bdc8b
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Sat Jul 17 18:24:01 2010 +0000
+
+    Expose executor.
+    Required so Servlet 3 Async implementation can use the container thread pool when a new thread needs to be dispatched. (e.g. from AsyncContext.start(Runnable)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@965123 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/coyote/ProtocolHandler.java b/java/org/apache/coyote/ProtocolHandler.java
+index c952dd8..25eea18 100644
+--- a/java/org/apache/coyote/ProtocolHandler.java
++++ b/java/org/apache/coyote/ProtocolHandler.java
+@@ -18,6 +18,7 @@
+ package org.apache.coyote;
+ 
+ import java.util.Iterator;
++import java.util.concurrent.Executor;
+ 
+ 
+ /**
+@@ -51,6 +52,12 @@ public interface ProtocolHandler {
+ 
+ 
+     /**
++     * The executor, provide access to the underlying thread pool.
++     */
++    public Executor getExecutor();
++
++
++    /**
+      * Initialise the protocol.
+      */
+     public void init() throws Exception;

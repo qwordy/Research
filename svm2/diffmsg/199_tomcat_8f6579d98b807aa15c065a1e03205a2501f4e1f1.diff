@@ -1,0 +1,33 @@
+commit 8f6579d98b807aa15c065a1e03205a2501f4e1f1
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Mon Mar 24 14:57:09 2014 +0000
+
+    Another unit test run failure on OSX and a more careful review. Handle the case where timeout completes request before the Runnable's error handling does.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1580869 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/test/org/apache/catalina/connector/TestCoyoteAdapter.java b/test/org/apache/catalina/connector/TestCoyoteAdapter.java
+index 2979068..2972587 100644
+--- a/test/org/apache/catalina/connector/TestCoyoteAdapter.java
++++ b/test/org/apache/catalina/connector/TestCoyoteAdapter.java
+@@ -348,9 +348,17 @@ public class TestCoyoteAdapter extends TomcatBaseTest {
+                             os.flush();
+                             Thread.sleep(1000);
+                         } catch (Exception e) {
+-                            asyncCtxt.complete();
+-                            completed = true;
+-                            break;
++                            try {
++                                // Note if request times out before this
++                                // exception is thrown and the complete call
++                                // below is made, the complete call below will
++                                // fail since the timeout will have completed
++                                // the request.
++                                asyncCtxt.complete();
++                                break;
++                            } finally {
++                                completed = true;
++                            }
+                         }
+                     }
+                 }

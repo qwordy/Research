@@ -1,0 +1,111 @@
+commit ae6c3c4867626627d45d2547d7751b91efefbf09
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Wed Dec 30 10:45:34 2009 +0000
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=48454
+    Give the stderr reader a chance to finish before terminating the CGI process. This avoids "Bad file descriptor" errors. The period to wait is configurable.
+    Based on a patch by Markus Grieder
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@894580 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/conf/web.xml b/conf/web.xml
+index 72aaac6..9a0f426 100644
+--- a/conf/web.xml
++++ b/conf/web.xml
+@@ -301,6 +301,10 @@
+   <!--                                                                      -->
+   <!--   passShellEnvironment Should the shell environment variables (if    -->
+   <!--                        any) be passed to the CGI script? [false]     -->
++  <!--                                                                      -->
++  <!--   stderrTimeout        The time (in milliseconds) to wait for the    -->
++  <!--                        reading of stdErr to complete before          -->
++  <!--                        terminating the CGI process. [2000]           -->
+ 
+ <!--
+     <servlet>
+diff --git a/java/org/apache/catalina/servlets/CGIServlet.java b/java/org/apache/catalina/servlets/CGIServlet.java
+index 3e504e9..35ac047 100644
+--- a/java/org/apache/catalina/servlets/CGIServlet.java
++++ b/java/org/apache/catalina/servlets/CGIServlet.java
+@@ -261,8 +261,14 @@ public final class CGIServlet extends HttpServlet {
+     private String cgiExecutable = "perl";
+     
+     /** the encoding to use for parameters */
+-    private String parameterEncoding = System.getProperty("file.encoding",
+-                                                          "UTF-8");
++    private String parameterEncoding =
++        System.getProperty("file.encoding", "UTF-8");
++
++    /**
++     * The time (in milliseconds) to wait for the reading of stdErr to complete
++     * before terminating the CGI process.
++     */
++    private long stderrTimeout = 2000;
+ 
+     /** object used to ensure multiple threads don't try to expand same file */
+     static Object expandFileLock = new Object();
+@@ -309,6 +315,11 @@ public final class CGIServlet extends HttpServlet {
+             parameterEncoding = getServletConfig().getInitParameter("parameterEncoding");
+         }
+ 
++        if (getServletConfig().getInitParameter("stderrTimeout") != null) {
++            stderrTimeout = Long.parseLong(getServletConfig().getInitParameter(
++                    "stderrTimeout"));
++        }
++
+     }
+ 
+ 
+@@ -1588,6 +1599,7 @@ public final class CGIServlet extends HttpServlet {
+             BufferedReader cgiHeaderReader = null;
+             InputStream cgiOutput = null;
+             BufferedReader commandsStdErr = null;
++            Thread errReaderThread = null;
+             BufferedOutputStream commandsStdIn = null;
+             Process proc = null;
+             int bufRead = -1;
+@@ -1645,12 +1657,13 @@ public final class CGIServlet extends HttpServlet {
+                     (new InputStreamReader(proc.getErrorStream()));
+                 final BufferedReader stdErrRdr = commandsStdErr ;
+ 
+-                new Thread() {
++                errReaderThread = new Thread() {
+                     @Override
+                     public void run () {
+                         sendToLog(stdErrRdr) ;
+                     }
+-                }.start() ;
++                };
++                errReaderThread.start();
+ 
+                 InputStream cgiHeaderStream =
+                     new HTTPHeaderInputStream(proc.getInputStream());
+@@ -1743,6 +1756,14 @@ public final class CGIServlet extends HttpServlet {
+                         log ("Exception closing output stream " + ioe);
+                     }
+                 }
++                // Make sure the error stream reader has finished
++                if (errReaderThread != null) {
++                    try {
++                        errReaderThread.join(stderrTimeout);
++                    } catch (InterruptedException e) {
++                        log ("Interupted waiting for stderr reader thread");
++                    }
++                }
+                 if (debug > 4) {
+                     log ("Running finally block");
+                 }
+diff --git a/webapps/docs/cgi-howto.xml b/webapps/docs/cgi-howto.xml
+index 057b631..ecffae1 100644
+--- a/webapps/docs/cgi-howto.xml
++++ b/webapps/docs/cgi-howto.xml
+@@ -83,6 +83,9 @@ to be used with the GCI servlet. Default is
+ <li><strong>passShellEnvironment</strong> - Should the shell environment
+ variables (if any) be passed to the CGI script? Default is
+ <code>false</code>.</li>
++<li><strong>stderrTimeout</strong> - The time (in milliseconds) to wait for
++the reading of stderr to complete before terminating the CGI process? Default
++is 2000.</li>
+ </ul>
+ </p>
+ 

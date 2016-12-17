@@ -1,0 +1,30 @@
+commit ec7e6c88fe12592fcb6368617246a22e8e09b7d4
+Author: Filip Hanik <fhanik@apache.org>
+Date:   Thu Feb 14 09:55:23 2008 +0000
+
+    fix NPE
+    java.lang.NullPointerException at org.apache.catalina.session.ManagerBase.processExpires(ManagerBase.java:682)
+            at org.apache.catalina.session.ManagerBase.backgroundProcess(ManagerBase.java:667)
+            at org.apache.catalina.core.ContainerBase.backgroundProcess(ContainerBase.java:1316)
+            at org.apache.catalina.core.ContainerBase$ContainerBackgroundProcessor.processChildren(ContainerBase.java:1601)
+            at org.apache.catalina.core.ContainerBase$ContainerBackgroundProcessor.processChildren(ContainerBase.java:1610)
+            at org.apache.catalina.core.ContainerBase$ContainerBackgroundProcessor.processChildren(ContainerBase.java:1610)
+            at org.apache.catalina.core.ContainerBase$ContainerBackgroundProcessor.run(ContainerBase.java:1590)
+            at java.lang.Thread.run(Thread.java:619)
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@627689 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/session/ManagerBase.java b/java/org/apache/catalina/session/ManagerBase.java
+index f528716..ae71cf9 100644
+--- a/java/org/apache/catalina/session/ManagerBase.java
++++ b/java/org/apache/catalina/session/ManagerBase.java
+@@ -679,7 +679,7 @@ public abstract class ManagerBase implements Manager, MBeanRegistration {
+         if(log.isDebugEnabled())
+             log.debug("Start expire sessions " + getName() + " at " + timeNow + " sessioncount " + sessions.length);
+         for (int i = 0; i < sessions.length; i++) {
+-            if (!sessions[i].isValid()) {
++            if (sessions[i]!=null && !sessions[i].isValid()) {
+                 expireHere++;
+             }
+         }

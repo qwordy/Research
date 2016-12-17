@@ -1,0 +1,37 @@
+commit 4ec435b9d77e64a8b90c7617c964ff00a79ae526
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Tue Dec 17 08:27:50 2013 +0000
+
+    Avoid a warning that executor hasn't shutdown yet if the endpoint is not configured to wait for the executor to shutdown. (BIO is configured not to wait by default as threads in keep-alive can't be interrupted.)
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1551482 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/tomcat/util/net/AbstractEndpoint.java b/java/org/apache/tomcat/util/net/AbstractEndpoint.java
+index 29771d0..9360f54 100644
+--- a/java/org/apache/tomcat/util/net/AbstractEndpoint.java
++++ b/java/org/apache/tomcat/util/net/AbstractEndpoint.java
+@@ -521,14 +521,16 @@ public abstract class AbstractEndpoint<S> {
+                 //this is our internal one, so we need to shut it down
+                 ThreadPoolExecutor tpe = (ThreadPoolExecutor) executor;
+                 tpe.shutdownNow();
+-                try {
+-                    tpe.awaitTermination(getExecutorTerminationTimeoutMillis(),
+-                            TimeUnit.MILLISECONDS);
+-                } catch (InterruptedException e) {
+-                    // Ignore
+-                }
+-                if (tpe.isTerminating()) {
+-                    getLog().warn(sm.getString("endpoint.warn.executorShutdown", getName()));
++                long timeout = getExecutorTerminationTimeoutMillis();
++                if (timeout > 0) {
++                    try {
++                        tpe.awaitTermination(timeout, TimeUnit.MILLISECONDS);
++                    } catch (InterruptedException e) {
++                        // Ignore
++                    }
++                    if (tpe.isTerminating()) {
++                        getLog().warn(sm.getString("endpoint.warn.executorShutdown", getName()));
++                    }
+                 }
+                 TaskQueue queue = (TaskQueue) tpe.getQueue();
+                 queue.setParent(null);

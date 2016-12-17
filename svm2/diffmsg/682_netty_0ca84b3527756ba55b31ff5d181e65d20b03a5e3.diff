@@ -1,0 +1,27 @@
+commit 0ca84b3527756ba55b31ff5d181e65d20b03a5e3
+Author: Frédéric Brégier <fredbregier@free.fr>
+Date:   Sat Aug 16 10:54:54 2014 +0200
+
+    Better fix for TrafficShapingHandlerTest
+    
+    Motivation:
+    It seems that in certain conditions, the write back from the server is so quick that the handler has no time to compute traffic shaping. So 10ms of wait before acknowledging is added in server side.
+    
+    Modifications:
+    Add 10ms waiting before server ackonwledge the client.
+    
+    Result:
+    The timing is now suppsed to be stable.
+
+diff --git a/testsuite/src/test/java/io/netty/testsuite/transport/socket/TrafficShapingHandlerTest.java b/testsuite/src/test/java/io/netty/testsuite/transport/socket/TrafficShapingHandlerTest.java
+index 6d6ce74..b6c116b 100644
+--- a/testsuite/src/test/java/io/netty/testsuite/transport/socket/TrafficShapingHandlerTest.java
++++ b/testsuite/src/test/java/io/netty/testsuite/transport/socket/TrafficShapingHandlerTest.java
+@@ -500,6 +500,7 @@ public class TrafficShapingHandlerTest extends AbstractSocketTest {
+                     }
+                 }
+             }
++            Thread.sleep(10);
+             loggerServer.debug("Step: " + step + " Write: " + nb);
+             for (int i = 0; i < nb; i++) {
+                 channel.write(Unpooled.copyLong(timestamp));

@@ -1,0 +1,98 @@
+commit a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
+Author: Eli Collins <eli@apache.org>
+Date:   Wed Oct 17 04:58:24 2012 +0000
+
+    HDFS-4029. GenerationStamp should use an AtomicLong. Contributed by Eli Collins
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/hadoop/common/trunk@1399096 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+index 39e0b68..bae0581 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
++++ b/hadoop-hdfs-project/hadoop-hdfs/CHANGES.txt
+@@ -394,6 +394,8 @@ Release 2.0.3-alpha - Unreleased
+     HDFS-2946. HA: Put a cap on the number of completed edits files retained
+     by the NN. (atm)
+ 
++    HDFS-4029. GenerationStamp should use an AtomicLong. (eli)
++
+   OPTIMIZATIONS
+ 
+   BUG FIXES
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/common/GenerationStamp.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/common/GenerationStamp.java
+index a076ea9..55a622a 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/common/GenerationStamp.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/common/GenerationStamp.java
+@@ -17,6 +17,8 @@
+  */
+ package org.apache.hadoop.hdfs.server.common;
+ 
++import java.util.concurrent.atomic.AtomicLong;
++
+ import org.apache.hadoop.classification.InterfaceAudience;
+ 
+ /****************************************************************
+@@ -35,7 +37,7 @@
+    */
+   public static final long GRANDFATHER_GENERATION_STAMP = 0;
+ 
+-  private volatile long genstamp;
++  private AtomicLong genstamp = new AtomicLong();
+ 
+   /**
+    * Create a new instance, initialized to FIRST_VALID_STAMP.
+@@ -48,35 +50,36 @@ public GenerationStamp() {
+    * Create a new instance, initialized to the specified value.
+    */
+   GenerationStamp(long stamp) {
+-    this.genstamp = stamp;
++    genstamp.set(stamp);
+   }
+ 
+   /**
+    * Returns the current generation stamp
+    */
+   public long getStamp() {
+-    return this.genstamp;
++    return genstamp.get();
+   }
+ 
+   /**
+    * Sets the current generation stamp
+    */
+   public void setStamp(long stamp) {
+-    this.genstamp = stamp;
++    genstamp.set(stamp);
+   }
+ 
+   /**
+    * First increments the counter and then returns the stamp 
+    */
+-  public synchronized long nextStamp() {
+-    this.genstamp++;
+-    return this.genstamp;
++  public long nextStamp() {
++    return genstamp.incrementAndGet();
+   }
+ 
+   @Override // Comparable
+   public int compareTo(GenerationStamp that) {
+-    return this.genstamp < that.genstamp ? -1 :
+-           this.genstamp > that.genstamp ? 1 : 0;
++    long stamp1 = this.genstamp.get();
++    long stamp2 = that.genstamp.get();
++    return stamp1 < stamp2 ? -1 :
++           stamp1 > stamp2 ? 1 : 0;
+   }
+ 
+   @Override // Object
+@@ -89,6 +92,7 @@ public boolean equals(Object o) {
+ 
+   @Override // Object
+   public int hashCode() {
+-    return (int) (genstamp^(genstamp>>>32));
++    long stamp = genstamp.get();
++    return (int) (stamp^(stamp>>>32));
+   }
+ }

@@ -1,0 +1,38 @@
+commit 052222615a754e5bbb5299d51470a2ccdb70a5b0
+Author: Andrew Tolbert <andrew.tolbert@datastax.com>
+Date:   Mon Jul 13 17:53:42 2015 -0400
+
+    On Windows, wait 30 seconds on stop-server then terminate
+    
+    Patch by Andrew Tolbert; reviewed by jmckenzie for CASSANDRA-9791
+
+diff --git a/bin/stop-server.ps1 b/bin/stop-server.ps1
+index 0d125dc..d1bc952 100644
+--- a/bin/stop-server.ps1
++++ b/bin/stop-server.ps1
+@@ -125,7 +125,10 @@ Function KillProcess
+ 
+                     // Must wait here. If we don't and re-enable Ctrl-C
+                     // handling below too fast, we might terminate ourselves.
+-                    proc.WaitForExit(2000);
++                    bool exited = proc.WaitForExit(30000);
++                    if(!exited)
++                        proc.Kill();
++
+                     FreeConsole();
+ 
+                     // Re-attach to current console to write output
+@@ -137,7 +140,12 @@ Function KillProcess
+                     SetConsoleCtrlHandler(null, false);
+ 
+                     if (!silent)
+-                        System.Console.WriteLine("Successfully sent ctrl+c to process with id: " + pidToKill + ".");
++                    {
++                        if(exited)
++                            System.Console.WriteLine("Successfully sent ctrl+c to process with id: " + pidToKill + ".");
++                        else
++                            System.Console.WriteLine("Process with id: " + pidToKill + " did not exit after 30 seconds, killed.");
++                    }
+                 }
+                 else
+                 {

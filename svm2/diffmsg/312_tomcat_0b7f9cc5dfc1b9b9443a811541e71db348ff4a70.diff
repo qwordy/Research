@@ -1,0 +1,32 @@
+commit 0b7f9cc5dfc1b9b9443a811541e71db348ff4a70
+Author: Filip Hanik <fhanik@apache.org>
+Date:   Tue Oct 28 16:41:36 2008 +0000
+
+    when the DB is down, don't wait and try over and over again, simply return the failure
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@708605 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/modules/jdbc-pool/java/org/apache/tomcat/jdbc/pool/ConnectionPool.java b/modules/jdbc-pool/java/org/apache/tomcat/jdbc/pool/ConnectionPool.java
+index 7950369..dc5afb8 100644
+--- a/modules/jdbc-pool/java/org/apache/tomcat/jdbc/pool/ConnectionPool.java
++++ b/modules/jdbc-pool/java/org/apache/tomcat/jdbc/pool/ConnectionPool.java
+@@ -477,8 +477,10 @@ public class ConnectionPool {
+                     }
+                     return con;
+                 } else {
++                    //validation failed.
+                     release(con);
+                     setToNull = true;
++                    throw new SQLException("Failed to validate a newly established connection.");
+                 }
+             } catch (Exception x) {
+                 release(con);                
+@@ -495,7 +497,6 @@ public class ConnectionPool {
+                 con = null;
+             }
+         }
+-        return con;
+     }
+ 
+     /**

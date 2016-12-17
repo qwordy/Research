@@ -1,0 +1,213 @@
+commit bf2430d255956ff32307aea3a5e725ee2be16dc2
+Author: Jeff Pinner <jpinner@twitter.com>
+Date:   Sat Jul 27 11:08:45 2013 -0700
+
+    Change AbstractChannel#doRegister return type from Runnable to void.
+
+diff --git a/transport/src/main/java/io/netty/channel/AbstractChannel.java b/transport/src/main/java/io/netty/channel/AbstractChannel.java
+index 72db045..db416c8 100644
+--- a/transport/src/main/java/io/netty/channel/AbstractChannel.java
++++ b/transport/src/main/java/io/netty/channel/AbstractChannel.java
+@@ -428,13 +428,10 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
+                 if (!ensureOpen(promise)) {
+                     return;
+                 }
+-                Runnable postRegisterTask = doRegister();
++                doRegister();
+                 registered = true;
+                 promise.setSuccess();
+                 pipeline.fireChannelRegistered();
+-                if (postRegisterTask != null) {
+-                    postRegisterTask.run();
+-                }
+                 if (isActive()) {
+                     pipeline.fireChannelActive();
+                 }
+@@ -731,12 +728,11 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
+ 
+     /**
+      * Is called after the {@link Channel} is registered with its {@link EventLoop} as part of the register process.
+-     * You can return a {@link Runnable} which will be run as post-task of the registration process.
+      *
+-     * Sub-classes may override this method as it will just return {@code null}
++     * Sub-classes may override this method
+      */
+-    protected Runnable doRegister() throws Exception {
+-        return null;
++    protected void doRegister() throws Exception {
++        // NOOP
+     }
+ 
+     /**
+diff --git a/transport/src/main/java/io/netty/channel/embedded/EmbeddedChannel.java b/transport/src/main/java/io/netty/channel/embedded/EmbeddedChannel.java
+index 9032839..b27c6b9 100644
+--- a/transport/src/main/java/io/netty/channel/embedded/EmbeddedChannel.java
++++ b/transport/src/main/java/io/netty/channel/embedded/EmbeddedChannel.java
+@@ -271,9 +271,8 @@ public class EmbeddedChannel extends AbstractChannel {
+     }
+ 
+     @Override
+-    protected Runnable doRegister() throws Exception {
++    protected void doRegister() throws Exception {
+         state = 1;
+-        return null;
+     }
+ 
+     @Override
+diff --git a/transport/src/main/java/io/netty/channel/local/LocalChannel.java b/transport/src/main/java/io/netty/channel/local/LocalChannel.java
+index a0962d7..7d558db 100644
+--- a/transport/src/main/java/io/netty/channel/local/LocalChannel.java
++++ b/transport/src/main/java/io/netty/channel/local/LocalChannel.java
+@@ -150,39 +150,26 @@ public class LocalChannel extends AbstractChannel {
+     }
+ 
+     @Override
+-    protected Runnable doRegister() throws Exception {
+-        final LocalChannel peer = this.peer;
+-        Runnable postRegisterTask;
+-
++    protected void doRegister() throws Exception {
+         if (peer != null) {
+             state = 2;
+ 
+             peer.remoteAddress = parent().localAddress();
+             peer.state = 2;
+ 
+-            // Ensure the peer's channelActive event is triggered *after* this channel's
+-            // channelRegistered event is triggered, so that this channel's pipeline is fully
+-            // initialized by ChannelInitializer.
+-            final EventLoop peerEventLoop = peer.eventLoop();
+-            postRegisterTask = new Runnable() {
++            // Always call peer.eventLoop().execute() even if peer.eventLoop().inEventLoop() is true.
++            // This ensures that if both channels are on the same event loop, the peer's channelActive
++            // event is triggered *after* this channel's channelRegistered event, so that this channel's
++            // pipeline is fully initialized by ChannelInitializer before any channelRead events.
++            peer.eventLoop().execute(new Runnable() {
+                 @Override
+                 public void run() {
+-                    peerEventLoop.execute(new Runnable() {
+-                        @Override
+-                        public void run() {
+-                            peer.connectPromise.setSuccess();
+-                            peer.pipeline().fireChannelActive();
+-                        }
+-                    });
++                    peer.pipeline().fireChannelActive();
++                    peer.connectPromise.setSuccess();
+                 }
+-            };
+-        } else {
+-            postRegisterTask = null;
++            });
+         }
+-
+         ((SingleThreadEventExecutor) eventLoop()).addShutdownHook(shutdownHook);
+-
+-        return postRegisterTask;
+     }
+ 
+     @Override
+diff --git a/transport/src/main/java/io/netty/channel/local/LocalServerChannel.java b/transport/src/main/java/io/netty/channel/local/LocalServerChannel.java
+index 9594eac..73647c8 100644
+--- a/transport/src/main/java/io/netty/channel/local/LocalServerChannel.java
++++ b/transport/src/main/java/io/netty/channel/local/LocalServerChannel.java
+@@ -82,9 +82,8 @@ public class LocalServerChannel extends AbstractServerChannel {
+     }
+ 
+     @Override
+-    protected Runnable doRegister() throws Exception {
++    protected void doRegister() throws Exception {
+         ((SingleThreadEventExecutor) eventLoop()).addShutdownHook(shutdownHook);
+-        return null;
+     }
+ 
+     @Override
+@@ -114,13 +113,13 @@ public class LocalServerChannel extends AbstractServerChannel {
+             return;
+         }
+ 
+-        ChannelPipeline pipeline = pipeline();
+         Queue<Object> inboundBuffer = this.inboundBuffer;
+         if (inboundBuffer.isEmpty()) {
+             acceptInProgress = true;
+             return;
+         }
+ 
++        ChannelPipeline pipeline = pipeline();
+         for (;;) {
+             Object m = inboundBuffer.poll();
+             if (m == null) {
+@@ -132,33 +131,33 @@ public class LocalServerChannel extends AbstractServerChannel {
+     }
+ 
+     LocalChannel serve(final LocalChannel peer) {
+-        LocalChannel child = new LocalChannel(this, peer);
+-        serve0(child);
++        final LocalChannel child = new LocalChannel(this, peer);
++        if (eventLoop().inEventLoop()) {
++            serve0(child);
++        } else {
++            eventLoop().execute(new Runnable() {
++              @Override
++              public void run() {
++                serve0(child);
++              }
++            });
++        }
+         return child;
+     }
+ 
+     private void serve0(final LocalChannel child) {
+-        if (eventLoop().inEventLoop()) {
+-            final ChannelPipeline pipeline = pipeline();
+-            inboundBuffer.add(child);
+-            if (acceptInProgress) {
+-                acceptInProgress = false;
+-                for (;;) {
+-                    Object m = inboundBuffer.poll();
+-                    if (m == null) {
+-                        break;
+-                    }
+-                    pipeline.fireChannelRead(m);
++        inboundBuffer.add(child);
++        if (acceptInProgress) {
++            acceptInProgress = false;
++            ChannelPipeline pipeline = pipeline();
++            for (;;) {
++                Object m = inboundBuffer.poll();
++                if (m == null) {
++                    break;
+                 }
+-                pipeline.fireChannelReadComplete();
++                pipeline.fireChannelRead(m);
+             }
+-        } else {
+-            eventLoop().execute(new Runnable() {
+-                @Override
+-                public void run() {
+-                    serve0(child);
+-                }
+-            });
++            pipeline.fireChannelReadComplete();
+         }
+     }
+ }
+diff --git a/transport/src/main/java/io/netty/channel/nio/AbstractNioChannel.java b/transport/src/main/java/io/netty/channel/nio/AbstractNioChannel.java
+index 5b71427..b2054b6 100644
+--- a/transport/src/main/java/io/netty/channel/nio/AbstractNioChannel.java
++++ b/transport/src/main/java/io/netty/channel/nio/AbstractNioChannel.java
+@@ -277,12 +277,12 @@ public abstract class AbstractNioChannel extends AbstractChannel {
+     }
+ 
+     @Override
+-    protected Runnable doRegister() throws Exception {
++    protected void doRegister() throws Exception {
+         boolean selected = false;
+         for (;;) {
+             try {
+                 selectionKey = javaChannel().register(eventLoop().selector, 0, this);
+-                return null;
++                return;
+             } catch (CancelledKeyException e) {
+                 if (!selected) {
+                     // Force the Selector to select now  as the "canceled" SelectionKey may still be

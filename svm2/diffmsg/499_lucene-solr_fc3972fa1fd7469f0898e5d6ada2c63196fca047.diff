@@ -1,0 +1,26 @@
+commit fc3972fa1fd7469f0898e5d6ada2c63196fca047
+Author: Mark Robert Miller <markrmiller@apache.org>
+Date:   Sat Mar 3 20:31:00 2012 +0000
+
+    boost how long we are willing to wait for config info to show up in cluster state
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1296692 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/solr/core/src/java/org/apache/solr/cloud/ZkController.java b/solr/core/src/java/org/apache/solr/cloud/ZkController.java
+index 3cd8122..83d400a 100644
+--- a/solr/core/src/java/org/apache/solr/cloud/ZkController.java
++++ b/solr/core/src/java/org/apache/solr/cloud/ZkController.java
+@@ -947,10 +947,10 @@ public final class ZkController {
+         collectionProps.put(CONFIGNAME_PROP,  configNames.get(0));
+         break;
+       }
+-      log.info("Could not find collection configName - pausing for 2 seconds and trying again - try: " + retry);
+-      Thread.sleep(2000);
++      log.info("Could not find collection configName - pausing for 3 seconds and trying again - try: " + retry);
++      Thread.sleep(3000);
+     }
+-    if (retry == 6) {
++    if (retry == 10) {
+       log.error("Could not find configName for collection " + collection);
+       throw new ZooKeeperException(
+           SolrException.ErrorCode.SERVER_ERROR,

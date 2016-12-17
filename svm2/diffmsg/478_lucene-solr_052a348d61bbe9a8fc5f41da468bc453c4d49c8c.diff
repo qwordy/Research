@@ -1,0 +1,21 @@
+commit 052a348d61bbe9a8fc5f41da468bc453c4d49c8c
+Author: Mark Robert Miller <markrmiller@apache.org>
+Date:   Thu Dec 13 01:59:14 2012 +0000
+
+    bump core reload test wait
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1421060 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/solr/core/src/test/org/apache/solr/cloud/BasicDistributedZkTest.java b/solr/core/src/test/org/apache/solr/cloud/BasicDistributedZkTest.java
+index fb192a3..759e8b2 100644
+--- a/solr/core/src/test/org/apache/solr/cloud/BasicDistributedZkTest.java
++++ b/solr/core/src/test/org/apache/solr/cloud/BasicDistributedZkTest.java
+@@ -922,7 +922,7 @@ public class BasicDistributedZkTest extends AbstractFullDistribZkTestBase {
+   private boolean waitForReloads(String collectionName, Map<String,Long> urlToTimeBefore) throws SolrServerException, IOException {
+     
+     
+-    long timeoutAt = System.currentTimeMillis() + 30000;
++    long timeoutAt = System.currentTimeMillis() + 45000;
+ 
+     boolean allTimesAreCorrect = false;
+     while (System.currentTimeMillis() < timeoutAt) {

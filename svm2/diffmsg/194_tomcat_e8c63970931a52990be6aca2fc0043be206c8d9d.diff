@@ -1,0 +1,42 @@
+commit e8c63970931a52990be6aca2fc0043be206c8d9d
+Author: Remy Maucherat <remm@apache.org>
+Date:   Sun Apr 27 11:24:34 2014 +0000
+
+    Cleanup the test output (mixing out and err is confusing), add some info and wait more (somehow NIO2 gets an exception later).
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1590377 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/test/org/apache/catalina/connector/TestCoyoteAdapter.java b/test/org/apache/catalina/connector/TestCoyoteAdapter.java
+index 2972587..028d077 100644
+--- a/test/org/apache/catalina/connector/TestCoyoteAdapter.java
++++ b/test/org/apache/catalina/connector/TestCoyoteAdapter.java
+@@ -295,17 +295,19 @@ public class TestCoyoteAdapter extends TomcatBaseTest {
+         client.sendRequest();
+ 
+         for (int i = 0; i < 10; i++) {
+-            System.out.println(client.readLine());
++            System.err.println(client.readLine());
+         }
+ 
+         client.disconnect();
+ 
+         // Wait for server thread to stop
+         int count = 0;
+-        while (servlet.getThread().isAlive() && count < 10) {
++        while (servlet.getThread().isAlive() && count < 20) {
+             Thread.sleep(250);
+             count ++;
+         }
++        System.err.println("Wait for " + (count * 250) + "ms");
++
+         Assert.assertTrue(servlet.isCompleted());
+     }
+ 
+@@ -348,6 +350,7 @@ public class TestCoyoteAdapter extends TomcatBaseTest {
+                             os.flush();
+                             Thread.sleep(1000);
+                         } catch (Exception e) {
++                            System.err.println("Exception caught " + e.getMessage());
+                             try {
+                                 // Note if request times out before this
+                                 // exception is thrown and the complete call

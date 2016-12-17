@@ -10,11 +10,16 @@ public class ConcurrentKeywords {
   public static List<String> list = Arrays.asList(
       "synchronized",
       "volatile",
+
+      "wait",
       "notify",
       "notifyAll",
       "await",
       "signal",
       "signalAll",
+
+      "Thread",
+      "Runnable",
 
       "BlockingDeque",
       "BlockingQueue",

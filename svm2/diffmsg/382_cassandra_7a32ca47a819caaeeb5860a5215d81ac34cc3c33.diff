@@ -1,0 +1,23 @@
+commit 7a32ca47a819caaeeb5860a5215d81ac34cc3c33
+Author: Brandon Williams <brandonwilliams@apache.org>
+Date:   Fri Oct 22 21:12:18 2010 +0000
+
+    Don't wait for confirmation when removing token and RF=1.  Patch by Nick Bailey, reviewed by brandonwilliams for CASSANDRA-1650
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/trunk@1026494 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/java/org/apache/cassandra/service/StorageService.java b/src/java/org/apache/cassandra/service/StorageService.java
+index c96d1b4..d1f8ec1 100644
+--- a/src/java/org/apache/cassandra/service/StorageService.java
++++ b/src/java/org/apache/cassandra/service/StorageService.java
+@@ -1779,6 +1779,10 @@ public class StorageService implements IEndpointStateChangeSubscriber, StorageSe
+         replicatingNodes = Collections.synchronizedSet(new HashSet<InetAddress>());
+         for (String table : DatabaseDescriptor.getNonSystemTables())
+         {
++            // if the replication factor is 1 the data is lost so we shouldn't wait for confirmation
++            if (DatabaseDescriptor.getReplicationFactor(table) == 1)
++                continue;
++
+             // get all ranges that change ownership (that is, a node needs
+             // to take responsibility for new range)
+             Multimap<Range, InetAddress> changedRanges = getChangedRangesForLeaving(table, endpoint);

@@ -1,0 +1,38 @@
+commit 58b3c61f639e3e53597f76898714a0cf2e9ee194
+Author: Konstantin Kolinko <kkolinko@apache.org>
+Date:   Sat Oct 25 23:47:53 2014 +0000
+
+    Improve test for BZ 54928: Cut down wait time by using Thread.join(time) instead of Thread.sleep().
+    
+    The actual wait time after the change becomes 2s instead of 250ms.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1634260 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/test/org/apache/catalina/connector/TestCoyoteAdapter.java b/test/org/apache/catalina/connector/TestCoyoteAdapter.java
+index b6ee16b..f603a17 100644
+--- a/test/org/apache/catalina/connector/TestCoyoteAdapter.java
++++ b/test/org/apache/catalina/connector/TestCoyoteAdapter.java
+@@ -315,13 +315,17 @@ public class TestCoyoteAdapter extends TomcatBaseTest {
+         client.disconnect();
+ 
+         // Wait for server thread to stop
+-        int count = 0;
+-        while (servlet.getThread().isAlive() && count < 20) {
+-            Thread.sleep(250);
+-            count ++;
++        Thread t = servlet.getThread();
++        long startTime = System.nanoTime();
++        for (int count = 0; t.isAlive() && count < 20; count++) {
++            t.join(250);
++            if (!t.isAlive()) {
++                break;
++            }
+         }
+-        log.info("Waited for servlet thread to stop for " + (count * 250)
+-                + " ms");
++        long endTime = System.nanoTime();
++        log.info("Waited for servlet thread to stop for "
++                + (endTime - startTime) / 1000000 + " ms");
+ 
+         Assert.assertTrue(servlet.isCompleted());
+     }

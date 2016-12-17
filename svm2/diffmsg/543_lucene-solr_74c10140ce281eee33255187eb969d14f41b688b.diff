@@ -1,0 +1,27 @@
+commit 74c10140ce281eee33255187eb969d14f41b688b
+Author: Mark Robert Miller <markrmiller@apache.org>
+Date:   Mon Jun 8 16:07:12 2009 +0000
+
+    add a wait and retry for test that can fail on slower/busy machines
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/solr/trunk@782691 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/test/org/apache/solr/client/solrj/SolrExampleTests.java b/src/test/org/apache/solr/client/solrj/SolrExampleTests.java
+index 23750f9..7632801 100644
+--- a/src/test/org/apache/solr/client/solrj/SolrExampleTests.java
++++ b/src/test/org/apache/solr/client/solrj/SolrExampleTests.java
+@@ -229,6 +229,14 @@ abstract public class SolrExampleTests extends SolrExampleTestBase
+ 
+     // now check that it comes out...
+     rsp = server.query( new SolrQuery( "id:id3") );
++    
++    if(rsp.getResults().getNumFound() == 0) {
++      // wait and try again for slower machines
++      Thread.sleep( 2000 ); // wait 1/2 seconds...
++      
++      rsp = server.query( new SolrQuery( "id:id3") );
++    }
++    
+     Assert.assertEquals( 1, rsp.getResults().getNumFound() );
+   }
+   

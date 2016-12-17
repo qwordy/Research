@@ -1,0 +1,71 @@
+commit 505fb12330c6cb948ff829a7cace1ca4054207d1
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Thu Jan 23 12:13:48 2014 +0000
+
+    Clean-up
+     - Container will always be a Context
+     - only need one call to Thread.currentThread().getContextClassLoader()
+     - Fix logic hole if loader.getClassLoader() returns null
+     - Formatting to make code easier to read
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1560651 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/ha/session/ClusterManagerBase.java b/java/org/apache/catalina/ha/session/ClusterManagerBase.java
+index cad20e4..395429d 100644
+--- a/java/org/apache/catalina/ha/session/ClusterManagerBase.java
++++ b/java/org/apache/catalina/ha/session/ClusterManagerBase.java
+@@ -14,14 +14,12 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
+ package org.apache.catalina.ha.session;
+ 
+ import java.io.ByteArrayInputStream;
+ import java.io.IOException;
+ import java.util.regex.Pattern;
+ 
+-import org.apache.catalina.Container;
+ import org.apache.catalina.Context;
+ import org.apache.catalina.Loader;
+ import org.apache.catalina.ha.CatalinaCluster;
+@@ -34,9 +32,7 @@ import org.apache.catalina.tribes.io.ReplicationStream;
+  * @author Filip Hanik
+  * @version $Id$
+  */
+-
+-public abstract class ClusterManagerBase extends ManagerBase
+-        implements ClusterManager {
++public abstract class ClusterManagerBase extends ManagerBase implements ClusterManager {
+ 
+     /**
+      * A reference to the cluster
+@@ -127,18 +123,20 @@ public abstract class ClusterManagerBase extends ManagerBase
+         return sessionAttributePattern.matcher(name).matches();
+     }
+ 
+-    public static ClassLoader[] getClassLoaders(Container container) {
+-        Loader loader = null;
++    public static ClassLoader[] getClassLoaders(Context context) {
++        ClassLoader tccl = Thread.currentThread().getContextClassLoader();
++        Loader loader = context.getLoader();
+         ClassLoader classLoader = null;
+-        if (container instanceof Context) {
+-            loader = ((Context) container).getLoader();
++        if (loader != null) {
++            classLoader = loader.getClassLoader();
++        }
++        if (classLoader == null) {
++            classLoader = tccl;
+         }
+-        if (loader != null) classLoader = loader.getClassLoader();
+-        else classLoader = Thread.currentThread().getContextClassLoader();
+-        if ( classLoader == Thread.currentThread().getContextClassLoader() ) {
++        if (classLoader == tccl) {
+             return new ClassLoader[] {classLoader};
+         } else {
+-            return new ClassLoader[] {classLoader,Thread.currentThread().getContextClassLoader()};
++            return new ClassLoader[] {classLoader, tccl};
+         }
+     }
+ 

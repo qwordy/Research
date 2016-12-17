@@ -1,0 +1,21 @@
+commit 5141a5b8421021bce74666e812f56aab981e2f10
+Author: Mark Robert Miller <markrmiller@apache.org>
+Date:   Sun Oct 20 17:53:33 2013 +0000
+
+    SOLR-5369: first try - wait a little longer
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1533929 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/solr/core/src/test/org/apache/solr/cloud/SliceStateUpdateTest.java b/solr/core/src/test/org/apache/solr/cloud/SliceStateUpdateTest.java
+index 27678f2..d896c75 100644
+--- a/solr/core/src/test/org/apache/solr/cloud/SliceStateUpdateTest.java
++++ b/solr/core/src/test/org/apache/solr/cloud/SliceStateUpdateTest.java
+@@ -167,7 +167,7 @@ public class SliceStateUpdateTest extends SolrTestCaseJ4 {
+     ZkController zkController2 = container2.getZkController();
+     ClusterState clusterState2 = null;
+     Map<String, Slice> slices = null;
+-    for (int i = 75; i > 0; i--) {
++    for (int i = 100; i > 0; i--) {
+       clusterState2 = zkController2.getClusterState();
+       slices = clusterState2.getSlicesMap("collection1");
+       if (slices != null && slices.containsKey("shard1")

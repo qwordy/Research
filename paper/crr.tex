@@ -244,7 +244,7 @@ The rest of paper is organized as follows: Section 2 presents the methodology of
 \section{Methodology}
 This section presents the project sources of our study, research questions and methods of doing the study. We have  developed a tool supporting the empirical study.
 
-\subsection{Project Sources} We investigate 8 Java open-source projects from Github including Hadoop, Tomcat, Cassandra, Lucene-solr, Netty, Flink, Guava and Mahout as shown in Table 1. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. For example, the Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Tomcat is the most popular implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technologies. Cassandra is a database system which can Manage massive amounts of data, fast, without losing sleep. Table 1 shows the lines of code in Java, the number of Java files and the number of commits of each project. All the projects are checked out for our study in November 2016.
+\subsection{Project Sources} We investigate 8 Java open-source projects from Github including Hadoop, Tomcat, Cassandra, Lucene-solr, Netty, Flink, Guava and Mahout as shown in Table 1. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. The Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Tomcat is the most popular implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technologies. Cassandra is a database system which can Manage massive amounts of data, fast, without losing sleep. Lucene-solr is two projects together in one respository in Github. Lucene is a search engine library and solr is a search engine server which uses lucene. Netty is an event-driven asynchronous network application framework. Flink is an open source stream processing framework with powerful stream- and batch-processing capabilities. Mahout is a machine learning project. Table 1 shows the lines of code in Java, the number of Java files and the number of commits of each project. All the projects are checked out for our study in November 2016.
 
 \begin{table}
 \centering
@@ -267,13 +267,13 @@ In order to understand the evolution of concurrent code better, we proposed 3 re
 
 \textbf{RQ1.} How frequent do concurrent related code modification appear in different kind of Java open-source projects?
 
-Concurrent programming is very popular in today's Java development with the rapid developments of multi-core techniques which help exploit the power of concurrent programming. Java programming language provides convenient built-in concurrent libraries and users can also invoke third-party libraries. We want to know how frequent do concurrent related code change in different kind of repositories.
+Concurrent programming is very popular in today's Java development with the rapid developments of multi-core techniques which help exploit the power of concurrent programming. Java programming language provides convenient built-in concurrent libraries and users can also invoke third-party libraries. We want to know how frequent do concurrent related code modification in different kind of repositories.
 
-\textbf{RQ2.} What is the trend of certain concurrent program construct?
+\textbf{RQ2.} What is the trend of certain concurrent programming construct usage statistically?
 
-\textbf{RQ3.} Is there any change pattern in concurrent related code?
+\textbf{RQ3.} Is there any change pattern in concurrent programming?
 
-\textbf{RQ4.} How can similar code changes in history guide the new modification in development?
+\textbf{RQ4.} How can these change patterns in history guide the maintaining in development?
 
 \subsection{Methods}
 All the projects of our study are under git which is one of the most popular version control systems in the world. Some projects of the study used svn or some other version control systems before because they have long histories, but they all support git now. We employ JGit, a  lightweight, pure java library implementation of git, to retrieve all the commit logs in projects' histories. A typical commit log contains commit id which is a 20-character-long string uniquely identifying a commit, author, date and message. Once we get a commit id, we use "git show" command to show the log message and textual diff. The diff result contains one or more change files which contain one or more change hunks.
@@ -385,17 +385,26 @@ This research provides some implications from different kinds of perspectives.
 
 (1) Developers are facing more and more concurrent programming requirements now. But concurrent programming is notoriously error-prone because of the complexity of data synchronization and thread interleaving. Our study gives developers some guidelines of writing concurrent programs. First, use handy concurrent libraries to finish the job instead of rewrite them by yourself unless all the available concurrent libraries cannot satisfy your requirement and you are absolutely confident of your comcurrent programming skills. Using existing libraries allows you to  write less code to finish the same work and enjoy the high quality of implementation which is always reliable, strong and fast.
 
-(2) Automatic tools are needed to help developers inspect and revise concurrent programs. There has already been some tools, but they 
+(2) Automatic tools are needed to help developers inspect and revise concurrent programs with the help of history information. There has already been some tools, but they usually look for concurrent bugs such as race detection, deadlock detection and atomicity violation without considering software evolution history. Both project specific and project independent transformation patterns exist in real-world software projects. So we need some concurrent code refactoring tools to give advice of what code need change and perform the transformations automatically. Developers will benefit a lot if such kind of automatic tools can actually help them automate their development and maintaining activities.
+
+(3) 
 
 \section{Related work}
-The related work includes refactoring, 
+The related work includes studies on concurrent program, transformation pattern and refactoring.
 
-\textbf{Studies on concurrent programs}
+\textbf{Studies on concurrent program}
+
+\textbf{Transformation pattern}
 
 \textbf{Refactoring}
 
 \section{Future work}
 We have learned that similar code changes of concurrent related code are common in history of software evolution. This indicates some automatic tools may help developers maintain their code. 
+
+Identify and extract transformation pattern in concurrent programs.
+
+Apply the patterns to new suitable context.
+
 \section{Conclusion}
 We conduct a study on similar code changes of concurrent related code.
 

@@ -1,0 +1,9 @@
+commit 73f3a45e97553dcdc2208d81b2cf7addf07d3746
+Merge: 30fabea b145a8a
+Author: Norman Maurer <norman@apache.org>
+Date:   Thu Mar 29 05:05:22 2012 -0700
+
+    Merge pull request #244 from netty/thread_model_refactor
+    
+    Thread model refactoring, which remove the usage of a boss thread. See #240
+

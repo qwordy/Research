@@ -1,0 +1,73 @@
+commit b7091c82be9b850d56f0156d74686ff0616f48d7
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Wed Jan 29 21:17:35 2014 +0000
+
+    Saw a failure on Windows.
+    Switch to our standard pattern for waiting that allows the possibility of a long wait but will finish sooner if it can rather than using a fixed wait.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1562596 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/test/org/apache/catalina/authenticator/TestSSOnonLoginAndBasicAuthenticator.java b/test/org/apache/catalina/authenticator/TestSSOnonLoginAndBasicAuthenticator.java
+index 57fa6b5..e595c0b 100644
+--- a/test/org/apache/catalina/authenticator/TestSSOnonLoginAndBasicAuthenticator.java
++++ b/test/org/apache/catalina/authenticator/TestSSOnonLoginAndBasicAuthenticator.java
+@@ -99,9 +99,8 @@ public class TestSSOnonLoginAndBasicAuthenticator extends TomcatBaseTest {
+ 
+     // now compute some delays - beware of the units!
+     private static final int EXTRA_DELAY_SECS = 5;
+-    private static final long REASONABLE_MSECS_TO_EXPIRY =
+-            (((MANAGER_SCAN_INTERVAL_SECS * MANAGER_EXPIRE_SESSIONS_FAST)
+-                    + EXTRA_DELAY_SECS) * 1000);
++    private static final int TIMEOUT_WAIT_SECS =  EXTRA_DELAY_SECS +
++            (MANAGER_SCAN_INTERVAL_SECS * MANAGER_EXPIRE_SESSIONS_FAST) * 5;
+ 
+     private static final String CLIENT_AUTH_HEADER = "authorization";
+     private static final String SERVER_AUTH_HEADER = "WWW-Authenticate";
+@@ -167,7 +166,7 @@ public class TestSSOnonLoginAndBasicAuthenticator extends TomcatBaseTest {
+      * Wait until the SSO session times-out, then try to re-access
+      * the resource. This should be rejected with SC_FORBIDDEN 401 status.
+      *
+-     * Note: this test will run for slightly more than 1 minute.
++     * Note: this test should run for ~10 seconds.
+      */
+     @Test
+     public void testBasicAccessAndSessionTimeout() throws Exception {
+@@ -310,7 +309,7 @@ public class TestSSOnonLoginAndBasicAuthenticator extends TomcatBaseTest {
+      *
+      * (see bugfix https://issues.apache.org/bugzilla/show_bug.cgi?id=52303)
+      *
+-     * Note: this test will run for slightly more than 3 minutes.
++     * Note: this test should run for ~20 seconds.
+      */
+     @Test
+     public void testBasicExpiredAcceptProtectedWithCookies() throws Exception {
+@@ -601,13 +600,27 @@ public class TestSSOnonLoginAndBasicAuthenticator extends TomcatBaseTest {
+                 // leave it to be expired by the manager
+             }
+         }
++
++
+         try {
+-            Thread.sleep(REASONABLE_MSECS_TO_EXPIRY);
++            Thread.sleep(EXTRA_DELAY_SECS * 1000);
+         } catch (InterruptedException ie) {
+             // ignored
+         }
+ 
+-        // paranoid verification that active sessions have now gone
++        // Paranoid verification that active sessions have now gone
++        int count = 0;
++        sessions = manager.findSessions();
++        while (sessions.length != 0 && count < TIMEOUT_WAIT_SECS) {
++            try {
++                Thread.sleep(1000);
++            } catch (InterruptedException e) {
++                // Ignore
++            }
++            sessions = manager.findSessions();
++            count++;
++        }
++
+         sessions = manager.findSessions();
+         assertTrue(sessions.length == 0);
+     }

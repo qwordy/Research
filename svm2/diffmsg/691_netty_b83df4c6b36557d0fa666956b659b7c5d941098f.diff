@@ -1,0 +1,271 @@
+commit b83df4c6b36557d0fa666956b659b7c5d941098f
+Author: Idel Pivnitskiy <Idel.Pivnitskiy@gmail.com>
+Date:   Sat Jul 19 21:51:19 2014 +0400
+
+    Fix NPE problems
+    
+    Motivation:
+    
+    Now Netty has a few problems with null values.
+    
+    Modifications:
+    
+    - Check HAProxyProxiedProtocol in HAProxyMessage constructor and throw NPE if it is null.
+    If HAProxyProxiedProtocol is null we will set AddressFamily as null. So we will get NPE inside checkAddress(String, AddressFamily) and it won't be easy to understand why addrFamily is null.
+    - Check File in DiskFileUpload.toString().
+    If File is null we will get NPE when calling toString() method.
+    - Check Result<String> in MqttDecoder.decodeConnectionPayload(...).
+    If !mqttConnectVariableHeader.isWillFlag() || !mqttConnectVariableHeader.hasUserName() || !mqttConnectVariableHeader.hasPassword() we will get NPE when we will try to create new instance of MqttConnectPayload.
+    - Check Unsafe before calling unsafe.getClass() in PlatformDependent0 static block.
+    - Removed unnecessary null check in WebSocket08FrameEncoder.encode(...).
+    Because msg.content() can not return null.
+    - Removed unnecessary null check in DefaultStompFrame(StompCommand) constructor.
+    Because we have this check in the super class.
+    - Removed unnecessary null checks in ConcurrentHashMapV8.removeTreeNode(TreeNode<K,V>).
+    - Removed unnecessary null check in OioDatagramChannel.doReadMessages(List<Object>).
+    Because tmpPacket.getSocketAddress() always returns new SocketAddress instance.
+    - Removed unnecessary null check in OioServerSocketChannel.doReadMessages(List<Object>).
+    Because socket.accept() always returns new Socket instance.
+    - Pass Unpooled.buffer(0) instead of null inside CloseWebSocketFrame(boolean, int) constructor.
+    If we will pass null we will get NPE in super class constructor.
+    - Added throw new IllegalStateException in GlobalEventExecutor.awaitInactivity(long, TimeUnit) if it will be called before GlobalEventExecutor.execute(Runnable).
+    Because now we will get NPE. IllegalStateException will be better in this case.
+    - Fixed null check in OpenSslServerContext.setTicketKeys(byte[]).
+    Now we throw new NPE if byte[] is not null.
+    
+    Result:
+    
+    Added new null checks when it is necessary, removed unnecessary null checks and fixed some NPE problems.
+
+diff --git a/codec-haproxy/src/main/java/io/netty/handler/codec/haproxy/HAProxyMessage.java b/codec-haproxy/src/main/java/io/netty/handler/codec/haproxy/HAProxyMessage.java
+index 5589d0d..f9e9d33 100644
+--- a/codec-haproxy/src/main/java/io/netty/handler/codec/haproxy/HAProxyMessage.java
++++ b/codec-haproxy/src/main/java/io/netty/handler/codec/haproxy/HAProxyMessage.java
+@@ -74,12 +74,10 @@ public final class HAProxyMessage {
+             HAProxyProtocolVersion protocolVersion, HAProxyCommand command, HAProxyProxiedProtocol proxiedProtocol,
+             String sourceAddress, String destinationAddress, int sourcePort, int destinationPort) {
+ 
+-        AddressFamily addrFamily;
+-        if (proxiedProtocol != null) {
+-            addrFamily = proxiedProtocol.addressFamily();
+-        } else {
+-            addrFamily = null;
++        if (proxiedProtocol == null) {
++            throw new NullPointerException("proxiedProtocol");
+         }
++        AddressFamily addrFamily = proxiedProtocol.addressFamily();
+ 
+         checkAddress(sourceAddress, addrFamily);
+         checkAddress(destinationAddress, addrFamily);
+diff --git a/codec-http/src/main/java/io/netty/handler/codec/http/multipart/DiskFileUpload.java b/codec-http/src/main/java/io/netty/handler/codec/http/multipart/DiskFileUpload.java
+index 41afd2c..c674272 100644
+--- a/codec-http/src/main/java/io/netty/handler/codec/http/multipart/DiskFileUpload.java
++++ b/codec-http/src/main/java/io/netty/handler/codec/http/multipart/DiskFileUpload.java
+@@ -140,7 +140,7 @@ public class DiskFileUpload extends AbstractDiskHttpData implements FileUpload {
+                 HttpHeaders.Names.CONTENT_LENGTH + ": " + length() + "\r\n" +
+                 "Completed: " + isCompleted() +
+                 "\r\nIsInMemory: " + isInMemory() + "\r\nRealFile: " +
+-                file.getAbsolutePath() + " DefaultDeleteAfter: " +
++                (file != null ? file.getAbsolutePath() : "null") + " DefaultDeleteAfter: " +
+                 deleteOnExitTemporaryFile;
+     }
+ 
+diff --git a/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/CloseWebSocketFrame.java b/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/CloseWebSocketFrame.java
+index 8b060f6..9f6768b 100644
+--- a/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/CloseWebSocketFrame.java
++++ b/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/CloseWebSocketFrame.java
+@@ -54,7 +54,7 @@ public class CloseWebSocketFrame extends WebSocketFrame {
+      *            reserved bits used for protocol extensions
+      */
+     public CloseWebSocketFrame(boolean finalFragment, int rsv) {
+-        this(finalFragment, rsv, null);
++        this(finalFragment, rsv, Unpooled.buffer(0));
+     }
+ 
+     /**
+diff --git a/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocket08FrameEncoder.java b/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocket08FrameEncoder.java
+index bdad55b..1589a97 100644
+--- a/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocket08FrameEncoder.java
++++ b/codec-http/src/main/java/io/netty/handler/codec/http/websocketx/WebSocket08FrameEncoder.java
+@@ -54,7 +54,6 @@
+ package io.netty.handler.codec.http.websocketx;
+ 
+ import io.netty.buffer.ByteBuf;
+-import io.netty.buffer.Unpooled;
+ import io.netty.channel.ChannelHandlerContext;
+ import io.netty.handler.codec.MessageToMessageEncoder;
+ import io.netty.handler.codec.TooLongFrameException;
+@@ -96,14 +95,9 @@ public class WebSocket08FrameEncoder extends MessageToMessageEncoder<WebSocketFr
+ 
+     @Override
+     protected void encode(ChannelHandlerContext ctx, WebSocketFrame msg, List<Object> out) throws Exception {
+-
++        final ByteBuf data = msg.content();
+         byte[] mask;
+ 
+-        ByteBuf data = msg.content();
+-        if (data == null) {
+-            data = Unpooled.EMPTY_BUFFER;
+-        }
+-
+         byte opcode;
+         if (msg instanceof TextWebSocketFrame) {
+             opcode = OPCODE_TEXT;
+diff --git a/codec-mqtt/src/main/java/io/netty/handler/codec/mqtt/MqttDecoder.java b/codec-mqtt/src/main/java/io/netty/handler/codec/mqtt/MqttDecoder.java
+index 3013393..16052b4 100644
+--- a/codec-mqtt/src/main/java/io/netty/handler/codec/mqtt/MqttDecoder.java
++++ b/codec-mqtt/src/main/java/io/netty/handler/codec/mqtt/MqttDecoder.java
+@@ -348,10 +348,10 @@ public class MqttDecoder extends ReplayingDecoder<DecoderState> {
+         final MqttConnectPayload mqttConnectPayload =
+                 new MqttConnectPayload(
+                         decodedClientId.value,
+-                        decodedWillTopic.value,
+-                        decodedWillMessage.value,
+-                        decodedUserName.value,
+-                        decodedPassword.value);
++                        decodedWillTopic != null ? decodedWillTopic.value : null,
++                        decodedWillMessage != null ? decodedWillMessage.value : null,
++                        decodedUserName != null ? decodedUserName.value : null,
++                        decodedPassword != null ? decodedPassword.value : null);
+         return new Result<MqttConnectPayload>(mqttConnectPayload, numberOfBytesConsumed);
+     }
+ 
+diff --git a/codec-stomp/src/main/java/io/netty/handler/codec/stomp/DefaultStompFrame.java b/codec-stomp/src/main/java/io/netty/handler/codec/stomp/DefaultStompFrame.java
+index 90ed4a7..f400960 100644
+--- a/codec-stomp/src/main/java/io/netty/handler/codec/stomp/DefaultStompFrame.java
++++ b/codec-stomp/src/main/java/io/netty/handler/codec/stomp/DefaultStompFrame.java
+@@ -28,9 +28,6 @@ public class DefaultStompFrame extends DefaultStompHeadersSubframe implements St
+ 
+     public DefaultStompFrame(StompCommand command) {
+         this(command, Unpooled.buffer(0));
+-        if (command == null) {
+-            throw new NullPointerException("command");
+-        }
+     }
+ 
+     public DefaultStompFrame(StompCommand command, ByteBuf content) {
+diff --git a/common/src/main/java/io/netty/util/concurrent/GlobalEventExecutor.java b/common/src/main/java/io/netty/util/concurrent/GlobalEventExecutor.java
+index 342679c..b9227d7 100644
+--- a/common/src/main/java/io/netty/util/concurrent/GlobalEventExecutor.java
++++ b/common/src/main/java/io/netty/util/concurrent/GlobalEventExecutor.java
+@@ -199,10 +199,11 @@ public final class GlobalEventExecutor extends AbstractEventExecutor {
+             throw new NullPointerException("unit");
+         }
+ 
+-        Thread thread = this.thread;
+-        if (thread != null) {
+-            thread.join(unit.toMillis(timeout));
++        final Thread thread = this.thread;
++        if (thread == null) {
++            throw new IllegalStateException("thread was not started");
+         }
++        thread.join(unit.toMillis(timeout));
+         return !thread.isAlive();
+     }
+ 
+diff --git a/common/src/main/java/io/netty/util/internal/PlatformDependent0.java b/common/src/main/java/io/netty/util/internal/PlatformDependent0.java
+index f58be03..39414f3 100644
+--- a/common/src/main/java/io/netty/util/internal/PlatformDependent0.java
++++ b/common/src/main/java/io/netty/util/internal/PlatformDependent0.java
+@@ -80,16 +80,17 @@ final class PlatformDependent0 {
+                 Field unsafeField = Unsafe.class.getDeclaredField("theUnsafe");
+                 unsafeField.setAccessible(true);
+                 unsafe = (Unsafe) unsafeField.get(null);
+-                logger.debug("sun.misc.Unsafe.theUnsafe: {}", unsafe != null? "available" : "unavailable");
++                logger.debug("sun.misc.Unsafe.theUnsafe: {}", unsafe != null ? "available" : "unavailable");
+ 
+                 // Ensure the unsafe supports all necessary methods to work around the mistake in the latest OpenJDK.
+                 // https://github.com/netty/netty/issues/1061
+                 // http://www.mail-archive.com/jdk6-dev@openjdk.java.net/msg00698.html
+                 try {
+-                    unsafe.getClass().getDeclaredMethod(
+-                            "copyMemory", Object.class, long.class, Object.class, long.class, long.class);
+-
+-                    logger.debug("sun.misc.Unsafe.copyMemory: available");
++                    if (unsafe != null) {
++                        unsafe.getClass().getDeclaredMethod(
++                                "copyMemory", Object.class, long.class, Object.class, long.class, long.class);
++                        logger.debug("sun.misc.Unsafe.copyMemory: available");
++                    }
+                 } catch (NoSuchMethodError t) {
+                     logger.debug("sun.misc.Unsafe.copyMemory: unavailable");
+                     throw t;
+diff --git a/common/src/main/java/io/netty/util/internal/chmv8/ConcurrentHashMapV8.java b/common/src/main/java/io/netty/util/internal/chmv8/ConcurrentHashMapV8.java
+index fa69fc5..72c2705 100644
+--- a/common/src/main/java/io/netty/util/internal/chmv8/ConcurrentHashMapV8.java
++++ b/common/src/main/java/io/netty/util/internal/chmv8/ConcurrentHashMapV8.java
+@@ -2830,14 +2830,14 @@ public class ConcurrentHashMapV8<K,V>
+                             else
+                                 sp.right = p;
+                         }
+-                        if ((s.right = pr) != null)
+-                            pr.parent = s;
++                        s.right = pr;
++                        pr.parent = s;
+                     }
+                     p.left = null;
++                    s.left = pl;
++                    pl.parent = s;
+                     if ((p.right = sr) != null)
+                         sr.parent = p;
+-                    if ((s.left = pl) != null)
+-                        pl.parent = s;
+                     if ((s.parent = pp) == null)
+                         r = s;
+                     else if (p == pp.left)
+diff --git a/handler/src/main/java/io/netty/handler/ssl/OpenSslServerContext.java b/handler/src/main/java/io/netty/handler/ssl/OpenSslServerContext.java
+index b1a0257..a62c6d7 100644
+--- a/handler/src/main/java/io/netty/handler/ssl/OpenSslServerContext.java
++++ b/handler/src/main/java/io/netty/handler/ssl/OpenSslServerContext.java
+@@ -322,7 +322,7 @@ public final class OpenSslServerContext extends SslContext {
+      * Sets the SSL session ticket keys of this context.
+      */
+     public void setTicketKeys(byte[] keys) {
+-        if (keys != null) {
++        if (keys == null) {
+             throw new NullPointerException("keys");
+         }
+         SSLContext.setSessionTicketKeys(ctx, keys);
+diff --git a/transport/src/main/java/io/netty/channel/socket/oio/OioDatagramChannel.java b/transport/src/main/java/io/netty/channel/socket/oio/OioDatagramChannel.java
+index eeab486..f8e96e6 100644
+--- a/transport/src/main/java/io/netty/channel/socket/oio/OioDatagramChannel.java
++++ b/transport/src/main/java/io/netty/channel/socket/oio/OioDatagramChannel.java
+@@ -209,9 +209,6 @@ public class OioDatagramChannel extends AbstractOioMessageChannel
+             socket.receive(tmpPacket);
+ 
+             InetSocketAddress remoteAddr = (InetSocketAddress) tmpPacket.getSocketAddress();
+-            if (remoteAddr == null) {
+-                remoteAddr = remoteAddress();
+-            }
+ 
+             int readBytes = tmpPacket.getLength();
+             allocHandle.record(readBytes);
+diff --git a/transport/src/main/java/io/netty/channel/socket/oio/OioServerSocketChannel.java b/transport/src/main/java/io/netty/channel/socket/oio/OioServerSocketChannel.java
+index 72ce74c..ed2e019 100644
+--- a/transport/src/main/java/io/netty/channel/socket/oio/OioServerSocketChannel.java
++++ b/transport/src/main/java/io/netty/channel/socket/oio/OioServerSocketChannel.java
+@@ -153,18 +153,14 @@ public class OioServerSocketChannel extends AbstractOioMessageChannel
+         try {
+             Socket s = socket.accept();
+             try {
+-                if (s != null) {
+-                    buf.add(new OioSocketChannel(this, s));
+-                    return 1;
+-                }
++                buf.add(new OioSocketChannel(this, s));
++                return 1;
+             } catch (Throwable t) {
+                 logger.warn("Failed to create a new channel from an accepted socket.", t);
+-                if (s != null) {
+-                    try {
+-                        s.close();
+-                    } catch (Throwable t2) {
+-                        logger.warn("Failed to close a socket.", t2);
+-                    }
++                try {
++                    s.close();
++                } catch (Throwable t2) {
++                    logger.warn("Failed to close a socket.", t2);
+                 }
+             }
+         } catch (SocketTimeoutException e) {

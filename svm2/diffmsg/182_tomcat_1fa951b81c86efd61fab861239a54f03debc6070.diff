@@ -1,0 +1,23 @@
+commit 1fa951b81c86efd61fab861239a54f03debc6070
+Author: Mark Thomas <markt@apache.org>
+Date:   Mon Nov 24 10:19:22 2014 +0000
+
+    Process.waitFor() isn't reliable (see the CGI servlet code for more details).
+    Instead, wait for the reading of stdout and stderr to complete.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1641356 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/test/org/apache/tomcat/util/net/jsse/openssl/TesterOpenSSL.java b/test/org/apache/tomcat/util/net/jsse/openssl/TesterOpenSSL.java
+index d254f0f..4f9ac34 100644
+--- a/test/org/apache/tomcat/util/net/jsse/openssl/TesterOpenSSL.java
++++ b/test/org/apache/tomcat/util/net/jsse/openssl/TesterOpenSSL.java
+@@ -178,7 +178,8 @@ public class TesterOpenSSL {
+         t2.start();
+ 
+         try {
+-            p.waitFor();
++            t1.join();
++            t2.join();
+         } catch (InterruptedException e) {
+             throw new IOException(e);
+         }

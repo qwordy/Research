@@ -1,0 +1,217 @@
+commit ab1bb9136b384e4722feebe2f0e9377cd88fd39a
+Author: Norman Maurer <norman_maurer@apple.com>
+Date:   Wed May 20 07:27:55 2015 +0200
+
+    [#3654] Synchronize on PoolSubpage head when allocate / free PoolSubpages
+    
+    Motivation:
+    
+    Currently we hold a lock on the PoolArena when we allocate / free PoolSubpages, which is wasteful as this also affects "normal" allocations. The same is true vice-verse.
+    
+    Modifications:
+    
+    Ensure we synchronize on the head of the PoolSubPages pool. This is done per size and so it is possible to concurrently allocate / deallocate PoolSubPages with different sizes, and also normal allocations.
+    
+    Result:
+    
+    Less condition and so faster allocation/deallocation.
+    
+    Before this commit:
+    xxx:~/wrk $ ./wrk -H 'Connection: keep-alive' -d 120 -c 256 -t 16 -s scripts/pipeline-many.lua  http://xxx:8080/plaintext
+    Running 2m test @ http://xxx:8080/plaintext
+      16 threads and 256 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency    17.61ms   29.52ms 689.73ms   97.27%
+        Req/Sec   278.93k    41.97k  351.04k    84.83%
+      530527460 requests in 2.00m, 71.64GB read
+    Requests/sec: 4422226.13
+    Transfer/sec:    611.52MB
+    
+    After this commit:
+    xxx:~/wrk $ ./wrk -H 'Connection: keep-alive' -d 120 -c 256 -t 16 -s scripts/pipeline-many.lua  http://xxx:8080/plaintext
+    Running 2m test @ http://xxx:8080/plaintext
+      16 threads and 256 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency    15.85ms   24.50ms 681.61ms   97.42%
+        Req/Sec   287.14k    38.39k  360.33k    85.88%
+      547902773 requests in 2.00m, 73.99GB read
+    Requests/sec: 4567066.11
+    Transfer/sec:    631.55MB
+    
+    This is reproducable every time.
+
+diff --git a/buffer/src/main/java/io/netty/buffer/PoolArena.java b/buffer/src/main/java/io/netty/buffer/PoolArena.java
+index e2ae720..d2e4411 100644
+--- a/buffer/src/main/java/io/netty/buffer/PoolArena.java
++++ b/buffer/src/main/java/io/netty/buffer/PoolArena.java
+@@ -180,7 +180,12 @@ abstract class PoolArena<T> implements PoolArenaMetric {
+             }
+ 
+             final PoolSubpage<T> head = table[tableIdx];
+-            synchronized (this) {
++
++            /**
++             * Synchronize on the head. This is needed as {@link PoolSubpage#allocate()} and
++             * {@link PoolSubpage#free(int)} may modify the doubly linked list as well.
++             */
++            synchronized (head) {
+                 final PoolSubpage<T> s = head.next;
+                 if (s != head) {
+                     assert s.doNotDestroy && s.elemSize == normCapacity;
+@@ -195,27 +200,24 @@ abstract class PoolArena<T> implements PoolArenaMetric {
+                     }
+                     return;
+                 }
+-                allocateNormal(buf, reqCapacity, normCapacity);
+-                return;
+             }
++            allocateNormal(buf, reqCapacity, normCapacity);
++            return;
+         }
+         if (normCapacity <= chunkSize) {
+             if (cache.allocateNormal(this, buf, reqCapacity, normCapacity)) {
+                 // was able to allocate out of the cache so move on
+                 return;
+             }
+-            synchronized (this) {
+-                allocateNormal(buf, reqCapacity, normCapacity);
+-            }
++            allocateNormal(buf, reqCapacity, normCapacity);
+         } else {
+             // Huge allocations are never served via the cache so just call allocateHuge
+             allocateHuge(buf, reqCapacity);
+         }
+     }
+ 
+-    private void allocateNormal(PooledByteBuf<T> buf, int reqCapacity, int normCapacity) {
+-        ++allocationsNormal;
+-
++    private synchronized void allocateNormal(PooledByteBuf<T> buf, int reqCapacity, int normCapacity) {
++            ++allocationsNormal;
+         if (q050.allocate(buf, reqCapacity, normCapacity) || q025.allocate(buf, reqCapacity, normCapacity) ||
+             q000.allocate(buf, reqCapacity, normCapacity) || qInit.allocate(buf, reqCapacity, normCapacity) ||
+             q075.allocate(buf, reqCapacity, normCapacity) || q100.allocate(buf, reqCapacity, normCapacity)) {
+diff --git a/buffer/src/main/java/io/netty/buffer/PoolSubpage.java b/buffer/src/main/java/io/netty/buffer/PoolSubpage.java
+index 993900b..0c713d2 100644
+--- a/buffer/src/main/java/io/netty/buffer/PoolSubpage.java
++++ b/buffer/src/main/java/io/netty/buffer/PoolSubpage.java
+@@ -72,7 +72,10 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
+             }
+         }
+ 
+-        addToPool();
++        PoolSubpage<T> head = chunk.arena.findSubpagePoolHead(elemSize);
++        synchronized (head) {
++            addToPool(head);
++        }
+     }
+ 
+     /**
+@@ -83,21 +86,29 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
+             return toHandle(0);
+         }
+ 
+-        if (numAvail == 0 || !doNotDestroy) {
+-            return -1;
+-        }
++        /**
++         * Synchronize on the head of the SubpagePool stored in the {@link PoolArena. This is needed as we synchronize
++         * on it when calling {@link PoolArena#allocate(PoolThreadCache, int, int)} und try to allocate out of the
++         * {@link PoolSubpage} pool for a given size.
++         */
++        PoolSubpage<T> head = chunk.arena.findSubpagePoolHead(elemSize);
++        synchronized (head) {
++            if (numAvail == 0 || !doNotDestroy) {
++                return -1;
++            }
+ 
+-        final int bitmapIdx = getNextAvail();
+-        int q = bitmapIdx >>> 6;
+-        int r = bitmapIdx & 63;
+-        assert (bitmap[q] >>> r & 1) == 0;
+-        bitmap[q] |= 1L << r;
++            final int bitmapIdx = getNextAvail();
++            int q = bitmapIdx >>> 6;
++            int r = bitmapIdx & 63;
++            assert (bitmap[q] >>> r & 1) == 0;
++            bitmap[q] |= 1L << r;
+ 
+-        if (-- numAvail == 0) {
+-            removeFromPool();
+-        }
++            if (-- numAvail == 0) {
++                removeFromPool();
++            }
+ 
+-        return toHandle(bitmapIdx);
++            return toHandle(bitmapIdx);
++        }
+     }
+ 
+     /**
+@@ -110,36 +121,44 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
+             return true;
+         }
+ 
+-        int q = bitmapIdx >>> 6;
+-        int r = bitmapIdx & 63;
+-        assert (bitmap[q] >>> r & 1) != 0;
+-        bitmap[q] ^= 1L << r;
++        /**
++         * Synchronize on the head of the SubpagePool stored in the {@link PoolArena. This is needed as we synchronize
++         * on it when calling {@link PoolArena#allocate(PoolThreadCache, int, int)} und try to allocate out of the
++         * {@link PoolSubpage} pool for a given size.
++         */
++        PoolSubpage<T> head = chunk.arena.findSubpagePoolHead(elemSize);
+ 
+-        setNextAvail(bitmapIdx);
++        synchronized (head) {
++            int q = bitmapIdx >>> 6;
++            int r = bitmapIdx & 63;
++            assert (bitmap[q] >>> r & 1) != 0;
++            bitmap[q] ^= 1L << r;
+ 
+-        if (numAvail ++ == 0) {
+-            addToPool();
+-            return true;
+-        }
++            setNextAvail(bitmapIdx);
+ 
+-        if (numAvail != maxNumElems) {
+-            return true;
+-        } else {
+-            // Subpage not in use (numAvail == maxNumElems)
+-            if (prev == next) {
+-                // Do not remove if this subpage is the only one left in the pool.
++            if (numAvail ++ == 0) {
++                addToPool(head);
+                 return true;
+             }
+ 
+-            // Remove this subpage from the pool if there are other subpages left in the pool.
+-            doNotDestroy = false;
+-            removeFromPool();
+-            return false;
++            if (numAvail != maxNumElems) {
++                return true;
++            } else {
++                // Subpage not in use (numAvail == maxNumElems)
++                if (prev == next) {
++                    // Do not remove if this subpage is the only one left in the pool.
++                    return true;
++                }
++
++                // Remove this subpage from the pool if there are other subpages left in the pool.
++                doNotDestroy = false;
++                removeFromPool();
++                return false;
++            }
+         }
+     }
+ 
+-    private void addToPool() {
+-        PoolSubpage<T> head = chunk.arena.findSubpagePoolHead(elemSize);
++    private void addToPool(PoolSubpage<T> head) {
+         assert prev == null && next == null;
+         prev = head;
+         next = head.next;

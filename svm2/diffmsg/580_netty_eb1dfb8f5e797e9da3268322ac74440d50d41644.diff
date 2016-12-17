@@ -1,0 +1,136 @@
+commit eb1dfb8f5e797e9da3268322ac74440d50d41644
+Author: Scott Mitchell <scott_mitchell@apple.com>
+Date:   Wed Sep 21 23:08:25 2016 -0700
+
+    SingleThreadEventLoopTest failures
+    
+    Motivation:
+    Some unit tests in SingleThreadEventLoopTest rely upon Thread.sleep for sequencing events between threads. This can be unreliable and result in spurious test failures if thread scheduling does not occur in a fair predictable manner.
+    
+    Modifications:
+    - Reduce the reliance on Thread.sleep in SingleThreadEventLoopTest
+    
+    Result:
+    Fixes https://github.com/netty/netty/issues/5851
+
+diff --git a/transport/src/test/java/io/netty/channel/SingleThreadEventLoopTest.java b/transport/src/test/java/io/netty/channel/SingleThreadEventLoopTest.java
+index 2d7f645..78e7d79 100644
+--- a/transport/src/test/java/io/netty/channel/SingleThreadEventLoopTest.java
++++ b/transport/src/test/java/io/netty/channel/SingleThreadEventLoopTest.java
+@@ -169,18 +169,20 @@ public class SingleThreadEventLoopTest {
+                    is(greaterThanOrEqualTo(TimeUnit.MILLISECONDS.toNanos(500))));
+     }
+ 
+-    @Test
++    @Test(timeout = 5000)
+     public void scheduleTaskAtFixedRateA() throws Exception {
+         testScheduleTaskAtFixedRate(loopA);
+     }
+ 
+-    @Test
++    @Test(timeout = 5000)
+     public void scheduleTaskAtFixedRateB() throws Exception {
+         testScheduleTaskAtFixedRate(loopB);
+     }
+ 
+     private static void testScheduleTaskAtFixedRate(EventLoop loopA) throws InterruptedException {
+         final Queue<Long> timestamps = new LinkedBlockingQueue<Long>();
++        final int expectedTimeStamps = 5;
++        final CountDownLatch allTimeStampsLatch = new CountDownLatch(expectedTimeStamps);
+         ScheduledFuture<?> f = loopA.scheduleAtFixedRate(new Runnable() {
+             @Override
+             public void run() {
+@@ -190,11 +192,13 @@ public class SingleThreadEventLoopTest {
+                 } catch (InterruptedException e) {
+                     // Ignore
+                 }
++                allTimeStampsLatch.countDown();
+             }
+         }, 100, 100, TimeUnit.MILLISECONDS);
+-        Thread.sleep(550);
++        allTimeStampsLatch.await();
+         assertTrue(f.cancel(true));
+-        assertEquals(5, timestamps.size());
++        Thread.sleep(300);
++        assertEquals(expectedTimeStamps, timestamps.size());
+ 
+         // Check if the task was run without a lag.
+         Long firstTimestamp = null;
+@@ -213,18 +217,20 @@ public class SingleThreadEventLoopTest {
+         }
+     }
+ 
+-    @Test
++    @Test(timeout = 5000)
+     public void scheduleLaggyTaskAtFixedRateA() throws Exception {
+         testScheduleLaggyTaskAtFixedRate(loopA);
+     }
+ 
+-    @Test
++    @Test(timeout = 5000)
+     public void scheduleLaggyTaskAtFixedRateB() throws Exception {
+         testScheduleLaggyTaskAtFixedRate(loopB);
+     }
+ 
+     private static void testScheduleLaggyTaskAtFixedRate(EventLoop loopA) throws InterruptedException {
+         final Queue<Long> timestamps = new LinkedBlockingQueue<Long>();
++        final int expectedTimeStamps = 5;
++        final CountDownLatch allTimeStampsLatch = new CountDownLatch(expectedTimeStamps);
+         ScheduledFuture<?> f = loopA.scheduleAtFixedRate(new Runnable() {
+             @Override
+             public void run() {
+@@ -237,11 +243,13 @@ public class SingleThreadEventLoopTest {
+                         // Ignore
+                     }
+                 }
++                allTimeStampsLatch.countDown();
+             }
+         }, 100, 100, TimeUnit.MILLISECONDS);
+-        Thread.sleep(550);
++        allTimeStampsLatch.await();
+         assertTrue(f.cancel(true));
+-        assertEquals(5, timestamps.size());
++        Thread.sleep(300);
++        assertEquals(expectedTimeStamps, timestamps.size());
+ 
+         // Check if the task was run with lag.
+         int i = 0;
+@@ -263,18 +271,20 @@ public class SingleThreadEventLoopTest {
+         }
+     }
+ 
+-    @Test
++    @Test(timeout = 5000)
+     public void scheduleTaskWithFixedDelayA() throws Exception {
+         testScheduleTaskWithFixedDelay(loopA);
+     }
+ 
+-    @Test
++    @Test(timeout = 5000)
+     public void scheduleTaskWithFixedDelayB() throws Exception {
+         testScheduleTaskWithFixedDelay(loopB);
+     }
+ 
+     private static void testScheduleTaskWithFixedDelay(EventLoop loopA) throws InterruptedException {
+         final Queue<Long> timestamps = new LinkedBlockingQueue<Long>();
++        final int expectedTimeStamps = 3;
++        final CountDownLatch allTimeStampsLatch = new CountDownLatch(expectedTimeStamps);
+         ScheduledFuture<?> f = loopA.scheduleWithFixedDelay(new Runnable() {
+             @Override
+             public void run() {
+@@ -284,11 +294,13 @@ public class SingleThreadEventLoopTest {
+                 } catch (InterruptedException e) {
+                     // Ignore
+                 }
++                allTimeStampsLatch.countDown();
+             }
+         }, 100, 100, TimeUnit.MILLISECONDS);
+-        Thread.sleep(500);
++        allTimeStampsLatch.await();
+         assertTrue(f.cancel(true));
+-        assertEquals(3, timestamps.size());
++        Thread.sleep(300);
++        assertEquals(expectedTimeStamps, timestamps.size());
+ 
+         // Check if the task was run without a lag.
+         Long previousTimestamp = null;

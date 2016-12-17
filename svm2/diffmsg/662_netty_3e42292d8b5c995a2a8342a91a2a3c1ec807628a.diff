@@ -1,0 +1,85 @@
+commit 3e42292d8b5c995a2a8342a91a2a3c1ec807628a
+Author: Norman Maurer <norman_maurer@apple.com>
+Date:   Fri Mar 20 05:15:22 2015 +0100
+
+    Change PoolThreadCache to use LIFO for better cache performance
+    
+    Motiviation:
+    
+    At the moment we use FIFO for the PoolThreadCache which is sub-optimal as this may reduce the changes to have the cached memory actual still in the cpu-cache.
+    
+    Modification:
+    
+    - Change to use LIFO as this increase the chance to be able to serve buffers from the cpu-cache
+    
+    Results:
+    
+    Faster allocation out of the ThreadLocal cache.
+    
+    Before the commit:
+    [xxx wrk]$ ./wrk -H 'Connection: keep-alive' -d 120 -c 256 -t 16 -s scripts/pipeline-many.lua  http://xxx:8080/plaintext
+    Running 2m test @ http://xxx:8080/plaintext
+      16 threads and 256 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency    14.69ms   10.06ms 131.43ms   80.10%
+        Req/Sec   283.89k    40.37k  433.69k    66.81%
+      533859742 requests in 2.00m, 72.09GB read
+    Requests/sec: 4449510.51
+    Transfer/sec:    615.29MB
+    
+    After the commit:
+    [xxx wrk]$ ./wrk -H 'Connection: keep-alive' -d 120 -c 256 -t 16 -s scripts/pipeline-many.lua  http://xxx:8080/plaintext
+    Running 2m test @ http://xxx:8080/plaintext
+      16 threads and 256 connections
+      Thread Stats   Avg      Stdev     Max   +/- Stdev
+        Latency    16.38ms   26.32ms 734.06ms   97.38%
+        Req/Sec   283.86k    39.31k  361.69k    83.38%
+      540836511 requests in 2.00m, 73.04GB read
+    Requests/sec: 4508150.18
+    Transfer/sec:    623.40MB
+
+diff --git a/buffer/src/main/java/io/netty/buffer/PoolThreadCache.java b/buffer/src/main/java/io/netty/buffer/PoolThreadCache.java
+index 4eb0daf..755f157 100644
+--- a/buffer/src/main/java/io/netty/buffer/PoolThreadCache.java
++++ b/buffer/src/main/java/io/netty/buffer/PoolThreadCache.java
+@@ -337,6 +337,9 @@ final class PoolThreadCache {
+ 
+     /**
+      * Cache of {@link PoolChunk} and handles which can be used to allocate a buffer without locking at all.
++     *
++     * The {@link MemoryRegionCache} uses a LIFO implementation as this way it is more likely that the
++     * cached memory is still in the loaded cache-line and so no new read must happen (compared to FIFO).
+      */
+     private abstract static class MemoryRegionCache<T> {
+         private final Entry<T>[] entries;
+@@ -396,7 +399,8 @@ final class PoolThreadCache {
+          * Allocate something out of the cache if possible and remove the entry from the cache.
+          */
+         public boolean allocate(PooledByteBuf<T> buf, int reqCapacity) {
+-            Entry<T> entry = entries[head];
++            int index = prevIdx(tail);
++            Entry<T> entry = entries[index];
+             if (entry.chunk == null) {
+                 return false;
+             }
+@@ -408,7 +412,7 @@ final class PoolThreadCache {
+             initBuf(entry.chunk, entry.handle, buf, reqCapacity);
+             // only null out the chunk as we only use the chunk to check if the buffer is full or not.
+             entry.chunk = null;
+-            head = nextIdx(head);
++            tail = index;
+             return true;
+         }
+ 
+@@ -481,6 +485,11 @@ final class PoolThreadCache {
+             return index + 1 & entries.length - 1;
+         }
+ 
++        private int prevIdx(int index) {
++            // use bitwise operation as this is faster as using modulo.
++            return index - 1 & entries.length - 1;
++        }
++
+         private static final class Entry<T> {
+             PoolChunk<T> chunk;
+             long handle;

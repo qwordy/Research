@@ -1,0 +1,117 @@
+commit 3cf306a37fea9a45b30142cff20d144ec06f423b
+Author: Jonathan Ellis <jbellis@apache.org>
+Date:   Thu Apr 16 20:42:00 2009 +0000
+
+    make forceFlush block until the flush action is queued on MemtableManager.  That
+    way calling forceFlush; waitForFlush will be guaranteed that the action waitFF puts
+    on MtM will run after the flush completes, i.e., the wait will actually do what
+    it's supposed to.
+    
+    patch by jbellis; reviewed by Eric Evans for #59
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@765754 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/org/apache/cassandra/db/Memtable.java b/src/org/apache/cassandra/db/Memtable.java
+index 3a9f04e..42469cd 100644
+--- a/src/org/apache/cassandra/db/Memtable.java
++++ b/src/org/apache/cassandra/db/Memtable.java
+@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutionException;
+ import java.util.concurrent.ExecutorService;
+ import java.util.concurrent.LinkedBlockingQueue;
+ import java.util.concurrent.TimeUnit;
++import java.util.concurrent.FutureTask;
+ import java.util.concurrent.atomic.AtomicInteger;
+ import java.util.concurrent.locks.Lock;
+ import java.util.concurrent.locks.ReentrantLock;
+@@ -210,15 +211,8 @@ public class Memtable implements Comparable<Memtable>
+                 if (!isFrozen_)
+                 {
+                     isFrozen_ = true;
+-                    Runnable flushQueuer = new Runnable()
+-                    {
+-                        public void run()
+-                        {
+-                            MemtableManager.instance().submit(cfStore.getColumnFamilyName(), Memtable.this, cLogCtx);
+-                        }
+-                    };
+                     cfStore.switchMemtable(key, columnFamily, cLogCtx);
+-                    executor_.runOnTermination(flushQueuer);
++                    executor_.flushWhenTerminated(cLogCtx);
+                     executor_.shutdown();
+                 }
+                 else
+@@ -242,7 +236,8 @@ public class Memtable implements Comparable<Memtable>
+ 
+     /*
+      * This version is used to switch memtable and force flush.
+-     * Flushing is still done in a separate executor -- forceFlush does not block.
++     * Flushing is still done in a separate executor -- forceFlush only blocks
++     * until the flush runnable is queued.
+     */
+     public void forceflush(ColumnFamilyStore cfStore) throws IOException
+     {
+@@ -257,10 +252,11 @@ public class Memtable implements Comparable<Memtable>
+                 rm.add(cfStore.getColumnFamilyName() + ":Column", "0".getBytes(), 0);
+             }
+             rm.apply();
++            executor_.flushQueuer.get();
+         }
+-        catch(ColumnFamilyNotDefinedException ex)
++        catch (Exception ex)
+         {
+-            logger_.debug(LogUtil.throwableToString(ex));
++            throw new RuntimeException(ex);
+         }
+     }
+ 
+@@ -413,9 +409,9 @@ public class Memtable implements Comparable<Memtable>
+         columnFamilies_.clear();
+     }
+ 
+-    private static class MemtableThreadPoolExecutor extends DebuggableThreadPoolExecutor
++    private class MemtableThreadPoolExecutor extends DebuggableThreadPoolExecutor
+     {
+-        private ArrayList<Runnable> terminatedHooks = new ArrayList<Runnable>();
++        FutureTask flushQueuer;
+ 
+         public MemtableThreadPoolExecutor()
+         {
+@@ -426,13 +422,22 @@ public class Memtable implements Comparable<Memtable>
+         {
+             super.terminated();
+             runningExecutorServices_.remove(this);
+-            for (Runnable hook : terminatedHooks) {
+-                hook.run();
++            if (flushQueuer != null)
++            {
++                flushQueuer.run();
+             }
+         }
+ 
+-        public void runOnTermination(Runnable runnable) {
+-            terminatedHooks.add(runnable);
++        public void flushWhenTerminated(final CommitLog.CommitLogContext cLogCtx)
++        {
++            Runnable runnable = new Runnable()
++            {
++                public void run()
++                {
++                    MemtableManager.instance().submit(cfName_, Memtable.this, cLogCtx);
++                }
++            };
++            flushQueuer = new FutureTask(runnable, null);
+         }
+     }
+ }
+diff --git a/test/org/apache/cassandra/db/ColumnFamilyStoreTest.java b/test/org/apache/cassandra/db/ColumnFamilyStoreTest.java
+index 86a4b41..c5096e2 100644
+--- a/test/org/apache/cassandra/db/ColumnFamilyStoreTest.java
++++ b/test/org/apache/cassandra/db/ColumnFamilyStoreTest.java
+@@ -164,7 +164,6 @@ public class ColumnFamilyStoreTest extends ServerTest
+             }
+         });
+         f.get();
+-        Thread.sleep(1000);
+     }
+ 
+     private void validateNameSort(Table table)

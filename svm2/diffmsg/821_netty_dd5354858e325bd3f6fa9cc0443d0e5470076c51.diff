@@ -1,0 +1,26 @@
+commit dd5354858e325bd3f6fa9cc0443d0e5470076c51
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Tue Feb 2 10:54:52 2010 +0000
+
+    Reduced unnecessary Thread.currentThread() calls
+
+diff --git a/src/main/java/org/jboss/netty/channel/socket/nio/NioWorker.java b/src/main/java/org/jboss/netty/channel/socket/nio/NioWorker.java
+index 8098f1b..e324564 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/nio/NioWorker.java
++++ b/src/main/java/org/jboss/netty/channel/socket/nio/NioWorker.java
+@@ -483,14 +483,13 @@ class NioWorker implements Runnable {
+     }
+ 
+     private void rescheduleWrite(final NioSocketChannel channel) {
+-        final Thread currentThread = Thread.currentThread();
+         if (channel.writeTaskInTaskQueue.compareAndSet(false, true)) {
+             boolean offered = writeTaskQueue.offer(channel.writeTask);
+             assert offered;
+         }
+ 
+         if (!(channel instanceof NioAcceptedSocketChannel) ||
+-            ((NioAcceptedSocketChannel) channel).bossThread != currentThread) {
++            ((NioAcceptedSocketChannel) channel).bossThread != Thread.currentThread()) {
+             final Selector workerSelector = selector;
+             if (workerSelector != null) {
+                 if (wakenUp.compareAndSet(false, true)) {

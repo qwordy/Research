@@ -1,0 +1,23 @@
+commit b1aa9f6d560b80041ca1529f3d9b4a7994c5d4c7
+Author: Steven Rowe <sarowe@apache.org>
+Date:   Fri Jun 3 15:26:37 2011 +0000
+
+    turn off buffering of '.'s printed while you wait
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1131073 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/dev-tools/scripts/poll-mirrors.pl b/dev-tools/scripts/poll-mirrors.pl
+index 8ab28d4..ed9d75a 100755
+--- a/dev-tools/scripts/poll-mirrors.pl
++++ b/dev-tools/scripts/poll-mirrors.pl
+@@ -46,6 +46,10 @@ unless (defined($version) && $version =~ /\d+(?:\.\d+)+/) {
+   exit(1);
+ }
+ 
++my $previously_selected = select STDOUT;
++$| = 1;
++select $previously_selected;
++
+ my $apache_backup_url = "http://www.apache.org/dist//lucene/java/$version/lucene-$version.tgz.asc";
+ my $maven_url = "http://repo2.maven.org/maven2/org/apache/lucene/lucene-core/$version/lucene-core-$version.pom";
+ 

@@ -1,0 +1,517 @@
+commit 7bee318fc703d319c53dd88430e4e4946eb8a905
+Author: Norman Maurer <norman_maurer@apple.com>
+Date:   Thu Nov 19 21:09:23 2015 -0800
+
+    Use OneTimeTask where possible to reduce object creation
+    
+    Motivation:
+    
+    We should use OneTimeTask where possible to reduce object creation.
+    
+    Modifications:
+    
+    Replace Runnable with OneTimeTask
+    
+    Result:
+    
+    Less object creation
+
+diff --git a/codec/src/main/java/io/netty/handler/codec/compression/JZlibEncoder.java b/codec/src/main/java/io/netty/handler/codec/compression/JZlibEncoder.java
+index 3868bfb..0e6f0c3 100644
+--- a/codec/src/main/java/io/netty/handler/codec/compression/JZlibEncoder.java
++++ b/codec/src/main/java/io/netty/handler/codec/compression/JZlibEncoder.java
+@@ -26,6 +26,7 @@ import io.netty.channel.ChannelPromise;
+ import io.netty.channel.ChannelPromiseNotifier;
+ import io.netty.util.concurrent.EventExecutor;
+ import io.netty.util.internal.EmptyArrays;
++import io.netty.util.internal.OneTimeTask;
+ 
+ import java.util.concurrent.TimeUnit;
+ 
+@@ -252,7 +253,7 @@ public class JZlibEncoder extends ZlibEncoder {
+             return finishEncode(ctx, promise);
+         } else {
+             final ChannelPromise p = ctx.newPromise();
+-            executor.execute(new Runnable() {
++            executor.execute(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     ChannelFuture f = finishEncode(ctx(), p);
+@@ -351,7 +352,7 @@ public class JZlibEncoder extends ZlibEncoder {
+ 
+         if (!f.isDone()) {
+             // Ensure the channel is closed even if the write operation completes in time.
+-            ctx.executor().schedule(new Runnable() {
++            ctx.executor().schedule(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     ctx.close(promise);
+diff --git a/codec/src/main/java/io/netty/handler/codec/compression/JdkZlibEncoder.java b/codec/src/main/java/io/netty/handler/codec/compression/JdkZlibEncoder.java
+index 49be347..a75fb5c 100644
+--- a/codec/src/main/java/io/netty/handler/codec/compression/JdkZlibEncoder.java
++++ b/codec/src/main/java/io/netty/handler/codec/compression/JdkZlibEncoder.java
+@@ -22,6 +22,7 @@ import io.netty.channel.ChannelHandlerContext;
+ import io.netty.channel.ChannelPromise;
+ import io.netty.channel.ChannelPromiseNotifier;
+ import io.netty.util.concurrent.EventExecutor;
++import io.netty.util.internal.OneTimeTask;
+ 
+ import java.util.concurrent.TimeUnit;
+ import java.util.zip.CRC32;
+@@ -163,7 +164,7 @@ public class JdkZlibEncoder extends ZlibEncoder {
+             return finishEncode(ctx, promise);
+         } else {
+             final ChannelPromise p = ctx.newPromise();
+-            executor.execute(new Runnable() {
++            executor.execute(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     ChannelFuture f = finishEncode(ctx(), p);
+@@ -259,7 +260,7 @@ public class JdkZlibEncoder extends ZlibEncoder {
+ 
+         if (!f.isDone()) {
+             // Ensure the channel is closed even if the write operation completes in time.
+-            ctx.executor().schedule(new Runnable() {
++            ctx.executor().schedule(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     ctx.close(promise);
+diff --git a/handler/src/main/java/io/netty/handler/ssl/SslHandler.java b/handler/src/main/java/io/netty/handler/ssl/SslHandler.java
+index 07f59e3..4030989 100644
+--- a/handler/src/main/java/io/netty/handler/ssl/SslHandler.java
++++ b/handler/src/main/java/io/netty/handler/ssl/SslHandler.java
+@@ -393,10 +393,10 @@ public class SslHandler extends ByteToMessageDecoder implements ChannelOutboundH
+      */
+     public ChannelFuture close(final ChannelPromise future) {
+         final ChannelHandlerContext ctx = this.ctx;
+-        ctx.executor().execute(new Runnable() {
++        ctx.executor().execute(new OneTimeTask() {
+             @Override
+             public void run() {
+-                SslHandler.this.outboundClosed = true;
++                outboundClosed = true;
+                 engine.closeOutbound();
+                 try {
+                     write(ctx, Unpooled.EMPTY_BUFFER, future);
+@@ -1179,7 +1179,7 @@ public class SslHandler extends ByteToMessageDecoder implements ChannelOutboundH
+             }
+ 
+             final CountDownLatch latch = new CountDownLatch(1);
+-            delegatedTaskExecutor.execute(new Runnable() {
++            delegatedTaskExecutor.execute(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     try {
+@@ -1414,7 +1414,7 @@ public class SslHandler extends ByteToMessageDecoder implements ChannelOutboundH
+             return;
+         }
+ 
+-        final ScheduledFuture<?> timeoutFuture = ctx.executor().schedule(new Runnable() {
++        final ScheduledFuture<?> timeoutFuture = ctx.executor().schedule(new OneTimeTask() {
+             @Override
+             public void run() {
+                 if (p.isDone()) {
+@@ -1456,7 +1456,7 @@ public class SslHandler extends ByteToMessageDecoder implements ChannelOutboundH
+         final ScheduledFuture<?> timeoutFuture;
+         if (closeNotifyTimeoutMillis > 0) {
+             // Force-close the connection if close_notify is not fully sent in time.
+-            timeoutFuture = ctx.executor().schedule(new Runnable() {
++            timeoutFuture = ctx.executor().schedule(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     logger.warn("{} Last write attempt timed out; force-closing the connection.", ctx.channel());
+diff --git a/handler/src/main/java/io/netty/handler/stream/ChunkedWriteHandler.java b/handler/src/main/java/io/netty/handler/stream/ChunkedWriteHandler.java
+index acc7300..6f5c647 100644
+--- a/handler/src/main/java/io/netty/handler/stream/ChunkedWriteHandler.java
++++ b/handler/src/main/java/io/netty/handler/stream/ChunkedWriteHandler.java
+@@ -26,6 +26,7 @@ import io.netty.channel.ChannelPipeline;
+ import io.netty.channel.ChannelProgressivePromise;
+ import io.netty.channel.ChannelPromise;
+ import io.netty.util.ReferenceCountUtil;
++import io.netty.util.internal.OneTimeTask;
+ import io.netty.util.internal.logging.InternalLogger;
+ import io.netty.util.internal.logging.InternalLoggerFactory;
+ 
+@@ -110,7 +111,7 @@ public class ChunkedWriteHandler extends ChannelDuplexHandler {
+             }
+         } else {
+             // let the transfer resume on the next event loop round
+-            ctx.executor().execute(new Runnable() {
++            ctx.executor().execute(new OneTimeTask() {
+ 
+                 @Override
+                 public void run() {
+diff --git a/handler/src/main/java/io/netty/handler/timeout/WriteTimeoutHandler.java b/handler/src/main/java/io/netty/handler/timeout/WriteTimeoutHandler.java
+index bdd30cf..4e87c7f 100644
+--- a/handler/src/main/java/io/netty/handler/timeout/WriteTimeoutHandler.java
++++ b/handler/src/main/java/io/netty/handler/timeout/WriteTimeoutHandler.java
+@@ -24,6 +24,7 @@ import io.netty.channel.ChannelHandlerContext;
+ import io.netty.channel.ChannelInitializer;
+ import io.netty.channel.ChannelOutboundHandlerAdapter;
+ import io.netty.channel.ChannelPromise;
++import io.netty.util.internal.OneTimeTask;
+ 
+ import java.util.concurrent.ScheduledFuture;
+ import java.util.concurrent.TimeUnit;
+@@ -112,7 +113,7 @@ public class WriteTimeoutHandler extends ChannelOutboundHandlerAdapter {
+ 
+     private void scheduleTimeout(final ChannelHandlerContext ctx, final ChannelPromise future) {
+         // Schedule a timeout.
+-        final ScheduledFuture<?> sf = ctx.executor().schedule(new Runnable() {
++        final ScheduledFuture<?> sf = ctx.executor().schedule(new OneTimeTask() {
+             @Override
+             public void run() {
+                 // Was not written yet so issue a write timeout
+diff --git a/handler/src/main/java/io/netty/handler/traffic/ChannelTrafficShapingHandler.java b/handler/src/main/java/io/netty/handler/traffic/ChannelTrafficShapingHandler.java
+index 8074a6a..f5fd5d3 100644
+--- a/handler/src/main/java/io/netty/handler/traffic/ChannelTrafficShapingHandler.java
++++ b/handler/src/main/java/io/netty/handler/traffic/ChannelTrafficShapingHandler.java
+@@ -18,6 +18,7 @@ package io.netty.handler.traffic;
+ import io.netty.buffer.ByteBuf;
+ import io.netty.channel.ChannelHandlerContext;
+ import io.netty.channel.ChannelPromise;
++import io.netty.util.internal.OneTimeTask;
+ 
+ import java.util.ArrayDeque;
+ import java.util.concurrent.TimeUnit;
+@@ -192,7 +193,7 @@ public class ChannelTrafficShapingHandler extends AbstractTrafficShapingHandler
+             checkWriteSuspend(ctx, delay, queueSize);
+         }
+         final long futureNow = newToSend.relativeTimeAction;
+-        ctx.executor().schedule(new Runnable() {
++        ctx.executor().schedule(new OneTimeTask() {
+             @Override
+             public void run() {
+                 sendAllValid(ctx, futureNow);
+diff --git a/handler/src/main/java/io/netty/handler/traffic/GlobalTrafficShapingHandler.java b/handler/src/main/java/io/netty/handler/traffic/GlobalTrafficShapingHandler.java
+index b7667b2..00eb27c 100644
+--- a/handler/src/main/java/io/netty/handler/traffic/GlobalTrafficShapingHandler.java
++++ b/handler/src/main/java/io/netty/handler/traffic/GlobalTrafficShapingHandler.java
+@@ -21,6 +21,7 @@ import io.netty.channel.Channel;
+ import io.netty.channel.ChannelHandlerContext;
+ import io.netty.channel.ChannelPromise;
+ import io.netty.util.concurrent.EventExecutor;
++import io.netty.util.internal.OneTimeTask;
+ import io.netty.util.internal.PlatformDependent;
+ 
+ import java.util.ArrayDeque;
+@@ -360,7 +361,7 @@ public class GlobalTrafficShapingHandler extends AbstractTrafficShapingHandler {
+         }
+         final long futureNow = newToSend.relativeTimeAction;
+         final PerChannel forSchedule = perChannel;
+-        ctx.executor().schedule(new Runnable() {
++        ctx.executor().schedule(new OneTimeTask() {
+             @Override
+             public void run() {
+                 sendAllValid(ctx, forSchedule, futureNow);
+diff --git a/transport-native-epoll/src/main/java/io/netty/channel/epoll/AbstractEpollStreamChannel.java b/transport-native-epoll/src/main/java/io/netty/channel/epoll/AbstractEpollStreamChannel.java
+index 899649e..8e292c0 100644
+--- a/transport-native-epoll/src/main/java/io/netty/channel/epoll/AbstractEpollStreamChannel.java
++++ b/transport-native-epoll/src/main/java/io/netty/channel/epoll/AbstractEpollStreamChannel.java
+@@ -646,7 +646,7 @@ public abstract class AbstractEpollStreamChannel extends AbstractEpollChannel {
+                     // Schedule connect timeout.
+                     int connectTimeoutMillis = config().getConnectTimeoutMillis();
+                     if (connectTimeoutMillis > 0) {
+-                        connectTimeoutFuture = eventLoop().schedule(new Runnable() {
++                        connectTimeoutFuture = eventLoop().schedule(new OneTimeTask() {
+                             @Override
+                             public void run() {
+                                 ChannelPromise connectPromise = AbstractEpollStreamChannel.this.connectPromise;
+diff --git a/transport-native-epoll/src/main/java/io/netty/channel/epoll/EpollDomainSocketChannel.java b/transport-native-epoll/src/main/java/io/netty/channel/epoll/EpollDomainSocketChannel.java
+index aa7d4bb..489a21c 100644
+--- a/transport-native-epoll/src/main/java/io/netty/channel/epoll/EpollDomainSocketChannel.java
++++ b/transport-native-epoll/src/main/java/io/netty/channel/epoll/EpollDomainSocketChannel.java
+@@ -23,6 +23,7 @@ import io.netty.channel.unix.DomainSocketAddress;
+ import io.netty.channel.unix.DomainSocketChannel;
+ import io.netty.channel.unix.FileDescriptor;
+ import io.netty.channel.unix.Socket;
++import io.netty.util.internal.OneTimeTask;
+ 
+ import java.net.SocketAddress;
+ 
+diff --git a/transport-rxtx/src/main/java/io/netty/channel/rxtx/RxtxChannel.java b/transport-rxtx/src/main/java/io/netty/channel/rxtx/RxtxChannel.java
+index 8df3d10..07628a9 100644
+--- a/transport-rxtx/src/main/java/io/netty/channel/rxtx/RxtxChannel.java
++++ b/transport-rxtx/src/main/java/io/netty/channel/rxtx/RxtxChannel.java
+@@ -20,6 +20,7 @@ import gnu.io.CommPortIdentifier;
+ import gnu.io.SerialPort;
+ import io.netty.channel.ChannelPromise;
+ import io.netty.channel.oio.OioByteStreamChannel;
++import io.netty.util.internal.OneTimeTask;
+ 
+ import java.net.SocketAddress;
+ import java.util.concurrent.TimeUnit;
+@@ -143,7 +144,7 @@ public class RxtxChannel extends OioByteStreamChannel {
+ 
+                 int waitTime = config().getOption(WAIT_TIME);
+                 if (waitTime > 0) {
+-                    eventLoop().schedule(new Runnable() {
++                    eventLoop().schedule(new OneTimeTask() {
+                         @Override
+                         public void run() {
+                             try {
+diff --git a/transport-sctp/src/main/java/io/netty/channel/sctp/nio/NioSctpChannel.java b/transport-sctp/src/main/java/io/netty/channel/sctp/nio/NioSctpChannel.java
+index ae14b96..f8d07a0 100644
+--- a/transport-sctp/src/main/java/io/netty/channel/sctp/nio/NioSctpChannel.java
++++ b/transport-sctp/src/main/java/io/netty/channel/sctp/nio/NioSctpChannel.java
+@@ -34,6 +34,7 @@ import io.netty.channel.sctp.SctpChannelConfig;
+ import io.netty.channel.sctp.SctpMessage;
+ import io.netty.channel.sctp.SctpNotificationHandler;
+ import io.netty.channel.sctp.SctpServerChannel;
++import io.netty.util.internal.OneTimeTask;
+ import io.netty.util.internal.PlatformDependent;
+ import io.netty.util.internal.StringUtil;
+ import io.netty.util.internal.logging.InternalLogger;
+@@ -355,7 +356,7 @@ public class NioSctpChannel extends AbstractNioMessageChannel implements io.nett
+                 promise.setFailure(t);
+             }
+         } else {
+-            eventLoop().execute(new Runnable() {
++            eventLoop().execute(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     bindAddress(localAddress, promise);
+@@ -380,7 +381,7 @@ public class NioSctpChannel extends AbstractNioMessageChannel implements io.nett
+                 promise.setFailure(t);
+             }
+         } else {
+-            eventLoop().execute(new Runnable() {
++            eventLoop().execute(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     unbindAddress(localAddress, promise);
+diff --git a/transport-sctp/src/main/java/io/netty/channel/sctp/nio/NioSctpServerChannel.java b/transport-sctp/src/main/java/io/netty/channel/sctp/nio/NioSctpServerChannel.java
+index 5e1fc2f..1e420d4 100644
+--- a/transport-sctp/src/main/java/io/netty/channel/sctp/nio/NioSctpServerChannel.java
++++ b/transport-sctp/src/main/java/io/netty/channel/sctp/nio/NioSctpServerChannel.java
+@@ -25,6 +25,7 @@ import io.netty.channel.ChannelPromise;
+ import io.netty.channel.nio.AbstractNioMessageChannel;
+ import io.netty.channel.sctp.DefaultSctpServerChannelConfig;
+ import io.netty.channel.sctp.SctpServerChannelConfig;
++import io.netty.util.internal.OneTimeTask;
+ 
+ import java.io.IOException;
+ import java.net.InetAddress;
+@@ -159,7 +160,7 @@ public class NioSctpServerChannel extends AbstractNioMessageChannel
+                 promise.setFailure(t);
+             }
+         } else {
+-            eventLoop().execute(new Runnable() {
++            eventLoop().execute(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     bindAddress(localAddress, promise);
+@@ -184,7 +185,7 @@ public class NioSctpServerChannel extends AbstractNioMessageChannel
+                 promise.setFailure(t);
+             }
+         } else {
+-            eventLoop().execute(new Runnable() {
++            eventLoop().execute(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     unbindAddress(localAddress, promise);
+diff --git a/transport-sctp/src/main/java/io/netty/channel/sctp/oio/OioSctpChannel.java b/transport-sctp/src/main/java/io/netty/channel/sctp/oio/OioSctpChannel.java
+index 5614106..f0a1cca 100755
+--- a/transport-sctp/src/main/java/io/netty/channel/sctp/oio/OioSctpChannel.java
++++ b/transport-sctp/src/main/java/io/netty/channel/sctp/oio/OioSctpChannel.java
+@@ -34,6 +34,7 @@ import io.netty.channel.sctp.SctpChannelConfig;
+ import io.netty.channel.sctp.SctpMessage;
+ import io.netty.channel.sctp.SctpNotificationHandler;
+ import io.netty.channel.sctp.SctpServerChannel;
++import io.netty.util.internal.OneTimeTask;
+ import io.netty.util.internal.PlatformDependent;
+ import io.netty.util.internal.StringUtil;
+ import io.netty.util.internal.logging.InternalLogger;
+@@ -416,7 +417,7 @@ public class OioSctpChannel extends AbstractOioMessageChannel
+                 promise.setFailure(t);
+             }
+         } else {
+-            eventLoop().execute(new Runnable() {
++            eventLoop().execute(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     bindAddress(localAddress, promise);
+@@ -441,7 +442,7 @@ public class OioSctpChannel extends AbstractOioMessageChannel
+                 promise.setFailure(t);
+             }
+         } else {
+-            eventLoop().execute(new Runnable() {
++            eventLoop().execute(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     unbindAddress(localAddress, promise);
+diff --git a/transport-sctp/src/main/java/io/netty/channel/sctp/oio/OioSctpServerChannel.java b/transport-sctp/src/main/java/io/netty/channel/sctp/oio/OioSctpServerChannel.java
+index b396a9c..8014b78 100755
+--- a/transport-sctp/src/main/java/io/netty/channel/sctp/oio/OioSctpServerChannel.java
++++ b/transport-sctp/src/main/java/io/netty/channel/sctp/oio/OioSctpServerChannel.java
+@@ -25,6 +25,7 @@ import io.netty.channel.ChannelPromise;
+ import io.netty.channel.oio.AbstractOioMessageChannel;
+ import io.netty.channel.sctp.DefaultSctpServerChannelConfig;
+ import io.netty.channel.sctp.SctpServerChannelConfig;
++import io.netty.util.internal.OneTimeTask;
+ import io.netty.util.internal.logging.InternalLogger;
+ import io.netty.util.internal.logging.InternalLoggerFactory;
+ 
+@@ -234,7 +235,7 @@ public class OioSctpServerChannel extends AbstractOioMessageChannel
+                 promise.setFailure(t);
+             }
+         } else {
+-            eventLoop().execute(new Runnable() {
++            eventLoop().execute(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     bindAddress(localAddress, promise);
+@@ -259,7 +260,7 @@ public class OioSctpServerChannel extends AbstractOioMessageChannel
+                 promise.setFailure(t);
+             }
+         } else {
+-            eventLoop().execute(new Runnable() {
++            eventLoop().execute(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     unbindAddress(localAddress, promise);
+diff --git a/transport/src/main/java/io/netty/bootstrap/AbstractBootstrap.java b/transport/src/main/java/io/netty/bootstrap/AbstractBootstrap.java
+index 96cd8f8..a10c0d0 100644
+--- a/transport/src/main/java/io/netty/bootstrap/AbstractBootstrap.java
++++ b/transport/src/main/java/io/netty/bootstrap/AbstractBootstrap.java
+@@ -29,6 +29,7 @@ import io.netty.channel.ReflectiveChannelFactory;
+ import io.netty.util.AttributeKey;
+ import io.netty.util.concurrent.EventExecutor;
+ import io.netty.util.concurrent.GlobalEventExecutor;
++import io.netty.util.internal.OneTimeTask;
+ import io.netty.util.internal.StringUtil;
+ 
+ import java.net.InetAddress;
+@@ -350,7 +351,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
+ 
+         // This method is invoked before channelRegistered() is triggered.  Give user handlers a chance to set up
+         // the pipeline in its channelRegistered() implementation.
+-        channel.eventLoop().execute(new Runnable() {
++        channel.eventLoop().execute(new OneTimeTask() {
+             @Override
+             public void run() {
+                 if (regFuture.isSuccess()) {
+diff --git a/transport/src/main/java/io/netty/bootstrap/Bootstrap.java b/transport/src/main/java/io/netty/bootstrap/Bootstrap.java
+index 8304730..7317d8c 100644
+--- a/transport/src/main/java/io/netty/bootstrap/Bootstrap.java
++++ b/transport/src/main/java/io/netty/bootstrap/Bootstrap.java
+@@ -29,6 +29,7 @@ import io.netty.resolver.NameResolverGroup;
+ import io.netty.util.AttributeKey;
+ import io.netty.util.concurrent.Future;
+ import io.netty.util.concurrent.FutureListener;
++import io.netty.util.internal.OneTimeTask;
+ import io.netty.util.internal.logging.InternalLogger;
+ import io.netty.util.internal.logging.InternalLoggerFactory;
+ 
+@@ -223,7 +224,7 @@ public class Bootstrap extends AbstractBootstrap<Bootstrap, Channel> {
+         // This method is invoked before channelRegistered() is triggered.  Give user handlers a chance to set up
+         // the pipeline in its channelRegistered() implementation.
+         final Channel channel = connectPromise.channel();
+-        channel.eventLoop().execute(new Runnable() {
++        channel.eventLoop().execute(new OneTimeTask() {
+             @Override
+             public void run() {
+                 if (regFuture.isSuccess()) {
+diff --git a/transport/src/main/java/io/netty/bootstrap/ServerBootstrap.java b/transport/src/main/java/io/netty/bootstrap/ServerBootstrap.java
+index 5a6a011..38929b1 100644
+--- a/transport/src/main/java/io/netty/bootstrap/ServerBootstrap.java
++++ b/transport/src/main/java/io/netty/bootstrap/ServerBootstrap.java
+@@ -28,6 +28,7 @@ import io.netty.channel.ChannelPipeline;
+ import io.netty.channel.EventLoopGroup;
+ import io.netty.channel.ServerChannel;
+ import io.netty.util.AttributeKey;
++import io.netty.util.internal.OneTimeTask;
+ import io.netty.util.internal.StringUtil;
+ import io.netty.util.internal.logging.InternalLogger;
+ import io.netty.util.internal.logging.InternalLoggerFactory;
+@@ -274,7 +275,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
+                 // stop accept new connections for 1 second to allow the channel to recover
+                 // See https://github.com/netty/netty/issues/1328
+                 config.setAutoRead(false);
+-                ctx.channel().eventLoop().schedule(new Runnable() {
++                ctx.channel().eventLoop().schedule(new OneTimeTask() {
+                     @Override
+                     public void run() {
+                         config.setAutoRead(true);
+diff --git a/transport/src/main/java/io/netty/channel/ChannelOutboundBuffer.java b/transport/src/main/java/io/netty/channel/ChannelOutboundBuffer.java
+index 7afd34c..caa8d3c 100644
+--- a/transport/src/main/java/io/netty/channel/ChannelOutboundBuffer.java
++++ b/transport/src/main/java/io/netty/channel/ChannelOutboundBuffer.java
+@@ -24,6 +24,7 @@ import io.netty.util.Recycler.Handle;
+ import io.netty.util.ReferenceCountUtil;
+ import io.netty.util.concurrent.FastThreadLocal;
+ import io.netty.util.internal.InternalThreadLocalMap;
++import io.netty.util.internal.OneTimeTask;
+ import io.netty.util.internal.PlatformDependent;
+ import io.netty.util.internal.logging.InternalLogger;
+ import io.netty.util.internal.logging.InternalLoggerFactory;
+@@ -629,7 +630,7 @@ public final class ChannelOutboundBuffer {
+ 
+     void close(final ClosedChannelException cause) {
+         if (inFail) {
+-            channel.eventLoop().execute(new Runnable() {
++            channel.eventLoop().execute(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     close(cause);
+diff --git a/transport/src/main/java/io/netty/channel/DefaultChannelPipeline.java b/transport/src/main/java/io/netty/channel/DefaultChannelPipeline.java
+index d51496c..8de07ca 100644
+--- a/transport/src/main/java/io/netty/channel/DefaultChannelPipeline.java
++++ b/transport/src/main/java/io/netty/channel/DefaultChannelPipeline.java
+@@ -411,7 +411,7 @@ final class DefaultChannelPipeline implements ChannelPipeline {
+                 remove0(ctx);
+                 return ctx;
+             } else {
+-               future = ctx.executor().submit(new Runnable() {
++               future = ctx.executor().submit(new OneTimeTask() {
+                    @Override
+                    public void run() {
+                        synchronized (DefaultChannelPipeline.this) {
+@@ -493,7 +493,7 @@ final class DefaultChannelPipeline implements ChannelPipeline {
+                 replace0(ctx, newCtx);
+                 return ctx.handler();
+             } else {
+-                future = newCtx.executor().submit(new Runnable() {
++                future = newCtx.executor().submit(new OneTimeTask() {
+                     @Override
+                     public void run() {
+                         synchronized (DefaultChannelPipeline.this) {
+@@ -553,7 +553,7 @@ final class DefaultChannelPipeline implements ChannelPipeline {
+ 
+     private void callHandlerAdded(final AbstractChannelHandlerContext ctx) {
+         if (ctx.channel().isRegistered() && !ctx.executor().inEventLoop()) {
+-            ctx.executor().execute(new Runnable() {
++            ctx.executor().execute(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     callHandlerAdded0(ctx);
+@@ -592,7 +592,7 @@ final class DefaultChannelPipeline implements ChannelPipeline {
+ 
+     private void callHandlerRemoved(final AbstractChannelHandlerContext ctx) {
+         if (ctx.channel().isRegistered() && !ctx.executor().inEventLoop()) {
+-            ctx.executor().execute(new Runnable() {
++            ctx.executor().execute(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     callHandlerRemoved0(ctx);
+diff --git a/transport/src/main/java/io/netty/channel/socket/oio/OioSocketChannel.java b/transport/src/main/java/io/netty/channel/socket/oio/OioSocketChannel.java
+index 4ad6624..a96c025 100644
+--- a/transport/src/main/java/io/netty/channel/socket/oio/OioSocketChannel.java
++++ b/transport/src/main/java/io/netty/channel/socket/oio/OioSocketChannel.java
+@@ -25,6 +25,7 @@ import io.netty.channel.EventLoop;
+ import io.netty.channel.oio.OioByteStreamChannel;
+ import io.netty.channel.socket.ServerSocketChannel;
+ import io.netty.channel.socket.SocketChannel;
++import io.netty.util.internal.OneTimeTask;
+ import io.netty.util.internal.logging.InternalLogger;
+ import io.netty.util.internal.logging.InternalLoggerFactory;
+ 
+@@ -152,7 +153,7 @@ public class OioSocketChannel extends OioByteStreamChannel
+                 future.setFailure(t);
+             }
+         } else {
+-            loop.execute(new Runnable() {
++            loop.execute(new OneTimeTask() {
+                 @Override
+                 public void run() {
+                     shutdownOutput(future);

@@ -1,0 +1,67 @@
+commit 3a33f5eb9d900d9122e9d769c4ef238882a9e66b
+Author: Carsten Varming <cvarming@twitter.com>
+Date:   Thu Jul 14 12:12:45 2016 -0400
+
+    Fix JDK9 direct ByteBuffer cleaner invocation and initialize Cleaner0 when PlatformDependent0 is initialized.
+    
+    Motivation:
+    The clean method in java.base/jdk.internal.ref.Cleaner is not accessible
+    to methods outside java.base.  This prevents Cleaner0.freeDirectBuffer
+    from actually calling the clean method on JDK9.
+    
+    The issue could have been caught earlier if Cleaner0 is initialized when
+    PlatformDependent0 is initialized and logging statements in the static
+    initializer in Cleaner0 would be close to the logging statements in the
+    static initializer in PlatformDependent0.
+    
+    Modifications:
+    Try casting the cleaner obtained from a ByteBuffer to Runnable and use
+    Runnable.run if possible. All Cleaners in JDK9 implements Runnable. Fall
+    back to the clean method if the cleaner does not implement Runnable.
+    The fallback preserves the behavior on JDK8 and earlier.
+    
+    Try to free the direct ByteBuffer allocated during static initialization
+    of PlatformDependent0. This cause Cleaner0 to be initialized when
+    PlatformDependent0 is initialized, and logging statements from the
+    static initializers will be close together.
+    
+    Result:
+    
+    Cleaner0.freeDirectBuffer works as intended on JDK9 and logging shows
+    that Cleaner0.freeDirectBuffer works as intended.
+
+diff --git a/common/src/main/java/io/netty/util/internal/Cleaner0.java b/common/src/main/java/io/netty/util/internal/Cleaner0.java
+index e4a7188..ab1fc2f 100644
+--- a/common/src/main/java/io/netty/util/internal/Cleaner0.java
++++ b/common/src/main/java/io/netty/util/internal/Cleaner0.java
+@@ -43,9 +43,15 @@ final class Cleaner0 {
+             try {
+                 cleanerField = direct.getClass().getDeclaredField("cleaner");
+                 cleanerField.setAccessible(true);
+-                Object cleaner = cleanerField.get(direct);
+                 fieldOffset = PlatformDependent0.objectFieldOffset(cleanerField);
+-                clean = cleaner.getClass().getDeclaredMethod("clean");
++                Object cleaner = cleanerField.get(direct);
++                try {
++                    // Cleaner implements Runnable from JDK9 onwards.
++                    Runnable runnable = (Runnable) cleaner;
++                    clean = Runnable.class.getDeclaredMethod("run");
++                } catch (ClassCastException ignored) {
++                    clean = cleaner.getClass().getDeclaredMethod("clean");
++                }
+                 clean.invoke(cleaner);
+             } catch (Throwable t) {
+                 // We don't have ByteBuffer.cleaner().
+diff --git a/common/src/main/java/io/netty/util/internal/PlatformDependent0.java b/common/src/main/java/io/netty/util/internal/PlatformDependent0.java
+index c572212..3f0cd49 100644
+--- a/common/src/main/java/io/netty/util/internal/PlatformDependent0.java
++++ b/common/src/main/java/io/netty/util/internal/PlatformDependent0.java
+@@ -154,6 +154,8 @@ final class PlatformDependent0 {
+ 
+         logger.debug("java.nio.DirectByteBuffer.<init>(long, int): {}",
+                 DIRECT_BUFFER_CONSTRUCTOR != null? "available" : "unavailable");
++
++        freeDirectBuffer(direct);
+     }
+ 
+     static boolean isUnaligned() {

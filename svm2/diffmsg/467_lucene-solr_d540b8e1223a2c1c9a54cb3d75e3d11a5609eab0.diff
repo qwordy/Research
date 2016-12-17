@@ -1,0 +1,32 @@
+commit d540b8e1223a2c1c9a54cb3d75e3d11a5609eab0
+Author: Mark Robert Miller <markrmiller@apache.org>
+Date:   Sat Feb 16 19:17:43 2013 +0000
+
+    SOLR-4421,SOLR-4165: Fix wait loop to sleep, reduce max wait time, wait min 1 second
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@1446926 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/solr/core/src/java/org/apache/solr/cloud/ZkController.java b/solr/core/src/java/org/apache/solr/cloud/ZkController.java
+index f6ae419..8a0cc48 100644
+--- a/solr/core/src/java/org/apache/solr/cloud/ZkController.java
++++ b/solr/core/src/java/org/apache/solr/cloud/ZkController.java
+@@ -564,7 +564,7 @@ public final class ZkController {
+     
+     // now wait till the updates are in our state
+     long now = System.currentTimeMillis();
+-    long timeout = now + 1000 * 300;
++    long timeout = now + 1000 * 30;
+     boolean foundStates = false;
+     while (System.currentTimeMillis() < timeout) {
+       clusterState = zkStateReader.getClusterState();
+@@ -586,8 +586,10 @@ public final class ZkController {
+       
+       if (updatedNodes.size() == 0) {
+         foundStates = true;
++        Thread.sleep(1000);
+         break;
+       }
++      Thread.sleep(1000);
+     }
+     if (!foundStates) {
+       log.warn("Timed out waiting to see all nodes published as DOWN in our cluster state.");

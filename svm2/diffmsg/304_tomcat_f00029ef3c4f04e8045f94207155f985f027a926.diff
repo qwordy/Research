@@ -1,0 +1,67 @@
+commit f00029ef3c4f04e8045f94207155f985f027a926
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Thu Jun 4 15:36:07 2009 +0000
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=47158
+    Thread safety issues
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@781779 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/valves/AccessLogValve.java b/java/org/apache/catalina/valves/AccessLogValve.java
+index 4fba7e8..60211b8 100644
+--- a/java/org/apache/catalina/valves/AccessLogValve.java
++++ b/java/org/apache/catalina/valves/AccessLogValve.java
+@@ -132,7 +132,7 @@ public class AccessLogValve
+      * The as-of date for the currently open log file, or a zero-length
+      * string if there is no open log file.
+      */
+-    private String dateStamp = "";
++    private volatile String dateStamp = "";
+ 
+ 
+     /**
+@@ -283,7 +283,7 @@ public class AccessLogValve
+      */
+     private Date currentDate = null;
+     
+-    private long currentMillis = 0;
++    private volatile long currentMillis = 0;
+ 
+ 
+     /**
+@@ -609,8 +609,8 @@ public class AccessLogValve
+             }
+ 
+             /* Make sure date is correct */
+-            currentDate = new Date(System.currentTimeMillis());
+-            dateStamp = fileDateFormatter.format(currentDate);
++            dateStamp = fileDateFormatter.format(
++                    new Date(System.currentTimeMillis()));
+ 
+             open();
+             return true;
+@@ -650,12 +650,10 @@ public class AccessLogValve
+             long systime = System.currentTimeMillis();
+             if ((systime - rotationLastChecked) > 1000) {
+ 
+-                // We need a new currentDate
+-                currentDate = new Date(systime);
+                 rotationLastChecked = systime;
+ 
+                 // Check for a change of date
+-                String tsDate = fileDateFormatter.format(currentDate);
++                String tsDate = fileDateFormatter.format(new Date(systime));
+ 
+                 // If the date has changed, switch log files
+                 if (!dateStamp.equals(tsDate)) {
+@@ -681,8 +679,8 @@ public class AccessLogValve
+                     }
+ 
+                     /* Make sure date is correct */
+-                    currentDate = new Date(System.currentTimeMillis());
+-                    dateStamp = fileDateFormatter.format(currentDate);
++                    dateStamp = fileDateFormatter.format(
++                            new Date(System.currentTimeMillis()));
+ 
+                     open();
+                 }

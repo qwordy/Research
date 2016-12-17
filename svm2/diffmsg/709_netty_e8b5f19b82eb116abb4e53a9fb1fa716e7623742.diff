@@ -1,0 +1,41 @@
+commit e8b5f19b82eb116abb4e53a9fb1fa716e7623742
+Author: Norman Maurer <nmaurer@redhat.com>
+Date:   Fri Apr 25 20:38:44 2014 +0200
+
+    Not cause busy loop when interrupt Thread of NioEventLoop
+    
+    Motivation:
+    Because Thread.currentThread().interrupt() will unblock Selector.select() we need to take special care when check if we need to rebuild the Selector. If the unblock was caused by the interrupt() we will clear it and move on as this is most likely a bug in a custom ChannelHandler or a library the user makes use of.
+    
+    Modification:
+    Clear the interrupt state of the Thread if the Selector was unblock because of an interrupt and the returned keys was 0.
+    
+    Result:
+    No more busy loop caused by Thread.currentThread().interrupt()
+
+diff --git a/transport/src/main/java/io/netty/channel/nio/NioEventLoop.java b/transport/src/main/java/io/netty/channel/nio/NioEventLoop.java
+index 34c00a8..64c954a 100644
+--- a/transport/src/main/java/io/netty/channel/nio/NioEventLoop.java
++++ b/transport/src/main/java/io/netty/channel/nio/NioEventLoop.java
+@@ -624,7 +624,20 @@ public final class NioEventLoop extends SingleThreadEventLoop {
+                     // the task queue has a pending task.
+                     break;
+                 }
+-
++                if (selectedKeys == 0 && Thread.interrupted()) {
++                    // Thread was interrupted so reset selected keys and break so we not run into a busy loop.
++                    // As this is most likely a bug in the handler of the user or it's client library we will
++                    // also log it.
++                    //
++                    // See https://github.com/netty/netty/issues/2426
++                    if (logger.isDebugEnabled()) {
++                        logger.debug("Selector.select() returned prematurely because " +
++                                "Thread.currentThread().interrupt() was called. Use " +
++                                "NioEventLoop.shutdownGracefully() to shutdown the NioEventLoop.");
++                    }
++                    selectCnt = 1;
++                    break;
++                }
+                 if (SELECTOR_AUTO_REBUILD_THRESHOLD > 0 &&
+                         selectCnt >= SELECTOR_AUTO_REBUILD_THRESHOLD) {
+                     // The selector returned prematurely many times in a row.

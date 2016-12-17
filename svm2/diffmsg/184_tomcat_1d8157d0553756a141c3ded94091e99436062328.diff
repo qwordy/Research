@@ -1,0 +1,39 @@
+commit 1d8157d0553756a141c3ded94091e99436062328
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Wed Oct 29 12:31:12 2014 +0000
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=57157
+    Allow calls to AsyncContext.start(Runnable) during non-blocking IO reads and writes.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1635113 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/coyote/AsyncStateMachine.java b/java/org/apache/coyote/AsyncStateMachine.java
+index 0becff1..195a44a 100644
+--- a/java/org/apache/coyote/AsyncStateMachine.java
++++ b/java/org/apache/coyote/AsyncStateMachine.java
+@@ -318,7 +318,8 @@ public class AsyncStateMachine {
+     }
+ 
+     public synchronized void asyncRun(Runnable runnable) {
+-        if (state == AsyncState.STARTING || state ==  AsyncState.STARTED) {
++        if (state == AsyncState.STARTING || state ==  AsyncState.STARTED ||
++                state == AsyncState.READ_WRITE_OP) {
+             // Execute the runnable using a container thread from the
+             // Connector's thread pool. Use a wrapper to prevent a memory leak
+             ClassLoader oldCL;
+diff --git a/webapps/docs/changelog.xml b/webapps/docs/changelog.xml
+index 946dc8d..e478931 100644
+--- a/webapps/docs/changelog.xml
++++ b/webapps/docs/changelog.xml
+@@ -209,6 +209,11 @@
+         Trigger an error if an invalid attempt is made to use non-blocking IO.
+         (markt)
+       </fix>
++      <fix>
++        <bug>57157</bug>: Allow calls to
++        <code>AsyncContext.start(Runnable)</code> during non-blocking IO reads
++        and writes. (markt)
++      </fix>
+     </changelog>
+   </subsection>
+   <subsection name="Jasper">

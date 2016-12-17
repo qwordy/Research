@@ -1,0 +1,218 @@
+commit 19ffdd5c297ca45dd42a193c5de6065dfdbefc2b
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Fri Mar 22 14:33:47 2013 +0900
+
+    Revamp the selector auto rebuild checker
+    
+    - Count the number of select() calls made to wait until reaching at the expected dead line, and rebuild selectors if too many select() calls were made.
+
+diff --git a/common/src/main/java/io/netty/util/concurrent/SingleThreadEventExecutor.java b/common/src/main/java/io/netty/util/concurrent/SingleThreadEventExecutor.java
+index d4b5ba2..2aabc15 100644
+--- a/common/src/main/java/io/netty/util/concurrent/SingleThreadEventExecutor.java
++++ b/common/src/main/java/io/netty/util/concurrent/SingleThreadEventExecutor.java
+@@ -352,26 +352,13 @@ public abstract class SingleThreadEventExecutor extends AbstractEventExecutor {
+     /**
+      * Returns the ammount of time left until the scheduled task with the closest dead line is executed.
+      */
+-    protected long delayNanos() {
++    protected long delayNanos(long currentTimeNanos) {
+         ScheduledFutureTask<?> delayedTask = delayedTaskQueue.peek();
+         if (delayedTask == null) {
+             return SCHEDULE_PURGE_INTERVAL;
+         }
+ 
+-        return delayedTask.delayNanos();
+-    }
+-
+-    /**
+-     * Returns the ammount of time left until the scheduled task with the closest dead line is executed.
+-     */
+-    protected long delayMillis() {
+-        long delayNanos = delayNanos();
+-        long delayMillis = delayNanos / 1000000L;
+-        if (delayNanos % 1000000L < 500000L) {
+-            return delayMillis;
+-        } else {
+-            return delayMillis + 1;
+-        }
++        return delayedTask.delayNanos(currentTimeNanos);
+     }
+ 
+     /**
+@@ -763,6 +750,10 @@ public abstract class SingleThreadEventExecutor extends AbstractEventExecutor {
+             return Math.max(0, deadlineNanos() - nanoTime());
+         }
+ 
++        public long delayNanos(long currentTimeNanos) {
++            return Math.max(0, deadlineNanos() - (currentTimeNanos - START_TIME));
++        }
++
+         @Override
+         public long getDelay(TimeUnit unit) {
+             return unit.convert(delayNanos(), TimeUnit.NANOSECONDS);
+diff --git a/transport/src/main/java/io/netty/channel/nio/NioEventLoop.java b/transport/src/main/java/io/netty/channel/nio/NioEventLoop.java
+index 96cf3db..7f366d9 100644
+--- a/transport/src/main/java/io/netty/channel/nio/NioEventLoop.java
++++ b/transport/src/main/java/io/netty/channel/nio/NioEventLoop.java
+@@ -77,7 +77,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
+             }
+         }
+ 
+-        int selectorAutoRebuildThreshold = SystemPropertyUtil.getInt("io.netty.selectorAutoRebuildThreshold", 16);
++        int selectorAutoRebuildThreshold = SystemPropertyUtil.getInt("io.netty.selectorAutoRebuildThreshold", 512);
+         if (selectorAutoRebuildThreshold < MIN_PREMATURE_SELECTOR_RETURNS) {
+             selectorAutoRebuildThreshold = 0;
+         }
+@@ -108,7 +108,6 @@ public final class NioEventLoop extends SingleThreadEventLoop {
+     private volatile int ioRatio = 50;
+     private int cancelledKeys;
+     private boolean needsToSelectAgain;
+-    private int prematureSelectorReturns;
+ 
+     NioEventLoop(
+             NioEventLoopGroup parent, ThreadFactory threadFactory, SelectorProvider selectorProvider) {
+@@ -121,7 +120,6 @@ public final class NioEventLoop extends SingleThreadEventLoop {
+     }
+ 
+     private Selector openSelector() {
+-        resetPrematureSelectorReturns();
+         try {
+             return provider.openSelector();
+         } catch (IOException e) {
+@@ -548,9 +546,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
+ 
+     void selectNow() throws IOException {
+         try {
+-            if (selector.selectNow() != 0) {
+-                resetPrematureSelectorReturns();
+-            }
++            selector.selectNow();
+         } finally {
+             // restore wakup state if needed
+             if (wakenUp.get()) {
+@@ -561,48 +557,52 @@ public final class NioEventLoop extends SingleThreadEventLoop {
+ 
+     private void select() throws IOException {
+         Selector selector = this.selector;
+-        long delayMillis = delayMillis();
+         try {
+-            if (delayMillis > 0) {
+-                long startTimeNanos = System.nanoTime();
+-                if (selector.select(delayMillis) == 0) {
+-                    if (oldWakenUp || wakenUp.get() || hasTasks()) {
+-                        // Waken up by user or the task queue has a pending task.
+-                        return;
++            int selectCnt = 0;
++            long currentTimeNanos = System.nanoTime();
++            long selectDeadLineNanos = currentTimeNanos + delayNanos(currentTimeNanos);
++            for (;;) {
++                long timeoutMillis = (selectDeadLineNanos - currentTimeNanos + 500000L) / 1000000L;
++                if (timeoutMillis <= 0) {
++                    if (selectCnt == 0) {
++                        selector.selectNow();
++                        selectCnt = 1;
+                     }
++                    break;
++                }
+ 
+-                    long delayNanos = delayNanos();
+-                    if (delayNanos <= 0) {
+-                        // Waken up to handle a delayed task.
+-                        return;
+-                    }
++                int selectedKeys = selector.select(timeoutMillis);
++                selectCnt ++;
+ 
+-                    if (System.nanoTime() - startTimeNanos < delayNanos >>> 1) {
+-                        // Returned way before the specified timeout with no selected keys.
+-                        // This may be because of the JDK /dev/epoll bug - increment the counter.
+-                        prematureSelectorReturns ++;
+-                        if (SELECTOR_AUTO_REBUILD_THRESHOLD > 0 &&
+-                            prematureSelectorReturns >= SELECTOR_AUTO_REBUILD_THRESHOLD) {
+-                            // The selector returned prematurely many times in a row.
+-                            // Rebuild the selector to work around the problem.
+-                            logger.warn(
+-                                    "Selector.select() returned prematurely {} times in a row; rebuilding selector.",
+-                                    prematureSelectorReturns);
+-
+-                            rebuildSelector();
+-
+-                            // Select again to populate selectedKeys.
+-                            selector.selectNow();
+-                        }
+-                    } else {
+-                        resetPrematureSelectorReturns();
+-                    }
+-                } else {
+-                    resetPrematureSelectorReturns();
++                if (selectedKeys != 0 || oldWakenUp || wakenUp.get() || hasTasks()) {
++                    // Selected something,
++                    // waken up by user, or
++                    // the task queue has a pending task.
++                    break;
+                 }
+-            } else {
+-                if (selector.selectNow() != 0) {
+-                    resetPrematureSelectorReturns();
++
++                if (SELECTOR_AUTO_REBUILD_THRESHOLD > 0 &&
++                        selectCnt >= SELECTOR_AUTO_REBUILD_THRESHOLD) {
++                    // The selector returned prematurely many times in a row.
++                    // Rebuild the selector to work around the problem.
++                    logger.warn(
++                            "Selector.select() returned prematurely {} times in a row; rebuilding selector.",
++                            selectCnt);
++
++                    rebuildSelector();
++
++                    // Select again to populate selectedKeys.
++                    selector.selectNow();
++                    selectCnt = 1;
++                    break;
++                }
++
++                currentTimeNanos = System.nanoTime();
++            }
++
++            if (selectCnt > MIN_PREMATURE_SELECTOR_RETURNS) {
++                if (logger.isDebugEnabled()) {
++                    logger.debug("Selector.select() returned prematurely {} times in a row.", selectCnt - 1);
+                 }
+             }
+         } catch (CancelledKeyException e) {
+@@ -616,21 +616,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
+     private void selectAgain() {
+         needsToSelectAgain = false;
+         try {
+-            if (selector.selectNow() != 0) {
+-                resetPrematureSelectorReturns();
+-            }
++            selector.selectNow();
+         } catch (Throwable t) {
+             logger.warn("Failed to update SelectionKeys.", t);
+         }
+     }
+-
+-    private void resetPrematureSelectorReturns() {
+-        int prematureSelectorReturns = this.prematureSelectorReturns;
+-        if (prematureSelectorReturns >= MIN_PREMATURE_SELECTOR_RETURNS) {
+-            if (logger.isDebugEnabled()) {
+-                logger.debug("Selector.select() returned prematurely {} times in a row.", prematureSelectorReturns);
+-            }
+-            this.prematureSelectorReturns = 0;
+-        }
+-    }
+ }
+diff --git a/transport/src/test/java/io/netty/channel/SingleThreadEventLoopTest.java b/transport/src/test/java/io/netty/channel/SingleThreadEventLoopTest.java
+index c4dc9d2..1cd61fe 100644
+--- a/transport/src/test/java/io/netty/channel/SingleThreadEventLoopTest.java
++++ b/transport/src/test/java/io/netty/channel/SingleThreadEventLoopTest.java
+@@ -377,7 +377,7 @@ public class SingleThreadEventLoopTest {
+         protected void run() {
+             for (;;) {
+                 try {
+-                    Thread.sleep(TimeUnit.NANOSECONDS.toMillis(delayNanos()));
++                    Thread.sleep(TimeUnit.NANOSECONDS.toMillis(delayNanos(System.nanoTime())));
+                 } catch (InterruptedException e) {
+                     // Waken up by interruptThread()
+                 }

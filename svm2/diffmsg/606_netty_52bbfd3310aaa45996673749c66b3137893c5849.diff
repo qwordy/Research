@@ -1,0 +1,184 @@
+commit 52bbfd3310aaa45996673749c66b3137893c5849
+Author: Scott Mitchell <scott_mitchell@apple.com>
+Date:   Mon Jun 6 14:51:05 2016 -0700
+
+    epoll_wait timeout reset when called multiple times
+    
+    Motivation:
+    epoll_wait accepts a timeout argument which will specify the maximum amount of time the epoll_wait will wait for an event to occur. If the epoll_wait method returns for any reason that is not fatal (e.g. EINTR) the original timeout value is re-used. This does not honor the timeout interface contract and can lead to unbounded time in epoll_wait.
+    
+    Modifications:
+    - The time taken by epoll_wait should be decremented before calling epoll_wait again, and if the remaining time is exhausted we should return 0 according to the epoll_wait interface docs http://man7.org/linux/man-pages/man2/epoll_wait.2.html
+    - link librt which is needed for some platforms to use clock_gettime
+    
+    Result:
+    epoll_wait will wait for at most timeout ms according to the epoll_wait interface contract.
+
+diff --git a/transport-native-epoll/pom.xml b/transport-native-epoll/pom.xml
+index 1f7d592..2b0de46 100644
+--- a/transport-native-epoll/pom.xml
++++ b/transport-native-epoll/pom.xml
+@@ -26,6 +26,10 @@
+   <name>Netty/Transport/Native/Epoll</name>
+   <packaging>jar</packaging>
+ 
++  <properties>
++    <jni.compiler.args.ldflags>LDFLAGS=-Wl,--no-as-needed -lrt</jni.compiler.args.ldflags>
++  </properties>
++
+   <dependencies>
+     <dependency>
+       <groupId>io.netty</groupId>
+@@ -74,7 +78,8 @@
+               <forceConfigure>true</forceConfigure>
+               <forceAutogen>true</forceAutogen>
+               <configureArgs>
+-                <arg>${jni.compiler.args}</arg>
++                <arg>${jni.compiler.args.ldflags}</arg>
++                <arg>${jni.compiler.args.cflags}</arg>
+               </configureArgs>
+             </configuration>
+             <goals>
+@@ -187,7 +192,7 @@
+               <goal>regex-property</goal>
+             </goals>
+             <configuration>
+-              <name>jni.compiler.args</name>
++              <name>jni.compiler.args.cflags</name>
+               <value>${linux.sendmmsg.support}${glibc.sendmmsg.support}</value>
+               <!-- If glibc and linux kernel are both not sufficient...then define the CFLAGS -->
+               <regex>.*IO_NETTY_SENDMSSG_NOT_FOUND.*</regex>
+@@ -203,8 +208,8 @@
+               <goal>regex-property</goal>
+             </goals>
+             <configuration>
+-              <name>jni.compiler.args</name>
+-              <value>${jni.compiler.args}</value>
++              <name>jni.compiler.args.cflags</name>
++              <value>${jni.compiler.args.cflags}</value>
+               <!-- If glibc and linux kernel are both not sufficient...then define the CFLAGS -->
+               <regex>^((?!CFLAGS=).)*$</regex>
+               <replacement>CFLAGS=-O3 -Werror</replacement>
+diff --git a/transport-native-epoll/src/main/c/netty_epoll_native.c b/transport-native-epoll/src/main/c/netty_epoll_native.c
+index 3c72cac..c5a500c 100644
+--- a/transport-native-epoll/src/main/c/netty_epoll_native.c
++++ b/transport-native-epoll/src/main/c/netty_epoll_native.c
+@@ -35,6 +35,7 @@
+ #include <limits.h>
+ #include <inttypes.h>
+ #include <link.h>
++#include <time.h>
+ #include "netty_unix_filedescriptor.h"
+ #include "netty_unix_socket.h"
+ #include "netty_unix_errors.h"
+@@ -103,7 +104,49 @@ jfieldID packetPortFieldId = NULL;
+ jfieldID packetMemoryAddressFieldId = NULL;
+ jfieldID packetCountFieldId = NULL;
+ 
++clockid_t epollWaitClock = 0; // initialized in initializeEpollWaitClock
++
+ // util methods
++static jboolean initializeEpollWaitClock() {
++  struct timespec ts;
++  // First try to get a monotonic clock, as we effectively measure execution time and don't want the underlying clock
++  // moving unexpectedly/abruptly.
++  #ifdef CLOCK_MONOTONIC_COARSE
++  epollWaitClock = CLOCK_MONOTONIC_COARSE;
++  if (clock_gettime(epollWaitClock, &ts) != EINVAL) {
++    return JNI_TRUE;
++  }
++  #endif
++  #ifdef CLOCK_MONOTONIC_RAW
++  epollWaitClock = CLOCK_MONOTONIC_RAW;
++  if (clock_gettime(epollWaitClock, &ts) != EINVAL) {
++    return JNI_TRUE;
++  }
++  #endif
++  #ifdef CLOCK_MONOTONIC
++  epollWaitClock = CLOCK_MONOTONIC;
++  if (clock_gettime(epollWaitClock, &ts) != EINVAL) {
++    return JNI_TRUE;
++  }
++  #endif
++
++  // Fallback to realtime ... in this case we are subject to clock movements on the system.
++  #ifdef CLOCK_REALTIME_COARSE
++  epollWaitClock = CLOCK_REALTIME_COARSE;
++  if (clock_gettime(epollWaitClock, &ts) != EINVAL) {
++    return JNI_TRUE;
++  }
++  #endif
++  #ifdef CLOCK_REALTIME
++  epollWaitClock = CLOCK_REALTIME;
++  if (clock_gettime(epollWaitClock, &ts) != EINVAL) {
++    return JNI_TRUE;
++  }
++  #endif
++  fprintf(stderr, "FATAL: could not find a clock for clock_gettime!\n");
++  return JNI_FALSE;
++}
++
+ static int getSysctlValue(const char * property, int* returnValue) {
+     int rc = -1;
+     FILE *fd=fopen(property, "r");
+@@ -186,23 +229,40 @@ static jint netty_epoll_native_epollCreate(JNIEnv* env, jclass clazz) {
+ 
+ static jint netty_epoll_native_epollWait0(JNIEnv* env, jclass clazz, jint efd, jlong address, jint len, jint timeout) {
+     struct epoll_event *ev = (struct epoll_event*) (intptr_t) address;
+-    int ready;
+-    int err;
++    struct timespec ts;
++    jlong timeBeforeWait, timeNow;
++    int timeDiff, result, err;
+ 
+     if (timeout > MAX_EPOLL_TIMEOUT_MSEC) {
+         // Workaround for bug in older linux kernels that can not handle bigger timeout then MAX_EPOLL_TIMEOUT_MSEC.
+         timeout = MAX_EPOLL_TIMEOUT_MSEC;
+     }
+ 
+-    do {
+-       ready = epoll_wait(efd, ev, len, timeout);
+-       // was interrupted try again.
+-    } while (ready == -1 && ((err = errno) == EINTR));
++    clock_gettime(epollWaitClock, &ts);
++    timeBeforeWait = ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+ 
+-    if (ready < 0) {
+-         return -err;
++    for (;;) {
++      result = epoll_wait(efd, ev, len, timeout);
++      if (result >= 0) {
++        return result;
++      }
++      if ((err = errno) == EINTR) {
++        if (timeout > 0) {
++          clock_gettime(epollWaitClock, &ts);
++          timeNow = ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
++          timeDiff = timeNow - timeBeforeWait;
++          timeout -= timeDiff;
++          if (timeDiff < 0 || timeout <= 0) {
++            return 0;
++          }
++          timeBeforeWait = timeNow;
++        } else if (timeout == 0) {
++          return 0;
++        }
++      } else {
++        return -err;
++      }
+     }
+-    return ready;
+ }
+ 
+ static jint netty_epoll_native_epollCtlAdd0(JNIEnv* env, jclass clazz, jint efd, jint fd, jint flags) {
+@@ -890,6 +950,10 @@ static jint netty_epoll_native_JNI_OnLoad(JNIEnv* env, const char* packagePrefix
+         return JNI_ERR;
+     }
+ 
++    if (!initializeEpollWaitClock()) {
++      return JNI_ERR;
++    }
++
+     return JNI_VERSION_1_6;
+ }
+ 

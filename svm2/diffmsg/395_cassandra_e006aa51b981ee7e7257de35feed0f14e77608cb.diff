@@ -1,0 +1,123 @@
+commit e006aa51b981ee7e7257de35feed0f14e77608cb
+Author: Jonathan Ellis <jbellis@apache.org>
+Date:   Tue Oct 27 14:40:01 2009 +0000
+
+    r/m single-use executor in favor of a Thread
+    patch by jbellis; reviewed by goffinet for CASSANDRA-483
+    
+    git-svn-id: https://svn.apache.org/repos/asf/incubator/cassandra/trunk@830210 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/java/org/apache/cassandra/dht/BootStrapper.java b/src/java/org/apache/cassandra/dht/BootStrapper.java
+index faf1233..6b4b0dc 100644
+--- a/src/java/org/apache/cassandra/dht/BootStrapper.java
++++ b/src/java/org/apache/cassandra/dht/BootStrapper.java
+@@ -68,20 +68,17 @@ package org.apache.cassandra.dht;
+   *  - when we have everything set up to receive the data, we send bootStrapInitiateDoneVerb back to the source nodes and they start streaming
+   *  - when streaming is complete, we send bootStrapTerminateVerb to the source so it can clean up on its end
+   */
+-public class BootStrapper implements Runnable
++public class BootStrapper
+ {
+     public static final long INITIAL_DELAY = 30 * 1000; //ms
+ 
+     static final Logger logger_ = Logger.getLogger(BootStrapper.class);
+ 
+-    /* This thread pool is used to do the bootstrap for a new node */
+-    private static final ExecutorService bootstrapExecutor_ = new DebuggableThreadPoolExecutor("BOOT-STRAPPER");
+-
+     /* endpoints that need to be bootstrapped */
+-    protected List<InetAddress> targets_;
++    protected final List<InetAddress> targets_;
+     /* tokens of the nodes being bootstrapped. */
+     protected final Token[] tokens_;
+-    protected TokenMetadata tokenMetadata_ = null;
++    protected final TokenMetadata tokenMetadata_;
+ 
+     public BootStrapper(List<InetAddress> targets, Token... token)
+     {
+@@ -90,30 +87,6 @@ public class BootStrapper implements Runnable
+         tokenMetadata_ = StorageService.instance().getTokenMetadata();
+     }
+     
+-    public void run()
+-    {
+-        try
+-        {
+-            // Mark as not bootstrapping to calculate ranges correctly
+-            for (int i=0; i< targets_.size(); i++)
+-            {
+-                tokenMetadata_.update(tokens_[i], targets_.get(i), false);
+-            }
+-                                                                           
+-            Map<Range, List<BootstrapSourceTarget>> rangesWithSourceTarget = getRangesWithSourceTarget();
+-            if (logger_.isDebugEnabled())
+-                    logger_.debug("Beginning bootstrap process for [" + StringUtils.join(targets_, ", ") + "] ...");
+-            /* Send messages to respective folks to stream data over to the new nodes being bootstrapped */
+-            LeaveJoinProtocolHelper.assignWork(rangesWithSourceTarget);
+-
+-        }
+-        catch ( Throwable th )
+-        {
+-            if (logger_.isDebugEnabled())
+-              logger_.debug( LogUtil.throwableToString(th) );
+-        }
+-    }
+-    
+     Map<Range, List<BootstrapSourceTarget>> getRangesWithSourceTarget()
+     {
+         /* copy the token to endpoint map */
+@@ -181,7 +154,7 @@ public class BootStrapper implements Runnable
+         return btc.getToken();
+     }
+ 
+-    public static void startBootstrap() throws IOException
++    public void startBootstrap() throws IOException
+     {
+         logger_.info("Starting in bootstrap mode (first, sleeping to get load information)");
+ 
+@@ -216,8 +189,30 @@ public class BootStrapper implements Runnable
+             }
+         }
+ 
+-        BootStrapper bs = new BootStrapper(Arrays.asList(FBUtilities.getLocalAddress()), ss.getLocalToken());
+-        bootstrapExecutor_.submit(bs);
++        new Thread(new Runnable()
++        {
++            public void run()
++            {
++                // Mark as not bootstrapping to calculate ranges correctly
++                for (int i=0; i< targets_.size(); i++)
++                {
++                    tokenMetadata_.update(tokens_[i], targets_.get(i), false);
++                }
++
++                Map<Range, List<BootstrapSourceTarget>> rangesWithSourceTarget = getRangesWithSourceTarget();
++                if (logger_.isDebugEnabled())
++                        logger_.debug("Beginning bootstrap process for [" + StringUtils.join(targets_, ", ") + "] ...");
++                /* Send messages to respective folks to stream data over to the new nodes being bootstrapped */
++                try
++                {
++                    LeaveJoinProtocolHelper.assignWork(rangesWithSourceTarget);
++                }
++                catch (IOException e)
++                {
++                    throw new RuntimeException(e);
++                }
++            }
++        }).start();
+         Gossiper.instance().addApplicationState(StorageService.BOOTSTRAP_MODE, new ApplicationState(""));
+     }
+ 
+diff --git a/src/java/org/apache/cassandra/service/StorageService.java b/src/java/org/apache/cassandra/service/StorageService.java
+index 26577f3..79d6c75 100644
+--- a/src/java/org/apache/cassandra/service/StorageService.java
++++ b/src/java/org/apache/cassandra/service/StorageService.java
+@@ -256,7 +256,7 @@ public final class StorageService implements IEndPointStateChangeSubscriber, Sto
+ 
+         if (isBootstrapMode)
+         {
+-            BootStrapper.startBootstrap(); // handles token update
++            new BootStrapper(Arrays.asList(FBUtilities.getLocalAddress()), getLocalToken()).startBootstrap(); // handles token update
+         }
+         else
+         {

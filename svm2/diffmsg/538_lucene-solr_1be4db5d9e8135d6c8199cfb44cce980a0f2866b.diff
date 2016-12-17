@@ -1,0 +1,22 @@
+commit 1be4db5d9e8135d6c8199cfb44cce980a0f2866b
+Author: Uwe Schindler <uschindler@apache.org>
+Date:   Wed Oct 28 00:16:48 2009 +0000
+
+    One more Thread.holdsLock(writer) assert...
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/java/trunk@830410 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/java/org/apache/lucene/index/IndexWriter.java b/src/java/org/apache/lucene/index/IndexWriter.java
+index 074a2d1..45b956f 100644
+--- a/src/java/org/apache/lucene/index/IndexWriter.java
++++ b/src/java/org/apache/lucene/index/IndexWriter.java
+@@ -468,8 +468,7 @@ public class IndexWriter implements Closeable {
+         // not pooling readers, we release it:
+         readerMap.remove(sr.getSegmentInfo());
+ 
+-        // TODO: java 5
+-        // assert !sr.hasChanges || Thread.holdsLock(IndexWriter.this);
++        assert !sr.hasChanges || Thread.holdsLock(IndexWriter.this);
+ 
+         // Drop our ref -- this will commit any pending
+         // changes to the dir

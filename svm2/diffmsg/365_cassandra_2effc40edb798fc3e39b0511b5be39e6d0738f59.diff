@@ -1,0 +1,985 @@
+commit 2effc40edb798fc3e39b0511b5be39e6d0738f59
+Author: Jonathan Ellis <jbellis@apache.org>
+Date:   Mon May 13 11:26:23 2013 -0500
+
+    replace Thread.sleep with Uninterruptibles.sleepUninterruptibly
+    patch by Mikhail Mazursky; reviewed by jbellis for CASSANDRA-5557
+
+diff --git a/examples/client_only/src/ClientOnlyExample.java b/examples/client_only/src/ClientOnlyExample.java
+index d73043e..e823ead 100644
+--- a/examples/client_only/src/ClientOnlyExample.java
++++ b/examples/client_only/src/ClientOnlyExample.java
+@@ -18,6 +18,7 @@
+ 
+ import java.nio.ByteBuffer;
+ import java.util.*;
++import java.util.concurrent.TimeUnit;
+ 
+ import org.apache.cassandra.cql3.QueryProcessor;
+ import org.apache.cassandra.db.ConsistencyLevel;
+@@ -30,6 +31,8 @@ import org.apache.cassandra.transport.messages.ResultMessage;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
++import com.google.common.util.concurrent.Uninterruptibles;
++
+ public class ClientOnlyExample
+ {
+     private static final Logger logger = LoggerFactory.getLogger(ClientOnlyExample.class);
+@@ -121,14 +124,7 @@ public class ClientOnlyExample
+         setupKeyspace();
+         testWriting();
+         logger.info("Writing is done. Sleeping, then will try to read.");
+-        try
+-        {
+-            Thread.currentThread().sleep(1000);
+-        }
+-        catch (InterruptedException ex)
+-        {
+-            throw new RuntimeException(ex);
+-        }
++        Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+ 
+         testReading();
+ 
+diff --git a/examples/hadoop_word_count/src/WordCountSetup.java b/examples/hadoop_word_count/src/WordCountSetup.java
+index 6837bec..e222327 100644
+--- a/examples/hadoop_word_count/src/WordCountSetup.java
++++ b/examples/hadoop_word_count/src/WordCountSetup.java
+@@ -18,6 +18,7 @@
+ 
+ import java.nio.ByteBuffer;
+ import java.util.*;
++import java.util.concurrent.TimeUnit;
+ 
+ import org.apache.cassandra.thrift.*;
+ import org.apache.cassandra.utils.ByteBufferUtil;
+@@ -32,6 +33,8 @@ import org.apache.thrift.transport.TTransportException;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
++import com.google.common.util.concurrent.Uninterruptibles;
++
+ public class WordCountSetup
+ {
+     private static final Logger logger = LoggerFactory.getLogger(WordCountSetup.class);
+@@ -174,14 +177,7 @@ public class WordCountSetup
+         ksDef.putToStrategy_options("replication_factor", "1");
+         client.system_add_keyspace(ksDef);
+         int magnitude = client.describe_ring(WordCount.KEYSPACE).size();
+-        try
+-        {
+-            Thread.sleep(1000 * magnitude);
+-        }
+-        catch (InterruptedException e)
+-        {
+-            throw new RuntimeException(e);
+-        }
++        Uninterruptibles.sleepUninterruptibly(magnitude, TimeUnit.SECONDS);
+     }
+ 
+     private static Cassandra.Iface createConnection() throws TTransportException
+diff --git a/src/java/org/apache/cassandra/db/ColumnFamilyStore.java b/src/java/org/apache/cassandra/db/ColumnFamilyStore.java
+index 832189f..e0329a7 100644
+--- a/src/java/org/apache/cassandra/db/ColumnFamilyStore.java
++++ b/src/java/org/apache/cassandra/db/ColumnFamilyStore.java
+@@ -32,6 +32,7 @@ import com.google.common.annotations.VisibleForTesting;
+ import com.google.common.base.Function;
+ import com.google.common.collect.*;
+ import com.google.common.util.concurrent.Futures;
++import com.google.common.util.concurrent.Uninterruptibles;
+ 
+ import org.apache.cassandra.db.compaction.*;
+ 
+@@ -1793,17 +1794,10 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean
+ 
+             // sleep a little to make sure that our truncatedAt comes after any sstable
+             // that was part of the flushed we forced; otherwise on a tie, it won't get deleted.
+-            try
+-            {
+-                long starttime = System.currentTimeMillis();
+-                while ((System.currentTimeMillis() - starttime) < 1)
+-                {
+-                    Thread.sleep(1);
+-                }
+-            }
+-            catch (InterruptedException e)
++            long starttime = System.currentTimeMillis();
++            while ((System.currentTimeMillis() - starttime) < 1)
+             {
+-                throw new AssertionError(e);
++                Uninterruptibles.sleepUninterruptibly(1, TimeUnit.MILLISECONDS);
+             }
+         }
+         else
+@@ -1886,7 +1880,7 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean
+                 while (System.currentTimeMillis() < start + 60000)
+                 {
+                     if (CompactionManager.instance.isCompacting(selfWithIndexes))
+-                        FBUtilities.sleep(100);
++                        Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS);
+                     else
+                         break;
+                 }
+diff --git a/src/java/org/apache/cassandra/db/Directories.java b/src/java/org/apache/cassandra/db/Directories.java
+index bfef737..0dd544e 100644
+--- a/src/java/org/apache/cassandra/db/Directories.java
++++ b/src/java/org/apache/cassandra/db/Directories.java
+@@ -21,11 +21,14 @@ import java.io.File;
+ import java.io.FileFilter;
+ import java.io.IOException;
+ import java.util.*;
++import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.atomic.AtomicInteger;
+ import java.util.concurrent.atomic.AtomicLong;
+ 
+ import com.google.common.collect.ImmutableMap;
+ import com.google.common.primitives.Longs;
++import com.google.common.util.concurrent.Uninterruptibles;
++
+ import org.apache.commons.lang.StringUtils;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+@@ -146,14 +149,7 @@ public class Directories
+             // retry after GCing has forced unmap of compacted SSTables so they can be deleted
+             // Note: GCInspector will do this already, but only sun JVM supports GCInspector so far
+             SSTableDeletingTask.rescheduleFailedTasks();
+-            try
+-            {
+-                Thread.sleep(10000);
+-            }
+-            catch (InterruptedException e)
+-            {
+-                throw new AssertionError(e);
+-            }
++            Uninterruptibles.sleepUninterruptibly(10, TimeUnit.SECONDS);
+             path = getLocationWithMaximumAvailableSpace(estimatedSize);
+         }
+ 
+diff --git a/src/java/org/apache/cassandra/db/HintedHandOffManager.java b/src/java/org/apache/cassandra/db/HintedHandOffManager.java
+index 02cf090..b774045 100644
+--- a/src/java/org/apache/cassandra/db/HintedHandOffManager.java
++++ b/src/java/org/apache/cassandra/db/HintedHandOffManager.java
+@@ -33,6 +33,8 @@ import com.google.common.annotations.VisibleForTesting;
+ import com.google.common.collect.ImmutableSortedSet;
+ import com.google.common.collect.Lists;
+ import com.google.common.util.concurrent.RateLimiter;
++import com.google.common.util.concurrent.Uninterruptibles;
++
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
+@@ -233,14 +235,7 @@ public class HintedHandOffManager implements HintedHandOffManagerMBean
+         // first, wait for schema to be gossiped.
+         while (gossiper.getEndpointStateForEndpoint(endpoint).getApplicationState(ApplicationState.SCHEMA) == null)
+         {
+-            try
+-            {
+-                Thread.sleep(1000);
+-            }
+-            catch (InterruptedException e)
+-            {
+-                throw new AssertionError(e);
+-            }
++            Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+             waited += 1000;
+             if (waited > 2 * StorageService.RING_DELAY)
+                 throw new TimeoutException("Didin't receive gossiped schema from " + endpoint + " in " + 2 * StorageService.RING_DELAY + "ms");
+@@ -253,14 +248,7 @@ public class HintedHandOffManager implements HintedHandOffManagerMBean
+         while (!gossiper.getEndpointStateForEndpoint(endpoint).getApplicationState(ApplicationState.SCHEMA).value.equals(
+                 gossiper.getEndpointStateForEndpoint(FBUtilities.getBroadcastAddress()).getApplicationState(ApplicationState.SCHEMA).value))
+         {
+-            try
+-            {
+-                Thread.sleep(1000);
+-            }
+-            catch (InterruptedException e)
+-            {
+-                throw new AssertionError(e);
+-            }
++            Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+             waited += 1000;
+             if (waited > 2 * StorageService.RING_DELAY)
+                 throw new TimeoutException("Could not reach schema agreement with " + endpoint + " in " + 2 * StorageService.RING_DELAY + "ms");
+diff --git a/src/java/org/apache/cassandra/db/commitlog/PeriodicCommitLogExecutorService.java b/src/java/org/apache/cassandra/db/commitlog/PeriodicCommitLogExecutorService.java
+index d8869a3..7a0a761 100644
+--- a/src/java/org/apache/cassandra/db/commitlog/PeriodicCommitLogExecutorService.java
++++ b/src/java/org/apache/cassandra/db/commitlog/PeriodicCommitLogExecutorService.java
+@@ -24,6 +24,8 @@ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.utils.FBUtilities;
+ import org.apache.cassandra.utils.WrappedRunnable;
+ 
++import com.google.common.util.concurrent.Uninterruptibles;
++
+ class PeriodicCommitLogExecutorService implements ICommitLogExecutorService
+ {
+     private final BlockingQueue<Runnable> queue;
+@@ -68,7 +70,7 @@ class PeriodicCommitLogExecutorService implements ICommitLogExecutorService
+                 while (run)
+                 {
+                     FBUtilities.waitOnFuture(submit(syncer));
+-                    FBUtilities.sleep(DatabaseDescriptor.getCommitLogSyncPeriod());
++                    Uninterruptibles.sleepUninterruptibly(DatabaseDescriptor.getCommitLogSyncPeriod(), TimeUnit.MILLISECONDS);
+                 }
+             }
+         }, "PERIODIC-COMMIT-LOG-SYNCER").start();
+diff --git a/src/java/org/apache/cassandra/gms/Gossiper.java b/src/java/org/apache/cassandra/gms/Gossiper.java
+index 5e1cc28..d3c9343 100644
+--- a/src/java/org/apache/cassandra/gms/Gossiper.java
++++ b/src/java/org/apache/cassandra/gms/Gossiper.java
+@@ -23,10 +23,13 @@ import java.net.UnknownHostException;
+ import java.util.*;
+ import java.util.Map.Entry;
+ import java.util.concurrent.*;
++
+ import javax.management.MBeanServer;
+ import javax.management.ObjectName;
+ 
+ import com.google.common.annotations.VisibleForTesting;
++import com.google.common.util.concurrent.Uninterruptibles;
++
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
+@@ -373,14 +376,7 @@ public class Gossiper implements IFailureDetectionEventListener, GossiperMBean
+         int generation = epState.getHeartBeatState().getGeneration();
+         logger.info("Removing host: {}", hostId);
+         logger.info("Sleeping for " + StorageService.RING_DELAY + "ms to ensure " + endpoint + " does not change");
+-        try
+-        {
+-            Thread.sleep(StorageService.RING_DELAY);
+-        }
+-        catch (InterruptedException e)
+-        {
+-            throw new AssertionError(e);
+-        }
++        Uninterruptibles.sleepUninterruptibly(StorageService.RING_DELAY, TimeUnit.MILLISECONDS);
+         // make sure it did not change
+         epState = endpointStateMap.get(endpoint);
+         if (epState.getHeartBeatState().getGeneration() != generation)
+@@ -412,14 +408,7 @@ public class Gossiper implements IFailureDetectionEventListener, GossiperMBean
+         addExpireTimeForEndpoint(endpoint, expireTime);
+         endpointStateMap.put(endpoint, epState);
+         // ensure at least one gossip round occurs before returning
+-        try
+-        {
+-            Thread.sleep(intervalInMillis * 2);
+-        }
+-        catch (InterruptedException e)
+-        {
+-            throw new AssertionError(e);
+-        }
++        Uninterruptibles.sleepUninterruptibly(intervalInMillis * 2, TimeUnit.MILLISECONDS);
+     }
+ 
+     /**
+@@ -456,7 +445,7 @@ public class Gossiper implements IFailureDetectionEventListener, GossiperMBean
+             }
+             int generation = epState.getHeartBeatState().getGeneration();
+             logger.info("Sleeping for " + StorageService.RING_DELAY + "ms to ensure " + endpoint + " does not change");
+-            FBUtilities.sleep(StorageService.RING_DELAY);
++            Uninterruptibles.sleepUninterruptibly(StorageService.RING_DELAY, TimeUnit.MILLISECONDS);
+             // make sure it did not change
+             epState = endpointStateMap.get(endpoint);
+             if (epState.getHeartBeatState().getGeneration() != generation)
+@@ -468,7 +457,7 @@ public class Gossiper implements IFailureDetectionEventListener, GossiperMBean
+         // do not pass go, do not collect 200 dollars, just gtfo
+         epState.addApplicationState(ApplicationState.STATUS, StorageService.instance.valueFactory.left(tokens, computeExpireTime()));
+         handleMajorStateChange(endpoint, epState);
+-        FBUtilities.sleep(intervalInMillis * 4);
++        Uninterruptibles.sleepUninterruptibly(intervalInMillis * 4, TimeUnit.MILLISECONDS);
+         logger.warn("Finished killing {}", endpoint);
+     }
+ 
+@@ -1107,14 +1096,7 @@ public class Gossiper implements IFailureDetectionEventListener, GossiperMBean
+     {
+         scheduledGossipTask.cancel(false);
+         logger.info("Announcing shutdown");
+-        try
+-        {
+-            Thread.sleep(intervalInMillis * 2);
+-        }
+-        catch (InterruptedException e)
+-        {
+-            throw new RuntimeException(e);
+-        }
++        Uninterruptibles.sleepUninterruptibly(intervalInMillis * 2, TimeUnit.MILLISECONDS);
+         MessageOut message = new MessageOut(MessagingService.Verb.GOSSIP_SHUTDOWN);
+         for (InetAddress ep : liveEndpoints)
+             MessagingService.instance().sendOneWay(message, ep);
+diff --git a/src/java/org/apache/cassandra/net/OutboundTcpConnection.java b/src/java/org/apache/cassandra/net/OutboundTcpConnection.java
+index de53580..62d5b82 100644
+--- a/src/java/org/apache/cassandra/net/OutboundTcpConnection.java
++++ b/src/java/org/apache/cassandra/net/OutboundTcpConnection.java
+@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
+ import java.util.UUID;
+ import java.util.concurrent.BlockingQueue;
+ import java.util.concurrent.LinkedBlockingQueue;
++import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.atomic.AtomicLong;
+ 
+ import org.slf4j.Logger;
+@@ -42,6 +43,8 @@ import org.xerial.snappy.SnappyOutputStream;
+ import org.apache.cassandra.config.Config;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ 
++import com.google.common.util.concurrent.Uninterruptibles;
++
+ public class OutboundTcpConnection extends Thread
+ {
+     private static final Logger logger = LoggerFactory.getLogger(OutboundTcpConnection.class);
+@@ -340,14 +343,7 @@ public class OutboundTcpConnection extends Thread
+                 socket = null;
+                 if (logger.isTraceEnabled())
+                     logger.trace("unable to connect to " + poolReference.endPoint(), e);
+-                try
+-                {
+-                    Thread.sleep(OPEN_RETRY_DELAY);
+-                }
+-                catch (InterruptedException e1)
+-                {
+-                    throw new AssertionError(e1);
+-                }
++                Uninterruptibles.sleepUninterruptibly(OPEN_RETRY_DELAY, TimeUnit.MILLISECONDS);
+             }
+         }
+         return false;
+diff --git a/src/java/org/apache/cassandra/service/StorageProxy.java b/src/java/org/apache/cassandra/service/StorageProxy.java
+index 684bd10..696569c 100644
+--- a/src/java/org/apache/cassandra/service/StorageProxy.java
++++ b/src/java/org/apache/cassandra/service/StorageProxy.java
+@@ -30,6 +30,8 @@ import javax.management.ObjectName;
+ 
+ import com.google.common.base.Function;
+ import com.google.common.collect.*;
++import com.google.common.util.concurrent.Uninterruptibles;
++
+ import org.apache.commons.lang.StringUtils;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+@@ -235,7 +237,7 @@ public class StorageProxy implements StorageProxyMBean
+             }
+ 
+             logger.debug("Paxos proposal not accepted (pre-empted by a higher ballot)");
+-            FBUtilities.sleep(FBUtilities.threadLocalRandom().nextInt(100));
++            Uninterruptibles.sleepUninterruptibly(FBUtilities.threadLocalRandom().nextInt(100), TimeUnit.MILLISECONDS);
+             // continue to retry
+         }
+ 
+@@ -306,7 +308,7 @@ public class StorageProxy implements StorageProxyMBean
+         {
+             logger.debug("Some replicas have already promised a higher ballot than ours; aborting");
+             // sleep a random amount to give the other proposer a chance to finish
+-            FBUtilities.sleep(FBUtilities.threadLocalRandom().nextInt(100));
++            Uninterruptibles.sleepUninterruptibly(FBUtilities.threadLocalRandom().nextInt(100), TimeUnit.MILLISECONDS);
+             return null;
+         }
+ 
+diff --git a/src/java/org/apache/cassandra/service/StorageService.java b/src/java/org/apache/cassandra/service/StorageService.java
+index 27bc69d..2ae2e6d 100644
+--- a/src/java/org/apache/cassandra/service/StorageService.java
++++ b/src/java/org/apache/cassandra/service/StorageService.java
+@@ -37,6 +37,8 @@ import javax.management.ObjectName;
+ import com.google.common.annotations.VisibleForTesting;
+ import com.google.common.collect.*;
+ import com.google.common.util.concurrent.AtomicDouble;
++import com.google.common.util.concurrent.Uninterruptibles;
++
+ import org.apache.log4j.Level;
+ import org.apache.commons.lang.StringUtils;
+ import org.slf4j.Logger;
+@@ -365,7 +367,7 @@ public class StorageService extends NotificationBroadcasterSupport implements IE
+         Gossiper.instance.stop();
+         MessagingService.instance().shutdown();
+         // give it a second so that task accepted before the MessagingService shutdown gets submitted to the stage (to avoid RejectedExecutionException)
+-        try { Thread.sleep(1000L); } catch (InterruptedException e) {}
++        Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+         StageManager.shutdownNow();
+     }
+ 
+@@ -379,31 +381,24 @@ public class StorageService extends NotificationBroadcasterSupport implements IE
+         // We don't wait, because we're going to actually try to work on
+         initClient(0);
+ 
+-        try
++        // sleep a while to allow gossip to warm up (the other nodes need to know about this one before they can reply).
++        boolean isUp = false;
++        while (!isUp)
+         {
+-            // sleep a while to allow gossip to warm up (the other nodes need to know about this one before they can reply).
+-            boolean isUp = false;
+-            while (!isUp)
++            Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
++            for (InetAddress address : Gossiper.instance.getLiveMembers())
+             {
+-                Thread.sleep(1000);
+-                for (InetAddress address : Gossiper.instance.getLiveMembers())
++                if (!Gossiper.instance.isFatClient(address))
+                 {
+-                    if (!Gossiper.instance.isFatClient(address))
+-                    {
+-                        isUp = true;
+-                    }
++                    isUp = true;
+                 }
+             }
+-
+-            // sleep until any schema migrations have finished
+-            while (!MigrationManager.isReadyForBootstrap())
+-            {
+-                Thread.sleep(1000);
+-            }
+         }
+-        catch (InterruptedException e)
++
++        // sleep until any schema migrations have finished
++        while (!MigrationManager.isReadyForBootstrap())
+         {
+-            throw new AssertionError(e);
++            Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+         }
+     }
+ 
+@@ -425,14 +420,7 @@ public class StorageService extends NotificationBroadcasterSupport implements IE
+         Gossiper.instance.addLocalApplicationState(ApplicationState.NET_VERSION, valueFactory.networkVersion());
+ 
+         MessagingService.instance().listen(FBUtilities.getLocalAddress());
+-        try
+-        {
+-           Thread.sleep(ringDelay);
+-        }
+-        catch (InterruptedException e)
+-        {
+-            throw new AssertionError(e);
+-        }
++        Uninterruptibles.sleepUninterruptibly(ringDelay, TimeUnit.MILLISECONDS);
+     }
+ 
+     public synchronized void initServer() throws ConfigurationException
+@@ -613,28 +601,14 @@ public class StorageService extends NotificationBroadcasterSupport implements IE
+                     logger.debug("got schema: {}", Schema.instance.getVersion());
+                     break;
+                 }
+-                try
+-                {
+-                    Thread.sleep(1000);
+-                }
+-                catch (InterruptedException e)
+-                {
+-                    throw new AssertionError(e);
+-                }
++                Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+             }
+             // if our schema hasn't matched yet, keep sleeping until it does
+             // (post CASSANDRA-1391 we don't expect this to be necessary very often, but it doesn't hurt to be careful)
+             while (!MigrationManager.isReadyForBootstrap())
+             {
+                 setMode(Mode.JOINING, "waiting for schema information to complete", true);
+-                try
+-                {
+-                    Thread.sleep(1000);
+-                }
+-                catch (InterruptedException e)
+-                {
+-                    throw new AssertionError(e);
+-                }
++                Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+             }
+             setMode(Mode.JOINING, "schema complete, ready to bootstrap", true);
+ 
+@@ -654,16 +628,9 @@ public class StorageService extends NotificationBroadcasterSupport implements IE
+             }
+             else
+             {
+-                try
+-                {
+-                    // Sleeping additionally to make sure that the server actually is not alive
+-                    // and giving it more time to gossip if alive.
+-                    Thread.sleep(LoadBroadcaster.BROADCAST_INTERVAL);
+-                }
+-                catch (InterruptedException e)
+-                {
+-                    throw new AssertionError(e);
+-                }
++                // Sleeping additionally to make sure that the server actually is not alive
++                // and giving it more time to gossip if alive.
++                Uninterruptibles.sleepUninterruptibly(LoadBroadcaster.BROADCAST_INTERVAL, TimeUnit.MILLISECONDS);
+                 tokens = new ArrayList<Token>();
+                 for (String token : DatabaseDescriptor.getReplaceTokens())
+                     tokens.add(StorageService.getPartitioner().getTokenFactory().fromString(token));
+@@ -716,14 +683,7 @@ public class StorageService extends NotificationBroadcasterSupport implements IE
+                 {
+                     // wait for ring info
+                     logger.info("Sleeping for ring delay (" + delay + "ms)");
+-                    try
+-                    {
+-                        Thread.sleep(delay);
+-                    }
+-                    catch (InterruptedException e)
+-                    {
+-                        throw new AssertionError(e);
+-                    }
++                    Uninterruptibles.sleepUninterruptibly(delay, TimeUnit.MILLISECONDS);
+                     logger.info("Calculating new tokens");
+                     // calculate num_tokens tokens evenly spaced in the range (left, right]
+                     Token right = tokens.iterator().next();
+@@ -898,14 +858,7 @@ public class StorageService extends NotificationBroadcasterSupport implements IE
+             Gossiper.instance.addLocalApplicationState(ApplicationState.STATUS,
+                                                        valueFactory.bootstrapping(tokens));
+             setMode(Mode.JOINING, "sleeping " + RING_DELAY + " ms for pending range setup", true);
+-            try
+-            {
+-                Thread.sleep(RING_DELAY);
+-            }
+-            catch (InterruptedException e)
+-            {
+-                throw new AssertionError(e);
+-            }
++            Uninterruptibles.sleepUninterruptibly(RING_DELAY, TimeUnit.MILLISECONDS);
+         }
+         else
+         {
+@@ -2719,14 +2672,7 @@ public class StorageService extends NotificationBroadcasterSupport implements IE
+         Gossiper.instance.addLocalApplicationState(ApplicationState.STATUS, valueFactory.left(getLocalTokens(),Gossiper.computeExpireTime()));
+         int delay = Math.max(RING_DELAY, Gossiper.intervalInMillis * 2);
+         logger.info("Announcing that I have left the ring for " + delay + "ms");
+-        try
+-        {
+-            Thread.sleep(delay);
+-        }
+-        catch (InterruptedException e)
+-        {
+-            throw new AssertionError(e);
+-        }
++        Uninterruptibles.sleepUninterruptibly(delay, TimeUnit.MILLISECONDS);
+     }
+ 
+     private void unbootstrap(final Runnable onFinish)
+@@ -2856,14 +2802,7 @@ public class StorageService extends NotificationBroadcasterSupport implements IE
+         setMode(Mode.MOVING, String.format("Moving %s from %s to %s.", localAddress, getLocalTokens().iterator().next(), newToken), true);
+ 
+         setMode(Mode.MOVING, String.format("Sleeping %s ms before start streaming/fetching ranges", RING_DELAY), true);
+-        try
+-        {
+-            Thread.sleep(RING_DELAY);
+-        }
+-        catch (InterruptedException e)
+-        {
+-            throw new RuntimeException("Sleep interrupted " + e.getMessage());
+-        }
++        Uninterruptibles.sleepUninterruptibly(RING_DELAY, TimeUnit.MILLISECONDS);
+ 
+         RangeRelocator relocator = new RangeRelocator(Collections.singleton(newToken), tablesToProcess);
+ 
+@@ -3046,14 +2985,7 @@ public class StorageService extends NotificationBroadcasterSupport implements IE
+         List<String> tables = Schema.instance.getNonSystemTables();
+ 
+         setMode(Mode.RELOCATING, String.format("Sleeping %s ms before start streaming/fetching ranges", RING_DELAY), true);
+-        try
+-        {
+-            Thread.sleep(RING_DELAY);
+-        }
+-        catch (InterruptedException e)
+-        {
+-            throw new RuntimeException("Sleep interrupted " + e.getMessage());
+-        }
++        Uninterruptibles.sleepUninterruptibly(RING_DELAY, TimeUnit.MILLISECONDS);
+ 
+         RangeRelocator relocator = new RangeRelocator(tokens, tables);
+ 
+@@ -3192,14 +3124,7 @@ public class StorageService extends NotificationBroadcasterSupport implements IE
+         // wait for ReplicationFinishedVerbHandler to signal we're done
+         while (!replicatingNodes.isEmpty())
+         {
+-            try
+-            {
+-                Thread.sleep(100);
+-            }
+-            catch (InterruptedException e)
+-            {
+-                throw new AssertionError(e);
+-            }
++            Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS);
+         }
+ 
+         excise(tokens, endpoint);
+@@ -3238,14 +3163,7 @@ public class StorageService extends NotificationBroadcasterSupport implements IE
+         {
+             logger.info("requesting GC to free disk space");
+             System.gc();
+-            try
+-            {
+-                Thread.sleep(1000);
+-            }
+-            catch (InterruptedException e)
+-            {
+-                throw new AssertionError(e);
+-            }
++            Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+         }
+     }
+ 
+diff --git a/src/java/org/apache/cassandra/streaming/FileStreamTask.java b/src/java/org/apache/cassandra/streaming/FileStreamTask.java
+index 6acc717..04890ba 100644
+--- a/src/java/org/apache/cassandra/streaming/FileStreamTask.java
++++ b/src/java/org/apache/cassandra/streaming/FileStreamTask.java
+@@ -21,10 +21,12 @@ import java.io.*;
+ import java.net.InetAddress;
+ import java.net.Socket;
+ import java.nio.ByteBuffer;
++import java.util.concurrent.TimeUnit;
+ 
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
++import com.google.common.util.concurrent.Uninterruptibles;
+ import com.ning.compress.lzf.LZFOutputStream;
+ import org.apache.cassandra.config.DatabaseDescriptor;
+ import org.apache.cassandra.io.sstable.Component;
+@@ -271,14 +273,7 @@ public class FileStreamTask extends WrappedRunnable
+ 
+                 long waitms = DatabaseDescriptor.getRpcTimeout() * (long)Math.pow(2, attempts);
+                 logger.warn("Failed attempt " + attempts + " to connect to " + to + " to stream " + header.file + ". Retrying in " + waitms + " ms. (" + e + ")");
+-                try
+-                {
+-                    Thread.sleep(waitms);
+-                }
+-                catch (InterruptedException wtf)
+-                {
+-                    throw new RuntimeException(wtf);
+-                }
++                Uninterruptibles.sleepUninterruptibly(waitms, TimeUnit.MILLISECONDS);
+             }
+         }
+     }
+diff --git a/src/java/org/apache/cassandra/thrift/CustomTThreadPoolServer.java b/src/java/org/apache/cassandra/thrift/CustomTThreadPoolServer.java
+index 7014443..cf48502 100644
+--- a/src/java/org/apache/cassandra/thrift/CustomTThreadPoolServer.java
++++ b/src/java/org/apache/cassandra/thrift/CustomTThreadPoolServer.java
+@@ -44,6 +44,8 @@ import org.apache.thrift.transport.TTransport;
+ import org.apache.thrift.transport.TTransportException;
+ import org.apache.thrift.transport.TSSLTransportFactory.TSSLTransportParameters;
+ 
++import com.google.common.util.concurrent.Uninterruptibles;
++
+ 
+ /**
+  * Slightly modified version of the Apache Thrift TThreadPoolServer.
+@@ -95,14 +97,7 @@ public class CustomTThreadPoolServer extends TServer
+             // block until we are under max clients
+             while (activeClients.get() >= args.maxWorkerThreads)
+             {
+-                try
+-                {
+-                    Thread.sleep(100);
+-                }
+-                catch (InterruptedException e)
+-                {
+-                    throw new AssertionError(e);
+-                }
++                Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS);
+             }
+ 
+             try
+diff --git a/src/java/org/apache/cassandra/tools/BulkLoader.java b/src/java/org/apache/cassandra/tools/BulkLoader.java
+index 36211bb..b32559e 100644
+--- a/src/java/org/apache/cassandra/tools/BulkLoader.java
++++ b/src/java/org/apache/cassandra/tools/BulkLoader.java
+@@ -22,6 +22,7 @@ import java.io.IOException;
+ import java.net.InetAddress;
+ import java.net.UnknownHostException;
+ import java.util.*;
++import java.util.concurrent.TimeUnit;
+ 
+ import org.apache.commons.cli.*;
+ 
+@@ -42,6 +43,8 @@ import org.apache.thrift.transport.TFramedTransport;
+ import org.apache.thrift.transport.TSocket;
+ import org.apache.thrift.transport.TTransport;
+ 
++import com.google.common.util.concurrent.Uninterruptibles;
++
+ public class BulkLoader
+ {
+     private static final String TOOL_NAME = "sstableloader";
+@@ -88,7 +91,7 @@ public class BulkLoader
+                     }
+                     else
+                     {
+-                        try { Thread.sleep(1000L); } catch (Exception e) {}
++                        Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+                     }
+                 }
+                 if (!printEnd)
+diff --git a/src/java/org/apache/cassandra/utils/ExpiringMap.java b/src/java/org/apache/cassandra/utils/ExpiringMap.java
+index a6aefdf..7ec57ca 100644
+--- a/src/java/org/apache/cassandra/utils/ExpiringMap.java
++++ b/src/java/org/apache/cassandra/utils/ExpiringMap.java
+@@ -25,6 +25,8 @@ import java.util.concurrent.ScheduledExecutorService;
+ import java.util.concurrent.TimeUnit;
+ 
+ import com.google.common.base.Function;
++import com.google.common.util.concurrent.Uninterruptibles;
++
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
+@@ -133,14 +135,7 @@ public class ExpiringMap<K, V>
+             // So we'll just sit on this thread until the rest of the server shutdown completes.
+             //
+             // See comments in CustomTThreadPoolServer.serve, CASSANDRA-3335, and CASSANDRA-3727.
+-            try
+-            {
+-                Thread.sleep(Long.MAX_VALUE);
+-            }
+-            catch (InterruptedException e)
+-            {
+-                throw new AssertionError(e);
+-            }
++            Uninterruptibles.sleepUninterruptibly(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+         }
+         CacheableObject<V> previous = cache.put(key, new CacheableObject<V>(value, timeout));
+         return (previous == null) ? null : previous.value;
+diff --git a/src/java/org/apache/cassandra/utils/FBUtilities.java b/src/java/org/apache/cassandra/utils/FBUtilities.java
+index fbe63d6..e4b9f58 100644
+--- a/src/java/org/apache/cassandra/utils/FBUtilities.java
++++ b/src/java/org/apache/cassandra/utils/FBUtilities.java
+@@ -567,18 +567,6 @@ public class FBUtilities
+         }
+     }
+ 
+-    public static void sleep(int millis)
+-    {
+-        try
+-        {
+-            Thread.sleep(millis);
+-        }
+-        catch (InterruptedException e)
+-        {
+-            throw new AssertionError();
+-        }
+-    }
+-
+     public static void updateChecksumInt(Checksum checksum, int v)
+     {
+         checksum.update((v >>> 24) & 0xFF);
+diff --git a/src/java/org/apache/cassandra/utils/Throttle.java b/src/java/org/apache/cassandra/utils/Throttle.java
+index c3d643c..fc19a6f 100644
+--- a/src/java/org/apache/cassandra/utils/Throttle.java
++++ b/src/java/org/apache/cassandra/utils/Throttle.java
+@@ -17,9 +17,13 @@
+  */
+ package org.apache.cassandra.utils;
+ 
++import java.util.concurrent.TimeUnit;
++
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ 
++import com.google.common.util.concurrent.Uninterruptibles;
++
+ /**
+  * Encapsulates the timing/state required to throttle a caller to a target throughput in
+  * bytes per millisecond, when periodically passed an absolute count of bytes.
+@@ -84,14 +88,7 @@ public class Throttle
+             if (logger.isTraceEnabled())
+                 logger.trace(String.format("%s actual throughput was %d bytes in %d ms: throttling for %d ms",
+                                            this, bytesDelta, msSinceLast, timeToDelay));
+-            try
+-            {
+-                Thread.sleep(timeToDelay);
+-            }
+-            catch (InterruptedException e)
+-            {
+-                throw new AssertionError(e);
+-            }
++            Uninterruptibles.sleepUninterruptibly(timeToDelay, TimeUnit.MILLISECONDS);
+         }
+         bytesAtLastDelay += bytesDelta;
+         timeAtLastDelay = System.currentTimeMillis();
+diff --git a/test/unit/org/apache/cassandra/db/RemoveSubColumnTest.java b/test/unit/org/apache/cassandra/db/RemoveSubColumnTest.java
+index 47fbe80..08971a7 100644
+--- a/test/unit/org/apache/cassandra/db/RemoveSubColumnTest.java
++++ b/test/unit/org/apache/cassandra/db/RemoveSubColumnTest.java
+@@ -21,6 +21,7 @@ package org.apache.cassandra.db;
+ import java.nio.ByteBuffer;
+ import java.io.IOException;
+ import java.util.concurrent.ExecutionException;
++import java.util.concurrent.TimeUnit;
+ 
+ import org.junit.Test;
+ 
+@@ -32,6 +33,8 @@ import org.apache.cassandra.Util;
+ import org.apache.cassandra.SchemaLoader;
+ import org.apache.cassandra.utils.ByteBufferUtil;
+ 
++import com.google.common.util.concurrent.Uninterruptibles;
++
+ 
+ public class RemoveSubColumnTest extends SchemaLoader
+ {
+@@ -61,7 +64,7 @@ public class RemoveSubColumnTest extends SchemaLoader
+     }
+ 
+     @Test
+-    public void testRemoveSubColumnAndContainer() throws IOException, ExecutionException, InterruptedException
++    public void testRemoveSubColumnAndContainer()
+     {
+         Table table = Table.open("Keyspace1");
+         ColumnFamilyStore store = table.getColumnFamilyStore("Super1");
+@@ -84,7 +87,7 @@ public class RemoveSubColumnTest extends SchemaLoader
+         // Mark current time and make sure the next insert happens at least
+         // one second after the previous one (since gc resolution is the second)
+         int gcbefore = (int)(System.currentTimeMillis() / 1000);
+-        Thread.currentThread().sleep(1000);
++        Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
+ 
+         // remove the column itself
+         rm = new RowMutation("Keyspace1", dk.key);
+diff --git a/test/unit/org/apache/cassandra/db/RowTest.java b/test/unit/org/apache/cassandra/db/RowTest.java
+index 95d0de5..5babea5 100644
+--- a/test/unit/org/apache/cassandra/db/RowTest.java
++++ b/test/unit/org/apache/cassandra/db/RowTest.java
+@@ -19,15 +19,17 @@
+ package org.apache.cassandra.db;
+ 
+ import java.util.Arrays;
++import java.util.concurrent.TimeUnit;
+ 
+ import org.apache.cassandra.SchemaLoader;
+ import org.junit.Test;
+ 
+ import static junit.framework.Assert.assertEquals;
+-import static junit.framework.Assert.fail;
+ import static org.apache.cassandra.Util.column;
+ import org.apache.cassandra.utils.ByteBufferUtil;
+ 
++import com.google.common.util.concurrent.Uninterruptibles;
++
+ 
+ public class RowTest extends SchemaLoader
+ {
+@@ -67,16 +69,9 @@ public class RowTest extends SchemaLoader
+         Column c = new ExpiringColumn(ByteBufferUtil.bytes("one"), ByteBufferUtil.bytes("A"), 0, 1);
+         assert !c.isMarkedForDelete();
+ 
+-        try
+-        {
+-            // Because we keep the local deletion time with a precision of a
+-            // second, we could have to wait 2 seconds in worst case scenario.
+-            Thread.sleep(2000);
+-        }
+-        catch (InterruptedException e)
+-        {
+-            fail("Cannot test column expiration if you wake me up too early");
+-        }
++        // Because we keep the local deletion time with a precision of a
++        // second, we could have to wait 2 seconds in worst case scenario.
++        Uninterruptibles.sleepUninterruptibly(2, TimeUnit.SECONDS);
+ 
+         assert c.isMarkedForDelete() && c.getMarkedForDeleteAt() == 0;
+     }
+diff --git a/test/unit/org/apache/cassandra/db/context/CounterContextTest.java b/test/unit/org/apache/cassandra/db/context/CounterContextTest.java
+index e3b5e4c..0d05340 100644
+--- a/test/unit/org/apache/cassandra/db/context/CounterContextTest.java
++++ b/test/unit/org/apache/cassandra/db/context/CounterContextTest.java
+@@ -25,6 +25,7 @@ import static org.junit.Assert.*;
+ import java.nio.ByteBuffer;
+ import java.util.ArrayList;
+ import java.util.List;
++import java.util.concurrent.TimeUnit;
+ 
+ import org.junit.Test;
+ import org.apache.cassandra.Util;
+@@ -33,6 +34,8 @@ import org.apache.cassandra.db.context.IContext.ContextRelationship;
+ import static org.apache.cassandra.db.context.CounterContext.ContextState;
+ import org.apache.cassandra.utils.*;
+ 
++import com.google.common.util.concurrent.Uninterruptibles;
++
+ public class CounterContextTest
+ {
+     private static final CounterContext cc = new CounterContext();
+@@ -454,14 +457,7 @@ public class CounterContextTest
+         ByteBuffer merged = cc.merge(ctx.context, merger, allocator);
+         assert cc.total(ctx.context) == cc.total(merged);
+ 
+-        try
+-        {
+-            Thread.sleep(2000);
+-        }
+-        catch (InterruptedException e)
+-        {
+-            throw new AssertionError();
+-        }
++        Uninterruptibles.sleepUninterruptibly(2, TimeUnit.SECONDS);
+ 
+         // merge the second one
+         ByteBuffer merger2 = cc.computeOldShardMerger(merged, records, 7L);
+diff --git a/test/unit/org/apache/cassandra/service/RelocateTest.java b/test/unit/org/apache/cassandra/service/RelocateTest.java
+index 510d254..2791f18 100644
+--- a/test/unit/org/apache/cassandra/service/RelocateTest.java
++++ b/test/unit/org/apache/cassandra/service/RelocateTest.java
+@@ -30,6 +30,7 @@ import java.util.Iterator;
+ import java.util.List;
+ import java.util.Map;
+ import java.util.UUID;
++import java.util.concurrent.TimeUnit;
+ 
+ import org.apache.cassandra.SchemaLoader;
+ import org.apache.cassandra.db.SystemTable;
+@@ -51,6 +52,8 @@ import org.junit.Before;
+ import org.junit.BeforeClass;
+ import org.junit.Test;
+ 
++import com.google.common.util.concurrent.Uninterruptibles;
++
+ public class RelocateTest
+ {
+     private static final int TOKENS_PER_NODE = 256;
+@@ -195,14 +198,7 @@ public class RelocateTest
+         ss.onChange(relocator, ApplicationState.STATUS, vvFactory.normal(tokens));
+ 
+         // Relocating entries are removed after RING_DELAY
+-        try
+-        {
+-            Thread.sleep(StorageService.RING_DELAY + 10);
+-        }
+-        catch (InterruptedException e)
+-        {
+-            System.err.println("ACHTUNG! Interrupted; testRelocationSuccess() will almost certainly fail!");
+-        }
++        Uninterruptibles.sleepUninterruptibly(StorageService.RING_DELAY + 10, TimeUnit.MILLISECONDS);
+ 
+         assertTrue(!tmd.isRelocating(relocatee));
+         assertEquals(tmd.getEndpoint(relocatee), relocator);
+diff --git a/tools/stress/src/org/apache/cassandra/stress/StressAction.java b/tools/stress/src/org/apache/cassandra/stress/StressAction.java
+index 1efcd99..7de96a5 100644
+--- a/tools/stress/src/org/apache/cassandra/stress/StressAction.java
++++ b/tools/stress/src/org/apache/cassandra/stress/StressAction.java
+@@ -20,7 +20,9 @@ package org.apache.cassandra.stress;
+ import java.io.PrintStream;
+ import java.util.concurrent.BlockingQueue;
+ import java.util.concurrent.SynchronousQueue;
++import java.util.concurrent.TimeUnit;
+ 
++import com.google.common.util.concurrent.Uninterruptibles;
+ import com.yammer.metrics.stats.Snapshot;
+ import org.apache.cassandra.stress.operations.*;
+ import org.apache.cassandra.stress.util.CassandraClient;
+@@ -105,14 +107,7 @@ public class StressAction extends Thread
+                 break;
+             }
+ 
+-            try
+-            {
+-                Thread.sleep(100);
+-            }
+-            catch (InterruptedException e)
+-            {
+-                throw new RuntimeException(e.getMessage(), e);
+-            }
++            Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS);
+ 
+             int alive = 0;
+             for (Thread thread : consumers)

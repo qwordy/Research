@@ -1,0 +1,79 @@
+commit 1320ca875854c49ff5a876c67b6d971f415fddd9
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Thu Aug 7 10:28:18 2014 +0000
+
+    Do not mark threads from the container thread pool as container threads when being used to process AsyncContext.start(Runnable)</code> so processing is correctly transferred back to a genuine container thread when necessary.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1616464 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/coyote/AbstractProtocol.java b/java/org/apache/coyote/AbstractProtocol.java
+index ab912bb..9886cef 100644
+--- a/java/org/apache/coyote/AbstractProtocol.java
++++ b/java/org/apache/coyote/AbstractProtocol.java
+@@ -609,7 +609,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler,
+             }
+ 
+             wrapper.setAsync(false);
+-            ContainerThreadMarker.markAsContainerThread();
++            ContainerThreadMarker.set();
+ 
+             try {
+                 if (processor == null) {
+@@ -753,7 +753,10 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler,
+                 // less-than-verbose logs.
+                 getLog().error(
+                         sm.getString("abstractConnectionHandler.error"), e);
++            } finally {
++                ContainerThreadMarker.clear();
+             }
++
+             // Make sure socket/processor is removed from the list of current
+             // connections
+             connections.remove(socket);
+diff --git a/java/org/apache/coyote/ContainerThreadMarker.java b/java/org/apache/coyote/ContainerThreadMarker.java
+index 5b8e146..617c246 100644
+--- a/java/org/apache/coyote/ContainerThreadMarker.java
++++ b/java/org/apache/coyote/ContainerThreadMarker.java
+@@ -16,6 +16,12 @@
+  */
+ package org.apache.coyote;
+ 
++/**
++ * Used to mark threads that have been allocated by the container to process
++ * data from an incoming connection. Application created threads are not
++ * container threads and neither are threads taken from the container thread
++ * pool to execute AsyncContext.start(Runnable).
++ */
+ public class ContainerThreadMarker {
+ 
+     private static final ThreadLocal<Boolean> marker = new ThreadLocal<>();
+@@ -29,7 +35,11 @@ public class ContainerThreadMarker {
+         }
+     }
+ 
+-    public static void markAsContainerThread() {
++    public static void set() {
+         marker.set(Boolean.TRUE);
+     }
++
++    public static void clear() {
++        marker.set(Boolean.FALSE);
++    }
+ }
+diff --git a/webapps/docs/changelog.xml b/webapps/docs/changelog.xml
+index bd4dc6e..b128c4f 100644
+--- a/webapps/docs/changelog.xml
++++ b/webapps/docs/changelog.xml
+@@ -118,6 +118,12 @@
+         header is returned for resources that might be returned directly in
+         compressed form. (markt)
+       </fix>
++      <fix>
++        Do not mark threads from the container thread pool as container threads
++        when being used to process <code>AsyncContext.start(Runnable)</code> so
++        processing is correctly transferred back to a genuine container thread
++        when necessary. (markt)
++      </fix>
+     </changelog>
+   </subsection>
+   <subsection name="Coyote">

@@ -1,0 +1,60 @@
+commit ecfa241768499dae2bffa174a874e8f9d81d6d1f
+Author: Trustin Lee <t@motd.kr>
+Date:   Wed Dec 31 19:24:53 2014 +0900
+
+    Make sure AggregatedFullHttpMessage.trailingHeaders() return non-null
+    
+    When handling an oversized message, HttpObjectAggregator does not wait
+    until the last chunk is received to produce the failed message, making
+    AggregatedFullHttpMessage.trailingHeaders() return null.
+
+diff --git a/codec-http/src/main/java/io/netty/handler/codec/http/HttpObjectAggregator.java b/codec-http/src/main/java/io/netty/handler/codec/http/HttpObjectAggregator.java
+index 874eada..02c15f2 100644
+--- a/codec-http/src/main/java/io/netty/handler/codec/http/HttpObjectAggregator.java
++++ b/codec-http/src/main/java/io/netty/handler/codec/http/HttpObjectAggregator.java
+@@ -192,17 +192,23 @@ public class HttpObjectAggregator
+         protected final HttpMessage message;
+         private HttpHeaders trailingHeaders;
+ 
+-        private AggregatedFullHttpMessage(HttpMessage message, ByteBuf content, HttpHeaders trailingHeaders) {
++        AggregatedFullHttpMessage(HttpMessage message, ByteBuf content, HttpHeaders trailingHeaders) {
+             super(content);
+             this.message = message;
+             this.trailingHeaders = trailingHeaders;
+         }
++
+         @Override
+         public HttpHeaders trailingHeaders() {
+-            return trailingHeaders;
++            HttpHeaders trailingHeaders = this.trailingHeaders;
++            if (trailingHeaders == null) {
++                return HttpHeaders.EMPTY_HEADERS;
++            } else {
++                return trailingHeaders;
++            }
+         }
+ 
+-        public void setTrailingHeaders(HttpHeaders trailingHeaders) {
++        void setTrailingHeaders(HttpHeaders trailingHeaders) {
+             this.trailingHeaders = trailingHeaders;
+         }
+ 
+@@ -275,7 +281,7 @@ public class HttpObjectAggregator
+ 
+     private static final class AggregatedFullHttpRequest extends AggregatedFullHttpMessage implements FullHttpRequest {
+ 
+-        private AggregatedFullHttpRequest(HttpRequest request, ByteBuf content, HttpHeaders trailingHeaders) {
++        AggregatedFullHttpRequest(HttpRequest request, ByteBuf content, HttpHeaders trailingHeaders) {
+             super(request, content, trailingHeaders);
+         }
+ 
+@@ -367,7 +373,8 @@ public class HttpObjectAggregator
+ 
+     private static final class AggregatedFullHttpResponse extends AggregatedFullHttpMessage
+             implements FullHttpResponse {
+-        private AggregatedFullHttpResponse(HttpResponse message, ByteBuf content, HttpHeaders trailingHeaders) {
++
++        AggregatedFullHttpResponse(HttpResponse message, ByteBuf content, HttpHeaders trailingHeaders) {
+             super(message, content, trailingHeaders);
+         }
+ 

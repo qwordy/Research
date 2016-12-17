@@ -1,0 +1,22 @@
+commit a9c47dd31107c73459cdae04de30c8439af6c2d5
+Author: Mark Thomas <markt@apache.org>
+Date:   Tue Apr 26 09:34:19 2016 +0000
+
+    Extend wait period to try and reduce instances of Gump CI failures.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1740980 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/test/org/apache/tomcat/websocket/WebSocketBaseTest.java b/test/org/apache/tomcat/websocket/WebSocketBaseTest.java
+index 84a0e20..56c27ef 100644
+--- a/test/org/apache/tomcat/websocket/WebSocketBaseTest.java
++++ b/test/org/apache/tomcat/websocket/WebSocketBaseTest.java
+@@ -32,7 +32,8 @@ public abstract class WebSocketBaseTest extends TomcatBaseTest {
+         // environments it will continue to run and break other tests that check
+         // it has stopped.
+         int count = 0;
+-        while (count < 50) {
++        // 5s should be plenty here but Gump can be a lot slower so allow 60s.
++        while (count < 600) {
+             if (BackgroundProcessManager.getInstance().getProcessCount() == 0) {
+                 break;
+             }

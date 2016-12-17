@@ -1,0 +1,32 @@
+commit e847ac0443ea1d7996b392d9adcfcd06e4094b78
+Author: Norman Maurer <norman_maurer@apple.com>
+Date:   Mon May 30 20:45:37 2016 +0200
+
+    Fix possible deadlock in DefaultChannelPipeline.destroyDown(...)
+    
+    Motivation:
+    
+    We need to ensure we not hold a lock while executor callHandlerRemoved(...) as this may lead to a deadlock if handlerRemoved(...) will call another method in DEfaultChannelPipeline from another thread that will need to obtain the lock as well and wait for the result.
+    
+    Modifications:
+    
+    Release the lock before call handlerRemoved0(...).
+    
+    Result:
+    
+    No more deadlock possible
+
+diff --git a/transport/src/main/java/io/netty/channel/DefaultChannelPipeline.java b/transport/src/main/java/io/netty/channel/DefaultChannelPipeline.java
+index 141c498..a6abec7 100644
+--- a/transport/src/main/java/io/netty/channel/DefaultChannelPipeline.java
++++ b/transport/src/main/java/io/netty/channel/DefaultChannelPipeline.java
+@@ -858,8 +858,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
+             if (inEventLoop || executor.inEventLoop(currentThread)) {
+                 synchronized (this) {
+                     remove0(ctx);
+-                    callHandlerRemoved0(ctx);
+                 }
++                callHandlerRemoved0(ctx);
+             } else {
+                 final AbstractChannelHandlerContext finalCtx = ctx;
+                 executor.execute(new OneTimeTask() {

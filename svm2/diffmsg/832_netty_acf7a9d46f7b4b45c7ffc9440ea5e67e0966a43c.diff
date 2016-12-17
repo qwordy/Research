@@ -1,0 +1,31 @@
+commit acf7a9d46f7b4b45c7ffc9440ea5e67e0966a43c
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Sun Mar 22 15:09:40 2009 +0000
+
+    Made sure the sleeping Runnable in ImmediateExecutorTest sleeps more than 1 sec
+
+diff --git a/src/test/java/org/jboss/netty/util/ImmediateExecutorTest.java b/src/test/java/org/jboss/netty/util/ImmediateExecutorTest.java
+index 00fe891..0834ad0 100644
+--- a/src/test/java/org/jboss/netty/util/ImmediateExecutorTest.java
++++ b/src/test/java/org/jboss/netty/util/ImmediateExecutorTest.java
+@@ -42,15 +42,18 @@ public class ImmediateExecutorTest {
+         long startTime = System.nanoTime();
+         e.execute(new Runnable() {
+             public void run() {
++                long startTime = System.nanoTime();
+                 for (;;) {
+                     try {
+                         Thread.sleep(1000);
+-                        break;
+                     } catch (InterruptedException e) {
+                         // Ignore
+                     }
++                    if (System.nanoTime() - startTime >= 1000000000L) {
++                        break;
++                    }
+                 }
+-            } 
++            }
+         });
+         assertTrue(System.nanoTime() - startTime > 900000000L);
+     }

@@ -1,0 +1,37 @@
+commit 7b6b5a2e019866bf8fdd993775eab410e22f0f5d
+Author: twalthr <info@twalthr.com>
+Date:   Fri Jun 20 15:19:43 2014 +0200
+
+    Fixes a bug where Thread.currentThread().getContextClassLoader() does not return the user code class loader within object deserialization.
+
+diff --git a/stratosphere-addons/hadoop-compatibility/src/main/java/eu/stratosphere/hadoopcompatibility/mapreduce/example/WordCount.java b/stratosphere-addons/hadoop-compatibility/src/main/java/eu/stratosphere/hadoopcompatibility/mapreduce/example/WordCount.java
+index b7a37c7..70d8ce8 100644
+--- a/stratosphere-addons/hadoop-compatibility/src/main/java/eu/stratosphere/hadoopcompatibility/mapreduce/example/WordCount.java
++++ b/stratosphere-addons/hadoop-compatibility/src/main/java/eu/stratosphere/hadoopcompatibility/mapreduce/example/WordCount.java
+@@ -72,6 +72,8 @@ public class WordCount {
+ 		// Set up Hadoop Output Format
+ 		HadoopOutputFormat<Text, IntWritable> hadoopOutputFormat = new HadoopOutputFormat<Text, IntWritable>(new TextOutputFormat<Text, IntWritable>(), job);
+ 		hadoopOutputFormat.getConfiguration().set("mapreduce.output.textoutputformat.separator", " ");
++		hadoopOutputFormat.getConfiguration().set("mapred.textoutputformat.separator", " "); // set the value for both, since this test
++		// is being executed with both types (hadoop1 and hadoop2 profile)
+ 		TextOutputFormat.setOutputPath(job, new Path(outputPath));
+ 		
+ 		// Output & Execute
+diff --git a/stratosphere-core/src/main/java/eu/stratosphere/util/InstantiationUtil.java b/stratosphere-core/src/main/java/eu/stratosphere/util/InstantiationUtil.java
+index 11c6ac1..174c7c6 100644
+--- a/stratosphere-core/src/main/java/eu/stratosphere/util/InstantiationUtil.java
++++ b/stratosphere-core/src/main/java/eu/stratosphere/util/InstantiationUtil.java
+@@ -234,10 +234,13 @@ public class InstantiationUtil {
+ 	
+ 	public static Object deserializeObject(byte[] bytes, ClassLoader cl) throws IOException, ClassNotFoundException {
+ 		ObjectInputStream oois = null;
++		final ClassLoader old = Thread.currentThread().getContextClassLoader();
+ 		try {
++			Thread.currentThread().setContextClassLoader(cl);
+ 			oois = new ClassLoaderObjectInputStream(new ByteArrayInputStream(bytes), cl);
+ 			return oois.readObject();
+ 		} finally {
++			Thread.currentThread().setContextClassLoader(old);
+ 			if (oois != null) {
+ 				oois.close();
+ 			}

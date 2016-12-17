@@ -1,0 +1,207 @@
+commit 3ea828560b17aba8871e5a648893274e522b5d2a
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Fri Jul 27 23:12:55 2012 +0000
+
+    Fix for https://issues.apache.org/bugzilla/show_bug.cgi?id=53529
+    Improve the handling of InterruptedException
+    - Provide a specific message if thread was interrupted rather than the wait timing out
+    - Remove unnecessary code
+    - Remove unnecessary attemps to clear the interrupt flag
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1366567 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/tribes/group/GroupChannel.java b/java/org/apache/catalina/tribes/group/GroupChannel.java
+index 96f6c5f..9aabfe4 100644
+--- a/java/org/apache/catalina/tribes/group/GroupChannel.java
++++ b/java/org/apache/catalina/tribes/group/GroupChannel.java
+@@ -689,7 +689,9 @@ public class GroupChannel extends ChannelInterceptorBase implements ManagedChann
+                     Thread.sleep(sleepTime);
+                     channel.heartbeat();
+                 } catch ( InterruptedException x ) {
+-                    interrupted();
++                    // Ignore. Probably triggered by a call to stopHeartbeat().
++                    // In the highly unlikely event it was a different trigger,
++                    // simply ignore it and continue.
+                 } catch ( Exception x ) {
+                     log.error("Unable to send heartbeat through Tribes interceptor stack. Will try to sleep again.",x);
+                 }//catch
+diff --git a/java/org/apache/catalina/tribes/group/interceptors/NonBlockingCoordinator.java b/java/org/apache/catalina/tribes/group/interceptors/NonBlockingCoordinator.java
+index a677441..6147a56 100644
+--- a/java/org/apache/catalina/tribes/group/interceptors/NonBlockingCoordinator.java
++++ b/java/org/apache/catalina/tribes/group/interceptors/NonBlockingCoordinator.java
+@@ -225,19 +225,22 @@ public class NonBlockingCoordinator extends ChannelInterceptorBase {
+                     coordMsgReceived.set(false);
+                     fireInterceptorEvent(new CoordinationEvent(CoordinationEvent.EVT_WAIT_FOR_MSG,this,"Election, waiting for request"));
+                     electionMutex.wait(waitForCoordMsgTimeout);
+-                }catch ( InterruptedException x ) {
+-                    Thread.interrupted();
++                } catch (InterruptedException x) {
++                    Thread.currentThread().interrupt();
+                 }
+-                if ( suggestedviewId == null && (!coordMsgReceived.get())) {
+-                    //no message arrived, send the coord msg
+-//                    fireInterceptorEvent(new CoordinationEvent(CoordinationEvent.EVT_WAIT_FOR_MSG,this,"Election, waiting timed out."));
+-//                    startElection(true);
+-                    fireInterceptorEvent(new CoordinationEvent(CoordinationEvent.EVT_ELECT_ABANDONED,this,"Election abandoned, waiting timed out."));
++                String msg;
++                if (suggestedviewId == null && !coordMsgReceived.get()) {
++                    if (Thread.interrupted()) {
++                        msg = "Election abandoned, waiting interrupted.";
++                    } else {
++                        msg = "Election abandoned, waiting timed out.";
++                    }
+                 } else {
+-                    fireInterceptorEvent(new CoordinationEvent(CoordinationEvent.EVT_ELECT_ABANDONED,this,"Election abandoned, received a message"));
++                    msg = "Election abandoned, received a message";
+                 }
+-            }//end if
+-
++                fireInterceptorEvent(new CoordinationEvent(
++                        CoordinationEvent.EVT_ELECT_ABANDONED, this, msg));
++            }
+         }
+     }
+ 
+diff --git a/java/org/apache/catalina/tribes/group/interceptors/TcpPingInterceptor.java b/java/org/apache/catalina/tribes/group/interceptors/TcpPingInterceptor.java
+index 3fc157f..e654db2 100644
+--- a/java/org/apache/catalina/tribes/group/interceptors/TcpPingInterceptor.java
++++ b/java/org/apache/catalina/tribes/group/interceptors/TcpPingInterceptor.java
+@@ -172,7 +172,9 @@ public class TcpPingInterceptor extends ChannelInterceptorBase {
+                     sleep(interval);
+                     sendPing();
+                 }catch ( InterruptedException ix ) {
+-                    interrupted();
++                    // Ignore. Probably triggered by a call to stop().
++                    // In the highly unlikely event it was a different trigger,
++                    // simply ignore it and continue.
+                 }catch ( Exception x )  {
+                     log.warn("Unable to send ping from TCP ping thread.",x);
+                 }
+diff --git a/java/org/apache/catalina/tribes/membership/McastServiceImpl.java b/java/org/apache/catalina/tribes/membership/McastServiceImpl.java
+index cc6cd7c..a3a9563 100644
+--- a/java/org/apache/catalina/tribes/membership/McastServiceImpl.java
++++ b/java/org/apache/catalina/tribes/membership/McastServiceImpl.java
+@@ -537,16 +537,13 @@ public class McastServiceImpl
+                     if ( log.isDebugEnabled() )
+                         log.debug("Invalid member mcast package.",ax);
+                 } catch ( Exception x ) {
+-                    if (x instanceof InterruptedException) interrupted();
+-                    else {
+-                        if (errorCounter==0 && doRunReceiver) log.warn("Error receiving mcast package. Sleeping 500ms",x);
+-                        else if (log.isDebugEnabled()) log.debug("Error receiving mcast package"+(doRunReceiver?". Sleeping 500ms":"."),x);
+-                        if (doRunReceiver) {
+-                            try { Thread.sleep(500); } catch ( Exception ignore ){}
+-                            if ( (++errorCounter)>=recoveryCounter ) {
+-                                errorCounter=0;
+-                                RecoveryThread.recover(McastServiceImpl.this);
+-                            }
++                    if (errorCounter==0 && doRunReceiver) log.warn("Error receiving mcast package. Sleeping 500ms",x);
++                    else if (log.isDebugEnabled()) log.debug("Error receiving mcast package"+(doRunReceiver?". Sleeping 500ms":"."),x);
++                    if (doRunReceiver) {
++                        try { Thread.sleep(500); } catch ( Exception ignore ){}
++                        if ( (++errorCounter)>=recoveryCounter ) {
++                            errorCounter=0;
++                            RecoveryThread.recover(McastServiceImpl.this);
+                         }
+                     }
+                 }
+diff --git a/java/org/apache/juli/AsyncFileHandler.java b/java/org/apache/juli/AsyncFileHandler.java
+index 847f80c..b1c657f 100644
+--- a/java/org/apache/juli/AsyncFileHandler.java
++++ b/java/org/apache/juli/AsyncFileHandler.java
+@@ -123,9 +123,8 @@ public class AsyncFileHandler extends FileHandler {
+                 }//switch
+             }//while
+         }catch (InterruptedException x) {
+-            //allow thread to be interrupted and back out of the publish operation
+-            //after this we clear the flag
+-            Thread.interrupted();
++            // Allow thread to be interrupted and back out of the publish
++            // operation. No further action required.
+         }
+ 
+     }
+@@ -147,12 +146,12 @@ public class AsyncFileHandler extends FileHandler {
+                 try {
+                     LogEntry entry = queue.poll(LOGGER_SLEEP_TIME, TimeUnit.MILLISECONDS);
+                     if (entry!=null) entry.flush();
+-                }catch (InterruptedException x) {
+-                    Thread.interrupted();
+-                }catch (Exception x) {
++                } catch (InterruptedException x) {
++                    // Ignore the attempt to interrupt the thread.
++                } catch (Exception x) {
+                     x.printStackTrace();
+                 }
+-            }//while
++            }
+         }
+     }
+ 
+diff --git a/java/org/apache/tomcat/util/net/AprEndpoint.java b/java/org/apache/tomcat/util/net/AprEndpoint.java
+index 2a2e1d4..b3c3990 100644
+--- a/java/org/apache/tomcat/util/net/AprEndpoint.java
++++ b/java/org/apache/tomcat/util/net/AprEndpoint.java
+@@ -639,8 +639,7 @@ public class AprEndpoint extends AbstractEndpoint {
+                     try {
+                         Thread.sleep(50);
+                     } catch (InterruptedException e) {
+-                        // Ignore and clean the interrupt flag
+-                        Thread.interrupted();
++                        // Ignore
+                     }
+                     waitLeft -= 50;
+                 }
+diff --git a/java/org/apache/tomcat/util/net/NioBlockingSelector.java b/java/org/apache/tomcat/util/net/NioBlockingSelector.java
+index 5eb6900..a1293a6 100644
+--- a/java/org/apache/tomcat/util/net/NioBlockingSelector.java
++++ b/java/org/apache/tomcat/util/net/NioBlockingSelector.java
+@@ -108,8 +108,8 @@ public class NioBlockingSelector {
+                     } else {
+                         att.awaitWriteLatch(writeTimeout,TimeUnit.MILLISECONDS);
+                     }
+-                }catch (InterruptedException ignore) {
+-                    Thread.interrupted();
++                } catch (InterruptedException ignore) {
++                    // Ignore
+                 }
+                 if ( att.getWriteLatch()!=null && att.getWriteLatch().getCount()> 0) {
+                     //we got interrupted, but we haven't received notification from the poller.
+@@ -173,8 +173,8 @@ public class NioBlockingSelector {
+                     } else {
+                         att.awaitReadLatch(readTimeout, TimeUnit.MILLISECONDS);
+                     }
+-                }catch (InterruptedException ignore) {
+-                    Thread.interrupted();
++                } catch (InterruptedException ignore) {
++                    // Ignore
+                 }
+                 if ( att.getReadLatch()!=null && att.getReadLatch().getCount()> 0) {
+                     //we got interrupted, but we haven't received notification from the poller.
+diff --git a/java/org/apache/tomcat/util/threads/ThreadPoolExecutor.java b/java/org/apache/tomcat/util/threads/ThreadPoolExecutor.java
+index 31fff38..7b56265 100644
+--- a/java/org/apache/tomcat/util/threads/ThreadPoolExecutor.java
++++ b/java/org/apache/tomcat/util/threads/ThreadPoolExecutor.java
+@@ -184,7 +184,6 @@ public class ThreadPoolExecutor extends java.util.concurrent.ThreadPoolExecutor
+                     }
+                 } catch (InterruptedException x) {
+                     submittedCount.decrementAndGet();
+-                    Thread.interrupted();
+                     throw new RejectedExecutionException(x);
+                 }
+             } else {
+diff --git a/webapps/docs/changelog.xml b/webapps/docs/changelog.xml
+index a9b1395..d82ac46 100644
+--- a/webapps/docs/changelog.xml
++++ b/webapps/docs/changelog.xml
+@@ -120,6 +120,10 @@
+         The correct names are <code>jasper</code> and <code>jkupdate</code>.
+         (kkolinko)
+       </update>
++      <fix>
++        <bug>53529</bug>: Clean-up the handling of
++        <code>InterruptedException</code> throughout the code base. (markt)
++      </fix>
+     </changelog>
+   </subsection>
+ </section>

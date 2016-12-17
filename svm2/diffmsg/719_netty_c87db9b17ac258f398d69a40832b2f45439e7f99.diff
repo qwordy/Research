@@ -1,0 +1,59 @@
+commit c87db9b17ac258f398d69a40832b2f45439e7f99
+Author: Trustin Lee <t@motd.kr>
+Date:   Mon Mar 17 10:53:49 2014 +0900
+
+    Reduce SO_TIMEOUT of testsuite so it finishes sooner
+    
+    Motivation:
+    
+    Testing the OIO transport takes longer time than other transports because it has to wait for SO_TIMEOUT if there is nothing to read.  In production, it's not a good idea to decrease this value (1000ms) because it will result in so many SocketTimeoutExceptions internally, but doing so in the testsuite should be fine.
+    
+    Modifications:
+    
+    Reduce the default SO_TIMEOUT of OIO channels to 10 ms.
+    
+    Result:
+    
+    Our testsuite finishes sooner.
+
+diff --git a/testsuite/src/test/java/io/netty/testsuite/transport/socket/SocketTestPermutation.java b/testsuite/src/test/java/io/netty/testsuite/transport/socket/SocketTestPermutation.java
+index dec016c..740c697 100644
+--- a/testsuite/src/test/java/io/netty/testsuite/transport/socket/SocketTestPermutation.java
++++ b/testsuite/src/test/java/io/netty/testsuite/transport/socket/SocketTestPermutation.java
+@@ -20,6 +20,7 @@ import io.netty.bootstrap.Bootstrap;
+ import io.netty.bootstrap.ChannelFactory;
+ import io.netty.bootstrap.ServerBootstrap;
+ import io.netty.channel.Channel;
++import io.netty.channel.ChannelOption;
+ import io.netty.channel.EventLoopGroup;
+ import io.netty.channel.nio.NioEventLoopGroup;
+ import io.netty.channel.oio.OioEventLoopGroup;
+@@ -45,6 +46,8 @@ public class SocketTestPermutation {
+     protected static final int BOSSES = 2;
+     protected static final int WORKERS = 3;
+ 
++    protected static final int OIO_SO_TIMEOUT = 10;  // Use short timeout for faster runs.
++
+     protected final EventLoopGroup nioBossGroup =
+             new NioEventLoopGroup(BOSSES, new DefaultThreadFactory("testsuite-nio-boss", true));
+     protected final EventLoopGroup nioWorkerGroup =
+@@ -141,7 +144,8 @@ public class SocketTestPermutation {
+                     @Override
+                     public ServerBootstrap newInstance() {
+                         return new ServerBootstrap().group(oioBossGroup, oioWorkerGroup)
+-                                .channel(OioServerSocketChannel.class);
++                                .channel(OioServerSocketChannel.class)
++                                .option(ChannelOption.SO_TIMEOUT, OIO_SO_TIMEOUT);
+                     }
+                 }
+         );
+@@ -158,7 +162,8 @@ public class SocketTestPermutation {
+                 new BootstrapFactory<Bootstrap>() {
+                     @Override
+                     public Bootstrap newInstance() {
+-                        return new Bootstrap().group(oioWorkerGroup).channel(OioSocketChannel.class);
++                        return new Bootstrap().group(oioWorkerGroup).channel(OioSocketChannel.class)
++                                .option(ChannelOption.SO_TIMEOUT, OIO_SO_TIMEOUT);
+                     }
+                 }
+         );

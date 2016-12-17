@@ -1,0 +1,29 @@
+commit b8dc30b7e3da2e68b733ea15fd495278ea2fad18
+Author: Michael McCandless <mikemccand@apache.org>
+Date:   Wed Aug 4 16:36:35 2010 +0000
+
+    don't call Thread.interrupt after telling sub-thread to finish; it can cause false failure
+    
+    git-svn-id: https://svn.apache.org/repos/asf/lucene/dev/trunk@982323 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/lucene/src/test/org/apache/lucene/index/TestIndexWriter.java b/lucene/src/test/org/apache/lucene/index/TestIndexWriter.java
+index e7d5039..aa4842b 100644
+--- a/lucene/src/test/org/apache/lucene/index/TestIndexWriter.java
++++ b/lucene/src/test/org/apache/lucene/index/TestIndexWriter.java
+@@ -4315,7 +4315,7 @@ public class TestIndexWriter extends LuceneTestCase {
+     volatile boolean failed;
+     volatile boolean finish;
+ 
+-    boolean allowInterrupt = false;
++    volatile boolean allowInterrupt = false;
+ 
+     @Override
+     public void run() {
+@@ -4439,7 +4439,6 @@ public class TestIndexWriter extends LuceneTestCase {
+     }
+     t.allowInterrupt = false;
+     t.finish = true;
+-    t.interrupt();
+     t.join();
+     assertFalse(t.failed);
+   }

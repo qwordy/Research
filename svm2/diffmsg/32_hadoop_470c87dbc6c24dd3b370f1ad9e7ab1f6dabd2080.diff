@@ -1,0 +1,878 @@
+commit 470c87dbc6c24dd3b370f1ad9e7ab1f6dabd2080
+Author: Colin Patrick Mccabe <cmccabe@cloudera.com>
+Date:   Tue May 19 10:49:17 2015 -0700
+
+    HADOOP-11970. Replace uses of ThreadLocal<Random> with JDK7 ThreadLocalRandom (Sean Busbey via Colin P. McCabe)
+
+diff --git a/hadoop-common-project/hadoop-common/CHANGES.txt b/hadoop-common-project/hadoop-common/CHANGES.txt
+index baf9a0f..10da9d7 100644
+--- a/hadoop-common-project/hadoop-common/CHANGES.txt
++++ b/hadoop-common-project/hadoop-common/CHANGES.txt
+@@ -595,6 +595,9 @@ Release 2.8.0 - UNRELEASED
+     HADOOP-11812. Implement listLocatedStatus for ViewFileSystem to speed up
+     split calculation (gera)
+ 
++    HADOOP-11970. Replace uses of ThreadLocal<Random> with JDK7
++    ThreadLocalRandom.  (Sean Busbey via Colin P. McCabe)
++
+   BUG FIXES
+     HADOOP-11802: DomainSocketWatcher thread terminates sometimes after there
+     is an I/O error during requestShortCircuitShm (cmccabe)
+diff --git a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/io/retry/RetryPolicies.java b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/io/retry/RetryPolicies.java
+index 14ded8e..a86f443 100644
+--- a/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/io/retry/RetryPolicies.java
++++ b/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/io/retry/RetryPolicies.java
+@@ -28,7 +28,7 @@
+ import java.util.List;
+ import java.util.Map;
+ import java.util.Map.Entry;
+-import java.util.Random;
++import java.util.concurrent.ThreadLocalRandom;
+ import java.util.concurrent.TimeUnit;
+ 
+ import org.apache.commons.logging.Log;
+@@ -47,13 +47,6 @@
+   
+   public static final Log LOG = LogFactory.getLog(RetryPolicies.class);
+   
+-  private static ThreadLocal<Random> RANDOM = new ThreadLocal<Random>() {
+-    @Override
+-    protected Random initialValue() {
+-      return new Random();
+-    }
+-  };
+-  
+   /**
+    * <p>
+    * Try once, and fail by re-throwing the exception.
+@@ -321,7 +314,8 @@ public RetryAction shouldRetry(Exception e, int curRetry, int failovers,
+       }
+ 
+       //calculate sleep time and return.
+-      final double ratio = RANDOM.get().nextDouble() + 0.5;//0.5 <= ratio <=1.5
++      // ensure 0.5 <= ratio <=1.5
++      final double ratio = ThreadLocalRandom.current().nextDouble() + 0.5;
+       final long sleepTime = Math.round(p.sleepMillis * ratio);
+       return new RetryAction(RetryAction.RetryDecision.RETRY, sleepTime);
+     }
+@@ -610,7 +604,7 @@ public RetryAction shouldRetry(Exception e, int retries,
+   private static long calculateExponentialTime(long time, int retries,
+       long cap) {
+     long baseTime = Math.min(time * (1L << retries), cap);
+-    return (long) (baseTime * (RANDOM.get().nextDouble() + 0.5));
++    return (long) (baseTime * (ThreadLocalRandom.current().nextDouble() + 0.5));
+   }
+ 
+   private static long calculateExponentialTime(long time, int retries) {
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSClient.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSClient.java
+index f32702e..a2b9760 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSClient.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSClient.java
+@@ -48,6 +48,7 @@
+ import java.util.Map;
+ import java.util.Random;
+ import java.util.concurrent.SynchronousQueue;
++import java.util.concurrent.ThreadLocalRandom;
+ import java.util.concurrent.ThreadPoolExecutor;
+ import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.atomic.AtomicBoolean;
+@@ -316,7 +317,8 @@ public DFSClient(URI nameNodeUri, ClientProtocol rpcNamenode,
+     
+     this.authority = nameNodeUri == null? "null": nameNodeUri.getAuthority();
+     this.clientName = "DFSClient_" + dfsClientConf.getTaskId() + "_" + 
+-        DFSUtil.getRandom().nextInt()  + "_" + Thread.currentThread().getId();
++        ThreadLocalRandom.current().nextInt()  + "_" +
++        Thread.currentThread().getId();
+     int numResponseToDrop = conf.getInt(
+         DFSConfigKeys.DFS_CLIENT_TEST_DROP_NAMENODE_RESPONSE_NUM_KEY,
+         DFSConfigKeys.DFS_CLIENT_TEST_DROP_NAMENODE_RESPONSE_NUM_DEFAULT);
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSInputStream.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSInputStream.java
+index 3290223..d1e0b9a 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSInputStream.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSInputStream.java
+@@ -40,6 +40,7 @@
+ import java.util.concurrent.ExecutionException;
+ import java.util.concurrent.ExecutorCompletionService;
+ import java.util.concurrent.Future;
++import java.util.concurrent.ThreadLocalRandom;
+ import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.atomic.AtomicBoolean;
+ 
+@@ -976,7 +977,9 @@ private DNAddrPair chooseDataNode(LocatedBlock block,
+           // expanded to 9000ms. 
+           final int timeWindow = dfsClient.getConf().getTimeWindow();
+           double waitTime = timeWindow * failures +       // grace period for the last round of attempt
+-            timeWindow * (failures + 1) * DFSUtil.getRandom().nextDouble(); // expanding time window for each failure
++              // expanding time window for each failure
++              timeWindow * (failures + 1) *
++              ThreadLocalRandom.current().nextDouble();
+           DFSClient.LOG.warn("DFS chooseDataNode: got # " + (failures + 1) + " IOException, will wait for " + waitTime + " msec.");
+           Thread.sleep((long)waitTime);
+         } catch (InterruptedException iex) {
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSUtil.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSUtil.java
+index a925a60..5f501c1 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSUtil.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/DFSUtil.java
+@@ -50,8 +50,8 @@
+ import java.util.HashSet;
+ import java.util.List;
+ import java.util.Map;
+-import java.util.Random;
+ import java.util.Set;
++import java.util.concurrent.ThreadLocalRandom;
+ 
+ import javax.net.SocketFactory;
+ 
+@@ -103,12 +103,6 @@
+   public static final Log LOG = LogFactory.getLog(DFSUtil.class.getName());
+   
+   private DFSUtil() { /* Hidden constructor */ }
+-  private static final ThreadLocal<Random> RANDOM = new ThreadLocal<Random>() {
+-    @Override
+-    protected Random initialValue() {
+-      return new Random();
+-    }
+-  };
+   
+   private static final ThreadLocal<SecureRandom> SECURE_RANDOM = new ThreadLocal<SecureRandom>() {
+     @Override
+@@ -117,11 +111,6 @@ protected SecureRandom initialValue() {
+     }
+   };
+ 
+-  /** @return a pseudo random number generator. */
+-  public static Random getRandom() {
+-    return RANDOM.get();
+-  }
+-  
+   /** @return a pseudo secure random number generator. */
+   public static SecureRandom getSecureRandom() {
+     return SECURE_RANDOM.get();
+@@ -130,9 +119,8 @@ public static SecureRandom getSecureRandom() {
+   /** Shuffle the elements in the given array. */
+   public static <T> T[] shuffle(final T[] array) {
+     if (array != null && array.length > 0) {
+-      final Random random = getRandom();
+       for (int n = array.length; n > 1; ) {
+-        final int randomIndex = random.nextInt(n);
++        final int randomIndex = ThreadLocalRandom.current().nextInt(n);
+         n--;
+         if (n != randomIndex) {
+           final T tmp = array[randomIndex];
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/BlockManager.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/BlockManager.java
+index 6d5808e..8012f71 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/BlockManager.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/BlockManager.java
+@@ -35,6 +35,7 @@
+ import java.util.Set;
+ import java.util.TreeMap;
+ import java.util.TreeSet;
++import java.util.concurrent.ThreadLocalRandom;
+ import java.util.concurrent.atomic.AtomicLong;
+ 
+ import org.apache.hadoop.HadoopIllegalArgumentException;
+@@ -1027,7 +1028,8 @@ private BlocksWithLocations getBlocksWithLocations(final DatanodeID datanode,
+       return new BlocksWithLocations(new BlockWithLocations[0]);
+     }
+     Iterator<BlockInfoContiguous> iter = node.getBlockIterator();
+-    int startBlock = DFSUtil.getRandom().nextInt(numBlocks); // starting from a random block
++    // starting from a random block
++    int startBlock = ThreadLocalRandom.current().nextInt(numBlocks);
+     // skip blocks
+     for(int i=0; i<startBlock; i++) {
+       iter.next();
+@@ -1669,7 +1671,7 @@ else if (node.isDecommissionInProgress()) {
+       // switch to a different node randomly
+       // this to prevent from deterministically selecting the same node even
+       // if the node failed to replicate the block on previous iterations
+-      if(DFSUtil.getRandom().nextBoolean())
++      if(ThreadLocalRandom.current().nextBoolean())
+         srcNode = node;
+     }
+     if(numReplicas != null)
+@@ -1920,7 +1922,7 @@ void rescanPostponedMisreplicatedBlocks() {
+           datanodeManager.getBlocksPerPostponedMisreplicatedBlocksRescan();
+       long base = getPostponedMisreplicatedBlocksCount() - blocksPerRescan;
+       if (base > 0) {
+-        startIndex = DFSUtil.getRandom().nextLong() % (base+1);
++        startIndex = ThreadLocalRandom.current().nextLong() % (base+1);
+         if (startIndex < 0) {
+           startIndex += (base+1);
+         }
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/DatanodeManager.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/DatanodeManager.java
+index 7769a78..01f7972 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/DatanodeManager.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/DatanodeManager.java
+@@ -51,6 +51,7 @@
+ import java.net.InetSocketAddress;
+ import java.net.UnknownHostException;
+ import java.util.*;
++import java.util.concurrent.ThreadLocalRandom;
+ 
+ /**
+  * Manage datanodes, include decommission and other activities.
+@@ -457,7 +458,7 @@ DatanodeDescriptor getDatanodeDescriptor(String address) {
+         // Try something rack local.
+         if (node == null && !rackNodes.isEmpty()) {
+           node = (DatanodeDescriptor) (rackNodes
+-              .get(DFSUtil.getRandom().nextInt(rackNodes.size())));
++              .get(ThreadLocalRandom.current().nextInt(rackNodes.size())));
+         }
+       }
+ 
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/Host2NodesMap.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/Host2NodesMap.java
+index 420c141..289b79a 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/Host2NodesMap.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/blockmanagement/Host2NodesMap.java
+@@ -20,12 +20,12 @@
+ import java.util.Arrays;
+ import java.util.HashMap;
+ import java.util.Map;
++import java.util.concurrent.ThreadLocalRandom;
+ import java.util.concurrent.locks.ReadWriteLock;
+ import java.util.concurrent.locks.ReentrantReadWriteLock;
+ 
+ import org.apache.hadoop.classification.InterfaceAudience;
+ import org.apache.hadoop.classification.InterfaceStability;
+-import org.apache.hadoop.hdfs.DFSUtil;
+ 
+ /** A map from host names to datanode descriptors. */
+ @InterfaceAudience.Private
+@@ -161,7 +161,7 @@ DatanodeDescriptor getDatanodeByHost(String ipAddr) {
+         return nodes[0];
+       }
+       // more than one node
+-      return nodes[DFSUtil.getRandom().nextInt(nodes.length)];
++      return nodes[ThreadLocalRandom.current().nextInt(nodes.length)];
+     } finally {
+       hostmapLock.readLock().unlock();
+     }
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/BPServiceActor.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/BPServiceActor.java
+index 5bc505f..63a0bb6 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/BPServiceActor.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/BPServiceActor.java
+@@ -28,13 +28,13 @@
+ import java.util.LinkedList;
+ import java.util.List;
+ import java.util.Map;
++import java.util.concurrent.ThreadLocalRandom;
+ 
+ import com.google.common.base.Joiner;
+ import org.apache.commons.logging.Log;
+ import org.apache.hadoop.classification.InterfaceAudience;
+ import org.apache.hadoop.ha.HAServiceProtocol.HAServiceState;
+ import org.apache.hadoop.hdfs.client.BlockReportOptions;
+-import org.apache.hadoop.hdfs.DFSUtil;
+ import org.apache.hadoop.hdfs.protocol.BlockListAsLongs;
+ import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
+ import org.apache.hadoop.hdfs.protocol.ExtendedBlock;
+@@ -122,7 +122,7 @@
+     this.dn = bpos.getDataNode();
+     this.nnAddr = nnAddr;
+     this.dnConf = dn.getDnConf();
+-    prevBlockReportId = DFSUtil.getRandom().nextLong();
++    prevBlockReportId = ThreadLocalRandom.current().nextLong();
+     scheduler = new Scheduler(dnConf.heartBeatInterval, dnConf.blockReportInterval);
+   }
+ 
+@@ -409,7 +409,7 @@ private long generateUniqueBlockReportId() {
+     // not send a 0 value ourselves.
+     prevBlockReportId++;
+     while (prevBlockReportId == 0) {
+-      prevBlockReportId = DFSUtil.getRandom().nextLong();
++      prevBlockReportId = ThreadLocalRandom.current().nextLong();
+     }
+     return prevBlockReportId;
+   }
+@@ -1054,7 +1054,7 @@ long scheduleBlockReport(long delay) {
+       if (delay > 0) { // send BR after random delay
+         // Numerical overflow is possible here and is okay.
+         nextBlockReportTime =
+-            monotonicNow() + DFSUtil.getRandom().nextInt((int) (delay));
++            monotonicNow() + ThreadLocalRandom.current().nextInt((int) (delay));
+       } else { // send at next heartbeat
+         nextBlockReportTime = monotonicNow();
+       }
+@@ -1073,7 +1073,7 @@ void scheduleNextBlockReport() {
+       // time before we start the periodic block reports.
+       if (resetBlockReportTime) {
+         nextBlockReportTime = monotonicNow() +
+-            DFSUtil.getRandom().nextInt((int)(blockReportIntervalMs));
++            ThreadLocalRandom.current().nextInt((int)(blockReportIntervalMs));
+         resetBlockReportTime = false;
+       } else {
+         /* say the last block report was at 8:20:14. The current report
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DirectoryScanner.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DirectoryScanner.java
+index 8453094..3383d0e 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DirectoryScanner.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/DirectoryScanner.java
+@@ -31,6 +31,7 @@
+ import java.util.concurrent.Future;
+ import java.util.concurrent.ScheduledExecutorService;
+ import java.util.concurrent.ScheduledThreadPoolExecutor;
++import java.util.concurrent.ThreadLocalRandom;
+ import java.util.concurrent.TimeUnit;
+ import java.util.regex.Matcher;
+ import java.util.regex.Pattern;
+@@ -41,7 +42,6 @@
+ import org.apache.hadoop.conf.Configuration;
+ import org.apache.hadoop.fs.FileUtil;
+ import org.apache.hadoop.hdfs.DFSConfigKeys;
+-import org.apache.hadoop.hdfs.DFSUtil;
+ import org.apache.hadoop.hdfs.protocol.Block;
+ import org.apache.hadoop.hdfs.protocol.HdfsConstants;
+ import org.apache.hadoop.hdfs.server.datanode.fsdataset.FsDatasetSpi;
+@@ -327,7 +327,8 @@ public long getGenStamp() {
+ 
+   void start() {
+     shouldRun = true;
+-    long offset = DFSUtil.getRandom().nextInt((int) (scanPeriodMsecs/1000L)) * 1000L; //msec
++    long offset = ThreadLocalRandom.current().nextInt(
++        (int) (scanPeriodMsecs/1000L)) * 1000L; //msec
+     long firstScanTime = Time.now() + offset;
+     LOG.info("Periodic Directory Tree Verification scan starting at " 
+         + firstScanTime + " with interval " + scanPeriodMsecs);
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/metrics/DataNodeMetrics.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/metrics/DataNodeMetrics.java
+index 2e62b3c..a0f25da 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/metrics/DataNodeMetrics.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/datanode/metrics/DataNodeMetrics.java
+@@ -22,7 +22,6 @@
+ import org.apache.hadoop.classification.InterfaceAudience;
+ import org.apache.hadoop.conf.Configuration;
+ import org.apache.hadoop.hdfs.DFSConfigKeys;
+-import org.apache.hadoop.hdfs.DFSUtil;
+ import org.apache.hadoop.metrics2.MetricsSystem;
+ import org.apache.hadoop.metrics2.annotation.Metric;
+ import org.apache.hadoop.metrics2.annotation.Metrics;
+@@ -33,6 +32,8 @@
+ import org.apache.hadoop.metrics2.lib.MutableRate;
+ import org.apache.hadoop.metrics2.source.JvmMetrics;
+ 
++import java.util.concurrent.ThreadLocalRandom;
++
+ /**
+  *
+  * This class is for maintaining  the various DataNode statistics
+@@ -177,7 +178,7 @@ public static DataNodeMetrics create(Configuration conf, String dnName) {
+     MetricsSystem ms = DefaultMetricsSystem.instance();
+     JvmMetrics jm = JvmMetrics.create("DataNode", sessionId, ms);
+     String name = "DataNodeActivity-"+ (dnName.isEmpty()
+-        ? "UndefinedDataNodeName"+ DFSUtil.getRandom().nextInt() 
++        ? "UndefinedDataNodeName"+ ThreadLocalRandom.current().nextInt()
+             : dnName.replace(':', '-'));
+ 
+     // Percentile measurement is off by default, by watching no intervals
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/NNStorage.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/NNStorage.java
+index 26a13bd..14647f0 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/NNStorage.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/NNStorage.java
+@@ -32,6 +32,7 @@
+ import java.util.Properties;
+ import java.util.UUID;
+ import java.util.concurrent.CopyOnWriteArrayList;
++import java.util.concurrent.ThreadLocalRandom;
+ 
+ import org.apache.hadoop.classification.InterfaceAudience;
+ import org.apache.hadoop.conf.Configuration;
+@@ -599,7 +600,7 @@ public void format() throws IOException {
+   private static int newNamespaceID() {
+     int newID = 0;
+     while(newID == 0)
+-      newID = DFSUtil.getRandom().nextInt(0x7FFFFFFF);  // use 31 bits only
++      newID = ThreadLocalRandom.current().nextInt(0x7FFFFFFF);  // use 31 bits
+     return newID;
+   }
+ 
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/NamenodeFsck.java b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/NamenodeFsck.java
+index 44dba28..0daf367 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/NamenodeFsck.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/main/java/org/apache/hadoop/hdfs/server/namenode/NamenodeFsck.java
+@@ -32,6 +32,7 @@
+ import java.util.List;
+ import java.util.Map;
+ import java.util.TreeSet;
++import java.util.concurrent.ThreadLocalRandom;
+ 
+ import org.apache.commons.io.IOUtils;
+ import org.apache.commons.logging.Log;
+@@ -44,7 +45,6 @@
+ import org.apache.hadoop.hdfs.BlockReaderFactory;
+ import org.apache.hadoop.hdfs.DFSClient;
+ import org.apache.hadoop.hdfs.DFSConfigKeys;
+-import org.apache.hadoop.hdfs.DFSUtil;
+ import org.apache.hadoop.hdfs.RemotePeerFactory;
+ import org.apache.hadoop.fs.StorageType;
+ import org.apache.hadoop.hdfs.net.Peer;
+@@ -933,7 +933,7 @@ private DatanodeInfo bestNode(DFSClient dfs, DatanodeInfo[] nodes,
+     }
+     DatanodeInfo chosenNode;
+     do {
+-      chosenNode = nodes[DFSUtil.getRandom().nextInt(nodes.length)];
++      chosenNode = nodes[ThreadLocalRandom.current().nextInt(nodes.length)];
+     } while (deadNodes.contains(chosenNode));
+     return chosenNode;
+   }
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/TestAppendSnapshotTruncate.java b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/TestAppendSnapshotTruncate.java
+index e80e14f..d67ceb0 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/TestAppendSnapshotTruncate.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/TestAppendSnapshotTruncate.java
+@@ -29,6 +29,7 @@
+ import java.util.Map;
+ import java.util.Random;
+ import java.util.concurrent.Callable;
++import java.util.concurrent.ThreadLocalRandom;
+ import java.util.concurrent.atomic.AtomicBoolean;
+ import java.util.concurrent.atomic.AtomicInteger;
+ import java.util.concurrent.atomic.AtomicReference;
+@@ -214,8 +215,7 @@ String deleteSnapshot(String snapshot) throws IOException {
+     
+     @Override
+     public String call() throws Exception {
+-      final Random r = DFSUtil.getRandom();
+-      final int op = r.nextInt(6);
++      final int op = ThreadLocalRandom.current().nextInt(6);
+       if (op <= 1) {
+         pauseAllFiles();
+         try {
+@@ -229,7 +229,8 @@ public String call() throws Exception {
+         if (keys.length == 0) {
+           return "NO-OP";
+         }
+-        final String snapshot = keys[r.nextInt(keys.length)];
++        final String snapshot = keys[ThreadLocalRandom.current()
++            .nextInt(keys.length)];
+         final String s = checkSnapshot(snapshot);
+         
+         if (op == 2) {
+@@ -292,13 +293,13 @@ void checkEverything() throws IOException {
+ 
+     @Override
+     public String call() throws IOException {
+-      final Random r = DFSUtil.getRandom();
+-      final int op = r.nextInt(9);
++      final int op = ThreadLocalRandom.current().nextInt(9);
+       if (op == 0) {
+         return checkFullFile();
+       } else {
+-        final int nBlocks = r.nextInt(4) + 1;
+-        final int lastBlockSize = r.nextInt(BLOCK_SIZE) + 1;
++        final int nBlocks = ThreadLocalRandom.current().nextInt(4) + 1;
++        final int lastBlockSize = ThreadLocalRandom.current()
++            .nextInt(BLOCK_SIZE) + 1;
+         final int nBytes = nBlocks*BLOCK_SIZE + lastBlockSize;
+ 
+         if (op <= 4) {
+@@ -316,8 +317,8 @@ String append(int n) throws IOException {
+           .append(n).append(" bytes to ").append(file.getName());
+ 
+       final byte[] bytes = new byte[n];
+-      DFSUtil.getRandom().nextBytes(bytes);
+-      
++      ThreadLocalRandom.current().nextBytes(bytes);
++
+       { // write to local file
+         final FileOutputStream out = new FileOutputStream(localFile, true);
+         out.write(bytes, 0, bytes.length);
+@@ -446,7 +447,6 @@ void start() {
+         final Thread t = new Thread(null, new Runnable() {
+           @Override
+           public void run() {
+-            final Random r = DFSUtil.getRandom();
+             for(State s; !(s = checkErrorState()).isTerminated;) {
+               if (s == State.RUNNING) {
+                 isCalling.set(true);
+@@ -458,7 +458,7 @@ public void run() {
+                 }
+                 isCalling.set(false);
+               }
+-              sleep(r.nextInt(100) + 50);
++              sleep(ThreadLocalRandom.current().nextInt(100) + 50);
+             }
+           }
+         }, name);
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/TestRollingUpgrade.java b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/TestRollingUpgrade.java
+index 8baebd8..c4c890f 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/TestRollingUpgrade.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/TestRollingUpgrade.java
+@@ -19,6 +19,7 @@
+ 
+ import java.io.File;
+ import java.io.IOException;
++import java.util.concurrent.ThreadLocalRandom;
+ 
+ import org.apache.commons.logging.Log;
+ import org.apache.commons.logging.LogFactory;
+@@ -272,7 +273,7 @@ public void testRollback() throws IOException {
+ 
+       final Path file = new Path(foo, "file");
+       final byte[] data = new byte[1024];
+-      DFSUtil.getRandom().nextBytes(data);
++      ThreadLocalRandom.current().nextBytes(data);
+       final FSDataOutputStream out = cluster.getFileSystem().create(file);
+       out.write(data, 0, data.length);
+       out.close();
+@@ -320,7 +321,8 @@ private static void startRollingUpgrade(Path foo, Path bar,
+     Assert.assertTrue(dfs.exists(bar));
+ 
+     //truncate a file
+-    final int newLength = DFSUtil.getRandom().nextInt(data.length - 1) + 1;
++    final int newLength = ThreadLocalRandom.current().nextInt(data.length - 1)
++        + 1;
+     dfs.truncate(file, newLength);
+     TestFileTruncate.checkBlockRecovery(file, dfs);
+     AppendTestUtil.checkFullFile(dfs, file, newLength, data);
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/blockmanagement/TestReplicationPolicy.java b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/blockmanagement/TestReplicationPolicy.java
+index f117ef7..3226578 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/blockmanagement/TestReplicationPolicy.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/blockmanagement/TestReplicationPolicy.java
+@@ -36,6 +36,7 @@
+ import java.util.Map;
+ import java.util.Random;
+ import java.util.Set;
++import java.util.concurrent.ThreadLocalRandom;
+ 
+ import org.apache.commons.logging.impl.Log4JLogger;
+ import org.apache.hadoop.conf.Configuration;
+@@ -75,7 +76,6 @@
+     ((Log4JLogger)BlockPlacementPolicy.LOG).getLogger().setLevel(Level.ALL);
+   }
+ 
+-  private final Random random = DFSUtil.getRandom();
+   private static final int BLOCK_SIZE = 1024;
+   private static final int NUM_OF_DATANODES = 6;
+   private static NetworkTopology cluster;
+@@ -850,15 +850,17 @@ public void testReplicationWithPriority() throws Exception {
+           .getNamesystem().getBlockManager().neededReplications;
+       for (int i = 0; i < 100; i++) {
+         // Adding the blocks directly to normal priority
+-        neededReplications.add(new Block(random.nextLong()), 2, 0, 3);
++        neededReplications.add(new Block(ThreadLocalRandom.current()
++            .nextLong()), 2, 0, 3);
+       }
+       // Lets wait for the replication interval, to start process normal
+       // priority blocks
+       Thread.sleep(DFS_NAMENODE_REPLICATION_INTERVAL);
+       
+       // Adding the block directly to high priority list
+-      neededReplications.add(new Block(random.nextLong()), 1, 0, 3);
+-      
++      neededReplications.add(new Block(ThreadLocalRandom.current().nextLong()),
++          1, 0, 3);
++
+       // Lets wait for the replication interval
+       Thread.sleep(DFS_NAMENODE_REPLICATION_INTERVAL);
+ 
+@@ -880,19 +882,24 @@ public void testChooseUnderReplicatedBlocks() throws Exception {
+ 
+     for (int i = 0; i < 5; i++) {
+       // Adding QUEUE_HIGHEST_PRIORITY block
+-      underReplicatedBlocks.add(new Block(random.nextLong()), 1, 0, 3);
++      underReplicatedBlocks.add(new Block(ThreadLocalRandom.current()
++          .nextLong()), 1, 0, 3);
+ 
+       // Adding QUEUE_VERY_UNDER_REPLICATED block
+-      underReplicatedBlocks.add(new Block(random.nextLong()), 2, 0, 7);
++      underReplicatedBlocks.add(new Block(ThreadLocalRandom.current()
++          .nextLong()), 2, 0, 7);
+ 
+       // Adding QUEUE_REPLICAS_BADLY_DISTRIBUTED block
+-      underReplicatedBlocks.add(new Block(random.nextLong()), 6, 0, 6);
++      underReplicatedBlocks.add(new Block(ThreadLocalRandom.current()
++          .nextLong()), 6, 0, 6);
+ 
+       // Adding QUEUE_UNDER_REPLICATED block
+-      underReplicatedBlocks.add(new Block(random.nextLong()), 5, 0, 6);
++      underReplicatedBlocks.add(new Block(ThreadLocalRandom.current()
++          .nextLong()), 5, 0, 6);
+ 
+       // Adding QUEUE_WITH_CORRUPT_BLOCKS block
+-      underReplicatedBlocks.add(new Block(random.nextLong()), 0, 0, 3);
++      underReplicatedBlocks.add(new Block(ThreadLocalRandom.current()
++          .nextLong()), 0, 0, 3);
+     }
+ 
+     // Choose 6 blocks from UnderReplicatedBlocks. Then it should pick 5 blocks
+@@ -908,7 +915,8 @@ public void testChooseUnderReplicatedBlocks() throws Exception {
+     assertTheChosenBlocks(chosenBlocks, 0, 4, 5, 1, 0);
+ 
+     // Adding QUEUE_HIGHEST_PRIORITY
+-    underReplicatedBlocks.add(new Block(random.nextLong()), 1, 0, 3);
++    underReplicatedBlocks.add(new Block(ThreadLocalRandom.current().nextLong()),
++        1, 0, 3);
+ 
+     // Choose 10 blocks from UnderReplicatedBlocks. Then it should pick 1 block from
+     // QUEUE_HIGHEST_PRIORITY, 4 blocks from QUEUE_REPLICAS_BADLY_DISTRIBUTED
+@@ -1100,9 +1108,9 @@ public void testGetReplWorkMultiplier() {
+   public void testUpdateDoesNotCauseSkippedReplication() {
+     UnderReplicatedBlocks underReplicatedBlocks = new UnderReplicatedBlocks();
+ 
+-    Block block1 = new Block(random.nextLong());
+-    Block block2 = new Block(random.nextLong());
+-    Block block3 = new Block(random.nextLong());
++    Block block1 = new Block(ThreadLocalRandom.current().nextLong());
++    Block block2 = new Block(ThreadLocalRandom.current().nextLong());
++    Block block3 = new Block(ThreadLocalRandom.current().nextLong());
+ 
+     // Adding QUEUE_VERY_UNDER_REPLICATED block
+     final int block1CurReplicas = 2;
+@@ -1149,8 +1157,8 @@ public void testAddStoredBlockDoesNotCauseSkippedReplication()
+     BlockManager bm = new BlockManager(mockNS, new HdfsConfiguration());
+     UnderReplicatedBlocks underReplicatedBlocks = bm.neededReplications;
+ 
+-    Block block1 = new Block(random.nextLong());
+-    Block block2 = new Block(random.nextLong());
++    Block block1 = new Block(ThreadLocalRandom.current().nextLong());
++    Block block2 = new Block(ThreadLocalRandom.current().nextLong());
+ 
+     // Adding QUEUE_UNDER_REPLICATED block
+     underReplicatedBlocks.add(block1, 0, 1, 1);
+@@ -1195,8 +1203,8 @@ public void testAddStoredBlockDoesNotCauseSkippedReplication()
+     BlockManager bm = new BlockManager(mockNS, new HdfsConfiguration());
+     UnderReplicatedBlocks underReplicatedBlocks = bm.neededReplications;
+ 
+-    Block block1 = new Block(random.nextLong());
+-    Block block2 = new Block(random.nextLong());
++    Block block1 = new Block(ThreadLocalRandom.current().nextLong());
++    Block block2 = new Block(ThreadLocalRandom.current().nextLong());
+ 
+     // Adding QUEUE_UNDER_REPLICATED block
+     underReplicatedBlocks.add(block1, 0, 1, 1);
+@@ -1258,8 +1266,8 @@ public void testupdateNeededReplicationsDoesNotCauseSkippedReplication()
+     BlockManager bm = new BlockManager(mockNS, new HdfsConfiguration());
+     UnderReplicatedBlocks underReplicatedBlocks = bm.neededReplications;
+ 
+-    Block block1 = new Block(random.nextLong());
+-    Block block2 = new Block(random.nextLong());
++    Block block1 = new Block(ThreadLocalRandom.current().nextLong());
++    Block block2 = new Block(ThreadLocalRandom.current().nextLong());
+ 
+     // Adding QUEUE_UNDER_REPLICATED block
+     underReplicatedBlocks.add(block1, 0, 1, 1);
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/TestFileTruncate.java b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/TestFileTruncate.java
+index 1f65f78..222f22b 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/TestFileTruncate.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/TestFileTruncate.java
+@@ -31,6 +31,7 @@
+ import static org.junit.Assert.fail;
+ 
+ import java.io.IOException;
++import java.util.concurrent.ThreadLocalRandom;
+ 
+ import org.apache.commons.logging.Log;
+ import org.apache.commons.logging.LogFactory;
+@@ -46,7 +47,6 @@
+ import org.apache.hadoop.hdfs.AppendTestUtil;
+ import org.apache.hadoop.hdfs.DFSConfigKeys;
+ import org.apache.hadoop.hdfs.DFSTestUtil;
+-import org.apache.hadoop.hdfs.DFSUtil;
+ import org.apache.hadoop.hdfs.DistributedFileSystem;
+ import org.apache.hadoop.hdfs.HdfsConfiguration;
+ import org.apache.hadoop.hdfs.MiniDFSCluster;
+@@ -164,11 +164,11 @@ public void testMultipleTruncate() throws IOException {
+     fs.mkdirs(dir);
+     final Path p = new Path(dir, "file");
+     final byte[] data = new byte[100 * BLOCK_SIZE];
+-    DFSUtil.getRandom().nextBytes(data);
++    ThreadLocalRandom.current().nextBytes(data);
+     writeContents(data, data.length, p);
+ 
+     for(int n = data.length; n > 0; ) {
+-      final int newLength = DFSUtil.getRandom().nextInt(n);
++      final int newLength = ThreadLocalRandom.current().nextInt(n);
+       final boolean isReady = fs.truncate(p, newLength);
+       LOG.info("newLength=" + newLength + ", isReady=" + isReady);
+       assertEquals("File must be closed for truncating at the block boundary",
+@@ -193,7 +193,7 @@ public void testSnapshotTruncateThenDeleteSnapshot() throws IOException {
+     fs.allowSnapshot(dir);
+     final Path p = new Path(dir, "file");
+     final byte[] data = new byte[BLOCK_SIZE];
+-    DFSUtil.getRandom().nextBytes(data);
++    ThreadLocalRandom.current().nextBytes(data);
+     writeContents(data, data.length, p);
+     final String snapshot = "s0";
+     fs.createSnapshot(dir, snapshot);
+@@ -226,7 +226,7 @@ public void testTruncateWithOtherOperations() throws IOException {
+     final Path p = new Path(dir, "file");
+     final byte[] data = new byte[2 * BLOCK_SIZE];
+ 
+-    DFSUtil.getRandom().nextBytes(data);
++    ThreadLocalRandom.current().nextBytes(data);
+     writeContents(data, data.length, p);
+ 
+     final int newLength = data.length - 1;
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/ha/TestDNFencing.java b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/ha/TestDNFencing.java
+index 42bf46f..04b7b94 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/ha/TestDNFencing.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/ha/TestDNFencing.java
+@@ -24,6 +24,7 @@
+ import java.util.Collection;
+ import java.util.List;
+ import java.util.concurrent.CountDownLatch;
++import java.util.concurrent.ThreadLocalRandom;
+ 
+ import com.google.common.base.Supplier;
+ import com.google.common.collect.Lists;
+@@ -37,7 +38,6 @@
+ import org.apache.hadoop.hdfs.AppendTestUtil;
+ import org.apache.hadoop.hdfs.DFSConfigKeys;
+ import org.apache.hadoop.hdfs.DFSTestUtil;
+-import org.apache.hadoop.hdfs.DFSUtil;
+ import org.apache.hadoop.hdfs.MiniDFSCluster;
+ import org.apache.hadoop.hdfs.MiniDFSNNTopology;
+ import org.apache.hadoop.hdfs.protocol.Block;
+@@ -640,7 +640,7 @@ public DatanodeStorageInfo chooseReplicaToDelete(BlockCollection inode,
+       Collection<DatanodeStorageInfo> chooseFrom = !first.isEmpty() ? first : second;
+ 
+       List<DatanodeStorageInfo> l = Lists.newArrayList(chooseFrom);
+-      return l.get(DFSUtil.getRandom().nextInt(l.size()));
++      return l.get(ThreadLocalRandom.current().nextInt(l.size()));
+     }
+   }
+ 
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/ha/TestHAAppend.java b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/ha/TestHAAppend.java
+index e0aad02..7b7100b 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/ha/TestHAAppend.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/server/namenode/ha/TestHAAppend.java
+@@ -20,6 +20,7 @@
+ import static org.junit.Assert.assertEquals;
+ 
+ import java.io.IOException;
++import java.util.concurrent.ThreadLocalRandom;
+ 
+ import org.apache.hadoop.conf.Configuration;
+ import org.apache.hadoop.fs.FSDataOutputStream;
+@@ -27,7 +28,6 @@
+ import org.apache.hadoop.fs.Path;
+ import org.apache.hadoop.hdfs.AppendTestUtil;
+ import org.apache.hadoop.hdfs.DFSConfigKeys;
+-import org.apache.hadoop.hdfs.DFSUtil;
+ import org.apache.hadoop.hdfs.MiniDFSCluster;
+ import org.apache.hadoop.hdfs.MiniDFSNNTopology;
+ import org.apache.hadoop.hdfs.server.namenode.TestFileTruncate;
+@@ -73,7 +73,7 @@ public void testMultipleAppendsDuringCatchupTailing() throws Exception {
+       Path fileToTruncate = new Path("/FileToTruncate");
+       
+       final byte[] data = new byte[1 << 16];
+-      DFSUtil.getRandom().nextBytes(data);
++      ThreadLocalRandom.current().nextBytes(data);
+       final int[] appendPos = AppendTestUtil.randomFilePartition(
+           data.length, COUNT);
+       final int[] truncatePos = AppendTestUtil.randomFilePartition(
+@@ -136,4 +136,4 @@ public void testMultipleAppendsDuringCatchupTailing() throws Exception {
+       }
+     }
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/util/TestByteArrayManager.java b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/util/TestByteArrayManager.java
+index 1348033..972e51e 100644
+--- a/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/util/TestByteArrayManager.java
++++ b/hadoop-hdfs-project/hadoop-hdfs/src/test/java/org/apache/hadoop/hdfs/util/TestByteArrayManager.java
+@@ -27,6 +27,7 @@
+ import java.util.concurrent.ExecutorService;
+ import java.util.concurrent.Executors;
+ import java.util.concurrent.Future;
++import java.util.concurrent.ThreadLocalRandom;
+ import java.util.concurrent.TimeUnit;
+ import java.util.concurrent.TimeoutException;
+ import java.util.concurrent.atomic.AtomicInteger;
+@@ -34,7 +35,6 @@
+ import org.apache.commons.logging.Log;
+ import org.apache.commons.logging.LogFactory;
+ import org.apache.commons.logging.impl.Log4JLogger;
+-import org.apache.hadoop.hdfs.DFSUtil;
+ import org.apache.hadoop.hdfs.client.HdfsClientConfigKeys;
+ import org.apache.hadoop.hdfs.util.ByteArrayManager.Counter;
+ import org.apache.hadoop.hdfs.util.ByteArrayManager.CounterMap;
+@@ -72,7 +72,7 @@ public void testCounter() throws Exception {
+     final long countResetTimePeriodMs = 200L;
+     final Counter c = new Counter(countResetTimePeriodMs);
+ 
+-    final int n = DFSUtil.getRandom().nextInt(512) + 512;
++    final int n = ThreadLocalRandom.current().nextInt(512) + 512;
+     final List<Future<Integer>> futures = new ArrayList<Future<Integer>>(n);
+     
+     final ExecutorService pool = Executors.newFixedThreadPool(32);
+@@ -334,7 +334,7 @@ public void testByteArrayManager() throws Exception {
+       public void run() {
+         LOG.info("randomRecycler start");
+         for(int i = 0; shouldRun(); i++) {
+-          final int j = DFSUtil.getRandom().nextInt(runners.length);
++          final int j = ThreadLocalRandom.current().nextInt(runners.length);
+           try {
+             runners[j].recycle();
+           } catch (Exception e) {
+@@ -440,7 +440,7 @@ boolean isEmpty() {
+         public byte[] call() throws Exception {
+           final int lower = maxArrayLength == ByteArrayManager.MIN_ARRAY_LENGTH?
+               0: maxArrayLength >> 1;
+-          final int arrayLength = DFSUtil.getRandom().nextInt(
++          final int arrayLength = ThreadLocalRandom.current().nextInt(
+               maxArrayLength - lower) + lower + 1;
+           final byte[] array = bam.newByteArray(arrayLength);
+           try {
+@@ -496,7 +496,8 @@ public Integer call() throws Exception {
+     @Override
+     public void run() {
+       for(int i = 0; i < n; i++) {
+-        final boolean isAllocate = DFSUtil.getRandom().nextInt(NUM_RUNNERS) < p;
++        final boolean isAllocate = ThreadLocalRandom.current()
++            .nextInt(NUM_RUNNERS) < p;
+         if (isAllocate) {
+           submitAllocate();
+         } else {
+@@ -573,7 +574,6 @@ public static void main(String[] args) throws Exception {
+         + ", nAllocations=" + nAllocations
+         + ", maxArrays=" + maxArrays);
+     
+-    final Random ran = DFSUtil.getRandom();
+     final ByteArrayManager[] impls = {
+         new ByteArrayManager.NewByteArrayWithoutLimit(),
+         new NewByteArrayWithLimit(maxArrays),
+@@ -590,7 +590,7 @@ public static void main(String[] args) throws Exception {
+       for(int j = 0; j < nTrials; j++) {
+         final int[] sleepTime = new int[nAllocations];
+         for(int k = 0; k < sleepTime.length; k++) {
+-          sleepTime[k] = ran.nextInt(100);
++          sleepTime[k] = ThreadLocalRandom.current().nextInt(100);
+         }
+       
+         final long elapsed = performanceTest(arrayLength, maxArrays, nThreads,
+diff --git a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/src/main/java/org/apache/hadoop/yarn/server/nodemanager/containermanager/localizer/sharedcache/SharedCacheUploader.java b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/src/main/java/org/apache/hadoop/yarn/server/nodemanager/containermanager/localizer/sharedcache/SharedCacheUploader.java
+index 050d531..682b272 100644
+--- a/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/src/main/java/org/apache/hadoop/yarn/server/nodemanager/containermanager/localizer/sharedcache/SharedCacheUploader.java
++++ b/hadoop-yarn-project/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/src/main/java/org/apache/hadoop/yarn/server/nodemanager/containermanager/localizer/sharedcache/SharedCacheUploader.java
+@@ -22,8 +22,8 @@
+ import java.io.InputStream;
+ import java.lang.reflect.UndeclaredThrowableException;
+ import java.net.URISyntaxException;
+-import java.util.Random;
+ import java.util.concurrent.Callable;
++import java.util.concurrent.ThreadLocalRandom;
+ 
+ import org.apache.commons.logging.Log;
+ import org.apache.commons.logging.LogFactory;
+@@ -61,13 +61,6 @@
+       new FsPermission((short)00555);
+ 
+   private static final Log LOG = LogFactory.getLog(SharedCacheUploader.class);
+-  private static final ThreadLocal<Random> randomTl =
+-      new ThreadLocal<Random>() {
+-        @Override
+-        protected Random initialValue() {
+-          return new Random(System.nanoTime());
+-        }
+-      };
+ 
+   private final LocalResource resource;
+   private final Path localPath;
+@@ -267,7 +260,7 @@ String computeChecksum(Path path) throws IOException {
+   }
+ 
+   private String getTemporaryFileName(Path path) {
+-    return path.getName() + "-" + randomTl.get().nextLong();
++    return path.getName() + "-" + ThreadLocalRandom.current().nextLong();
+   }
+ 
+   @VisibleForTesting

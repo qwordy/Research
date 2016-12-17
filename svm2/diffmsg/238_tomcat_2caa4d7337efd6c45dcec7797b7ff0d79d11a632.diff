@@ -1,0 +1,41 @@
+commit 2caa4d7337efd6c45dcec7797b7ff0d79d11a632
+Author: Filip Hanik <fhanik@apache.org>
+Date:   Wed Mar 28 15:23:41 2012 +0000
+
+    Per http://markmail.org/message/nhfcvvyvvhtzvaxq
+    Since the method that gets interrupted does something like
+            if (Thread.interrupted())
+                throw new InterruptedException();
+    The flag is actually cleared by the method itself. If we wish to propagate the interrupt we have to set the flag again
+    
+    
+    
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1306410 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/modules/jdbc-pool/src/main/java/org/apache/tomcat/jdbc/pool/ConnectionPool.java b/modules/jdbc-pool/src/main/java/org/apache/tomcat/jdbc/pool/ConnectionPool.java
+index 2567317..8004d69 100644
+--- a/modules/jdbc-pool/src/main/java/org/apache/tomcat/jdbc/pool/ConnectionPool.java
++++ b/modules/jdbc-pool/src/main/java/org/apache/tomcat/jdbc/pool/ConnectionPool.java
+@@ -381,7 +381,9 @@ public class ConnectionPool {
+                     }
+                 } //while
+             } catch (InterruptedException ex) {
+-                if (!getPoolProperties().getPropagateInterruptState()) {
++                if (getPoolProperties().getPropagateInterruptState()) {
++                    Thread.currentThread().interrupt();
++                } else {
+                     Thread.interrupted();
+                 }
+             }
+@@ -628,7 +630,9 @@ public class ConnectionPool {
+                 //retrieve an existing connection
+                 con = idle.poll(timetowait, TimeUnit.MILLISECONDS);
+             } catch (InterruptedException ex) {
+-                if (!getPoolProperties().getPropagateInterruptState()) {
++                if (getPoolProperties().getPropagateInterruptState()) {
++                    Thread.currentThread().interrupt();
++                } else {
+                     Thread.interrupted();
+                 }
+                 SQLException sx = new SQLException("Pool wait interrupted.");

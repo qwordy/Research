@@ -1,0 +1,55 @@
+commit 2464618b30a9e943fae3e6706f2e9cb941c48b29
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Tue Dec 4 16:52:22 2007 +0000
+
+    This files were originally committed (in TC5.5.x) by a Sun employee (Remy) with Sun's permission and is therefore therefore licensed to the ASF under a CLA. As such, the restrictive header can be removed. See the following legal-discuss thread that went into this in much more detail:
+    URL: http://mail-archives.apache.org/mod_mbox/www-legal-discuss/200707.mbox/browser
+    Thread: SUN PROPRIETARY/CONFIDENTIAL code in myfaces
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@600993 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/javax/servlet/resources/j2ee_1_4.xsd b/java/javax/servlet/resources/j2ee_1_4.xsd
+index bac998e..d6a21a1 100644
+--- a/java/javax/servlet/resources/j2ee_1_4.xsd
++++ b/java/javax/servlet/resources/j2ee_1_4.xsd
+@@ -28,40 +28,6 @@
+     </xsd:documentation>
+   </xsd:annotation>
+ 
+-  <xsd:annotation>
+-    <xsd:documentation>
+-
+-      Copyright 2002 Sun Microsystems, Inc., 901 San Antonio
+-      Road, Palo Alto, California 94303, U.S.A. All rights
+-      reserved.
+-
+-      Sun Microsystems, Inc. has intellectual property rights
+-      relating to technology described in this document. In
+-      particular, and without limitation, these intellectual
+-      property rights may include one or more of the U.S. patents
+-      listed at http://www.sun.com/patents and one or more
+-      additional patents or pending patent applications in the
+-      U.S. and other countries.
+-
+-      This document and the technology which it describes are
+-      distributed under licenses restricting their use, copying,
+-      distribution, and decompilation. No part of this document
+-      may be reproduced in any form by any means without prior
+-      written authorization of Sun and its licensors, if any.
+-
+-      Third-party software, including font technology, is
+-      copyrighted and licensed from Sun suppliers.
+-
+-      Sun, Sun Microsystems, the Sun logo, Solaris, Java, J2EE,
+-      JavaServer Pages, Enterprise JavaBeans and the Java Coffee
+-      Cup logo are trademarks or registered trademarks of Sun
+-      Microsystems, Inc. in the U.S. and other countries.
+-
+-      Federal Acquisitions: Commercial Software - Government Users
+-      Subject to Standard License Terms and Conditions.
+-
+-    </xsd:documentation>
+-  </xsd:annotation>
+ <xsd:annotation>
+ <xsd:documentation>
+ 

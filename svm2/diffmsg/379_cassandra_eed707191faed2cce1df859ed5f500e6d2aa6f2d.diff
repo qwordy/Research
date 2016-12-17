@@ -1,0 +1,44 @@
+commit eed707191faed2cce1df859ed5f500e6d2aa6f2d
+Author: Jonathan Ellis <jbellis@apache.org>
+Date:   Fri Jan 14 20:46:35 2011 +0000
+
+    call Thread.getDefaultUncaughtExceptionHandler instead of logger.error in on scheduled task failure
+    patch by jbellis
+    
+    git-svn-id: https://svn.apache.org/repos/asf/cassandra/branches/cassandra-0.7@1059160 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/src/java/org/apache/cassandra/concurrent/RetryingScheduledThreadPoolExecutor.java b/src/java/org/apache/cassandra/concurrent/RetryingScheduledThreadPoolExecutor.java
+index e206482..1560bed 100644
+--- a/src/java/org/apache/cassandra/concurrent/RetryingScheduledThreadPoolExecutor.java
++++ b/src/java/org/apache/cassandra/concurrent/RetryingScheduledThreadPoolExecutor.java
+@@ -27,8 +27,6 @@ import org.apache.log4j.Logger;
+ 
+ public class RetryingScheduledThreadPoolExecutor extends ScheduledThreadPoolExecutor
+ {
+-    protected static Logger logger = Logger.getLogger(RetryingScheduledThreadPoolExecutor.class);
+-
+     public RetryingScheduledThreadPoolExecutor(String threadPoolName, int priority)
+     {
+         this(1, threadPoolName, priority);
+@@ -50,6 +48,11 @@ public class RetryingScheduledThreadPoolExecutor extends ScheduledThreadPoolExec
+         return new LoggingScheduledFuture<V>(task);
+     }
+ 
++    /**
++     * Wraps RunnableScheduledFuture.run to log an error on exception rather than kill the executor thread.
++     * All the other methods just wrap the RSF counterpart.
++     * @param <V>
++     */
+     private static class LoggingScheduledFuture<V> implements RunnableScheduledFuture<V>
+     {
+         private final RunnableScheduledFuture<V> task;
+@@ -82,7 +85,8 @@ public class RetryingScheduledThreadPoolExecutor extends ScheduledThreadPoolExec
+             }
+             catch (Exception e)
+             {
+-                logger.error("error running scheduled task", e);
++                if (Thread.getDefaultUncaughtExceptionHandler() != null)
++                    Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), e.getCause());
+             }
+         }
+ 

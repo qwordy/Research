@@ -1,0 +1,86 @@
+commit c6fa82729c0d956a3df8971f37bf6a369b355aee
+Author: Trustin Lee <trustin@gmail.com>
+Date:   Tue Aug 2 07:38:16 2011 +0900
+
+    NETTY-417 client channel still open after close and wait
+    
+    * Fixed a race condition where NioSocketChannel's state variable is updated *after* its close future is notified
+    * Removed unnecessary use of ChannelFutureListeners in NioSocketChannel and AbstractChannel
+
+diff --git a/src/main/java/org/jboss/netty/channel/AbstractChannel.java b/src/main/java/org/jboss/netty/channel/AbstractChannel.java
+index 2776143..6dcc128 100644
+--- a/src/main/java/org/jboss/netty/channel/AbstractChannel.java
++++ b/src/main/java/org/jboss/netty/channel/AbstractChannel.java
+@@ -32,7 +32,6 @@ import org.jboss.netty.util.internal.ConcurrentHashMap;
+ public abstract class AbstractChannel implements Channel {
+ 
+     static final ConcurrentMap<Integer, Channel> allChannels = new ConcurrentHashMap<Integer, Channel>();
+-    private static final IdDeallocator ID_DEALLOCATOR = new IdDeallocator();
+ 
+     private static Integer allocateId(Channel channel) {
+         Integer id = Integer.valueOf(System.identityHashCode(channel));
+@@ -49,17 +48,6 @@ public abstract class AbstractChannel implements Channel {
+         }
+     }
+ 
+-    private static final class IdDeallocator implements ChannelFutureListener {
+-        IdDeallocator() {
+-            super();
+-        }
+-
+-        @Override
+-        public void operationComplete(ChannelFuture future) throws Exception {
+-            allChannels.remove(future.getChannel().getId());
+-        }
+-    }
+-
+     private final Integer id;
+     private final Channel parent;
+     private final ChannelFactory factory;
+@@ -94,7 +82,6 @@ public abstract class AbstractChannel implements Channel {
+         this.pipeline = pipeline;
+ 
+         id = allocateId(this);
+-        closeFuture.addListener(ID_DEALLOCATOR);
+ 
+         pipeline.attach(this, sink);
+     }
+@@ -200,6 +187,10 @@ public abstract class AbstractChannel implements Channel {
+      *                      closed yet
+      */
+     protected boolean setClosed() {
++        // Deallocate the current channel's ID from allChannels so that other
++        // new channels can use it.
++        allChannels.remove(id);
++
+         return closeFuture.setClosed();
+     }
+ 
+diff --git a/src/main/java/org/jboss/netty/channel/socket/nio/NioSocketChannel.java b/src/main/java/org/jboss/netty/channel/socket/nio/NioSocketChannel.java
+index 12c35ef..4e0dac2 100644
+--- a/src/main/java/org/jboss/netty/channel/socket/nio/NioSocketChannel.java
++++ b/src/main/java/org/jboss/netty/channel/socket/nio/NioSocketChannel.java
+@@ -83,15 +83,6 @@ class NioSocketChannel extends AbstractChannel
+         this.socket = socket;
+         this.worker = worker;
+         config = new DefaultNioSocketChannelConfig(socket.socket());
+-
+-        // TODO Move the state variable to AbstractChannel so that we don't need
+-        //      to add many listeners.
+-        getCloseFuture().addListener(new ChannelFutureListener() {
+-            @Override
+-            public void operationComplete(ChannelFuture future) throws Exception {
+-                state = ST_CLOSED;
+-            }
+-        });
+     }
+ 
+     @Override
+@@ -157,6 +148,7 @@ class NioSocketChannel extends AbstractChannel
+ 
+     @Override
+     protected boolean setClosed() {
++        state = ST_CLOSED;
+         return super.setClosed();
+     }
+ 

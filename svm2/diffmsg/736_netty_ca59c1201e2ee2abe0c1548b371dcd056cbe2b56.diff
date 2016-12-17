@@ -1,0 +1,120 @@
+commit ca59c1201e2ee2abe0c1548b371dcd056cbe2b56
+Author: Jeff Pinner <jpinner@twitter.com>
+Date:   Fri Jul 26 09:13:56 2013 -0700
+
+    Change AbstractChannel#doDeregister return type from Runnable to void.
+
+diff --git a/transport/src/main/java/io/netty/channel/AbstractChannel.java b/transport/src/main/java/io/netty/channel/AbstractChannel.java
+index e2c97fe..72db045 100644
+--- a/transport/src/main/java/io/netty/channel/AbstractChannel.java
++++ b/transport/src/main/java/io/netty/channel/AbstractChannel.java
+@@ -569,9 +569,8 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
+                 return;
+             }
+ 
+-            Runnable postTask = null;
+             try {
+-                postTask = doDeregister();
++                doDeregister();
+             } catch (Throwable t) {
+                 logger.warn("Unexpected exception occurred while deregistering a channel.", t);
+             } finally {
+@@ -590,10 +589,6 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
+                     // close() calls deregister() again - no need to fire channelUnregistered.
+                     promise.setSuccess();
+                 }
+-
+-                if (postTask != null) {
+-                    postTask.run();
+-                }
+             }
+         }
+ 
+@@ -761,12 +756,11 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
+ 
+     /**
+      * Deregister the {@link Channel} from its {@link EventLoop}.
+-     * You can return a {@link Runnable} which will be run as post-task of the registration process.
+      *
+      * Sub-classes may override this method
+      */
+-    protected Runnable doDeregister() throws Exception {
+-        return null;
++    protected void doDeregister() throws Exception {
++        // NOOP
+     }
+ 
+     /**
+@@ -776,8 +770,6 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
+ 
+     /**
+      * Flush the content of the given buffer to the remote peer.
+-     *
+-     * Sub-classes may override this as this implementation will just thrown an {@link UnsupportedOperationException}
+      */
+     protected abstract void doWrite(ChannelOutboundBuffer in) throws Exception;
+ 
+diff --git a/transport/src/main/java/io/netty/channel/embedded/EmbeddedChannel.java b/transport/src/main/java/io/netty/channel/embedded/EmbeddedChannel.java
+index 16a684a..9032839 100644
+--- a/transport/src/main/java/io/netty/channel/embedded/EmbeddedChannel.java
++++ b/transport/src/main/java/io/netty/channel/embedded/EmbeddedChannel.java
+@@ -292,11 +292,6 @@ public class EmbeddedChannel extends AbstractChannel {
+     }
+ 
+     @Override
+-    protected Runnable doDeregister() throws Exception {
+-        return null;
+-    }
+-
+-    @Override
+     protected void doBeginRead() throws Exception {
+         // NOOP
+     }
+diff --git a/transport/src/main/java/io/netty/channel/local/LocalChannel.java b/transport/src/main/java/io/netty/channel/local/LocalChannel.java
+index 93b1d18..a0962d7 100644
+--- a/transport/src/main/java/io/netty/channel/local/LocalChannel.java
++++ b/transport/src/main/java/io/netty/channel/local/LocalChannel.java
+@@ -219,12 +219,11 @@ public class LocalChannel extends AbstractChannel {
+     }
+ 
+     @Override
+-    protected Runnable doDeregister() throws Exception {
++    protected void doDeregister() throws Exception {
+         if (isOpen()) {
+             unsafe().close(unsafe().voidPromise());
+         }
+         ((SingleThreadEventExecutor) eventLoop()).removeShutdownHook(shutdownHook);
+-        return null;
+     }
+ 
+     @Override
+diff --git a/transport/src/main/java/io/netty/channel/local/LocalServerChannel.java b/transport/src/main/java/io/netty/channel/local/LocalServerChannel.java
+index fc08285..9594eac 100644
+--- a/transport/src/main/java/io/netty/channel/local/LocalServerChannel.java
++++ b/transport/src/main/java/io/netty/channel/local/LocalServerChannel.java
+@@ -104,9 +104,8 @@ public class LocalServerChannel extends AbstractServerChannel {
+     }
+ 
+     @Override
+-    protected Runnable doDeregister() throws Exception {
++    protected void doDeregister() throws Exception {
+         ((SingleThreadEventExecutor) eventLoop()).removeShutdownHook(shutdownHook);
+-        return null;
+     }
+ 
+     @Override
+diff --git a/transport/src/main/java/io/netty/channel/nio/AbstractNioChannel.java b/transport/src/main/java/io/netty/channel/nio/AbstractNioChannel.java
+index 8e01f83..5b71427 100644
+--- a/transport/src/main/java/io/netty/channel/nio/AbstractNioChannel.java
++++ b/transport/src/main/java/io/netty/channel/nio/AbstractNioChannel.java
+@@ -299,9 +299,8 @@ public abstract class AbstractNioChannel extends AbstractChannel {
+     }
+ 
+     @Override
+-    protected Runnable doDeregister() throws Exception {
++    protected void doDeregister() throws Exception {
+         eventLoop().cancel(selectionKey());
+-        return null;
+     }
+ 
+     @Override

@@ -1,0 +1,21 @@
+commit 9ec2d3fdd652f5016f365cb39e68349e837b47a7
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Tue Jan 21 22:32:24 2014 +0000
+
+    Fix order of magnitude error in the wait time
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1560212 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/test/org/apache/tomcat/websocket/TestWebSocketFrameClient.java b/test/org/apache/tomcat/websocket/TestWebSocketFrameClient.java
+index 3a0b68c..1f608b6 100644
+--- a/test/org/apache/tomcat/websocket/TestWebSocketFrameClient.java
++++ b/test/org/apache/tomcat/websocket/TestWebSocketFrameClient.java
+@@ -142,7 +142,7 @@ public class TestWebSocketFrameClient extends TomcatBaseTest {
+         // should be a lot faster.
+         System.out.println("Waiting for connection to be closed");
+         count = 0;
+-        limit = 10000;
++        limit = 100;
+         while (TesterFirehoseServer.Endpoint.getOpenConnectionCount() != 0 && count < limit) {
+             Thread.sleep(100);
+             count ++;

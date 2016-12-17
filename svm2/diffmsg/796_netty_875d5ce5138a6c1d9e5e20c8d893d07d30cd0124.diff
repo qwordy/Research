@@ -1,0 +1,28 @@
+commit 875d5ce5138a6c1d9e5e20c8d893d07d30cd0124
+Author: Norman Maurer <norman@apache.org>
+Date:   Wed Mar 7 17:52:49 2012 +0100
+
+    Allow to force the execution of the Runnable in a async fashion even if
+    the IO-Thread is the current Thread
+
+diff --git a/transport/src/main/java/io/netty/channel/socket/nio/AbstractNioWorker.java b/transport/src/main/java/io/netty/channel/socket/nio/AbstractNioWorker.java
+index fcf092f..ba4f028 100644
+--- a/transport/src/main/java/io/netty/channel/socket/nio/AbstractNioWorker.java
++++ b/transport/src/main/java/io/netty/channel/socket/nio/AbstractNioWorker.java
+@@ -287,10 +287,14 @@ abstract class AbstractNioWorker implements Worker {
+     
+     @Override
+     public void executeInIoThread(Runnable task) {
+-        start();
+-        if (Thread.currentThread() == thread) {
++        executeInIoThread(task, false);
++    }
++    
++    public void executeInIoThread(Runnable task, boolean alwaysAsync) {
++        if (!alwaysAsync && Thread.currentThread() == thread) {
+             task.run();
+         } else {
++            start();
+             boolean added = eventQueue.offer(task);
+ 
+             assert added;

@@ -1,0 +1,47 @@
+commit 4425c6234327d6642e6291853bc11398b3c9b7e7
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Fri Jul 17 20:12:49 2009 +0000
+
+    Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=41661
+    Thread safety issue with JspConfig.init(). There is one JspConfig object per context and as per 41661, issues have been seen with this on real systems.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@795210 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/jasper/compiler/JspConfig.java b/java/org/apache/jasper/compiler/JspConfig.java
+index 5dd3e2b..8982a25 100644
+--- a/java/org/apache/jasper/compiler/JspConfig.java
++++ b/java/org/apache/jasper/compiler/JspConfig.java
+@@ -48,7 +48,7 @@ public class JspConfig {
+ 
+     private Vector<JspPropertyGroup> jspProperties = null;
+     private ServletContext ctxt;
+-    private boolean initialized = false;
++    private volatile boolean initialized = false;
+ 
+     private String defaultIsXml = null;		// unspecified
+     private String defaultIsELIgnored = null;	// unspecified
+@@ -218,13 +218,17 @@ public class JspConfig {
+     private void init() throws JasperException {
+ 
+         if (!initialized) {
+-            processWebDotXml(ctxt);
+-            defaultJspProperty = new JspProperty(defaultIsXml,
+-                    defaultIsELIgnored,
+-                    defaultIsScriptingInvalid,
+-                    null, null, null, defaultDeferedSyntaxAllowedAsLiteral, 
+-                    defaultTrimDirectiveWhitespaces);
+-            initialized = true;
++            synchronized (this) {
++                if (!initialized) {
++                    processWebDotXml(ctxt);
++                    defaultJspProperty = new JspProperty(defaultIsXml,
++                            defaultIsELIgnored,
++                            defaultIsScriptingInvalid,
++                            null, null, null, defaultDeferedSyntaxAllowedAsLiteral, 
++                            defaultTrimDirectiveWhitespaces);
++                    initialized = true;
++                }
++            }
+         }
+     }
+ 
