@@ -230,7 +230,9 @@ Concurrent programs are pervasive in nowadays software development activities. H
 
 Benefit
 
-Challenge
+However, this work has to face several challenges:
+
+\textbf{Challenge 1} 
 
 Research shows that software modifications are usually similar but not identical.
 
@@ -267,9 +269,11 @@ In order to understand the evolution of concurrent code better, we proposed 3 re
 
 Concurrent programming is very popular in today's Java development with the rapid developments of multi-core techniques which help exploit the power of concurrent programming. Java programming language provides convenient built-in concurrent libraries and users can also invoke third-party libraries. We want to know how frequent do concurrent related code change in different kind of repositories.
 
-\textbf{RQ2.} Is there any change pattern in concurrent related code?
+\textbf{RQ2.} What is the trend of certain concurrent program construct?
 
-\textbf{RQ3.} How can similar code changes in history guide the new modification in development?
+\textbf{RQ3.} Is there any change pattern in concurrent related code?
+
+\textbf{RQ4.} How can similar code changes in history guide the new modification in development?
 
 \subsection{Methods}
 All the projects of our study are under git which is one of the most popular version control systems in the world. Some projects of the study used svn or some other version control systems before because they have long histories, but they all support git now. We employ JGit, a  lightweight, pure java library implementation of git, to retrieve all the commit logs in projects' histories. A typical commit log contains commit id which is a 20-character-long string uniquely identifying a commit, author, date and message. Once we get a commit id, we use "git show" command to show the log message and textual diff. The diff result contains one or more change files which contain one or more change hunks.
@@ -376,9 +380,19 @@ AtomicIntegerFieldUpdater
 
 ThreadLocalRandom is combination of ThreadLocal and Random. 
 
-\section{Evaluation}
+\subsection{Implications}
+This research provides some implications from different kinds of perspectives.
+
+(1) Developers are facing more and more concurrent programming requirements now. But concurrent programming is notoriously error-prone because of the complexity of data synchronization and thread interleaving. Our study gives developers some guidelines of writing concurrent programs. First, use handy concurrent libraries to finish the job instead of rewrite them by yourself unless all the available concurrent libraries cannot satisfy your requirement and you are absolutely confident of your comcurrent programming skills. Using existing libraries allows you to  write less code to finish the same work and enjoy the high quality of implementation which is always reliable, strong and fast.
+
+(2) Automatic tools are needed to help developers inspect and revise concurrent programs. There has already been some tools, but they 
 
 \section{Related work}
+The related work includes refactoring, 
+
+\textbf{Studies on concurrent programs}
+
+\textbf{Refactoring}
 
 \section{Future work}
 We have learned that similar code changes of concurrent related code are common in history of software evolution. This indicates some automatic tools may help developers maintain their code. 

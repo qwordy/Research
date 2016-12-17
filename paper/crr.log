@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=pdflatex 2016.11.11)  16 DEC 2016 18:49
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015/Debian) (preloaded format=pdflatex 2016.11.11)  17 DEC 2016 14:42
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -342,13 +342,13 @@ File: omsaer.fd 1999/12/27
 LaTeX Font Info:    Font shape `OMS/aer/m/n' in size <9> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 221.
 
-Overfull \hbox (1.65413pt too wide) in paragraph at lines 241--242
+Overfull \hbox (1.65413pt too wide) in paragraph at lines 242--243
 []\T1/aer/m/n/9 The rest of pa-per is or-ga-nized as fol-lows: Sec-tion 2 prese
 nts
  []
 
 
-Overfull \hbox (2.15843pt too wide) in paragraph at lines 269--270
+Overfull \hbox (2.15843pt too wide) in paragraph at lines 270--271
 \T1/aer/m/n/9 ming. Java pro-gram-ming lan-guage pro-vides con-ve-nient built-
  []
 
@@ -356,41 +356,41 @@ Overfull \hbox (2.15843pt too wide) in paragraph at lines 269--270
 
 
 ]
-Overfull \hbox (1.85188pt too wide) in paragraph at lines 285--286
+Overfull \hbox (1.85188pt too wide) in paragraph at lines 288--289
 []\T1/aer/m/n/9 Pairs of meth-ods ex-tracted need to be pre-pro-cessed. Notic-
  []
 
 
-Overfull \hbox (5.76721pt too wide) in paragraph at lines 290--291
+Overfull \hbox (5.76721pt too wide) in paragraph at lines 293--294
 \T1/aer/m/n/9 chro-nize' and 'Thread'. Java con-cur-rent pack-age is a common-
  []
 
 
-Overfull \hbox (2.32872pt too wide) in paragraph at lines 299--300
+Overfull \hbox (2.32872pt too wide) in paragraph at lines 302--303
 []\T1/aer/m/n/9 We use the SVM method to clas-sify com-mits as concurrent-
  []
 
 [2]
 \c@def1=\count117
 
-Overfull \hbox (3.39116pt too wide) in paragraph at lines 351--371
+Overfull \hbox (3.39116pt too wide) in paragraph at lines 354--374
 \T1/aer/m/n/9 rentskiplistmap for per-for-mance atom-i-cref-er-ence Use Thread-
 
  []
 
 
-Overfull \hbox (16.09941pt too wide) in paragraph at lines 351--371
+Overfull \hbox (16.09941pt too wide) in paragraph at lines 354--374
 \T1/aer/m/n/9 use Con-cur-ren-tHashMap to sim-plify ugly loop (nor-mal HashMap
  []
 
 
-Overfull \hbox (12.103pt too wide) in paragraph at lines 374--375
+Overfull \hbox (12.103pt too wide) in paragraph at lines 377--378
 \T1/aer/m/n/9 cur-rent pro-gram-ming with-out car-ing about com-pli-cated threa
 d-
  []
 
 [3]
-Underfull \hbox (badness 1360) in paragraph at lines 408--408
+Underfull \hbox (badness 1360) in paragraph at lines 421--421
 [][]\T1/aer/m/n/9 Two of these, the \T1/aett/m/n/9 \num-bero-fau-thors \T1/aer/
 m/n/9 and \T1/aett/m/n/9 \alig-nau-
  []
@@ -404,13 +404,13 @@ Package epstopdf Info: Source file: <fly.eps>
 (epstopdf)                    size: 4243 bytes
 (epstopdf)             Command: <repstopdf --outfile=fly-eps-converted-to.pdf f
 ly.eps>
-(epstopdf)             \includegraphics on input line 602.
+(epstopdf)             \includegraphics on input line 615.
 Package epstopdf Info: Output file is already uptodate.
  <fly-eps-converted-to.pdf, id=34, 34.1275pt x 32.12pt>
 File: fly-eps-converted-to.pdf Graphic file (type pdf)
 
 <use fly-eps-converted-to.pdf>
-Package pdftex.def Info: fly-eps-converted-to.pdf used on input line 602.
+Package pdftex.def Info: fly-eps-converted-to.pdf used on input line 615.
 (pdftex.def)             Requested size: 34.1274pt x 32.1199pt.
 Package epstopdf Info: Source file: <fly.eps>
 (epstopdf)                    date: 2016-11-12 12:38:55
@@ -420,16 +420,16 @@ Package epstopdf Info: Source file: <fly.eps>
 (epstopdf)                    size: 4243 bytes
 (epstopdf)             Command: <repstopdf --outfile=fly-eps-converted-to.pdf f
 ly.eps>
-(epstopdf)             \includegraphics on input line 608.
+(epstopdf)             \includegraphics on input line 621.
 Package epstopdf Info: Output file is already uptodate.
 File: fly-eps-converted-to.pdf Graphic file (type pdf)
  <use fly-eps-converted-to.pdf>
-Package pdftex.def Info: fly-eps-converted-to.pdf used on input line 608.
+Package pdftex.def Info: fly-eps-converted-to.pdf used on input line 621.
 (pdftex.def)             Requested size: 72.27492pt x 72.27565pt.
 
 
 LaTeX Font Warning: Font shape `T1/aett/bx/n' undefined
-(Font)              using `T1/aett/m/n' instead on input line 610.
+(Font)              using `T1/aett/m/n' instead on input line 623.
 
 Package epstopdf Info: Source file: <flies.eps>
 (epstopdf)                    date: 2016-11-12 12:38:55
@@ -439,13 +439,13 @@ Package epstopdf Info: Source file: <flies.eps>
 (epstopdf)                    size: 9687 bytes
 (epstopdf)             Command: <repstopdf --outfile=flies-eps-converted-to.pdf
  flies.eps>
-(epstopdf)             \includegraphics on input line 623.
+(epstopdf)             \includegraphics on input line 636.
 Package epstopdf Info: Output file is already uptodate.
 <flies-eps-converted-to.pdf, id=35, 307.1475pt x 114.4275pt>
 File: flies-eps-converted-to.pdf Graphic file (type pdf)
 
 <use flies-eps-converted-to.pdf>
-Package pdftex.def Info: flies-eps-converted-to.pdf used on input line 623.
+Package pdftex.def Info: flies-eps-converted-to.pdf used on input line 636.
 (pdftex.def)             Requested size: 307.14674pt x 114.42722pt.
 Package epstopdf Info: Source file: <rosette.eps>
 (epstopdf)                    date: 2016-11-12 12:38:55
@@ -455,26 +455,29 @@ Package epstopdf Info: Source file: <rosette.eps>
 (epstopdf)                    size: 2932 bytes
 (epstopdf)             Command: <repstopdf --outfile=rosette-eps-converted-to.p
 df rosette.eps>
-(epstopdf)             \includegraphics on input line 631.
+(epstopdf)             \includegraphics on input line 644.
 Package epstopdf Info: Output file is already uptodate.
 
 <rosette-eps-converted-to.pdf, id=36, 364.59212pt x 364.59212pt>
 File: rosette-eps-converted-to.pdf Graphic file (type pdf)
 
 <use rosette-eps-converted-to.pdf>
-Package pdftex.def Info: rosette-eps-converted-to.pdf used on input line 631.
+Package pdftex.def Info: rosette-eps-converted-to.pdf used on input line 644.
 (pdftex.def)             Requested size: 72.26622pt x 72.26622pt.
 \c@theorem=\count118
 \c@definition=\count119
 
-Overfull \hbox (15.60826pt too wide) detected at line 687
+Overfull \hbox (15.60826pt too wide) detected at line 700
 \OML/cmm/m/it/9 l \OT1/cmr/m/n/9 = [] \OML/cmm/m/it/9 f\OT1/cmr/m/n/9 (\OML/cmm
 /m/it/9 x\OT1/cmr/m/n/9 ) = [] [] = [] \OML/cmm/m/it/9 g\OT1/cmr/m/n/9 (\OML/cm
 m/m/it/9 x\OT1/cmr/m/n/9 ) \OMS/cmsy/m/n/9 ^^A [] [] \OT1/cmr/m/n/9 = 0 \OMS/cm
 sy/m/n/9 ^^A \OML/cmm/m/it/9 L \OT1/cmr/m/n/9 = 0\OML/cmm/m/it/9 ;
  []
 
-[5 <./fly-eps-converted-to.pdf>] (./crr.bbl
+[5 <./fly-eps-converted-to.pdf>]
+Underfull \vbox (badness 1253) has occurred while \output is active []
+
+ (./crr.bbl
 Overfull \hbox (21.02989pt too wide) in paragraph at lines 1--1
 \T1/aer/m/n/9 (The Kumquat Con-sor-tium, email: \T1/aett/bx/n/9 jp-kumquat@cons
 ortium.net\T1/aer/m/n/9 ). 
@@ -515,7 +518,7 @@ w/helvetic/uhvr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb
 8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/s
 hare/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/te
 xmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on crr.pdf (7 pages, 273066 bytes).
+Output written on crr.pdf (7 pages, 274413 bytes).
 PDF statistics:
  119 PDF objects out of 1000 (max. 8388607)
  85 compressed objects within 1 object stream
