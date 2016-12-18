@@ -351,7 +351,21 @@ We believe that similar program pieces tend to have some similar changes in comm
 
 \section{Results}
 
-\subsection{RQ3.}
+\subsection{RQ2}
+commit 9257845512595edd65f7eb368abb557d0a6d90f2
+Author: Mark Thomas <markt@apache.org>
+Date:   Wed Mar 11 20:01:23 2015 +0000
+
+Restore volatile for closed. Not all reads are inside a sync.
+
+commit 783c8f0aef0b414345e4428255d69c6b6851e405
+Author: Mark Thomas <markt@apache.org>
+Date:   Wed Feb 18 12:14:24 2015 +0000
+
+registered is guarded by registeredLock so there is no need for it to be volatile.
+Simplify the process of triggering the first call to onWritePossible
+
+\subsection{RQ3}
 Most changes to the concurrent code are due to logic change, new features or new requirement, such as we should synchronize this method because it probably be accessed concurrently. They are usually specific and hard to apply them to other programs. It needs much effort to understand these changes because they heavily depend on the business logic. However, a small amount of these changes can be regarded as common transformation patterns which often appear in software evolution history and can be apply to other programs.
 
 We identify and categorise these transformation patterns into the following classes:
@@ -359,7 +373,7 @@ We identify and categorise these transformation patterns into the following clas
 (1).Use thread-safe class instead of handling synchronization problem manually.
 
 \textbf{Example 1}
-\lstset{language=java, numbers=left, frame=single}
+\lstset{language=java, numbers=left, breaklines=true, frame=single}
 \begin{lstlisting}
 commit a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
 ...
@@ -410,9 +424,12 @@ commit 7f443f67eaa588323f912f3922cff9b699b38fbd
 ...
 \end{lstlisting}
 
-This commit is from lucene-solr. It is a commit for LUCENE-2779 which is a minor-priority improvement.
+This commit is from lucene-solr. It is a commit for LUCENE-2779 which is a minor-priority improvement. It is better to use a thread-safe version collection ConcurrentHashMap instead of using HashMap and synchronizing the access code. This thread-safe class not only simplify the way of using a hash map, but also improve the performance compared to manual synchronization like the example. It supports full concurrency of retrievals and high expected concurrency for updates.
 
 \textbf{Example 3}
+\begin{lstlisting}
+content...
+\end{lstlisting}
 
 (2).Use thread synchronization instead of checking and sleep cyclically.
 
@@ -426,6 +443,21 @@ We also have some other findings:
 
 (2).Developers are using some code-checking tools like findbugs to help them inspect their code.
 HDFS-4014
+
+commit 5d11e7d328833e73dfde64a5337c3445e6eabc90
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Tue Aug 7 19:15:50 2012 +0000
+
+FindBugs: Sync mis-match
+Reduce size of sync block and make current volatile so updates are seen consistently
+
+commit c17fb02123e4c5ef4eb5aa6b38790a3e0a64464b
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Tue Aug 7 17:39:29 2012 +0000
+
+FindBugs: Thread-safe update
+
+git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1370382 13f79535-47bb-0310-9956-ffa450edef68
 
 (3).Some transformations have opposite directions.
 

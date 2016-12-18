@@ -1,0 +1,132 @@
+commit 3330bbb3e68e253922e392b79aa6bdafc63ec47c
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Tue Mar 25 22:57:10 2014 +0000
+
+    Lock outside try/catch/finally
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1581574 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/core/StandardWrapper.java b/java/org/apache/catalina/core/StandardWrapper.java
+index 0d0df38..e85a0ef 100644
+--- a/java/org/apache/catalina/core/StandardWrapper.java
++++ b/java/org/apache/catalina/core/StandardWrapper.java
+@@ -725,8 +725,8 @@ public class StandardWrapper extends ContainerBase
+     @Override
+     public void addInitParameter(String name, String value) {
+ 
++        parametersLock.writeLock().lock();
+         try {
+-            parametersLock.writeLock().lock();
+             parameters.put(name, value);
+         } finally {
+             parametersLock.writeLock().unlock();
+@@ -757,8 +757,8 @@ public class StandardWrapper extends ContainerBase
+     @Override
+     public void addMapping(String mapping) {
+ 
++        mappingsLock.writeLock().lock();
+         try {
+-            mappingsLock.writeLock().lock();
+             mappings.add(mapping);
+         } finally {
+             mappingsLock.writeLock().unlock();
+@@ -779,8 +779,8 @@ public class StandardWrapper extends ContainerBase
+     @Override
+     public void addSecurityReference(String name, String link) {
+ 
++        referencesLock.writeLock().lock();
+         try {
+-            referencesLock.writeLock().lock();
+             references.put(name, link);
+         } finally {
+             referencesLock.writeLock().unlock();
+@@ -938,8 +938,8 @@ public class StandardWrapper extends ContainerBase
+     @Override
+     public String findInitParameter(String name) {
+ 
++        parametersLock.readLock().lock();
+         try {
+-            parametersLock.readLock().lock();
+             return parameters.get(name);
+         } finally {
+             parametersLock.readLock().unlock();
+@@ -955,8 +955,8 @@ public class StandardWrapper extends ContainerBase
+     @Override
+     public String[] findInitParameters() {
+ 
++        parametersLock.readLock().lock();
+         try {
+-            parametersLock.readLock().lock();
+             String results[] = new String[parameters.size()];
+             return parameters.keySet().toArray(results);
+         } finally {
+@@ -972,8 +972,8 @@ public class StandardWrapper extends ContainerBase
+     @Override
+     public String[] findMappings() {
+ 
++        mappingsLock.readLock().lock();
+         try {
+-            mappingsLock.readLock().lock();
+             return mappings.toArray(new String[mappings.size()]);
+         } finally {
+             mappingsLock.readLock().unlock();
+@@ -991,8 +991,8 @@ public class StandardWrapper extends ContainerBase
+     @Override
+     public String findSecurityReference(String name) {
+ 
++        referencesLock.readLock().lock();
+         try {
+-            referencesLock.readLock().lock();
+             return references.get(name);
+         } finally {
+             referencesLock.readLock().unlock();
+@@ -1008,8 +1008,8 @@ public class StandardWrapper extends ContainerBase
+     @Override
+     public String[] findSecurityReferences() {
+ 
++        referencesLock.readLock().lock();
+         try {
+-            referencesLock.readLock().lock();
+             String results[] = new String[references.size()];
+             return references.keySet().toArray(results);
+         } finally {
+@@ -1276,8 +1276,8 @@ public class StandardWrapper extends ContainerBase
+     @Override
+     public void removeInitParameter(String name) {
+ 
++        parametersLock.writeLock().lock();
+         try {
+-            parametersLock.writeLock().lock();
+             parameters.remove(name);
+         } finally {
+             parametersLock.writeLock().unlock();
+@@ -1308,8 +1308,8 @@ public class StandardWrapper extends ContainerBase
+     @Override
+     public void removeMapping(String mapping) {
+ 
++        mappingsLock.writeLock().lock();
+         try {
+-            mappingsLock.writeLock().lock();
+             mappings.remove(mapping);
+         } finally {
+             mappingsLock.writeLock().unlock();
+@@ -1328,8 +1328,8 @@ public class StandardWrapper extends ContainerBase
+     @Override
+     public void removeSecurityReference(String name) {
+ 
++        referencesLock.writeLock().lock();
+         try {
+-            referencesLock.writeLock().lock();
+             references.remove(name);
+         } finally {
+             referencesLock.writeLock().unlock();
+@@ -1551,8 +1551,8 @@ public class StandardWrapper extends ContainerBase
+     @Override
+     public Enumeration<String> getInitParameterNames() {
+ 
++        parametersLock.readLock().lock();
+         try {
+-            parametersLock.readLock().lock();
+             return Collections.enumeration(parameters.keySet());
+         } finally {
+             parametersLock.readLock().unlock();

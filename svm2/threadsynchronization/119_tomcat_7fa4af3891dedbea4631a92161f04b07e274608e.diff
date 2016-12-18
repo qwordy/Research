@@ -1,0 +1,94 @@
+commit 7fa4af3891dedbea4631a92161f04b07e274608e
+Author: Konstantin Kolinko <kkolinko@apache.org>
+Date:   Sun Oct 26 12:31:59 2014 +0000
+
+    Simplify code that waits for threads to finish. This allows to shorten wait time if threads finish earlier.
+    A subtle difference is that Thread.join() is a synchronized method while Thread.isAlive() is not one.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1634312 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/test/org/apache/catalina/comet/TestCometProcessor.java b/test/org/apache/catalina/comet/TestCometProcessor.java
+index cc5ec81..86ce56f 100644
+--- a/test/org/apache/catalina/comet/TestCometProcessor.java
++++ b/test/org/apache/catalina/comet/TestCometProcessor.java
+@@ -392,19 +392,9 @@ public class TestCometProcessor extends TomcatBaseTest {
+ 
+         tomcat.getConnector().stop();
+ 
+-        int count = 0;
+-        // Wait for the read thread to stop
+-        while (readThread.isAlive() && count < 50) {
+-            Thread.sleep(100);
+-            count ++;
+-        }
+-
+-        // Wait for the write thread to stop
+-        count = 0;
+-        while (writeThread.isAlive() && count < 50) {
+-            Thread.sleep(100);
+-            count ++;
+-        }
++        // Wait for the read and write threads to stop
++        readThread.join(5000);
++        writeThread.join(5000);
+ 
+         // Destroy the connector once the executor has sent the end event
+         tomcat.getConnector().destroy();
+diff --git a/test/org/apache/catalina/connector/TestCoyoteAdapter.java b/test/org/apache/catalina/connector/TestCoyoteAdapter.java
+index f603a17..0a4775b 100644
+--- a/test/org/apache/catalina/connector/TestCoyoteAdapter.java
++++ b/test/org/apache/catalina/connector/TestCoyoteAdapter.java
+@@ -317,12 +317,7 @@ public class TestCoyoteAdapter extends TomcatBaseTest {
+         // Wait for server thread to stop
+         Thread t = servlet.getThread();
+         long startTime = System.nanoTime();
+-        for (int count = 0; t.isAlive() && count < 20; count++) {
+-            t.join(250);
+-            if (!t.isAlive()) {
+-                break;
+-            }
+-        }
++        t.join(5000);
+         long endTime = System.nanoTime();
+         log.info("Waited for servlet thread to stop for "
+                 + (endTime - startTime) / 1000000 + " ms");
+diff --git a/test/org/apache/catalina/loader/TestWebappClassLoaderMemoryLeak.java b/test/org/apache/catalina/loader/TestWebappClassLoaderMemoryLeak.java
+index e2253c7..aaae042 100644
+--- a/test/org/apache/catalina/loader/TestWebappClassLoaderMemoryLeak.java
++++ b/test/org/apache/catalina/loader/TestWebappClassLoaderMemoryLeak.java
+@@ -63,11 +63,7 @@ public class TestWebappClassLoaderMemoryLeak extends TomcatBaseTest {
+         for (Thread thread : threads) {
+             if (thread != null && thread.isAlive() &&
+                     TaskServlet.TIMER_THREAD_NAME.equals(thread.getName())) {
+-                int count = 0;
+-                while (count < 50 && thread.isAlive()) {
+-                    Thread.sleep(100);
+-                    count++;
+-                }
++                thread.join(5000);
+                 if (thread.isAlive()) {
+                     fail("Timer thread still running");
+                 }
+diff --git a/test/org/apache/juli/TestClassLoaderLogManager.java b/test/org/apache/juli/TestClassLoaderLogManager.java
+index 4283251..e0eac46 100644
+--- a/test/org/apache/juli/TestClassLoaderLogManager.java
++++ b/test/org/apache/juli/TestClassLoaderLogManager.java
+@@ -76,14 +76,10 @@ public class TestClassLoaderLogManager {
+         listThread.setName("LoggerList");
+         listThread.start();
+ 
+-        int count = 0;
+-        while (count < 4 && listThread.isAlive()) {
+-            try {
+-                Thread.sleep(500);
+-            } catch (InterruptedException e) {
+-                // Ignore
+-            }
+-            count++;
++        try {
++            listThread.join(2000);
++        } catch (InterruptedException e) {
++            // Ignore
+         }
+ 
+         for (int i = 0; i < createThreads.length; i ++) {
