@@ -1,28 +1,28 @@
 hadoop
 Project:             hadoop
 Commit count:        14930
-Related commit count 2308
+Related commit count 2798
 flink
 Project:             flink
 Commit count:        9771
-Related commit count 1353
+Related commit count 1585
 tomcat
 Project:             tomcat
 Commit count:        17731
-Related commit count 1694
+Related commit count 2001
 mahout
 Project:             mahout
 Commit count:        3703
-Related commit count 174
+Related commit count 229
 cassandra
 Project:             cassandra
 Commit count:        21982
-Related commit count 1687
+Related commit count 1926
 lucene-solr
 Project:             lucene-solr
 Commit count:        26152
-Related commit count 2027
+Related commit count 2458
 netty
 Project:             netty
 Commit count:        7759
-Related commit count 1314
+Related commit count 1430

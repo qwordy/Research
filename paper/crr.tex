@@ -46,7 +46,7 @@
 % For tracking purposes - this is V2.0 - May 2012
 
 \documentclass{sig-alternate-05-2015}
-
+\usepackage{listings}
 
 \begin{document}
 
@@ -352,25 +352,84 @@ We believe that similar program pieces tend to have some similar changes in comm
 \section{Results}
 
 \subsection{RQ3.}
-Most changes to the concurrent code are due to logic change, new feature or bug fix, such as we should synchronize this method because it probably be accessed concurrently. They are usually specific and hard to apply them to other programs. It needs much effort to understand these changes because they heavily depend on the business logic. A small amount of these changes can be regarded as common transformation patterns which often appear in software evolution history and can be apply to other programs.
+Most changes to the concurrent code are due to logic change, new features or new requirement, such as we should synchronize this method because it probably be accessed concurrently. They are usually specific and hard to apply them to other programs. It needs much effort to understand these changes because they heavily depend on the business logic. However, a small amount of these changes can be regarded as common transformation patterns which often appear in software evolution history and can be apply to other programs.
 
 We identify and categorise these transformation patterns into the following classes:
 
 (1).Use thread-safe class instead of handling synchronization problem manually.
 
+\textbf{Example 1}
+\lstset{language=java, numbers=left, frame=single}
+\begin{lstlisting}
+commit a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
+...
+-  private volatile long genstamp;
++  private AtomicLong genstamp = new AtomicLong();
+...
+-  public synchronized long nextStamp() {
+-    this.genstamp++;
+-    return this.genstamp;
++  public long nextStamp() {
++    return genstamp.incrementAndGet();
+   }
+...
+\end{lstlisting}
+
+This commit is from hadoop. "..." represents that some code are omitted. It is a fix of issue HDFS-4029 "GenerationStamp should use an AtomicLong" whose priority is major. The code synchronize the method nextStamp for it might be invoked concurrently. Method nextStamp increases genstamp by one and then return it. The developers found that it would be cleaner to use an AtomicLong so that genstamp itself is atomic and they do not have to synchronize the various accesses to it. AtomicLong is a thread-safe version of type long. It allows users to update it atomically without any synchronization. Its internal implementation is not using synchronized method or block. It uses sun.misc.Unsafe which provides many unsafe but fast operations.
+
+\textbf{Example 2}
+\begin{lstlisting}
+commit 7f443f67eaa588323f912f3922cff9b699b38fbd
+...
+-  protected HashMap<String,RAMFile> fileMap = new HashMap<String,RAMFile>();
++  protected Map<String,RAMFile> fileMap = new ConcurrentHashMap<String,RAMFile>();
+...
+   @Override
+-  public synchronized final String[] listAll() {
++  public final String[] listAll() {
+     ensureOpen();
+-    Set<String> fileNames = fileMap.keySet();
+-    String[] result = new String[fileNames.size()];
+-    int i = 0;
+-    for(final String fileName: fileNames) 
+-      result[i++] = fileName;
+-    return result;
++    return fileMap.keySet().toArray(new String[0]);
+   }
+...
+   @Override
+   public final boolean fileExists(String name) {
+   ensureOpen();
+-    RAMFile file;
+-    synchronized (this) {
+-      file = fileMap.get(name);
+-    }
+-    return file != null;
++    return fileMap.containsKey(name);
+   }
+...
+\end{lstlisting}
+
+This commit is from lucene-solr. It is a commit for LUCENE-2779 which is a minor-priority improvement.
+
+\textbf{Example 3}
+
 (2).Use thread synchronization instead of checking and sleep cyclically.
 
 (3).Replace a class with another class which has similar functionalities but offers some advantages in the scenario.
+
+(4).Correct some mistakes in using existing patterns.
 
 We also have some other findings:
 
 (1).Developers are refactoring their code by using the later version of the JDK library.
 
 (2).Developers are using some code-checking tools like findbugs to help them inspect their code.
+HDFS-4014
 
 (3).Some transformations have opposite directions.
 
-(4).
+(4).Most transformations have different implementation not just put some statements into a method.
 
 
 use readlock instead of synchronized block
@@ -407,9 +466,9 @@ This research provides some implications from different kinds of perspectives.
 
 (1) Developers are facing more and more concurrent programming requirements now. But concurrent programming is notoriously error-prone because of the complexity of data synchronization and thread interleaving. Our study gives developers some guidelines of writing concurrent programs. First, use handy concurrent libraries to finish the job instead of rewrite them by yourself unless all the available concurrent libraries cannot satisfy your requirement and you are absolutely confident of your comcurrent programming skills. Using existing libraries allows you to  write less code to finish the same work and enjoy the high quality of implementation which is always reliable, strong and fast.
 
-(2) Automatic tools are needed to help developers inspect and revise concurrent programs with the help of history information. There has already been some tools, but they usually look for concurrent bugs such as race detection, deadlock detection and atomicity violation without considering software evolution history. Both project specific and project independent transformation patterns exist in real-world software projects. So we need some concurrent code refactoring tools to give advice of what code need change and perform the transformations automatically. Developers will benefit a lot if such kind of automatic tools can actually help them automate their development and maintaining activities.
+(2) Automatic tools are needed to help developers inspect and revise concurrent programs with the help of history information. There has already been some tools, but they usually look for concurrent bugs such as race detection, deadlock detection and atomicity violation without considering software evolution history. Both project specific and project independent transformation patterns exist in real-world software projects. So we need some concurrent code refactoring tools to give advice of what code need change and perform the transformations automatically. It is a chance for IDE manufacturer to make the IDE more intelligent in inspecting and modifying the code. Developers will benefit a lot if such kind of automatic tools can actually help them automate their development and maintaining activities.
 
-(3) 
+(3) Researchers 
 
 \section{Related work}
 The related work includes studies on concurrent program, transformation pattern and refactoring.
