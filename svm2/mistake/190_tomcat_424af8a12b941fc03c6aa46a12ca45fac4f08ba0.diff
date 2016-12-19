@@ -1,0 +1,22 @@
+commit 424af8a12b941fc03c6aa46a12ca45fac4f08ba0
+Author: Konstantin Kolinko <kkolinko@apache.org>
+Date:   Fri Mar 26 14:40:30 2010 +0000
+
+    Mark ResourceEntry.loadedClass as volatile.
+    That is because WebappClassLoader#findClassInternal() uses double-checked locking to initialize this field.
+    
+    git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@927877 13f79535-47bb-0310-9956-ffa450edef68
+
+diff --git a/java/org/apache/catalina/loader/ResourceEntry.java b/java/org/apache/catalina/loader/ResourceEntry.java
+index b4098a7..5fd1786 100644
+--- a/java/org/apache/catalina/loader/ResourceEntry.java
++++ b/java/org/apache/catalina/loader/ResourceEntry.java
+@@ -47,7 +47,7 @@ public class ResourceEntry {
+     /**
+      * Loaded class.
+      */
+-    public Class<?> loadedClass = null;
++    public volatile Class<?> loadedClass = null;
+ 
+ 
+     /**

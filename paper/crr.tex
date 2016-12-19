@@ -366,9 +366,9 @@ registered is guarded by registeredLock so there is no need for it to be volatil
 Simplify the process of triggering the first call to onWritePossible
 
 \subsection{RQ3}
-Most changes to the concurrent code are due to logic change, new features or new requirement, such as we should synchronize this method because it probably be accessed concurrently. They are usually specific and hard to apply them to other programs. It needs much effort to understand these changes because they heavily depend on the business logic. However, a small amount of these changes can be regarded as common transformation patterns which often appear in software evolution history and can be apply to other programs.
+Most changes to the concurrent code are due to logic change, new features or new requirement, such as we should synchronize this method because it probably be accessed concurrently. They are usually specific and hard to apply them to other programs. It needs much effort to understand these changes because they heavily depend on the business logic. However, a small amount of these changes can be regarded as common transformation patterns which often appear in software evolution history and can be apply to other programs. 
 
-We identify and categorise these transformation patterns into the following classes:
+These transformation pattern usually have some of the following features:
 
 (1).Use thread-safe class instead of handling synchronization problem manually.
 
@@ -376,6 +376,11 @@ We identify and categorise these transformation patterns into the following clas
 \lstset{language=java, numbers=left, breaklines=true, frame=single}
 \begin{lstlisting}
 commit a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
+Author: Eli Collins <eli@apache.org>
+Date:   Wed Oct 17 04:58:24 2012 +0000
+
+HDFS-4029. GenerationStamp should use an AtomicLong. Contributed by Eli Collins
+
 ...
 -  private volatile long genstamp;
 +  private AtomicLong genstamp = new AtomicLong();
@@ -394,22 +399,13 @@ This commit is from hadoop. "..." represents that some code are omitted. It is a
 \textbf{Example 2}
 \begin{lstlisting}
 commit 7f443f67eaa588323f912f3922cff9b699b38fbd
+Author: Shai Erera <shaie@apache.org>
+Date:   Mon Nov 29 15:07:41 2010 +0000
+
+LUCENE-2779: Use ConcurrentHashMap in RAMDirectory
 ...
 -  protected HashMap<String,RAMFile> fileMap = new HashMap<String,RAMFile>();
 +  protected Map<String,RAMFile> fileMap = new ConcurrentHashMap<String,RAMFile>();
-...
-   @Override
--  public synchronized final String[] listAll() {
-+  public final String[] listAll() {
-     ensureOpen();
--    Set<String> fileNames = fileMap.keySet();
--    String[] result = new String[fileNames.size()];
--    int i = 0;
--    for(final String fileName: fileNames) 
--      result[i++] = fileName;
--    return result;
-+    return fileMap.keySet().toArray(new String[0]);
-   }
 ...
    @Override
    public final boolean fileExists(String name) {
@@ -433,13 +429,71 @@ content...
 
 (2).Use thread synchronization instead of checking and sleep cyclically.
 
+
 (3).Replace a class with another class which has similar functionalities but offers some advantages in the scenario.
 
-(4).Correct some mistakes in using existing patterns.
+\textbf{Example }
+\begin{lstlisting}
+content...
+\end{lstlisting}
+
+(4).Make the code to be consistent with some conventions or patterns.
+
+\textbf{Example }
+\begin{lstlisting}
+commit ea8e036989fc9ef2c0ab857ceb87d513ca694963
+Author: Konstantin Kolinko <kkolinko@apache.org>
+Date:   Tue Jun 12 16:02:44 2012 +0000
+
+Review of r1349300:
+Make ReadWriteLock fields final (the new one and an old private one as well).
+...
+-    protected ReadWriteLock listenersLock = new ReentrantReadWriteLock();
++    protected final ReadWriteLock listenersLock = new ReentrantReadWriteLock();
+\end{lstlisting}
+
+\textbf{Example }
+\begin{lstlisting}
+commit 8313fa0f1ca277e9633a78f461804abc3c5515b8
+Author: Mark Thomas <markt@apache.org>
+Date:   Thu Sep 17 09:26:08 2015 +0000
+
+Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58392
+Double-checked locking needs to use volatile to be thread-safe
+...
+-    protected Membership membership = null;
++    protected volatile Membership membership = null;
+\end{lstlisting}
+Double checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like forgetting 'volatile' modifier of the member of object in Java.
 
 We also have some other findings:
 
 (1).Developers are refactoring their code by using the later version of the JDK library.
+
+\textbf{Example }
+\begin{lstlisting}
+commit 470c87dbc6c24dd3b370f1ad9e7ab1f6dabd2080
+Author: Colin Patrick Mccabe <cmccabe@cloudera.com>
+Date:   Tue May 19 10:49:17 2015 -0700
+
+HADOOP-11970. Replace uses of ThreadLocal<Random> with JDK7 ThreadLocalRandom (Sean Busbey via Colin P. McCabe)
+...
+-import java.util.Random;
++import java.util.concurrent.ThreadLocalRandom;
+...
+-  private static ThreadLocal<Random> RANDOM = new ThreadLocal<Random>() {
+-    @Override
+-    protected Random initialValue() {
+-      return new Random();
+-    }
+-  };
+...
+-      final double ratio = RANDOM.get().nextDouble() + 0.5;//0.5 <= ratio <=1.5
++      // ensure 0.5 <= ratio <=1.5
++      final double ratio = ThreadLocalRandom.current().nextDouble() + 0.5;
+\end{lstlisting}
+
+This example shows a switch from ThreadLocal<Random> to ThreadLocalRandom from JDK7. It is of the issue HADOOP-11970 which is a major improvement. This issue says that ThreadLocalRandom should be used when available in place of ThreadLocal<Random>. For JDK7 the difference is minimal, but JDK8 starts including optimizations for ThreadLocalRandom. The ThreadLocal class provides thread-local variables. The ThreadLocalRandom class is a random number generator isolated to the current thread since 1.7.
 
 (2).Developers are using some code-checking tools like findbugs to help them inspect their code.
 HDFS-4014
@@ -459,9 +513,22 @@ FindBugs: Thread-safe update
 
 git-svn-id: https://svn.apache.org/repos/asf/tomcat/trunk@1370382 13f79535-47bb-0310-9956-ffa450edef68
 
+commit 3883c752d7b3047956800fab99cde75499dbde23
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Fri Jul 13 13:38:08 2012 +0000
+
+Fix Findbugs warnings. Sync only on setter. Use ReadWriteLock instead.
+
 (3).Some transformations have opposite directions.
 
 (4).Most transformations have different implementation not just put some statements into a method.
+
+(5).Some developers tend to write their own version of common class.
+
+The reasons why developers change the code usually contains one or more of the following reasons.
+(1) bug
+(2) code structure
+(3) performence
 
 
 use readlock instead of synchronized block
@@ -485,13 +552,13 @@ Use ThreadLocalRandom where possible
 1205
 3641 Code was used although I can't see why a simple AtomicInteger wasn't sufficient.
 
-Double checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like forgetting 'volatile' modifier of the member of object in Java.
-
 Concurrent data structures provide convenience for concurrent programming without caring about complicated thread-safe problems. So many commits turn to use these well-written libraries instead of synchronize on their own.
 
 AtomicIntegerFieldUpdater 
 
-ThreadLocalRandom is combination of ThreadLocal and Random. 
+ThreadLocalRandom is combination of ThreadLocal and Random.
+
+\subsection{RQ4}
 
 \subsection{Implications}
 This research provides some implications from different kinds of perspectives.
