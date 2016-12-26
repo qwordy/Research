@@ -226,21 +226,21 @@ is available on the web page to help you with the
 \keywords{ACM proceedings; \LaTeX; text tagging}
 
 \section{Introduction}
-Concurrent programs are pervasive in nowadays software development activities. Using concurrency rightly in programs can exploit the calculation ability better with the rapid development of multi-core system. However, concurrent programs are known hard to write correctly for multiple threads accessing objects simultaneously or depending on each other usually need complex synchronization and hard to debug for the uncertainty of thread interleaving which makes it difficult to reproduce the bug. Developers often struggle with various of synchronization methods and subtle concurrent bugs.
+Concurrent programs are pervasive in nowadays software development activities. Using concurrency rightly in programs can exploit the calculation ability better with the rapid development of multi-core system. However, concurrent programs are known hard to write correctly for multiple threads accessing objects simultaneously or depending on each other usually need complex synchronization and hard to debug for the uncertainty of thread interleaving which makes it difficult to reproduce the bug. Developers often struggle with various of synchronization methods and subtle concurrent bugs. There are many researches of concurrent programming in the literature such as data race detection, atomicity violation detection or deadlock detection.
 
-There are many researches of concurrent programming in the literature such as data race detection, atomicity violation detection or deadlock detection . We will study concurrent programs from a perspective of software evolution history. Many studies focus on software evolution such as refactoring, transformation patterns.
+Software projects evolves during years because of new functionalities, bugs, reorganization of code. A few of open source software platforms like github has been more and more popular in recent years. They hold a huge amount of software projects and their historic versions. Researchers have shown that software evolution history can provide much useful information for today's software development activities. Many studies focus on topics of software evolution such as refactoring, transformation patterns.
+
+We studied concurrent programs from a perspective of software evolution history and found many change patterns about concurrent programming. 
 
 However, this work has to face several challenges:
 
-\textbf{Challenge 1}
+1. The scale of open source software is increasing explosively as a result of some open source code platforms have become more and more popular. The change history of the open source software is also vast. Our interest is concurrent related commit, but they are hidden in the massive commit history. It requires much time and effort to identify whether a commit is concurrent related or not if doing it manually. We would like to adopt some automatic methods.
 
-The scale of open source software is increasing explosively as a result of some open source code platforms have become more and more popular. The change history of the open source software is also vast. Our interest is concurrent related commit, but they are hidden in the massive commit history. It requires much time and effort to identify whether a commit is concurrent related or not if doing it manually. We would like to adopt some automatic methods.
-
-\textbf{Challenge 2}
-
-Research shows that software modifications are usually similar but not identical.
+2. Research shows that software modifications are usually similar but not identical.
 
 The results of our study have the following benefits:
+
+Our main contributions are:
 
 The rest of paper is organized as follows: Section 2 presents the methodology of our study. Section 3 presents our result and discussion. Section 4 presents related work. Section 5 presents future work and Section 6 concludes.
 
@@ -270,16 +270,39 @@ In order to understand the evolution of concurrent code better, we proposed 4 re
 
 \textbf{RQ1.} How frequent do concurrent related code modification appear in different kind of Java open-source projects?
 
-Concurrent programming is very popular in today's Java development with the rapid developments of multi-core techniques which help exploit the power of concurrent programming. Java programming language provides convenient built-in concurrent libraries and users can also invoke third-party libraries. We want to know how frequent do concurrent related code modification in different kind of repositories.
+Concurrent programming is very popular in today's Java development with the rapid developments of multi-core techniques which help exploit the power of concurrent programming. Java programming language provides convenient built-in concurrent libraries and users can also invoke third-party libraries. Although developers can use their own concurrent related classes or third-party libraries, they are always using the facilities provided by JDK by default. We want to know how frequent do concurrent related code modification in software projects. What are the differences of frequency in different kinds of software projects.
 
-\textbf{RQ2.} What is the trend of certain concurrent programming construct usage statistically?
+\textbf{RQ2.} What is the trend of concurrent programming construct usage statistically?
 
-\textbf{RQ3.} Is there any change pattern in concurrent programming?
+Java programming language offers many handy facilities for building concurrent programs. For example, language level constructs like synchronized and volatile are keywords of Java.  There are also API level constructs like notify method of an object and some concurrent related convenient classes such as the java.util.concurrent package. There always are more than one ways to finish a task in Java and the preferences of developers evolves fast. We are interested in  the trend of some common concurrent related constructs and the possible reasons hidden behind the phenomenon.
 
-\textbf{RQ4.} How can these change patterns in history guide the maintaining in development?
+\textbf{RQ3.} Is there any change patterns in concurrent programming?
+
+Change patterns
+
+\textbf{RQ4.} How can these change patterns in history guide the development?
 
 \subsection{Methods}
+\subsubsection{Collecting commits}
 All the projects of our study are under git which is one of the most popular version control systems in the world. Some projects of the study used svn or some other version control systems before because they have long histories, but they all support git now. We employ JGit, a  lightweight, pure java library implementation of git, to retrieve all the commit logs in projects' histories. A typical commit log contains commit id which is a 20-character-long string uniquely identifying a commit, author, date and message. Once we get a commit id, we use "git show" command to show the log message and textual diff. The diff result contains one or more change files which contain one or more change hunks.
+
+\subsubsection{Selecting concurrent related commits}
+After we have the commit information including metadata of a commit and the diff results, we selects concurrent related commits or changes. A concurrent related change is a semantic concept. There are too many third-party libraries and user-defined classes that have concurrent related functionalities. So it is hard to select concurrent related commits very precisely. We analyze commit logs to select concurrent related commits and also employ a machine learning algorithm.
+
+A concurrent keyword here is defined as one of the class names or interface names of Java concurrent package and some other concurrent related keywords in Java like 'synchronize' and 'volatile'. Java concurrent package is a common-used concurrent libraries which provide many useful features. It is introduced into Java standard library since Java 1.5.
+
+
+
+We define a concurrent related commit as a commit which contains a concurrent keyword textually. We traverse all the commits in the software version history to select the concurrent related commits.
+
+A string matching algorithm is used to check if a snippet contains a concurrent keyword. A keyword sometimes is not at the position which it should be. For example, a type name occurs in a string or a comment. But now that the keyword exists in the code for some reasons, the code tend to has some relationships with concurrency more or less. This method might omit some snippets that are concurrent related, but the selected ones are mostly concurrent related snippets indeed. So, string matching algorithm is acceptable and practical.
+
+But we found that it is not precise enough, then we use a classification algorithm to classify commits.
+
+\subsubsection{Classification}
+Most of the commits selected by the last step are not our targets since they usually add or modify functionalities which are specific although they contain some concurrent keywords. The target commits to be analysed occupy a very small proportion of all the commits even we have already filtered them. So, we need some automatic methods to help finish the job.
+
+We use the SVM method to classify commits as concurrent-related or not. SVM is a supervised classification algorithm which needs both positive and negative training data. We extracted 12 features from each commit and labeled 65 instances manually as a training data set. Testing on the training set itself has an accuracy of 98.46\%. The classifier selects 96 positive instances from 9891 instances.
 
 \subsection{Collecting code snippets}
 \subsubsection{Checking out versions}
@@ -290,19 +313,7 @@ Method-level unit is chosen as the unit of code snippets in our study because fi
 \subsubsection{Preprocessing}
 Pairs of methods extracted need to be preprocessed. Noticing that a Java class usually has more codes which are mostly class variable declarations outside method definitions, we rewrite the methods to make them more complete without losing the type information defined in the class. We copy a variable declaration into a method if it is referenced in this method. If a local variable in method and a class variable have the same identifiers, the class variable will be renamed to solve the conflict problem. Figure 1 shows an example from .
 
-\subsubsection{Selecting concurrent related snippets}
-After we have pairs of code snippets to be further analysed, we present how we select concurrent related snippets. Concurrent related code is a semantic concept. There are too many third-party libraries and user-defined classes that have concurrent related functionalities. So it is hard to select concurrent related code precisely. We use a naive but effective keyword matching method.
 
-A concurrent keyword here is defined as one of the class names or interface names of Java concurrent package and some other concurrent related keywords in Java like 'synchronize' and 'Thread'. Java concurrent package is a common-used concurrent libraries which provide many useful features. It is introduced into Java standard library since Java 1.5. We define a concurrent related snippet as a snippet which contains a concurrent keyword. A pair of snippets is concurrent related if any snippet of the pair is concurrent related. We traverse all the pairs of snippets and reserve those which are concurrent related.
-
-A string matching algorithm is used to check if a snippet contains a concurrent keyword. A keyword sometimes is not at the position which it should be. For example, a type name occurs in a string or a comment. But now that the keyword exists in the code for some reasons, the code tend to has some relationships with concurrency more or less. This method might omit some snippets that are concurrent related, but the selected ones are mostly concurrent related snippets indeed. So, string matching algorithm is acceptable and practical.
-
-We first identify the Java code of a commit log.
-
-\subsection{Classification}
-Most of the commits selected by the last step are not our targets since they usually add or modify functionalities which are specific although they contain some concurrent keywords. The target commits to be analysed occupy a very small proportion of all the commits even we have already filtered them. So, we need some automatic methods to help finish the job.
-
-We use the SVM method to classify commits as concurrent-related or not. SVM is a supervised classification algorithm which needs both positive and negative training data. We extracted 12 features from each commit and labeled 65 instances manually as a training data set. Testing on the training set itself has an accuracy of 98.46\%. The classifier selects 96 positive instances from 9891 instances.
 
 \subsection{Extracting changes}
 We employ a tree based differencing algorithm to extract code changes of matching methods. For a matching pair of methods before and after a modification, the differencing algorithm generates a sequence of edit operations. An edit operation is one of the following types:
