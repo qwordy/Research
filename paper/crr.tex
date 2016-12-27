@@ -226,9 +226,9 @@ is available on the web page to help you with the
 \keywords{ACM proceedings; \LaTeX; text tagging}
 
 \section{Introduction}
-Concurrent programs are pervasive in nowadays software development activities. Using concurrency rightly in programs can exploit the calculation ability better with the rapid development of multi-core system. However, concurrent programs are known hard to write correctly for multiple threads accessing objects simultaneously or depending on each other usually need complex synchronization and hard to debug for the uncertainty of thread interleaving which makes it difficult to reproduce the bug. Developers often struggle with various of synchronization methods and subtle concurrent bugs. There are many researches of concurrent programming in the literature such as data race detection, atomicity violation detection or deadlock detection.
+Concurrent programs are pervasive in nowadays software development activities. Using concurrency rightly in programs can exploit the calculation ability better with the rapid development of multi-core system. However, concurrent programs are known hard to write correctly for multiple threads accessing objects simultaneously or depending on each other usually need complex synchronization and hard to debug for the uncertainty of thread interleaving which makes it difficult to reproduce the bug. Developers often struggle with various of synchronization methods and subtle concurrent bugs. There are many researches of concurrent programming in the literature such as data race detection, atomicity violation detection or deadlock detection. 
 
-Software projects evolves during years because of new functionalities, bugs, reorganization of code. A few of open source software platforms like github has been more and more popular in recent years. They hold a huge amount of software projects and their historic versions. Researchers have shown that software evolution history can provide much useful information for today's software development activities. Many studies focus on topics of software evolution such as refactoring, transformation patterns.
+Software projects evolves during years because of new functionalities, bugs, reorganization of code. A few of open source software platforms like github has been more and more popular in recent years. They hold a huge amount of software projects and their historic versions. Researchers have shown that software evolution history can provide much useful information for today's software development activities. Many studies focus on topics of software evolution such as refactoring, transformation patterns. Gustavo Santos studied system specific, source code transformations. Rui Gu studied change history of thread synchronization. Gustavo Pinto did a large-scale study on the usage of Java’s concurrent programming constructs.
 
 We studied concurrent programs from a perspective of software evolution history and found many change patterns about concurrent programming. 
 
@@ -236,11 +236,15 @@ However, this work has to face several challenges:
 
 1. The scale of open source software is increasing explosively as a result of some open source code platforms have become more and more popular. The change history of the open source software is also vast. Our interest is concurrent related commit, but they are hidden in the massive commit history. It requires much time and effort to identify whether a commit is concurrent related or not if doing it manually. We would like to adopt some automatic methods.
 
-2. Research shows that software modifications are usually similar but not identical.
-
-The results of our study have the following benefits:
+2. The changes of code usually have complex relationship with the context not only in the file where change happens but also other files. Some change patterns have implicit dependency on the existing code. This raises a challenge to identify real change patterns which can be applied to other context correctly.
 
 Our main contributions are:
+
+1. We use machine learning algorithm to select concurrent related commits effectively.
+
+2. We identify and classify change patterns in concurrent code and find some interesting findings.
+
+3. We give some inspirations to concurrent program or library developers and analysis tool developers.
 
 The rest of paper is organized as follows: Section 2 presents the methodology of our study. Section 3 presents our result and discussion. Section 4 presents related work. Section 5 presents future work and Section 6 concludes.
 
@@ -364,6 +368,37 @@ We believe that similar program pieces tend to have some similar changes in comm
 \textbf{Calculating similarity} 
 
 \section{Results}
+\subsection{RQ1}
+We calculate the number of commits which contains the changed lines which contain concurrent keywords. The result is:
+
+hadoop
+Project:             hadoop
+Commit count:        14930
+Related commit count 2798
+flink
+Project:             flink
+Commit count:        9771
+Related commit count 1585
+tomcat
+Project:             tomcat
+Commit count:        17731
+Related commit count 2001
+mahout
+Project:             mahout
+Commit count:        3703
+Related commit count 229
+cassandra
+Project:             cassandra
+Commit count:        21982
+Related commit count 1926
+lucene-solr
+Project:             lucene-solr
+Commit count:        26152
+Related commit count 2458
+netty
+Project:             netty
+Commit count:        7759
+Related commit count 1430
 
 \subsection{RQ2}
 commit 9257845512595edd65f7eb368abb557d0a6d90f2
@@ -448,7 +483,15 @@ content...
 
 \textbf{Example }
 \begin{lstlisting}
-content...
+commit 04f685ea76a085a83aa2eb5a52f920a16df2b300
+Author: Arun Murthy <acmurthy@apache.org>
+Date:   Wed Feb 8 00:16:54 2012 +0000
+
+MAPREDUCE-3827. Changed Counters to use ConcurrentSkipListMap for performance. Contributed by Vinod K V.
+...
+-  private final Map<String, T> counters = Maps.newTreeMap();
++  private final ConcurrentMap<String, T> counters =
++      new ConcurrentSkipListMap<String, T>();
 \end{lstlisting}
 
 (4).Make the code to be consistent with some conventions or patterns.
@@ -532,6 +575,16 @@ Author: Mark Emlyn David Thomas <markt@apache.org>
 Date:   Fri Jul 13 13:38:08 2012 +0000
 
 Fix Findbugs warnings. Sync only on setter. Use ReadWriteLock instead.
+
+commit a6092d771ec50cf9aa434c75455b842f3ac6c628
+Author: Mark Emlyn David Thomas <markt@apache.org>
+Date:   Fri Apr 23 14:23:45 2010 +0000
+
+%Fix https://issues.apache.org/bugzilla/show_bug.cgi?id=49143
+Threading / initialisation issues. Not all were valid. Make them volatile anyway so FindBugs doesn't complain.
+Fix some additional issues - use of valueOf() - found along the way
+
+The examples above show that some developers are using code checking tools like findbugs. But these kind of tools don't help developers correct and eliminate the warnings automatically. One developer said "make the volatile anyway so FindBugs doesn't complain" in the commit log.
 
 (3).Some transformations have opposite directions.
 
