@@ -29,10 +29,17 @@ public class GitLogParser {
 
   private PrintWriter pw, pw2;
 
+  private TaskType taskType;
+
   public GitLogParser() throws Exception {
     //db = new Db();
     //pw = new PrintWriter("../svm2/test");
     //pw2 = new PrintWriter("../svm/commitId");
+  }
+
+  public GitLogParser setTaskType(TaskType taskType) {
+    this.taskType = taskType;
+    return this;
   }
 
   public void parseAll() throws Exception {

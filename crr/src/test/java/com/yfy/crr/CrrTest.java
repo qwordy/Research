@@ -13,6 +13,11 @@ public class CrrTest {
   }
 
   @Test
+  public void changeByTime() throws Exception {
+    new GitLogParser().setTaskType(TaskType.ChangeByTime).parseAll();
+  }
+
+  @Test
   public void initTable() throws Exception {
     Db db = new Db();
     db.createTable("guava");
@@ -44,5 +49,7 @@ public class CrrTest {
   public void train() throws Exception {
     new Train();
   }
+
+
 
 }
