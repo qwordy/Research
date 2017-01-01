@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -25,7 +26,7 @@ public class GitLogParser {
 
   private String project, projectDir, commitId;
 
-  private int crFileCount, fileCount, relatedCommitCount;
+  private int fileCount, relatedCommitCount;
 
   private PrintWriter pw, pw2;
 
@@ -51,7 +52,7 @@ public class GitLogParser {
     parse("lucene-solr"); // 40m 1h
     parse("netty"); // 4m 9m
     //parse("guava"); // 2m 4m
-    //pw.close();
+    //p w.close();
     //pw2.close();
   }
 
@@ -73,17 +74,11 @@ public class GitLogParser {
     int commitCount = 0;
     while (it.hasNext()) {
       RevCommit commit = it.next();
-      String msg = commit.getFullMessage();
-      if (filter(msg)) {
-        commitCount++;
-//        if (commitCount == 300) break;
-//        System.out.println(commit.getId());
-//        System.out.println(commit.name());
-//        System.out.println(msg);
-        //getModifiedFiles(commit.name());
-        //showDiff(commit.name());
-        feature(commit.name());
-      }
+      commitCount++;
+      Util.log(commit.getFullMessage());
+      Feature f = feature(commit.name());
+      if (taskType == TaskType.ChangeByTime)
+        changeByTime(commit, f);
     }
     Util.log("Project:             " + project);
     Util.log("Commit count:        " + commitCount);
@@ -93,7 +88,14 @@ public class GitLogParser {
     //db.commit();
   }
 
-  private void feature(String commitId) throws Exception {
+  // RQ2
+  public void changeByTime(RevCommit commit, Feature f) {
+    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+    commit.getCommitTime();
+  }
+
+  // Get commit feature
+  private Feature feature(String commitId) throws Exception {
     this.commitId = commitId;
     String cmd = "git show " + commitId;
     BufferedReader br = Execute.execWithOutput(cmd, projectDir);
@@ -107,10 +109,10 @@ public class GitLogParser {
       fileCount++;
       //pw.println("1 " + f.toStr());
 //      pw2.println(project + ' ' + commitId);
-      writeDiff(lines, Config.projectsDir + "/diff2", fileCount + "_" +
-          project + '_' + commitId + ".diff");
+//      writeDiff(lines, Config.projectsDir + "/diff2", fileCount + "_" +
+//          project + '_' + commitId + ".diff");
     }
-
+    return f;
   }
 
   public void textFeature(List<String> lines, Feature feature) {
@@ -207,7 +209,16 @@ public class GitLogParser {
     return true;
   }
 
-  private void showDiff(String commitId) throws Exception {
+  private void writeDiff(List<String> lines, String dir, String filename)
+      throws Exception {
+    File dirFile = new File(dir);
+    if (!dirFile.exists()) dirFile.mkdirs();
+    PrintWriter pw = new PrintWriter(new File(dirFile, filename));
+    lines.forEach(pw::println);
+    pw.close();
+  }
+
+  /*private void showDiff(String commitId) throws Exception {
     String cmd = "git show " + commitId;
     BufferedReader br = Execute.execWithOutput(cmd, projectDir);
     List<String> lines = br.lines().collect(Collectors.toList());
@@ -216,8 +227,8 @@ public class GitLogParser {
       for (String line : lines) {
         if ((line.startsWith("+") || line.startsWith("-")) &&
             line.contains(keyword)) {
-          writeDiff(lines, Config.projectsDir + "/diff/single/" + keyword,
-              project + '_' + commitId);
+//          writeDiff(lines, Config.projectsDir + "/diff/single/" + keyword,
+//              project + '_' + commitId);
           break;
         }
       }
@@ -239,8 +250,8 @@ public class GitLogParser {
             if (line.contains(keyword1)) find1 = true;
             if (line.contains(keyword2)) find2 = true;
             if (find1 && find2) {
-              writeDiff(lines, Config.projectsDir + "/diff/double/" + keyword1 +
-                  '_' + keyword2, project + '_' + commitId);
+//              writeDiff(lines, Config.projectsDir + "/diff/double/" + keyword1 +
+//                  '_' + keyword2, project + '_' + commitId);
               break;
             }
           }
@@ -249,21 +260,12 @@ public class GitLogParser {
     }
   }
 
-  private void writeDiff(List<String> lines, String dir, String filename)
-      throws Exception {
-    File dirFile = new File(dir);
-    if (!dirFile.exists()) dirFile.mkdirs();
-    PrintWriter pw = new PrintWriter(new File(dirFile, filename));
-    lines.forEach(pw::println);
-    pw.close();
-  }
-
-  /**
+  *//**
    * Get modified java files of commitId
    *
    * @param commitId
    * @throws Exception
-   */
+   *//*
   private void getModifiedFiles(String commitId)
       throws Exception {
     //if (!commitId.equals("813ca77250db29116812bc949e2a466a70f969a3")) return;
@@ -336,6 +338,6 @@ public class GitLogParser {
     } catch (Exception e) {
       e.printStackTrace();
     }
-  }
+  }*/
 
 }
