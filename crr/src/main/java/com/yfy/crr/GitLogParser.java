@@ -8,13 +8,7 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -24,7 +18,7 @@ public class GitLogParser {
 
   //private Db db;
 
-  private String project, projectDir, commitId;
+  private String project, projectDir;
 
   private int fileCount, relatedCommitCount;
 
@@ -71,14 +65,15 @@ public class GitLogParser {
     Iterable<RevCommit> log = git.log().call();
     Iterator<RevCommit> it = log.iterator();
 
+    RQ2ChangeByTime rq2 = new RQ2ChangeByTime(project);
     int commitCount = 0;
     while (it.hasNext()) {
       RevCommit commit = it.next();
       commitCount++;
-      Util.log(commit.getFullMessage());
-      Feature f = feature(commit.name());
+      //Util.log(commit.getFullMessage());
+      Feature feature = feature(commit.name());
       if (taskType == TaskType.ChangeByTime)
-        changeByTime(commit, f);
+        rq2.deal(commit, feature);
     }
     Util.log("Project:             " + project);
     Util.log("Commit count:        " + commitCount);
@@ -88,15 +83,8 @@ public class GitLogParser {
     //db.commit();
   }
 
-  // RQ2
-  public void changeByTime(RevCommit commit, Feature f) {
-    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-    commit.getCommitTime();
-  }
-
   // Get commit feature
   private Feature feature(String commitId) throws Exception {
-    this.commitId = commitId;
     String cmd = "git show " + commitId;
     BufferedReader br = Execute.execWithOutput(cmd, projectDir);
     List<String> lines = br.lines().collect(Collectors.toList());
@@ -104,14 +92,14 @@ public class GitLogParser {
     Feature f = new Feature();
     textFeature(lines, f);
     codeFeature(lines, f);
-    if (f.related()) {
-      relatedCommitCount++;
-      fileCount++;
+//    if (f.related()) {
+//      relatedCommitCount++;
+//      fileCount++;
       //pw.println("1 " + f.toStr());
 //      pw2.println(project + ' ' + commitId);
 //      writeDiff(lines, Config.projectsDir + "/diff2", fileCount + "_" +
 //          project + '_' + commitId + ".diff");
-    }
+//    }
     return f;
   }
 

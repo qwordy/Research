@@ -8,6 +8,10 @@ public class Feature {
   public int msgKey, file, hunk, lineAdd, lineRemove, lineSub, lineSum,
       keyAdd, keyRemove, keySub, keySum, contextKey;
 
+  /**
+   * If concurrent related
+   * @return
+   */
   public boolean related() {
     return msgKey > 0 || keyAdd > 0 || keyRemove > 0;// || contextKey > 0;
   }
