@@ -75,6 +75,8 @@ public class GitLogParser {
       if (taskType == TaskType.ChangeByTime)
         rq2.deal(commit, feature);
     }
+    if (taskType == TaskType.ChangeByTime)
+      rq2.finish();
     Util.log("Project:             " + project);
     Util.log("Commit count:        " + commitCount);
     Util.log("Related commit count " + relatedCommitCount);
