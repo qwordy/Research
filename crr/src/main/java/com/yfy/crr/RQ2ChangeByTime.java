@@ -9,6 +9,7 @@ import java.util.List;
 
 /**
  * Created by yfy on 1/2/17.
+ * month (concurrent)commit count
  */
 public class RQ2ChangeByTime {
   private int count, crCount, lastYear, lastMonth;
