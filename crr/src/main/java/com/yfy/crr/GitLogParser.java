@@ -77,9 +77,9 @@ public class GitLogParser {
     }
     if (taskType == TaskType.ChangeByTime)
       rq2.finish();
-    Util.log("Project:             " + project);
-    Util.log("Commit count:        " + commitCount);
-    Util.log("Related commit count " + relatedCommitCount);
+//    Util.log("Project:             " + project);
+//    Util.log("Commit count:        " + commitCount);
+//    Util.log("Related commit count " + relatedCommitCount);
 //    Util.log("Modified file count: " + fileCount);
 //    Util.log("Selected file count: " + crFileCount);
     //db.commit();

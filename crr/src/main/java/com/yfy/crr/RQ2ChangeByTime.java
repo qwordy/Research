@@ -3,22 +3,19 @@ package com.yfy.crr;
 import org.eclipse.jgit.revwalk.RevCommit;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by yfy on 1/2/17.
  * month (concurrent)commit count
  */
 public class RQ2ChangeByTime {
-  private int count, crCount, lastYear, lastMonth;
   private String project;
-  private List<Entry> list;
+  private Map<Integer, Entry> map;
 
   public RQ2ChangeByTime(String project) {
     this.project = project;
-    list = new ArrayList<>();
+    map = new TreeMap<>();
   }
 
   public void deal(RevCommit commit, Feature feature) {
@@ -30,29 +27,34 @@ public class RQ2ChangeByTime {
     int month = Integer.parseInt(strs[1]);
     //Util.log(year + " " + month);
 
-    if (year != lastYear || month != lastMonth) {
-      if (lastYear != 0)
-        list.add(new Entry(lastYear, lastMonth, count, crCount));
-      lastYear = year;
-      lastMonth = month;
-      count = crCount = 0;
-    }
-    count++;
-    if (feature.related()) crCount++;
+    int key = year * 100 + month;
+    if (!map.containsKey(key))
+      map.put(key, new Entry(year, month));
+    Entry entry = map.get(key);
+    entry.count++;
+    if (feature.related()) entry.crCount++;
   }
 
   public void finish() {
-    // lastYear, lastMonth is the oldest
-    list.add(new Entry(lastYear, lastMonth, count, crCount));
-    for (Entry e : list)
-      e.uniMonth = (e.year - lastYear) * 12 + e.month - lastMonth;
-    list.forEach(Util::log);
+    Collection<Entry> entrys = map.values();
+    Entry firstEntry = entrys.iterator().next();
+    int firstYear = firstEntry.year;
+    int firstMonth = firstEntry.month;
+    for (Entry e : entrys)
+      e.uniMonth = (e.year - firstYear) * 12 + e.month - firstMonth;
+    Util.log("year month uniMonth count crCount");
+    entrys.forEach(Util::log);
   }
 
   private static class Entry {
     int year, month, uniMonth, count, crCount;
 
-    public Entry(int year, int month, int count, int crCount) {
+    Entry(int year, int month) {
+      this.year = year;
+      this.month = month;
+    }
+
+    Entry(int year, int month, int count, int crCount) {
       this.year = year;
       this.month = month;
       this.count = count;
