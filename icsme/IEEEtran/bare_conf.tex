@@ -468,6 +468,8 @@ We have developed a tool to collect and analyze data. The tool have the followin
 All the projects of our study are under git which is one of the most popular version control systems in the world. Some projects of the study used svn or some other version control systems before because they have long histories, but they all support git now. We employ JGit, a  lightweight, pure java library implementation of git, to retrieve all the commit logs in projects' histories. A typical commit log contains commit id which is a 20-character-long string uniquely identifying a commit, author, date and message. Once we get a commit id, we use "git show" command to show the log message and textual diff. The diff result contains one or more change files which contain one or more change hunks.
 
 \subsubsection{Classification}
+
+
 Most of the commits selected by the last step are not our targets since they usually add or modify functionalities which are specific although they contain some concurrent keywords. The target commits to be analysed occupy a very small proportion of all the commits even we have already filtered them. So, we need some automatic methods to help finish the job.
 
 We use the SVM\cite{bibid} method to classify commits as concurrent-related or not. SVM is a supervised classification algorithm which needs both positive and negative training data. We extracted 12 features from each commit and labeled 65 instances manually as a training data set. Testing on the training set itself has an accuracy of 98.46\%. The classifier selects 96 positive instances from 9891 instances.

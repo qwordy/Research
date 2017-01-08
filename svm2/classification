@@ -1,0 +1,54 @@
+use readLock over LeafQueue instead of synchronized block
+no
+no
+no
+non-synchronized, so avoid risk of deadlock
+Lock already held
+should be synchronized
+need wrap InterruptedException in IOException when call Thread.sleep
+no
+no
+no
+no
+delete synchronized
+no
+Single File Rename Throws Incorrectly In Potential Race Condition Scenarios
+Replace guava Cache with ConcurrentHashMap for caching Connection in ipc Client
+no
+Thread leak, need to shutdown
+Class replace. HashTable to Guava CacheBuilder. RPC Invoker relies on static ClientCache which has synchronized(this) blocks. 
+Class replace. Replace uses of ThreadLocal<Random> with JDK7 ThreadLocalRandom
+no
+Remove unnecessary synchronized
+Lock acquisition on WrappedInputStream#unwrappedRpcBuffer may race with another thread
+no
+no
+Class replace. Replace BytesMoved class with AtomicLong
+finishedSubMaps field in LocalContainerLauncher does not need to be volatile
+Class replace. replace WritableFactories's hashmap with ConcurrentHashMap
+Remove the unnecessary synchronized in JvmMetrics class
+Class replace. Use ConcurrentHashMap in portmap
+Remove volatile from LightWeightHashSet
+Shared data structures in Public Localizer and Private Localizer are not Thread safe. add synchronization
+Make RetryCache#state non volatile. Use synchronized instead.
+Class replace. RPC clients can generate call ID using AtomicInteger instead of synchronizing on the Client instance.
+Add volatile to BlocksMap.blocks so that the replication thread can see the updated value.
+no
+LightWeightGSet expects incrementing a volatile to be atomic. delete volatile
+App submission should not be synchronized
+LightWeightGSet and LightWeightHashSet increment a volatile without synchronization
+Reduce the size of synchronized sections in PacketResponder
+BPServiceActor#lastHeartbeat, lastBlockReport and lastDeletedReport should be volatile
+Class replace. GenerationStamp should use an AtomicLong.
+remove synchronized
+FSVolume.decDfsUsed(..) should be synchronized
+Class replace. Changed Counters to use ConcurrentSkipListMap for performance
+no
+BPOfferService.verifyAndSetNamespaceInfo needs to be synchronized
+UGI getCurrentUser is not synchronized
+FileSystem.get() does RPC retries within a static synchronized block. Double check
+no
+
+
+
+
