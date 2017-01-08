@@ -49,6 +49,3 @@ UGI getCurrentUser is not synchronized
 FileSystem.get() does RPC retries within a static synchronized block. Double check
 no
 
-
-
-
