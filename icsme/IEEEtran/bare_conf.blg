@@ -8,53 +8,59 @@ Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: yfy.bib.bib
+A bad cross reference---entry "conf/icsm/SantosAEDV15"
+refers to entry "DBLP:conf/icsm/2015", which doesn't exist
+A bad cross reference---entry "conf/sigsoft/GuJSZL15"
+refers to entry "DBLP:conf/sigsoft/2015", which doesn't exist
 A bad cross reference---entry "conf/icse/TianLL12"
 refers to entry "DBLP:conf/icse/2012", which doesn't exist
 Warning--I didn't find a database entry for "DBLP:conf/icse/2012"
+Warning--I didn't find a database entry for "DBLP:conf/icsm/2015"
+Warning--I didn't find a database entry for "DBLP:conf/sigsoft/2015"
 -- IEEEtran.bst version 1.12 (2007/01/11) by Michael Shell.
 -- http://www.michaelshell.org/tex/ieeetran/bibtex/
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
 
 Done.
-You've used 3 entries,
+You've used 6 entries,
             4024 wiz_defined-function locations,
-            834 strings with 7916 characters,
-and the built_in function-call counts, 3015 in all, are:
-= -- 253
-> -- 58
-< -- 33
-+ -- 33
-- -- 7
-* -- 164
-:= -- 460
-add.period$ -- 6
-call.type$ -- 3
-change.case$ -- 4
-chr.to.int$ -- 81
-cite$ -- 3
-duplicate$ -- 191
-empty$ -- 213
-format.name$ -- 10
-if$ -- 677
+            861 strings with 9059 characters,
+and the built_in function-call counts, 5956 in all, are:
+= -- 486
+> -- 143
+< -- 59
++ -- 79
+- -- 22
+* -- 314
+:= -- 884
+add.period$ -- 12
+call.type$ -- 6
+change.case$ -- 7
+chr.to.int$ -- 147
+cite$ -- 6
+duplicate$ -- 384
+empty$ -- 445
+format.name$ -- 28
+if$ -- 1361
 int.to.chr$ -- 0
-int.to.str$ -- 3
-missing$ -- 28
-newline$ -- 36
-num.names$ -- 3
-pop$ -- 57
+int.to.str$ -- 6
+missing$ -- 63
+newline$ -- 51
+num.names$ -- 6
+pop$ -- 143
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 229
+skip$ -- 456
 stack$ -- 0
-substring$ -- 193
-swap$ -- 175
-text.length$ -- 6
+substring$ -- 350
+swap$ -- 341
+text.length$ -- 10
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 3
+type$ -- 6
 warning$ -- 0
-while$ -- 15
-width$ -- 4
-write$ -- 59
-(There was 1 error message)
+while$ -- 30
+width$ -- 7
+write$ -- 96
+(There were 3 error messages)

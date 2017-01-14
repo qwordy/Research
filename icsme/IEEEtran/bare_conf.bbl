@@ -21,6 +21,32 @@
 \providecommand{\BIBdecl}{\relax}
 \BIBdecl
 
+\bibitem{conf/icsm/SantosAEDV15}
+\BIBentryALTinterwordspacing
+G.~Santos, N.~Anquetil, A.~Etien, S.~Ducasse, and M.~T. Valente, ``System
+  specific, source code transformations,'' in \emph{2015 {IEEE} International
+  Conference on Software Maintenance and Evolution, {ICSME} 2015, Bremen,
+  Germany, September 29 - October 1, 2015}, 2015, pp. 221--230. [Online].
+  Available: \url{http://dx.doi.org/10.1109/ICSM.2015.7332468}
+\BIBentrySTDinterwordspacing
+
+\bibitem{conf/sigsoft/GuJSZL15}
+\BIBentryALTinterwordspacing
+R.~Gu, G.~Jin, L.~Song, L.~Zhu, and S.~Lu, ``What change history tells us about
+  thread synchronization,'' in \emph{Proceedings of the 2015 10th Joint Meeting
+  on Foundations of Software Engineering, {ESEC/FSE} 2015, Bergamo, Italy,
+  August 30 - September 4, 2015}, 2015, pp. 426--438. [Online]. Available:
+  \url{http://doi.acm.org/10.1145/2786805.2786815}
+\BIBentrySTDinterwordspacing
+
+\bibitem{journals/jss/PintoTFFB15}
+\BIBentryALTinterwordspacing
+G.~Pinto, W.~Torres, B.~Fernandes, F.~C. Filho, and R.~S.~M. de~Barros, ``A
+  large-scale study on the usage of java's concurrent programming constructs,''
+  \emph{Journal of Systems and Software}, vol. 106, pp. 59--81, 2015. [Online].
+  Available: \url{http://dx.doi.org/10.1016/j.jss.2015.04.064}
+\BIBentrySTDinterwordspacing
+
 \bibitem{conf/icse/TianLL12}
 \BIBentryALTinterwordspacing
 Y.~Tian, J.~L. Lawall, and D.~Lo, ``Identifying linux bug fixing patches,'' in

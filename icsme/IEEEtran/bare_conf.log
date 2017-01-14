@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016/Debian) (preloaded format=pdflatex 2016.12.22)  8 JAN 2017 23:18
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016/Debian) (preloaded format=pdflatex 2016.12.22)  14 JAN 2017 23:33
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -143,20 +143,19 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <6> on input line 434.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <5> on input line 434.
- (./bare_conf.bbl
-[2]
-Underfull \hbox (badness 4366) in paragraph at lines 40--44
+ [2] (./bare_conf.bbl
+Underfull \hbox (badness 4366) in paragraph at lines 66--70
 []\OT1/ptm/m/n/8 C.-C. Chang and C.-J. Lin, ``LIB-SVM: A li-brary for sup-port
  []
 
 
-Underfull \hbox (badness 3312) in paragraph at lines 40--44
+Underfull \hbox (badness 3312) in paragraph at lines 66--70
 \OT1/ptm/m/n/8 vec-tor ma-chines,'' \OT1/ptm/m/it/8 ACM Trans-ac-tions on In-te
 l-li-gent Sys-tems and
  []
 
 
-Underfull \hbox (badness 3229) in paragraph at lines 40--44
+Underfull \hbox (badness 3229) in paragraph at lines 66--70
 \OT1/ptm/m/it/8 Tech-nol-ogy\OT1/ptm/m/n/8 , vol. 2, pp. 27:1--27:27, 2011, sof
 t-ware avail-able at
  []
@@ -173,23 +172,21 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[3
-
-] (./bare_conf.aux) ) 
+[3] (./bare_conf.aux) ) 
 Here is how much of TeX's memory you used:
- 1074 strings out of 494945
- 19461 string characters out of 6181031
- 78256 words of memory out of 5000000
- 4428 multiletter control sequences out of 15000+600000
+ 1077 strings out of 494945
+ 19534 string characters out of 6181031
+ 79256 words of memory out of 5000000
+ 4431 multiletter control sequences out of 15000+600000
  38797 words of font info for 72 fonts, out of 8000000 for 9000
  17 hyphenation exceptions out of 8191
  26i,7n,19p,1380b,236s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc
-}</usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/te
-xlive/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texlive/texmf-di
-st/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/
-urw/times/utmri8a.pfb>
-Output written on bare_conf.pdf (3 pages, 63130 bytes).
+{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.e
+nc}</usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/
+texlive/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texlive/texmf-
+dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type
+1/urw/times/utmri8a.pfb>
+Output written on bare_conf.pdf (3 pages, 66939 bytes).
 PDF statistics:
  31 PDF objects out of 1000 (max. 8388607)
  21 compressed objects within 1 object stream
