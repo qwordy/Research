@@ -48,4 +48,8 @@ BPOfferService.verifyAndSetNamespaceInfo needs to be synchronized
 UGI getCurrentUser is not synchronized
 FileSystem.get() does RPC retries within a static synchronized block. Double check
 no
+no
+no
+Fix potential deadlock in SpilledSubpartitionViewAsyncIO
+
 
