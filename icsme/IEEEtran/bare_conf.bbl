@@ -21,15 +21,6 @@
 \providecommand{\BIBdecl}{\relax}
 \BIBdecl
 
-\bibitem{conf/icsm/SantosAEDV15}
-\BIBentryALTinterwordspacing
-G.~Santos, N.~Anquetil, A.~Etien, S.~Ducasse, and M.~T. Valente, ``System
-  specific, source code transformations,'' in \emph{2015 {IEEE} International
-  Conference on Software Maintenance and Evolution, {ICSME} 2015, Bremen,
-  Germany, September 29 - October 1, 2015}, 2015, pp. 221--230. [Online].
-  Available: \url{http://dx.doi.org/10.1109/ICSM.2015.7332468}
-\BIBentrySTDinterwordspacing
-
 \bibitem{conf/sigsoft/GuJSZL15}
 \BIBentryALTinterwordspacing
 R.~Gu, G.~Jin, L.~Song, L.~Zhu, and S.~Lu, ``What change history tells us about
@@ -45,6 +36,15 @@ G.~Pinto, W.~Torres, B.~Fernandes, F.~C. Filho, and R.~S.~M. de~Barros, ``A
   large-scale study on the usage of java's concurrent programming constructs,''
   \emph{Journal of Systems and Software}, vol. 106, pp. 59--81, 2015. [Online].
   Available: \url{http://dx.doi.org/10.1016/j.jss.2015.04.064}
+\BIBentrySTDinterwordspacing
+
+\bibitem{conf/icsm/SantosAEDV15}
+\BIBentryALTinterwordspacing
+G.~Santos, N.~Anquetil, A.~Etien, S.~Ducasse, and M.~T. Valente, ``System
+  specific, source code transformations,'' in \emph{2015 {IEEE} International
+  Conference on Software Maintenance and Evolution, {ICSME} 2015, Bremen,
+  Germany, September 29 - October 1, 2015}, 2015, pp. 221--230. [Online].
+  Available: \url{http://dx.doi.org/10.1109/ICSM.2015.7332468}
 \BIBentrySTDinterwordspacing
 
 \bibitem{conf/icse/TianLL12}
