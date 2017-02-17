@@ -55,5 +55,21 @@ no
 no
 no
 no
-
-
+Fix concurrency issue in CassandraTupleWriteAheadSink
+Class replace. switch to AtomicReference, wait-notify
+Class replace. AbstractReporter uses wrong ConcurrentHashMap
+Class replace. Use ConcurrentMap in HeapStateStore
+Dead lock. Move blocking I/O call outside of synchronized block
+Instead of using Thread.sleep() to synchronize the checks of the accumulator values, we rely on message passing here to synchronize the task process.
+volatile
+no
+Fix: distributed cache properly synchronized
+Remove synchronized blcok in getReceiverList
+Class replace. replaced synchronized methods with concurrent collections
+no
+no
+no
+no
+no
+Class replace. Changed configuration implementation to use java concurrency classes instead of synchronized statement
+Class replace. Replaced synchronized block in lookup structure by java concurrent data structure
