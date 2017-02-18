@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2016.11.9)  17 FEB 2017 23:35
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2016.11.9)  18 FEB 2017 22:42
 entering extended mode
 **./bare_conf.tex
 (bare_conf.tex
@@ -111,23 +111,52 @@ LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <24> not available
 \IEEEPARstartletwidth=\dimen125
 \c@IEEEbiography=\count93
 \@IEEEtranrubishbin=\box27
-) (bare_conf.aux)
+) ("d:\Program Files\MiKTeX 2.9\tex\latex\listings\listings.sty"
+("d:\Program Files\MiKTeX 2.9\tex\latex\graphics\keyval.sty"
+Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
+\KV@toks@=\toks15
+)
+\lst@mode=\count94
+\lst@gtempboxa=\box28
+\lst@token=\toks16
+\lst@length=\count95
+\lst@currlwidth=\dimen126
+\lst@column=\count96
+\lst@pos=\count97
+\lst@lostspace=\dimen127
+\lst@width=\dimen128
+\lst@newlines=\count98
+\lst@lineno=\count99
+\lst@maxwidth=\dimen129
+
+("d:\Program Files\MiKTeX 2.9\tex\latex\listings\lstmisc.sty"
+File: lstmisc.sty 2015/06/04 1.6 (Carsten Heinz)
+\c@lstnumber=\count100
+\lst@skipnumbers=\count101
+\lst@framebox=\box29
+)
+("d:\Program Files\MiKTeX 2.9\tex\latex\listings\listings.cfg"
+File: listings.cfg 2015/06/04 1.6 listings configuration
+))
+Package: listings 2015/06/04 1.6 (Carsten Heinz)
+ (bare_conf.aux)
 \openout1 = `bare_conf.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 315.
-LaTeX Font Info:    ... okay on input line 315.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 315.
-LaTeX Font Info:    ... okay on input line 315.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 315.
-LaTeX Font Info:    ... okay on input line 315.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 315.
-LaTeX Font Info:    ... okay on input line 315.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 315.
-LaTeX Font Info:    ... okay on input line 315.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 315.
-LaTeX Font Info:    ... okay on input line 315.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 316.
+LaTeX Font Info:    ... okay on input line 316.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 316.
+LaTeX Font Info:    ... okay on input line 316.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 316.
+LaTeX Font Info:    ... okay on input line 316.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 316.
+LaTeX Font Info:    ... okay on input line 316.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 316.
+LaTeX Font Info:    ... okay on input line 316.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 316.
+LaTeX Font Info:    ... okay on input line 316.
 
 -- Lines per column: 56 (exact).
+\c@lstlisting=\count102
 Missing character: There is no â in font ptmr7t!
 Missing character: There is no € in font ptmr7t!
 Missing character: There is no ™ in font ptmr7t!
@@ -136,12 +165,38 @@ Missing character: There is no ™ in font ptmr7t!
 
 ]
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 434.
+(Font)              <8> on input line 435.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 434.
+(Font)              <6> on input line 435.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 434.
- [2] (bare_conf.bbl
+(Font)              <5> on input line 435.
+
+("d:\Program Files\MiKTeX 2.9\tex\latex\listings\lstlang1.sty"
+File: lstlang1.sty 2015/06/04 1.6 listings language file
+)
+Overfull \hbox (8.00244pt too wide) in paragraph at lines 487--488
+[][] 
+ []
+
+[2]
+LaTeX Font Info:    Try loading font information for OML+ptm on input line 488.
+
+ ("d:\Program Files\MiKTeX 2.9\tex\latex\psnfss\omlptm.fd"
+File: omlptm.fd 
+)
+LaTeX Font Info:    Font shape `OML/ptm/m/n' in size <10> not available
+(Font)              Font shape `OML/cmm/m/it' tried instead on input line 488.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 491.
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 497.
+
+
+("d:\Program Files\MiKTeX 2.9\tex\latex\psnfss\omsptm.fd"
+File: omsptm.fd 
+)
+LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 497.
+ (bare_conf.bbl
 Underfull \hbox (badness 4366) in paragraph at lines 66--70
 []\OT1/ptm/m/n/8 C.-C. Chang and C.-J. Lin, ``LIB-SVM: A li-brary for sup-port
  []
@@ -172,21 +227,23 @@ Before submitting the final camera ready copy, remember to:
 
 [3] (bare_conf.aux) ) 
 Here is how much of TeX's memory you used:
- 1078 strings out of 493334
- 19477 string characters out of 3139258
- 83824 words of memory out of 3000000
- 4667 multiletter control sequences out of 15000+200000
+ 2449 strings out of 493334
+ 39489 string characters out of 3139258
+ 220242 words of memory out of 3000000
+ 6011 multiletter control sequences out of 15000+200000
  38797 words of font info for 72 fonts, out of 3000000 for 9000
  1144 hyphenation exceptions out of 8191
- 26i,7n,19p,1382b,236s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 27i,7n,40p,1382b,1465s stack positions out of 5000i,500n,10000p,200000b,50000s
 {d:/Program Files/MiKTeX 2.9/fonts/enc/dvips/fontname/8r.e
-nc}<d:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmb8a.pfb><d:/Program Fi
-les/MiKTeX 2.9/fonts/type1/urw/times/utmbi8a.pfb><d:/Program Files/MiKTeX 2.9/f
-onts/type1/urw/times/utmr8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/ti
-mes/utmri8a.pfb>
-Output written on bare_conf.pdf (3 pages, 70834 bytes).
+nc}<d:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><d:/P
+rogram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><d:/Program F
+iles/MiKTeX 2.9/fonts/type1/urw/times/utmb8a.pfb><d:/Program Files/MiKTeX 2.9/f
+onts/type1/urw/times/utmbi8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/t
+imes/utmr8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmri8a.pfb>
+
+Output written on bare_conf.pdf (3 pages, 90584 bytes).
 PDF statistics:
- 29 PDF objects out of 1000 (max. 8388607)
+ 37 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

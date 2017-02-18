@@ -311,6 +311,7 @@
 % correct bad hyphenation here
 \hyphenation{op-tical net-works semi-conduc-tor}
 
+\usepackage{listings}
 
 \begin{document}
 %
@@ -478,11 +479,33 @@ We use the SVM\cite{journals/ml/CortesV95} algorithm to train and classify commi
 
 \subsection{RQ1. How many change patterns in concurrent programming?}
 
-The change patterns in concurrent programming can be divided into two categories: 
+There are so many different concurrent related changes in the code history. The change patterns in concurrent programming can be divided into two categories: (1) Class replacement; (2) Adjustment of concurrency control.
+
+\textbf{Example 1}
+\lstset{language=java, numbers=left, breaklines=true, frame=single}
+\begin{lstlisting}
+commit a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
+Author: Eli Collins <eli@apache.org>
+Date:   Wed Oct 17 04:58:24 2012 +0000
+
+HDFS-4029. GenerationStamp should use an AtomicLong. Contributed by Eli Collins
+
+...
+-  private volatile long genstamp;
++  private AtomicLong genstamp = new AtomicLong();
+...
+-  public synchronized long nextStamp() {
+-    this.genstamp++;
+-    return this.genstamp;
++  public long nextStamp() {
++    return genstamp.incrementAndGet();
+}
+...
+\end{lstlisting}
+
+This commit is from hadoop. "..." represents that some code are omitted. It is a fix of issue HDFS-4029 "GenerationStamp should use an AtomicLong" whose priority is major. The code synchronize the method nextStamp for it might be invoked concurrently. Method nextStamp increases genstamp by one and then return it. The developers found that it would be cleaner to use an AtomicLong so that genstamp itself is atomic and they do not have to synchronize the various accesses to it. AtomicLong is a thread-safe version of type long. It allows users to update it atomically without any synchronization. Its internal implementation is not using synchronized method or block. It uses sun.misc.Unsafe which provides many unsafe but fast operations.
 
 \subsection{RQ2. How frequent do concurrent related code modification appear in different kinds of Java open-source projects?}
-
-We 
 
 \subsection{RQ3. What is the trend of concurrent programming construct usage statistically?}
 
