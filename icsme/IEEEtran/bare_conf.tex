@@ -312,6 +312,7 @@
 \hyphenation{op-tical net-works semi-conduc-tor}
 
 \usepackage{listings}
+\usepackage{xcolor}
 
 \begin{document}
 %
@@ -427,7 +428,7 @@ The rest of paper is organized as follows: Section 2 presents the methodology of
 \section{Methodology}
 This section presents the project sources of our study, research questions and methods of doing the study. We have  developed a tool supporting the empirical study.
 
-\subsection{Data set} We investigate 8 Java open-source projects from Github including Hadoop, Tomcat, Cassandra, Lucene-solr, Netty, Flink, Guava and Mahout as shown in Table 1. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. The Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Tomcat is the most popular implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technologies. Cassandra is a database system which can Manage massive amounts of data, fast, without losing sleep. Lucene-solr is two projects together in one respository in Github. Lucene is a search engine library and solr is a search engine server which uses lucene. Netty is an event-driven asynchronous network application framework. Flink is an open source stream processing framework with powerful stream- and batch-processing capabilities. Mahout is a machine learning project. Table 1 shows the lines of code in Java, the number of Java files and the number of commits of each project. All the projects are checked out for our study in December 2016.
+\subsection{Data set} We investigate 8 Java open-source projects from Github including Hadoop, Tomcat, Cassandra, Lucene-solr, Netty, Flink, Guava and Mahout as shown in Table 1. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. The Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Tomcat is the most popular implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technologies. Cassandra is a database system which can Manage massive amounts of data, fast, without losing sleep. Lucene-solr is two projects together in one respository in Github. Lucene is a search engine library and solr is a search engine server which uses lucene. Netty is an event-driven asynchronous network application framework. Flink is an open source stream processing framework with powerful stream- and batch-processing capabilities. Mahout is a machine learning project. Table I shows the lines of code in Java, the number of Java files and the number of commits of each project. All the projects are checked out for our study in December 2016.
 
 \begin{table}
 	\centering
@@ -471,9 +472,18 @@ We have developed a tool to collect and analyze data. The tool have the followin
 All the projects of our study are under git which is one of the most popular version control systems in the world. Some projects of the study used svn or some other version control systems before because they have long histories, but they all support git now. We employ JGit, a  lightweight, pure java library implementation of git, to retrieve all the commit logs in projects' histories. A typical commit log contains commit id which is a 20-character-long string uniquely identifying a commit, author, date and message. Once we get a commit id, we use "git show" command to show the log message and textual diff. The diff result contains one or more change files which contain one or more change hunks.
 
 \subsubsection{Classification}
-There are many commits which are not concurrent related in the commits which we have collected.  We need to select concurrent related commits. Yuan Tian et al. gave a successful example of identifing bug fixing patches using machine learning\cite{conf/icse/TianLL12}. We use machine learning to train and predict whether a commit is concurrent related. We adopt both text analysis and code analysis to extract features. A commit log uses natural language to present what was changed and why the change was made in most cases. We treat each commit log as a bag of words then match the words to a set of concurrent keywords which we have defined as the Java concurrent keywords like "synchronized", "volatile" and names of common classes or interfaces in Java libraries which are related to concurrency. We also do a code analysis based on the diff result. 12 features are extracted for each commit, which is shown in table.
+There are many commits which are not concurrent related in the commits which we have collected.  We need to select concurrent related commits. Yuan Tian et al. gave a successful example of identifing bug fixing patches using machine learning\cite{conf/icse/TianLL12}. We use machine learning to train and predict whether a commit is concurrent related. We adopt both text analysis and code analysis to extract features. A commit log uses natural language to present what was changed and why the change was made in most cases. We treat each commit log as a bag of words then match the words to a set of concurrent keywords which we have defined as the Java concurrent keywords like "synchronized", "volatile" and names of common classes or interfaces in Java libraries which are related to concurrency. We also do a code analysis based on the diff result. 12 features are extracted for each commit, which is shown in Table II.
 
 We use the SVM\cite{journals/ml/CortesV95} algorithm to train and classify commits as concurrent-related or not. SVM is a supervised classification algorithm which needs both positive and negative labeled data for training. In our tool, we use an implementation of SVM, LIBSVM\cite{libsvm}. We manually label some data as a training data set first then train a model. The trained classifier selects 135 positive instances from all the commits which we have collected.
+
+\begin{table}
+	\centering
+	\caption{Features of data}
+	\begin{tabular}{|c|c|c|c|}\hline
+		Feature&Explanation\\\hline
+	
+	\end{tabular}
+\end{table}
 
 \section{Results}
 
@@ -481,8 +491,10 @@ We use the SVM\cite{journals/ml/CortesV95} algorithm to train and classify commi
 
 There are so many different concurrent related changes in the code history. The change patterns in concurrent programming can be divided into two categories: (1) Class replacement; (2) Adjustment of concurrency control.
 
+The following are class replacement examples:
+
 \textbf{Example 1}
-\lstset{language=java, numbers=left, breaklines=true, frame=single}
+\lstset{language=java, numbers=left, breaklines=true, frame=single, basicstyle=\ttfamily\tiny, keywordstyle=\color{blue}\bf\ttfamily, xleftmargin=2em, tabsize=2}
 \begin{lstlisting}
 commit a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
 Author: Eli Collins <eli@apache.org>
@@ -505,6 +517,108 @@ HDFS-4029. GenerationStamp should use an AtomicLong. Contributed by Eli Collins
 
 This commit is from hadoop. "..." represents that some code are omitted. It is a fix of issue HDFS-4029 "GenerationStamp should use an AtomicLong" whose priority is major. The code synchronize the method nextStamp for it might be invoked concurrently. Method nextStamp increases genstamp by one and then return it. The developers found that it would be cleaner to use an AtomicLong so that genstamp itself is atomic and they do not have to synchronize the various accesses to it. AtomicLong is a thread-safe version of type long. It allows users to update it atomically without any synchronization. Its internal implementation is not using synchronized method or block. It uses sun.misc.Unsafe which provides many unsafe but fast operations.
 
+\textbf{Example 2}
+\begin{lstlisting}
+commit 7f443f67eaa588323f912f3922cff9b699b38fbd
+Author: Shai Erera <shaie@apache.org>
+Date:   Mon Nov 29 15:07:41 2010 +0000
+
+LUCENE-2779: Use ConcurrentHashMap in RAMDirectory
+...
+-  protected HashMap<String,RAMFile> fileMap = new HashMap<String,RAMFile>();
++  protected Map<String,RAMFile> fileMap = new ConcurrentHashMap<String,RAMFile>();
+...
+@Override
+public final boolean fileExists(String name) {
+    ensureOpen();
+-    RAMFile file;
+-    synchronized (this) {
+-      file = fileMap.get(name);
+-    }
+-    return file != null;
++    return fileMap.containsKey(name);
+}
+...
+\end{lstlisting}
+
+This commit is from lucene-solr. It is a commit for LUCENE-2779 which is a minor-priority improvement. It is better to use a thread-safe version collection ConcurrentHashMap instead of using HashMap and synchronizing the access code. This thread-safe class not only simplify the way of using a hash map, but also improve the performance compared to manual synchronization like the example. It supports full concurrency of retrievals and high expected concurrency for updates.
+
+\textbf{Example 3}
+\begin{lstlisting}
+commit 470c87dbc6c24dd3b370f1ad9e7ab1f6dabd2080
+Author: Colin Patrick Mccabe <cmccabe@cloudera.com>
+Date:   Tue May 19 10:49:17 2015 -0700
+
+HADOOP-11970. Replace uses of ThreadLocal<Random> with JDK7 ThreadLocalRandom (Sean Busbey via Colin P. McCabe)
+...
+-import java.util.Random;
++import java.util.concurrent.ThreadLocalRandom;
+...
+-  private static ThreadLocal<Random> RANDOM = new ThreadLocal<Random>() {
+-    @Override
+-    protected Random initialValue() {
+-      return new Random();
+-    }
+-  };
+...
+-      final double ratio = RANDOM.get().nextDouble() + 0.5;//0.5 <= ratio <=1.5
++      // ensure 0.5 <= ratio <=1.5
++      final double ratio = ThreadLocalRandom.current().nextDouble() + 0.5;
+\end{lstlisting}
+
+This example shows a switch from ThreadLocal$<$Random$>$ to ThreadLocalRandom from JDK7. It is of the issue HADOOP-11970 which is a major improvement. This issue says that ThreadLocalRandom should be used when available in place of ThreadLocal<Random>. For JDK7 the difference is minimal, but JDK8 starts including optimizations for ThreadLocalRandom. The ThreadLocal class provides thread-local variables. The ThreadLocalRandom class is a random number generator isolated to the current thread since 1.7.
+
+The following are concurrency control examples:
+
+\textbf{Example 4}
+\begin{lstlisting}
+commit efca79cfb7b496b4bec70561cc94af069c644ef2
+Author: Ufuk Celebi <uce@apache.org>
+Date:   Thu Jul 23 15:19:57 2015 +0200
+
+[FLINK-2384] [runtime] Move blocking I/O call outside of synchronized block
+Problem: Waiting on asynchronous write requests with the partition lock can
+result in a deadlock, because all other operations on the same partition are
+blocked. It is possible that the I/O writer itself needs to access the
+partition, in which cases the whole program blocks.
+Solution: Move the wait outside the synchronized block. This was not necessary
+before, because no operation assumes the spilling to be finished when the
+finish call has returned.
+
+public void finish() throws IOException {
+	synchronized (buffers) {
+		if (add(EventSerializer.toBuffer(EndOfPartitionEvent.INSTANCE))) {
+-			// If we are spilling/have spilled, wait for the writer to finish.
+-			if (spillWriter != null) {
+-				spillWriter.close();
+-			}
+			isFinished = true;
+		}
+	}
++
++	// If we are spilling/have spilled, wait for the writer to finish.
++	if (spillWriter != null) {
++		spillWriter.close();
++	}
+}
+\end{lstlisting}
+
+This is an example from flink. It is a critical bug issue "Deadlock during partition spilling". A user reported the problem. The developer wrote a detailed message, which describes the problem, reason and solution.
+
+\textbf{Example 5}
+\begin{lstlisting}
+commit 8313fa0f1ca277e9633a78f461804abc3c5515b8
+Author: Mark Thomas <markt@apache.org>
+Date:   Thu Sep 17 09:26:08 2015 +0000
+
+Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58392
+Double-checked locking needs to use volatile to be thread-safe
+...
+-    protected Membership membership = null;
++    protected volatile Membership membership = null;
+\end{lstlisting}
+Double checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like forgetting 'volatile' modifier of the member of object in Java.
+
 \subsection{RQ2. How frequent do concurrent related code modification appear in different kinds of Java open-source projects?}
 
 \subsection{RQ3. What is the trend of concurrent programming construct usage statistically?}
@@ -516,7 +630,12 @@ We also have some interesting findings in collecting and analyzing the concurren
 
 (1) Some changes are contrary. Different developers may modify their code in an opposite direction.
 
-(2) 
+(2) Developers are using some code-checking tools like findbugs to help them inspect their code.
+
+The examples above show that some developers are using code checking tools like findbugs. But these kind of tools don't help developers correct and eliminate the warnings automatically. One developer in Tomcat said "make the volatile anyway so FindBugs doesn't complain" in the commit log.
+
+
+(3) 
 
 This research provides some implications from different kinds of perspectives.
 

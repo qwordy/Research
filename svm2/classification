@@ -26,7 +26,7 @@ no
 Class replace. Replace BytesMoved class with AtomicLong
 finishedSubMaps field in LocalContainerLauncher does not need to be volatile
 Class replace. replace WritableFactories's hashmap with ConcurrentHashMap
-Remove the unnecessary synchronized in JvmMetrics class
+Class replace. Remove the unnecessary synchronized in JvmMetrics class
 Class replace. Use ConcurrentHashMap in portmap
 Remove volatile from LightWeightHashSet
 Shared data structures in Public Localizer and Private Localizer are not Thread safe. add synchronization
@@ -73,3 +73,5 @@ no
 no
 Class replace. Changed configuration implementation to use java concurrency classes instead of synchronized statement
 Class replace. Replaced synchronized block in lookup structure by java concurrent data structure
+
+
