@@ -8,12 +8,27 @@ Reallocated singl_function (elt_size=4) to 100 items from 50.
 Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
 Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: bare_conf.bib
+A bad cross reference---entry "conf/pldi/FlanaganF09"
+refers to entry "DBLP:conf/pldi/2009", which doesn't exist
+A bad cross reference---entry "conf/kbse/KroeningPSW16"
+refers to entry "DBLP:conf/kbse/2016", which doesn't exist
+A bad cross reference---entry "conf/pldi/FlanaganFY08"
+refers to entry "DBLP:conf/pldi/2008", which doesn't exist
+A bad cross reference---entry "conf/oopsla/Bagherzadeh15"
+refers to entry "DBLP:conf/oopsla/2015c", which doesn't exist
+A bad cross reference---entry "conf/sosp/DavidGT13"
+refers to entry "DBLP:conf/sosp/2013", which doesn't exist
 A bad cross reference---entry "conf/sigsoft/GuJSZL15"
 refers to entry "DBLP:conf/sigsoft/2015", which doesn't exist
 A bad cross reference---entry "conf/icsm/SantosAEDV15"
 refers to entry "DBLP:conf/icsm/2015", which doesn't exist
 A bad cross reference---entry "conf/icse/TianLL12"
 refers to entry "DBLP:conf/icse/2012", which doesn't exist
+Warning--I didn't find a database entry for "DBLP:conf/pldi/2009"
+Warning--I didn't find a database entry for "DBLP:conf/kbse/2016"
+Warning--I didn't find a database entry for "DBLP:conf/pldi/2008"
+Warning--I didn't find a database entry for "DBLP:conf/oopsla/2015c"
+Warning--I didn't find a database entry for "DBLP:conf/sosp/2013"
 Warning--I didn't find a database entry for "DBLP:conf/icse/2012"
 Warning--I didn't find a database entry for "DBLP:conf/icsm/2015"
 Warning--I didn't find a database entry for "DBLP:conf/sigsoft/2015"
@@ -22,45 +37,45 @@ Warning--I didn't find a database entry for "DBLP:conf/sigsoft/2015"
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
 
 Done.
-You've used 6 entries,
+You've used 14 entries,
             4024 wiz_defined-function locations,
-            860 strings with 9052 characters,
-and the built_in function-call counts, 5956 in all, are:
-= -- 486
-> -- 143
-< -- 59
-+ -- 79
-- -- 22
-* -- 314
-:= -- 884
-add.period$ -- 12
-call.type$ -- 6
-change.case$ -- 7
-chr.to.int$ -- 147
-cite$ -- 6
-duplicate$ -- 384
-empty$ -- 445
-format.name$ -- 28
-if$ -- 1361
+            933 strings with 11539 characters,
+and the built_in function-call counts, 12501 in all, are:
+= -- 1034
+> -- 264
+< -- 117
++ -- 147
+- -- 39
+* -- 635
+:= -- 1897
+add.period$ -- 28
+call.type$ -- 14
+change.case$ -- 15
+chr.to.int$ -- 291
+cite$ -- 14
+duplicate$ -- 828
+empty$ -- 1001
+format.name$ -- 50
+if$ -- 2877
 int.to.chr$ -- 0
-int.to.str$ -- 6
-missing$ -- 63
-newline$ -- 51
-num.names$ -- 6
-pop$ -- 143
+int.to.str$ -- 14
+missing$ -- 134
+newline$ -- 91
+num.names$ -- 14
+pop$ -- 304
 preamble$ -- 1
 purify$ -- 0
 quote$ -- 2
-skip$ -- 456
+skip$ -- 981
 stack$ -- 0
-substring$ -- 350
-swap$ -- 341
-text.length$ -- 10
+substring$ -- 694
+swap$ -- 700
+text.length$ -- 20
 text.prefix$ -- 0
 top$ -- 5
-type$ -- 6
+type$ -- 14
 warning$ -- 0
-while$ -- 30
-width$ -- 7
-write$ -- 96
-(There were 3 error messages)
+while$ -- 66
+width$ -- 16
+write$ -- 194
+(There were 8 error messages)
