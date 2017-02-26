@@ -1,12 +1,5 @@
-This is BibTeX, Version 0.99d (TeX Live 2015/dev/Debian)
-Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
-The top-level auxiliary file: bare_conf.aux
+This is BibTeX, Version 0.99dThe top-level auxiliary file: bare_conf.aux
 The style file: IEEEtran.bst
-Reallocated singl_function (elt_size=4) to 100 items from 50.
-Reallocated singl_function (elt_size=4) to 100 items from 50.
-Reallocated singl_function (elt_size=4) to 100 items from 50.
-Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
-Reallocated singl_function (elt_size=4) to 100 items from 50.
 Database file #1: bare_conf.bib
 A bad cross reference---entry "conf/pldi/FlanaganF09"
 refers to entry "DBLP:conf/pldi/2009", which doesn't exist
@@ -37,45 +30,4 @@ Warning--I didn't find a database entry for "DBLP:conf/sigsoft/2015"
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
 
 Done.
-You've used 14 entries,
-            4024 wiz_defined-function locations,
-            933 strings with 11539 characters,
-and the built_in function-call counts, 12501 in all, are:
-= -- 1034
-> -- 264
-< -- 117
-+ -- 147
-- -- 39
-* -- 635
-:= -- 1897
-add.period$ -- 28
-call.type$ -- 14
-change.case$ -- 15
-chr.to.int$ -- 291
-cite$ -- 14
-duplicate$ -- 828
-empty$ -- 1001
-format.name$ -- 50
-if$ -- 2877
-int.to.chr$ -- 0
-int.to.str$ -- 14
-missing$ -- 134
-newline$ -- 91
-num.names$ -- 14
-pop$ -- 304
-preamble$ -- 1
-purify$ -- 0
-quote$ -- 2
-skip$ -- 981
-stack$ -- 0
-substring$ -- 694
-swap$ -- 700
-text.length$ -- 20
-text.prefix$ -- 0
-top$ -- 5
-type$ -- 14
-warning$ -- 0
-while$ -- 66
-width$ -- 16
-write$ -- 194
 (There were 8 error messages)

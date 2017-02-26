@@ -463,7 +463,7 @@ Java programming language offers many handy facilities for building concurrent p
 
 \textbf{RQ4.} How can these change patterns in history guide the future development?
 
-In order to better demonstrate these change patterns can really help developers understand concurrent programming practice and apply the practice to their projects, we are going to find the appropriate context in open-source projects and pull requests of  applying the change patterns. We are insterested to see that how developers will accept our code change suggestions.
+In order to better demonstrate these change patterns can really help developers understand concurrent programming practice and apply the practice to their projects, we are going to find the appropriate context in open-source projects and pull requests of applying the change patterns. We are insterested to see that how developers will accept our code change suggestions.
 
 \subsection{Tool support}
 We have developed a tool to collect and analyze data. The tool has the following parts.
@@ -481,15 +481,26 @@ We use the SVM\cite{journals/ml/CortesV95} algorithm to train and classify commi
 	\caption{Features of data}
 	\begin{tabular}{|c|c|c|c|}\hline
 		Feature&Explanation\\\hline
-	
+		msgKey&\\\hline
+		file&\\\hline
+		hunk&\\\hline
+		lineAdd&\\\hline
+		lineRemove&\\\hline
+		lineSub&\\\hline
+		lineSum&\\\hline
+		keyAdd&\\\hline
+		keyRemove&\\\hline
+		keySub&\\\hline
+		keySum&\\\hline
+		contextKey&\\\hline
 	\end{tabular}
 \end{table}
 
 \section{Results}
 
-\subsection{RQ1. How many change patterns in concurrent programming?}
+\subsection{RQ1. How many kinds of change patterns in concurrent programming?}
 
-There are so many different concurrent related changes in the code history. The change patterns in concurrent programming can be divided into two categories: (1) Class replacement; (2) Adjustment of concurrency control.
+There are so many different concurrent related changes in the code history. They can be divided into several types according to their properties. The change patterns in concurrent programming can be divided into two categories: (1) Class replacement; (2) Adjustment of concurrency control.
 
 The following are class replacement examples:
 
