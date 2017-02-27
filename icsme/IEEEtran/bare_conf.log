@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2016.11.9)  26 FEB 2017 23:16
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2016.11.9)  27 FEB 2017 23:34
 entering extended mode
 **./bare_conf.tex
 (bare_conf.tex
@@ -218,24 +218,25 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 ("d:\Program Files\MiKTeX 2.9\tex\latex\listings\lstlang1.sty"
 File: lstlang1.sty 2015/06/04 1.6 listings language file
 )
-LaTeX Font Info:    Try loading font information for OT1+pcr on input line 509.
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 508.
 
 
 ("d:\Program Files\MiKTeX 2.9\tex\latex\psnfss\ot1pcr.fd"
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
 LaTeX Font Info:    Font shape `OT1/pcr/bx/n' in size <5> not available
-(Font)              Font shape `OT1/pcr/b/n' tried instead on input line 517.
+(Font)              Font shape `OT1/pcr/b/n' tried instead on input line 513.
 LaTeX Font Info:    Font shape `OT1/pcr/m/it' in size <5> not available
-(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 575.
+(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 559.
+ [3]
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 580.
+(Font)              <7> on input line 723.
 
-Underfull \hbox (badness 2005) in paragraph at lines 580--581
+Underfull \hbox (badness 2005) in paragraph at lines 723--724
 \OT1/ptm/m/n/10 to Thread-Lo-cal-Ran-dom from JDK7. It is of the is-sue
  []
 
-[3] (bare_conf.bbl [4]
+[4] (bare_conf.bbl
 Underfull \hbox (badness 3128) in paragraph at lines 132--136
 []\OT1/ptm/m/n/8 C.-C. Chang and C.-J. Lin, ``LIB-SVM: A li-brary for sup-port
  []
@@ -264,26 +265,24 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[5
-
-] (bare_conf.aux) ) 
+[5] (bare_conf.aux) ) 
 Here is how much of TeX's memory you used:
- 3789 strings out of 493334
- 56314 string characters out of 3139258
- 451244 words of memory out of 3000000
- 7325 multiletter control sequences out of 15000+200000
+ 3871 strings out of 493334
+ 57588 string characters out of 3139258
+ 596362 words of memory out of 3000000
+ 7407 multiletter control sequences out of 15000+200000
  41738 words of font info for 80 fonts, out of 3000000 for 9000
  1144 hyphenation exceptions out of 8191
- 26i,8n,40p,1382b,1379s stack positions out of 5000i,500n,10000p,200000b,50000s
-{d:/Program Files/MiKTeX 2.9/fonts/enc/dvips/fontname/8r.enc
-}<d:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><d:/Pro
-gram Files/MiKTeX 2.9/fonts/type1/urw/courier/ucrb8a.pfb><d:/Program Files/MiKT
-eX 2.9/fonts/type1/urw/courier/ucrr8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/ty
-pe1/urw/courier/ucrro8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/
-utmb8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmbi8a.pfb><d:/P
-rogram Files/MiKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb><d:/Program Files/MiKT
-eX 2.9/fonts/type1/urw/times/utmri8a.pfb>
-Output written on bare_conf.pdf (5 pages, 131651 bytes).
+ 26i,8n,40p,1382b,1381s stack positions out of 5000i,500n,10000p,200000b,50000s
+{d:/Program Files/MiKTeX 2.9/fonts/enc/dvips/fontname/8r.e
+nc}<d:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><d:/P
+rogram Files/MiKTeX 2.9/fonts/type1/urw/courier/ucrb8a.pfb><d:/Program Files/Mi
+KTeX 2.9/fonts/type1/urw/courier/ucrr8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/
+type1/urw/courier/ucrro8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/time
+s/utmb8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmbi8a.pfb><d:
+/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb><d:/Program Files/Mi
+KTeX 2.9/fonts/type1/urw/times/utmri8a.pfb>
+Output written on bare_conf.pdf (5 pages, 140053 bytes).
 PDF statistics:
  51 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
