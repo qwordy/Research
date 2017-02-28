@@ -403,25 +403,29 @@ The abstract goes here.
 
 
 \section{Introduction}
-Concurrent programs are pervasive in nowadays software development activities. Using concurrency rightly in programs can exploit the calculation ability better with the rapid development of multi-core system. However, concurrent programming is very hard \cite{journals/corr/McKenney17},\cite{journals/queue/SutterL05} because multiple threads, which access objects simultaneously or depend on each other, usually need complex synchronization and it is hard to debug concurrent programs for the uncertainty of thread interleaving which makes it difficult to reproduce the bug. Developers often struggle with various of synchronization methods and subtle concurrent bugs. There are much research about concurrent programming in the literature such as concurrency bug detection \cite{conf/pldi/FlanaganF09},\cite{conf/kbse/KroeningPSW16},\cite{conf/pldi/FlanaganFY08}, concurrent programming model \cite{conf/java/Lea00},\cite{conf/oopsla/Bagherzadeh15} and empirical work \cite{conf/sosp/DavidGT13}. Rui Gu \cite{conf/sigsoft/GuJSZL15} studied change history of thread synchronization. Gustavo Pinto \cite{journals/jss/PintoTFFB15} did a large-scale study on the usage of Java’s concurrent programming constructs.
+Concurrent programs are pervasive in nowadays software development activities. Using concurrency rightly in programs can exploit the calculation ability better with the rapid development of multi-core system. However, concurrent programming is very hard \cite{journals/corr/McKenney17},\cite{journals/queue/SutterL05} because multiple threads, which access objects simultaneously or depend on each other, usually need complex synchronization and it is hard to debug concurrent programs for the uncertainty of thread interleaving which makes it difficult to reproduce the bug. Developers often struggle with various of synchronization methods and subtle concurrent bugs. There are much research about concurrent programming in the literature such as concurrency bug detection \cite{conf/pldi/FlanaganF09},\cite{conf/kbse/KroeningPSW16},\cite{conf/pldi/FlanaganFY08}, concurrent programming model \cite{conf/java/Lea00},\cite{conf/oopsla/Bagherzadeh15} and empirical work \cite{conf/sosp/DavidGT13}. Rui Gu et al \cite{conf/sigsoft/GuJSZL15} studied change history of thread synchronization. They focus on how critical sections are changed and how the changes solve performance problems and correctness problems. However, concurrency is not only reflected by critical sections, but also some other programming constructs like concurrent libirary usage, thread management. Gustavo Pinto et al \cite{journals/jss/PintoTFFB15} did a large-scale study on the usage of Java’s concurrent programming constructs. They investigated in a static view, but we would like to do it in a dynamic view - program changes.
 
-Software projects evolves during years because of new functionalities, bugs, reorganization of code. A few of open source software platforms like github has been more and more popular in recent years. They hold a huge amount of software projects and their historic versions. Researchers have shown that software evolution history can provide much useful information for today's software development activities. Many studies focus on topics of software evolution such as refactoring, transformation patterns. Gustavo Santos \cite{conf/icsm/SantosAEDV15} studied system specific, source code transformations.
+Software projects evolves during years because of new functionalities, bugs, reorganization of code. A few of open source software platforms like github has been more and more popular in recent years. They hold a huge amount of software projects and their historic versions. Researchers have shown that software evolution history can provide much useful information for today's software development activities. Many studies focus on topics of software evolution such as refactoring, transformation patterns. Gustavo Santos et al \cite{conf/icsm/SantosAEDV15} studied system specific, source code transformations. However, the change patterns of concurrent programs are less studied.
 
-We studied concurrent programs from a perspective of software evolution history and found many change patterns about concurrent programming.
+We studied concurrent programs from a perspective of software evolution history and found many change patterns about concurrent programming. Understanding concurrent program change patterns is very beneficial.
+
+(1) Developers are facing many concurrent programming requirements now. But concurrent programming is notoriously error-prone because of the complexity of data synchronization and thread interleaving. Our study gives developers some guidelines of writing concurrent programs. First, use handy concurrent libraries to finish the job instead of rewrite them by yourself unless all the available concurrent libraries cannot satisfy your requirement and you are absolutely confident of your comcurrent programming skills. Using existing libraries allows you to  write less code to finish the same work and enjoy the high quality of implementation which is always reliable, strong and fast. Second, always switch to new-version libraries because they usually provide higher performance and robustness.
+
+(2) Automatic tools are needed to help developers inspect and revise concurrent programs with the help of history information. They can learn from existing change patterns. There has already been some tools, but they usually look for concurrent bugs such as race detection, deadlock detection and atomicity violation without considering software evolution history. Both project specific and project independent transformation patterns exist in real-world software projects. So we need some concurrent code refactoring tools to give advice of what code need change and perform the transformations automatically. It is a chance for IDE manufacturer to make the IDE more intelligent in inspecting and modifying the code. Developers will benefit a lot if such kind of automatic tools can actually help them automate their development and maintaining activities.
 
 However, this work has to face several challenges:
 
-1. The scale of open source software is increasing explosively as a result of some open source code platforms have become more and more popular. The change history of the open source software is also vast. Our interest is concurrent related commit, but they are hidden in the massive commit history. It requires much time and effort to identify whether a commit is concurrent related or not if doing it manually. We would like to adopt some automatic methods. Simple keyword matching algorithm will not work well because some commits just add or remove functionalities rather than modify original code.
+(1) The scale of open source software is increasing explosively as a result of some open source code platforms have become more and more popular. The change history of the open source software is also vast. Our interest is concurrent related commit, but they are hidden in the massive commit history. It requires much time and effort to identify whether a commit is concurrent related or not if doing it manually. We would like to adopt some automatic methods. Simple keyword matching algorithm will not work well because some commits just add or remove functionalities rather than modify original code.
 
-2. The changes of code usually have complex relationship with the context not only in the file where change happens but also other files. Some change patterns have implicit dependency on the existing code. This raises a challenge to identify real change patterns which can be applied to other context correctly.
+(2) The changes of code usually have complex relationship with the context not only in the file where change happens but also other files. Some change patterns have implicit dependency on the existing code. This raises a challenge to identify real change patterns which can be applied to other context correctly.
 
 Our main contributions are:
 
-1. 
+(1) We identify and classify change patterns in concurrent programs and observe some interesting findings.
 
-2. We identify and classify change patterns in concurrent code and observe some interesting findings.
+(2) We adopt some change patterns to real software projects and our requests are accepted.
 
-3. We give some inspirations to concurrent program or library developers and analysis tool developers.
+(3) We give some inspirations to concurrent program or library developers and analysis tool developers.
 
 The rest of paper is organized as follows: Section 2 presents the methodology of our study. Section 3 presents our result and discussion. Section 4 presents related work. Section 5 presents future work and Section 6 concludes.
 
@@ -573,6 +577,21 @@ isFinished = true;
 
 This is an example from flink. It is a critical bug issue "Deadlock during partition spilling". A user reported the problem. The developer wrote a detailed message, which describes the problem, reason and solution.
 
+\textbf{Add synchronization}
+\begin{lstlisting}
+commit 17206cc8c21c439d121a66d7c9934cdfa4791a35
+Author: Mark Thomas <markt@apache.org>
+Date:   Wed Sep 16 13:37:35 2015 +0000
+
+Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58386
+On the basis that access() and finish() are synchronized, extend synchronization to other methods that access same fields.
+
+-    public boolean isAccessed() {
++    public synchronized boolean isAccessed() {
+       return this.accessed;
+     }
+\end{lstlisting}
+
 \textbf{Type of lock}
 \begin{lstlisting}
 commit fad9609d13e76e9e3a4e01c96f698bb60b03807e
@@ -649,6 +668,31 @@ Date:   Tue Sep 15 12:41:35 2015 +0000
 
 This is another example. The lock variable is originally the monitor of the object and now is membersLock.
 
+\textbf{Release lock}
+
+\textbf{Remove volatile}
+
+Volatile is a keyword of Java. It is used to mark a variable which should be saved in main memory. Any read or write operation of the variable should visit the main memory instead of only use cache. This provides visibility of the latest value of variable across multiple threads. 
+
+\textbf{Add volatile}
+
+\begin{lstlisting}
+commit 8313fa0f1ca277e9633a78f461804abc3c5515b8
+Author: Mark Thomas <markt@apache.org>
+Date:   Thu Sep 17 09:26:08 2015 +0000
+
+Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58392
+Double-checked locking needs to use volatile to be thread-safe
+...
+-    protected Membership membership = null;
++    protected volatile Membership membership = null;
+\end{lstlisting}
+It is a commit for bug 58392 in Bugzilla. It is reported by a race detector that there is data race on field. Double checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like forgetting 'volatile' modifier of the member of object in Java.
+
+\textbf{Class replace}
+
+
+
 \textbf{Thread-safe class}
 \begin{lstlisting}
 commit a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
@@ -697,6 +741,12 @@ public final boolean fileExists(String name) {
 
 This commit is from lucene-solr. It is a commit for LUCENE-2779 which is a minor-priority improvement. It is better to use a thread-safe version collection ConcurrentHashMap instead of using HashMap and synchronizing the access code. This thread-safe class not only simplify the way of using a hash map, but also improve the performance compared to manual synchronization like the example. It supports full concurrency of retrievals and high expected concurrency for updates.
 
+\textbf{Thread management}
+
+\textbf{Thread sleep wait notify}
+
+\textbf{Final in multiple threads}
+
 \textbf{Example 3}
 \begin{lstlisting}
 commit 470c87dbc6c24dd3b370f1ad9e7ab1f6dabd2080
@@ -724,22 +774,6 @@ This example shows a switch from ThreadLocal$<$Random$>$ to ThreadLocalRandom fr
 
 The following are concurrency control examples:
 
-\textbf{Example 4}
-
-
-\textbf{Example 5}
-\begin{lstlisting}
-commit 8313fa0f1ca277e9633a78f461804abc3c5515b8
-Author: Mark Thomas <markt@apache.org>
-Date:   Thu Sep 17 09:26:08 2015 +0000
-
-Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58392
-Double-checked locking needs to use volatile to be thread-safe
-...
--    protected Membership membership = null;
-+    protected volatile Membership membership = null;
-\end{lstlisting}
-Double checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like forgetting 'volatile' modifier of the member of object in Java.
 
 \subsection{RQ2. How frequent do concurrent related code modification appear in different kinds of Java open-source projects?}
 
