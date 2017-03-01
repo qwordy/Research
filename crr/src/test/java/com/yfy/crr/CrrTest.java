@@ -18,6 +18,11 @@ public class CrrTest {
   }
 
   @Test
+  public void rq3() throws Exception {
+    new GitLogParser().parseAll();
+  }
+
+  @Test
   public void initTable() throws Exception {
     Db db = new Db();
     db.createTable("guava");

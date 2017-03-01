@@ -26,10 +26,14 @@ public class GitLogParser {
 
   private TaskType taskType;
 
+  private Map<String, Integer> rq3map, rq3map2;
+
   public GitLogParser() throws Exception {
     //db = new Db();
     //pw = new PrintWriter("../svm2/test");
     //pw2 = new PrintWriter("../svm/commitId");
+    rq3map = new HashMap<>();
+    rq3map2 = new HashMap<>();
   }
 
   public GitLogParser setTaskType(TaskType taskType) {
@@ -48,6 +52,11 @@ public class GitLogParser {
     //parse("guava"); // 2m 4m
     //p w.close();
     //pw2.close();
+    for (String key : rq3map.keySet())
+      Util.log(key + " " + rq3map.get(key));
+    Util.log("---");
+    for (String key : rq3map2.keySet())
+      Util.log(key + " " + rq3map2.get(key));
   }
 
   private void parse(String project) throws Exception {
@@ -151,6 +160,14 @@ public class GitLogParser {
           for (String word : words) {
             for (String key : ConcurrentKeywords.list)
               if (word.equals(key)) keyNum++;
+            // rq3
+            for (String key : ConcurrentKeywords.classList)
+              if (word.equals(key)) {
+                if (line.charAt(0) == '+')
+                  rq3map.put(key, rq3map.getOrDefault(key, 0) + 1);
+                else
+                  rq3map2.put(key, rq3map2.getOrDefault(key, 0) + 1);
+              }
           }
           if (line.charAt(0) == '+') {
             lineAdd++;

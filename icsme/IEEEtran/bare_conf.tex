@@ -313,6 +313,8 @@
 
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage{subfigure}
+\usepackage{graphicx}
 
 \begin{document}
 %
@@ -403,7 +405,9 @@ The abstract goes here.
 
 
 \section{Introduction}
-Concurrent programs are pervasive in nowadays software development activities. Using concurrency rightly in programs can exploit the calculation ability better with the rapid development of multi-core system. However, concurrent programming is very hard \cite{journals/corr/McKenney17},\cite{journals/queue/SutterL05} because multiple threads, which access objects simultaneously or depend on each other, usually need complex synchronization and it is hard to debug concurrent programs for the uncertainty of thread interleaving which makes it difficult to reproduce the bug. Developers often struggle with various of synchronization methods and subtle concurrent bugs. There are much research about concurrent programming in the literature such as concurrency bug detection \cite{conf/pldi/FlanaganF09},\cite{conf/kbse/KroeningPSW16},\cite{conf/pldi/FlanaganFY08}, concurrent programming model \cite{conf/java/Lea00},\cite{conf/oopsla/Bagherzadeh15} and empirical work \cite{conf/sosp/DavidGT13}. Rui Gu et al \cite{conf/sigsoft/GuJSZL15} studied change history of thread synchronization. They focus on how critical sections are changed and how the changes solve performance problems and correctness problems. However, concurrency is not only reflected by critical sections, but also some other programming constructs like concurrent libirary usage, thread management. Gustavo Pinto et al \cite{journals/jss/PintoTFFB15} did a large-scale study on the usage of Java’s concurrent programming constructs. They investigated in a static view, but we would like to do it in a dynamic view - program changes.
+Concurrent programs are pervasive in nowadays software development activities. Using concurrency rightly in programs can exploit the calculation ability better with the rapid development of multi-core system. However, concurrent programming is very hard \cite{journals/corr/McKenney17},\cite{journals/queue/SutterL05} because multiple threads, which access objects simultaneously or depend on each other, usually need complex synchronization and it is hard to debug concurrent programs for the uncertainty of thread interleaving which makes it difficult to reproduce the bug. Developers often struggle with various of synchronization methods and subtle concurrent bugs. There are much research about concurrent programming in the literature such as concurrency bug detection \cite{conf/pldi/FlanaganF09},\cite{conf/kbse/KroeningPSW16},\cite{conf/pldi/FlanaganFY08}, concurrent programming model \cite{conf/java/Lea00},\cite{conf/oopsla/Bagherzadeh15} and empirical work \cite{conf/sosp/DavidGT13}.
+
+Rui Gu et al \cite{conf/sigsoft/GuJSZL15} studied change history of thread synchronization. They focus on how critical sections are changed and how the changes solve performance problems and correctness problems. However, concurrency is not only reflected by critical sections, but also some other programming constructs like concurrent libirary usage, thread management. Gustavo Pinto et al \cite{journals/jss/PintoTFFB15} did a large-scale study on the usage of Java’s concurrent programming constructs. They investigated in a static view, but we would like to do it in a dynamic view - program changes.
 
 Software projects evolves during years because of new functionalities, bugs, reorganization of code. A few of open source software platforms like github has been more and more popular in recent years. They hold a huge amount of software projects and their historic versions. Researchers have shown that software evolution history can provide much useful information for today's software development activities. Many studies focus on topics of software evolution such as refactoring, transformation patterns. Gustavo Santos et al \cite{conf/icsm/SantosAEDV15} studied system specific, source code transformations. However, the change patterns of concurrent programs are less studied.
 
@@ -776,6 +780,20 @@ The following are concurrency control examples:
 
 
 \subsection{RQ2. How frequent do concurrent related code modification appear in different kinds of Java open-source projects?}
+
+\begin{figure*}
+\centering
+\subfigure{\includegraphics[height=1.2in]{cassandra}}
+\subfigure{\includegraphics[height=1.2in]{flink}}
+\subfigure{\includegraphics[height=1.2in]{hadoop}}
+\subfigure{\includegraphics[height=1.2in]{lucene-solr}}
+\subfigure{\includegraphics[height=1.2in]{mahout}}
+\subfigure{\includegraphics[height=1.2in]{netty}}
+\subfigure{\includegraphics[height=1.2in]{tomcat}}
+\caption{Number of concurrent related changes}
+\end{figure*}
+
+We count the number of concurrent related commits of each month in all the projects of our study. The number of concurrent related commits is relatively small compared to the number of all commits as we can see in Figure 1. The two indexes have a positive correlation generally.
 
 \subsection{RQ3. What is the trend of concurrent programming construct usage statistically?}
 

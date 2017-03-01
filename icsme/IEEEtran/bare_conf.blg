@@ -1,33 +1,8 @@
 This is BibTeX, Version 0.99dThe top-level auxiliary file: bare_conf.aux
 The style file: IEEEtran.bst
 Database file #1: bare_conf.bib
-A bad cross reference---entry "conf/pldi/FlanaganF09"
-refers to entry "DBLP:conf/pldi/2009", which doesn't exist
-A bad cross reference---entry "conf/kbse/KroeningPSW16"
-refers to entry "DBLP:conf/kbse/2016", which doesn't exist
-A bad cross reference---entry "conf/pldi/FlanaganFY08"
-refers to entry "DBLP:conf/pldi/2008", which doesn't exist
-A bad cross reference---entry "conf/oopsla/Bagherzadeh15"
-refers to entry "DBLP:conf/oopsla/2015c", which doesn't exist
-A bad cross reference---entry "conf/sosp/DavidGT13"
-refers to entry "DBLP:conf/sosp/2013", which doesn't exist
-A bad cross reference---entry "conf/sigsoft/GuJSZL15"
-refers to entry "DBLP:conf/sigsoft/2015", which doesn't exist
-A bad cross reference---entry "conf/icsm/SantosAEDV15"
-refers to entry "DBLP:conf/icsm/2015", which doesn't exist
-A bad cross reference---entry "conf/icse/TianLL12"
-refers to entry "DBLP:conf/icse/2012", which doesn't exist
-Warning--I didn't find a database entry for "DBLP:conf/pldi/2009"
-Warning--I didn't find a database entry for "DBLP:conf/kbse/2016"
-Warning--I didn't find a database entry for "DBLP:conf/pldi/2008"
-Warning--I didn't find a database entry for "DBLP:conf/oopsla/2015c"
-Warning--I didn't find a database entry for "DBLP:conf/sosp/2013"
-Warning--I didn't find a database entry for "DBLP:conf/icse/2012"
-Warning--I didn't find a database entry for "DBLP:conf/icsm/2015"
-Warning--I didn't find a database entry for "DBLP:conf/sigsoft/2015"
 -- IEEEtran.bst version 1.12 (2007/01/11) by Michael Shell.
 -- http://www.michaelshell.org/tex/ieeetran/bibtex/
 -- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
 
 Done.
-(There were 8 error messages)
