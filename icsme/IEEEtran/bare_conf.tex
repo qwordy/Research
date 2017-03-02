@@ -596,7 +596,14 @@ On the basis that access() and finish() are synchronized, extend synchronization
      }
 \end{lstlisting}
 
-\textbf{Type of lock}
+\textbf{Change of lock type}
+
+Lock is a mechanism to synchronize shared resources when multiple threads access them concurrently. A lock usually allows only one thread to gain the lock at a time and then access the shared resources. Java and its standard library provide many different types of locks. Third-party libraries also provide this kind of facilities. Developers need think of which type of lock should be used during the software development and evolution.
+
+Java has a keyword 'synchronized', which can synchronize a block of code as a synchronized block on a monitor object. This keyword can be used to mark both methods and code blocks. It is a special kind of lock for every object has a implicit monitor lock. We do not need to acquire and release locks manually. We do not need to worry about forgetting release locks in a 'finally' block. It is easier for programmers to deal concurrency with 'synchronized' rather than explicit locks.
+
+Although 'synchronized' keyword is convenient and straightforward, we need explicit locks when we have more requirements. 
+
 \begin{lstlisting}
 commit fad9609d13e76e9e3a4e01c96f698bb60b03807e
 Author: Jian He <jianhe@apache.org>
@@ -790,7 +797,7 @@ The following are concurrency control examples:
 \subfigure{\includegraphics[height=1.2in]{mahout}}
 \subfigure{\includegraphics[height=1.2in]{netty}}
 \subfigure{\includegraphics[height=1.2in]{tomcat}}
-\caption{Number of concurrent related changes}
+\caption{Number of concurrent related commits compared to all commits}
 \end{figure*}
 
 We count the number of concurrent related commits of each month in all the projects of our study. The number of concurrent related commits is relatively small compared to the number of all commits as we can see in Figure 1. The two indexes have a positive correlation generally.
