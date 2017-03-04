@@ -508,9 +508,9 @@ We use the SVM\cite{journals/ml/CortesV95} algorithm to train and classify commi
 
 \subsection{RQ1. How many types of change patterns in concurrent programming?}
 
-\textbf{Taxonomy} There are so many different concurrent related changes in the code history. We divide them into several types according to their properties. The types include change of lock type, change of lock variable, synchronization addition, synchronization removal, lock release, volatile addition, volatile removal, class replacement, thread-safe class replacement, thread management, thread status management, 
+\textbf{Taxonomy} There are so many different concurrent related changes in the code history. We divide them into several types according to their properties. Our taxonomy is based on observed behaviour of code changes. It can also be decided by purposes of code changes. But purpose is a subjective concept and it is more difficult to determine why the changes are made. The taxonomy includes change of lock type, change of lock variable, synchronization addition, synchronization removal, lock release, volatile addition, volatile removal, class replacement, thread-safe class replacement, thread management, thread status management, 
 
-We are going to talk about these change types with examples next.
+We are going to talk about these change types concretely with examples next.
 
 \lstset{language=java, numbers=left, breaklines=true,  basicstyle=\ttfamily\tiny, keywordstyle=\color{blue}\bf\ttfamily, xleftmargin=3em, tabsize=2}
 
@@ -548,7 +548,7 @@ This is a commit of YARN-5825 - ProportionalPreemptionalPolicy could use readLoc
 
 \textbf{Change of lock variable}
 
-No matter explicit locks or 'synchronize' keyword, 
+No matter explicit locks or 'synchronize' keyword, we always need a lock variable to be acquired and released. 
 
 \begin{lstlisting}
 commit 563e546236217dace58a8031d56d08a27e08160b
