@@ -79,4 +79,9 @@ C.-C. Chang and C.-J. Lin, ``{LIBSVM}: A library for support vector machines,''
   27:1--27:27, 2011, software available at
   \url{http://www.csie.ntu.edu.tw/~cjlin/libsvm}.
 
+\bibitem{journals/cacm/EswarranGLT76}
+K.~P. Eswaran, J.~Gray, R.~A. Lorie, and I.~L. Traiger, ``The notions of
+  consistency and predicate locks in a database system,'' \emph{Commun. {ACM}},
+  vol.~19, no.~11, pp. 624--633, 1976.
+
 \end{thebibliography}

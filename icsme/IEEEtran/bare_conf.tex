@@ -545,7 +545,7 @@ This is a commit of YARN-5825 - ProportionalPreemptionalPolicy could use readLoc
 
 \textbf{Change of lock variable}
 
-No matter explicit locks or 'synchronize' keyword, we always need a lock variable to be acquired and released. It is important to choose the right lock variable to use and the order to use more than one lock. There are some best practice like two-phase locking, which is a locking method to guarantee serializability. It is usually used in database transaction management. The method is relatively simple to understand. It has two phases: the first is expanding phase where you can only acquire locks and the second is shrinking phase where you can only release locks. You can access data between the two phases.
+No matter explicit locks or 'synchronize' keyword, we always need a lock variable to be acquired and released. It is important to choose the right lock variable to use and the order to use more than one lock. There are some best practice like two-phase locking \cite{journals/cacm/EswarranGLT76}, which is a locking method to guarantee serializability. It is usually used in database transaction management. The method is relatively simple to understand. It has two phases: the first is expanding phase where you can only acquire locks and the second is shrinking phase where you can only release locks. You can access data between the two phases.
 
 \begin{lstlisting}
 commit 563e546236217dace58a8031d56d08a27e08160b
@@ -570,7 +570,7 @@ public FutureTask<Path> createTmpFile(String name, DistributedCacheEntry entry, 
 }
 \end{lstlisting}
 
-This is a commit of FLINK-1419 - DistributedCache doesn't preserver files for subsequent operations. It is a major bug. The description said that 
+This is a commit of FLINK-1419 - DistributedCache doesn't preserver files for subsequent operations, which is a major bug. The description said that 
 
 \begin{lstlisting}
 commit f0e627bb8c9daedb3b064027cac37ce4849bab64
