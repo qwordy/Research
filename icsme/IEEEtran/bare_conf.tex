@@ -520,13 +520,10 @@ Lock is a mechanism to synchronize shared resources when multiple threads access
 
 Java has a keyword 'synchronized', which can synchronize a block of code as a synchronized block on a monitor object. This keyword can be used to mark both methods and code blocks. It is a special kind of lock for every object has a implicit monitor lock. We do not need to acquire and release locks manually. We do not need to worry about forgetting release locks in a 'finally' block. It is easier for programmers to deal concurrency with 'synchronized' rather than explicit locks.
 
-Although 'synchronized' keyword is convenient and straightforward, we need explicit locks when we have more requirements. Java has ReentrantLock and ReentrantReadWriteLock. //todo
+Although 'synchronized' keyword is convenient and straightforward, we need explicit locks when we have more requirements. Java has ReentrantLock and ReentrantReadWriteLock. ReentrantLock is a reentrant lock, which means a lock can be acquired repeatedly in the same thread. It is a exclusive lock with the similar behaviour as monitor lock but has more features. ReadWriteLock is a pair of locks, which allows concurrent access to read operations when there is no write operation going on but exclusive access to write operations. //todo
 
 \begin{lstlisting}
 commit fad9609d13e76e9e3a4e01c96f698bb60b03807e
-Author: Jian He <jianhe@apache.org>
-Date:   Fri Nov 11 15:00:16 2016 -0800
-
 YARN-5825. ProportionalPreemptionalPolicy should use readLock over LeafQueue instead of synchronized block. Contributed by Sunil G
 
 -      synchronized (leafQueue) {
@@ -544,17 +541,14 @@ totalPreemptionAllowed);
 }
 \end{lstlisting}
 
-This is a commit of YARN-5825 - ProportionalPreemptionalPolicy could use readLock over LeafQueue instead of synchronized block. It is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a read lock. There are many different locks which can be used to synchronize. A read lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously.
+This is a commit of YARN-5825 - ProportionalPreemptionalPolicy could use readLock over LeafQueue instead of synchronized block. They think it is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a read lock. There are many different locks which can be used to synchronize. A read lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance.
 
 \textbf{Change of lock variable}
 
-No matter explicit locks or 'synchronize' keyword, we always need a lock variable to be acquired and released. 
+No matter explicit locks or 'synchronize' keyword, we always need a lock variable to be acquired and released. It is important to choose the right lock variable to use and the order to use more than one lock. There are some best practice like two-phase locking, which is a locking method to guarantee serializability. It is usually used in database transaction management. The method is relatively simple to understand. It has two phases: the first is expanding phase where you can only acquire locks and the second is shrinking phase where you can only release locks. You can access data between the two phases.
 
 \begin{lstlisting}
 commit 563e546236217dace58a8031d56d08a27e08160b
-Author: zentol <s.motsu@web.de>
-Date:   Mon Jan 26 11:07:53 2015 +0100
-
 [FLINK-1419] [runtime] Fix: distributed cache properly synchronized
 
 public FutureTask<Path> createTmpFile(String name, DistributedCacheEntry entry, JobID jobID) {
@@ -569,10 +563,10 @@ public FutureTask<Path> createTmpFile(String name, DistributedCacheEntry entry, 
 +      Map<String, Integer> count = jobCounts.get(jobID);
 +      if (count.containsKey(name)) {
 +        count.put(name, count.get(name) + 1);
-} else {
+       } else {
 -        count.put(key, 1);
 +        count.put(name, 1);
-}
+       }
 }
 \end{lstlisting}
 
