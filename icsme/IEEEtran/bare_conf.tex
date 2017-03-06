@@ -570,12 +570,12 @@ public FutureTask<Path> createTmpFile(String name, DistributedCacheEntry entry, 
 }
 \end{lstlisting}
 
-This is a commit of FLINK-1419 - DistributedCache doesn't preserver files for subsequent operations, which is a major bug. The description said that 
+This is a commit of FLINK-1419 - DistributedCache doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the DistributedCache.
 
 \begin{lstlisting}
 commit f0e627bb8c9daedb3b064027cac37ce4849bab64
-Author: Mark Thomas <markt@apache.org>
-Date:   Tue Sep 15 12:41:35 2015 +0000
+Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58382
+Use single object (membersLock) for all locking
 
 /**
 * Reset the membership and start over fresh. i.e., delete all the members
@@ -592,9 +592,12 @@ Date:   Tue Sep 15 12:41:35 2015 +0000
 }
 \end{lstlisting}
 
-This is another example. The lock variable is originally the monitor of the object and now is membersLock.
+This is another example. The lock variable is originally the monitor of the object and now is membersLock. They turned to use single object (membersLock) for all locking as the commit message said. 
 
 \textbf{Synchronization removal}
+
+Synchronization removal is a removal of critical section, which is usually not allowed to be executed by multiple threads. 
+
 \begin{lstlisting}
 commit 7e56bfe40589a1aa9b5ef20b342e421823cd0592
 Author: Suresh Srinivas <suresh@apache.org>
@@ -664,6 +667,9 @@ isFinished = true;
 This is an example from flink. It is a critical bug issue "Deadlock during partition spilling". A user reported the problem. The developer wrote a detailed message, which describes the problem, reason and solution.
 
 \textbf{Synchronization addition}
+
+Synchronization addition is a addition of critical section.
+
 \begin{lstlisting}
 commit 17206cc8c21c439d121a66d7c9934cdfa4791a35
 Author: Mark Thomas <markt@apache.org>
@@ -682,7 +688,7 @@ return this.accessed;
 
 \textbf{Volatile addition}
 
-Volatile is a keyword of Java. It is used to mark a variable which should be saved in main memory. Any read or write operation of the variable should visit the main memory instead of only use cache. This provides visibility of the latest value of variable across multiple threads. 
+Volatile addition is a addition of the volatile keyword. Volatile is a keyword of Java. It is used to mark a variable which should be saved in main memory. Any read or write operation of the variable should visit the main memory instead of only using cache. This provides visibility of the latest value of variable across multiple threads. 
 
 \begin{lstlisting}
 commit 8313fa0f1ca277e9633a78f461804abc3c5515b8
@@ -699,13 +705,16 @@ It is a commit for bug 58392 in Bugzilla. It is reported by a race detector that
 
 \textbf{Volatile removal}
 
-
+Volatile addition is a removal of the volatile keyword.
 
 \textbf{Class replace}
 
 
 
-\textbf{Thread-safe class}
+\textbf{Thread-safe class replacement}
+
+Thread-safe class replacement is an adoption of thread-safe class instead of handling the concurrency control by yourself. It is a very common category. 
+
 \begin{lstlisting}
 commit a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
 Author: Eli Collins <eli@apache.org>
@@ -755,11 +764,14 @@ This commit is from lucene-solr. It is a commit for LUCENE-2779 which is a minor
 
 \textbf{Thread management}
 
+Thread management is to deal with the management of thread-related resources.
+
 \textbf{Thread sleep wait notify}
+
+It is a another way of synchronization which is less common than locking.
 
 \textbf{Final in multiple threads}
 
-\textbf{Example 3}
 \begin{lstlisting}
 commit 470c87dbc6c24dd3b370f1ad9e7ab1f6dabd2080
 Author: Colin Patrick Mccabe <cmccabe@cloudera.com>
@@ -783,9 +795,6 @@ HADOOP-11970. Replace uses of ThreadLocal<Random> with JDK7 ThreadLocalRandom (S
 \end{lstlisting}
 
 This example shows a switch from ThreadLocal$<$Random$>$ to ThreadLocalRandom from JDK7. It is of the issue HADOOP-11970 which is a major improvement. This issue says that ThreadLocalRandom should be used when available in place of ThreadLocal<Random>. For JDK7 the difference is minimal, but JDK8 starts including optimizations for ThreadLocalRandom. The ThreadLocal class provides thread-local variables. The ThreadLocalRandom class is a random number generator isolated to the current thread since 1.7.
-
-The following are concurrency control examples:
-
 
 \subsection{RQ2. How frequent do concurrent related code modification appear in different kinds of Java open-source projects?}
 
