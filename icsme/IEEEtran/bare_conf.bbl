@@ -21,6 +21,11 @@
 \providecommand{\BIBdecl}{\relax}
 \BIBdecl
 
+\bibitem{journals/jss/PintoTFFB15}
+G.~Pinto, W.~Torres, B.~Fernandes, F.~C. Filho, and R.~S.~M. de~Barros, ``A
+  large-scale study on the usage of java's concurrent programming constructs,''
+  \emph{Journal of Systems and Software}, vol. 106, pp. 59--81, 2015.
+
 \bibitem{journals/corr/McKenney17}
 P.~E. McKenney, ``Is parallel programming hard, and, if so, what can you do
   about it? (v2017.01.02a),'' \emph{CoRR}, vol. abs/1701.00854, 2017.
@@ -28,6 +33,11 @@ P.~E. McKenney, ``Is parallel programming hard, and, if so, what can you do
 \bibitem{journals/queue/SutterL05}
 H.~Sutter and J.~R. Larus, ``Software and the concurrency revolution,''
   \emph{{ACM} Queue}, vol.~3, no.~7, pp. 54--62, 2005.
+
+\bibitem{conf/asplos/LuPSZ08}
+S.~Lu, S.~Park, E.~Seo, and Y.~Zhou, ``Learning from mistakes: a comprehensive
+  study on real world concurrency bug characteristics,'' in \emph{{ASPLOS}},
+  2008.
 
 \bibitem{conf/pldi/FlanaganF09}
 C.~Flanagan and S.~N. Freund, ``Fasttrack: efficient and precise dynamic race
@@ -52,14 +62,13 @@ M.~Bagherzadeh, ``Panini: a concurrent programming model with modular
 T.~David, R.~Guerraoui, and V.~Trigonakis, ``Everything you always wanted to
   know about synchronization but were afraid to ask,'' in \emph{{SOSP}}, 2013.
 
+\bibitem{conf/oopsla/PintoTC15}
+G.~Pinto, W.~Torres, and F.~Castor, ``A study on the most popular questions
+  about concurrent programming,'' in \emph{{PLATEAU@SPLASH}}, 2015.
+
 \bibitem{conf/sigsoft/GuJSZL15}
 R.~Gu, G.~Jin, L.~Song, L.~Zhu, and S.~Lu, ``What change history tells us about
   thread synchronization,'' in \emph{{ESEC/FSE}}, 2015.
-
-\bibitem{journals/jss/PintoTFFB15}
-G.~Pinto, W.~Torres, B.~Fernandes, F.~C. Filho, and R.~S.~M. de~Barros, ``A
-  large-scale study on the usage of java's concurrent programming constructs,''
-  \emph{Journal of Systems and Software}, vol. 106, pp. 59--81, 2015.
 
 \bibitem{conf/icsm/SantosAEDV15}
 G.~Santos, N.~Anquetil, A.~Etien, S.~Ducasse, and M.~T. Valente, ``System

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2016.11.9)  7 MAR 2017 05:28
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2016.11.9)  9 MAR 2017 22:14
 entering extended mode
 **./bare_conf.tex
 (bare_conf.tex
@@ -390,18 +390,18 @@ ith page group included in a single page
 pdfTeX warning: pdflatex.exe (file ./tomcat.pdf): PDF inclusion: multiple pdfs 
 with page group included in a single page
 >]
-Underfull \hbox (badness 3128) in paragraph at lines 77--81
+Underfull \hbox (badness 3128) in paragraph at lines 86--90
 []\OT1/ptm/m/n/8 C.-C. Chang and C.-J. Lin, ``LIB-SVM: A li-brary for sup-port
  []
 
 
-Underfull \hbox (badness 2042) in paragraph at lines 77--81
+Underfull \hbox (badness 2042) in paragraph at lines 86--90
 \OT1/ptm/m/n/8 vec-tor ma-chines,'' \OT1/ptm/m/it/8 ACM Trans-ac-tions on In-te
 l-li-gent Sys-tems and
  []
 
 
-Underfull \hbox (badness 2126) in paragraph at lines 77--81
+Underfull \hbox (badness 2126) in paragraph at lines 86--90
 \OT1/ptm/m/it/8 Tech-nol-ogy\OT1/ptm/m/n/8 , vol. 2, pp. 27:1--27:27, 2011, sof
 t-ware avail-able at
  []
@@ -422,10 +422,10 @@ Before submitting the final camera ready copy, remember to:
 
 ] (bare_conf.aux) ) 
 Here is how much of TeX's memory you used:
- 4582 strings out of 493334
- 68852 string characters out of 3139258
- 472625 words of memory out of 3000000
- 8063 multiletter control sequences out of 15000+200000
+ 4584 strings out of 493334
+ 68896 string characters out of 3139258
+ 473633 words of memory out of 3000000
+ 8065 multiletter control sequences out of 15000+200000
  41738 words of font info for 80 fonts, out of 3000000 for 9000
  1144 hyphenation exceptions out of 8191
  40i,8n,40p,1382b,1447s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -437,7 +437,7 @@ pe1/urw/courier/ucrro8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/
 utmb8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmbi8a.pfb><d:/P
 rogram Files/MiKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb><d:/Program Files/MiKT
 eX 2.9/fonts/type1/urw/times/utmri8a.pfb>
-Output written on bare_conf.pdf (7 pages, 230240 bytes).
+Output written on bare_conf.pdf (7 pages, 231220 bytes).
 PDF statistics:
  297 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
