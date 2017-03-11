@@ -28,12 +28,17 @@ public class GitLogParser {
 
   private Map<String, Integer> rq3map, rq3map2;
 
+  private RQ3 rq3;
+
+  private RevCommit commit;
+
   public GitLogParser() throws Exception {
     //db = new Db();
     //pw = new PrintWriter("../svm2/test");
     //pw2 = new PrintWriter("../svm/commitId");
     rq3map = new HashMap<>();
     rq3map2 = new HashMap<>();
+    rq3 = new RQ3();
   }
 
   public GitLogParser setTaskType(TaskType taskType) {
@@ -52,11 +57,14 @@ public class GitLogParser {
     //parse("guava"); // 2m 4m
     //p w.close();
     //pw2.close();
-    for (String key : rq3map.keySet())
-      Util.log(key + " " + rq3map.get(key));
-    Util.log("---");
-    for (String key : rq3map2.keySet())
-      Util.log(key + " " + rq3map2.get(key));
+
+//    for (String key : rq3map.keySet())
+//      Util.log(key + " " + rq3map.get(key));
+//    Util.log("---");
+//    for (String key : rq3map2.keySet())
+//      Util.log(key + " " + rq3map2.get(key));
+
+    rq3.print();
   }
 
   private void parse(String project) throws Exception {
@@ -78,6 +86,7 @@ public class GitLogParser {
     int commitCount = 0;
     while (it.hasNext()) {
       RevCommit commit = it.next();
+      this.commit = commit;
       commitCount++;
       //Util.log(commit.getFullMessage());
       Feature feature = feature(commit.name());
@@ -164,9 +173,11 @@ public class GitLogParser {
             for (String key : ConcurrentKeywords.classList)
               if (word.equals(key)) {
                 if (line.charAt(0) == '+')
-                  rq3map.put(key, rq3map.getOrDefault(key, 0) + 1);
+                  rq3.add(key, true, commit);
+                  //rq3map.put(key, rq3map.getOrDefault(key, 0) + 1);
                 else
-                  rq3map2.put(key, rq3map2.getOrDefault(key, 0) + 1);
+                  rq3.add(key, false, commit);
+                  //rq3map2.put(key, rq3map2.getOrDefault(key, 0) + 1);
               }
           }
           if (line.charAt(0) == '+') {
