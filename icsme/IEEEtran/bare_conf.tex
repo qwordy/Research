@@ -510,17 +510,19 @@ We use the SVM\cite{journals/ml/CortesV95} algorithm to train and classify commi
 
 \textbf{Taxonomy} There are so many different concurrent related changes in the code history. We divide them into several types according to their properties. Our taxonomy is based on observed behaviour of code changes. It can also be decided by purposes of code changes. But purpose is a subjective concept and it is more difficult to determine why the changes are made. The taxonomy includes change of lock type, change of lock variable, synchronization addition, synchronization removal, lock release, volatile addition, volatile removal, class replacement, thread-safe class replacement, thread management, thread status management, 
 
-We are going to talk about these change types concretely with examples next.
+We are going to talk about these change types concretely with examples in the following.
 
 \lstset{language=java, numbers=left, breaklines=true,  basicstyle=\ttfamily\tiny, keywordstyle=\color{blue}\bf\ttfamily, xleftmargin=3em, tabsize=2}
 
 \textbf{Change of lock type}
 
-Lock is a mechanism to synchronize shared resources when multiple threads access them concurrently. A lock usually allows only one thread to gain the lock at a time and then access the shared resources. Java and its standard library provide many different types of locks. Third-party libraries also provide this kind of facilities. Developers need think of which type of lock should be used during the software development and evolution.
+There are many types of locks in Java like implicit monitor lock, ReentrantLock, ReentrantReadWriteLock, StampedLock. Developers might switch to another type of lock in development and evolution. Lock is a mechanism to synchronize shared resources when multiple threads access them concurrently. Java and its standard library provide many different types of locks. Third-party libraries also provide this kind of facilities.
 
-Java has a keyword 'synchronized', which can synchronize a block of code as a synchronized block on a monitor object. This keyword can be used to mark both methods and code blocks. It is a special kind of lock for every object has a implicit monitor lock. We do not need to acquire and release locks manually. We do not need to worry about forgetting release locks in a 'finally' block. It is easier for programmers to deal concurrency with 'synchronized' rather than explicit locks.
+A implicit monitor lock is denoted by a Java keyword 'synchronized', which can synchronize a block of code as a synchronized block on a monitor object. This keyword can be used to mark both methods and code blocks. It is a special kind of lock for every object has a implicit monitor lock. We do not need to acquire and release locks manually. We do not need to worry about forgetting release locks in a 'finally' block. It is easier for programmers to deal concurrency with 'synchronized' rather than explicit locks.
 
-Although 'synchronized' keyword is convenient and straightforward, we need explicit locks when we have more requirements. Java has ReentrantLock and ReentrantReadWriteLock. ReentrantLock is a reentrant lock, which means a lock can be acquired repeatedly in the same thread. It is a exclusive lock with the similar behaviour as monitor lock but has more features. ReadWriteLock is a pair of locks, which allows concurrent access to read operations when there is no write operation going on but exclusive access to write operations. //todo
+ReentrantLock, ReentrantReadWriteLock, StampedLock are all API level locks in Java. Although 'synchronized' keyword is convenient and straightforward, we need other locks when we have more requirements. ReentrantLock is a reentrant lock, which means a lock can be acquired repeatedly in the same thread. It is a exclusive lock with the similar behaviour as monitor lock but has more features such as fairness, condition and tryLock. ReadWriteLock is a pair of locks, which allows concurrent access to read operations when there is no write operation going on but exclusive access to write operations. StampedLock is a lock which provides three modes, namely writing, reading and optimistic reading. This lock is usually used in design of thread-safe classes.
+
+The reasons of changes vary in different conditions. They might switch to a readlock from a normal lock when there are plenty of concurrent read operations or switch to a reentrant lock from synchronized keyword because the former offers more functions. Here is a example.
 
 \begin{lstlisting}
 commit fad9609d13e76e9e3a4e01c96f698bb60b03807e
@@ -542,6 +544,16 @@ totalPreemptionAllowed);
 \end{lstlisting}
 
 This is a commit of YARN-5825 - ProportionalPreemptionalPolicy could use readLock over LeafQueue instead of synchronized block. They think it is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a read lock. There are many different locks which can be used to synchronize. A read lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance.
+
+\begin{lstlisting}
+commit 3e4b1ae6dc786b268505aa2e64067432519c2bcf
+FRom kkolinko:
+A ReadWriteLock cannot be used to guard a WeakHashMap.  The
+WeakHashMap may modify itself on get(), as it processes the reference
+queue of items removed by GC.
+Either a plain old lock / synchronization is needed, or some other solution
+(e.g.  org.apache.tomcat.util.collections.ManagedConcurrentWeakHashMap )
+\end{lstlisting}
 
 \textbf{Change of lock variable}
 
@@ -810,7 +822,7 @@ This example shows a switch from ThreadLocal$<$Random$>$ to ThreadLocalRandom fr
 \caption{Number of concurrent related commits compared to all commits}
 \end{figure*}
 
-Figure 1 shows the numbers of concurrent related commits and all commits of each month in all projects of our study. It also shows the percentage of concurrent related commits. Each subfigure has two subsubfigures. The number of concurrent related commits is relatively small compared to the number of all commits as we can see in Figure 1. The two indexes have a positive correlation generally.
+Figure 1 shows the numbers of concurrent related commits and all commits of each month in all projects of our study. It also shows the percentage of concurrent related commits. Each subfigure has two subfigures inside. The x axis represents the time in month. The upper subfigure has two lines. The higher line shows the number of all commits while the lower line shows the number of concurrent related commits. The number of concurrent related commits is relatively small compared to the number of all commits. The two indexes have a positive correlation generally. The bottom subfigure shows the percentage of concurrent related commits. The percentages differ in project and time. For example, the percentage in mahout is relatively lower than other projects.
 
 \subsection{RQ3. What is the trend of concurrent programming construct usage statistically?}
 

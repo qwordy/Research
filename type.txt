@@ -1,5 +1,5 @@
 type of lock
-  1
+  1 143
 lock var
   23 44 66 94 102 112
 remove sync
@@ -9,17 +9,17 @@ add sync
 release lock
   79
 remove volatile
-  27 31 33 37 112 113 114 122
+  27 31 33 37 112 113 114 122 141 142
 add volatile
-  35 41 64 100 103 104 106 111 116 123 125
+  35 41 64 100 103 104 106 111 116 123 125 132 135 140
 class replace
   16
 concurrent class
   20
 thread-safe class
-  19 26 28 20 30 34 42 45 53 58 59 60 61 68 74 75 76 82 95 108 115
+  19 26 28 20 30 34 42 45 53 58 59 60 61 68 74 75 76 82 95 108 115 127 136 141 142
 thread manage
-  18
+  18 138
 thread sleep wait notify
   63 64 119 120
 final multiple threads
