@@ -411,9 +411,9 @@ Software evolution is another hot topic in software engineering research. Softwa
 
 Rui Gu et al \cite{conf/sigsoft/GuJSZL15} studied change history of thread synchronization. They checked 250,000 revisions of four open-source projects to figure out how critical sections change. They also conducted case studies to understand how the changes solve performance problems and correctness problems. However, concurrency is not only reflected by critical sections, but also some other programming constructs like concurrent libirary usage, thread resource management. Study on critical sections are not enough to understand real-world thread synchronization.
 
-Gustavo Pinto et al \cite{journals/jss/PintoTFFB15} did a large-scale study on the usage of Java’s concurrent programming constructs. They checked the usage of concurrent programming constructs in a large base of code. They had many findings such as the adoption of concurrent package of Java is moderate (23\% concurrent projects use it). But we all know that software is changing very fast.
+Gustavo Pinto et al \cite{journals/jss/PintoTFFB15} did a large-scale study on the usage of Java’s concurrent programming constructs. They checked the usage of concurrent programming constructs in a large base of code. They had many findings such as more than 75\% of the projects create threads of do some concurrency control and the adoption of concurrent package of Java is moderate (23\% concurrent projects use it). But we all know that software is changing. Numerous commits are submited every day. We want to know not only the usage of concurrent programming, but also the trend of it.
 
-Gustavo Santos et al \cite{conf/icsm/SantosAEDV15} studied system specific, source code transformations. However, the change patterns of concurrent programs are less studied.
+Gustavo Santos et al \cite{conf/icsm/SantosAEDV15} studied system specific, source code transformations. They found some sequences of changes are systematic. They defined them as transformation patterns. They identified some transformation patterns in real world software and studied their properties like they are system specific, or they were applied in a manual way. However, the change patterns of concurrent programs are less studied.
 
 We studied concurrent programs from a perspective of software evolution history and found many change patterns about concurrent programming. Understanding concurrent program change patterns is very beneficial.
 
@@ -475,7 +475,7 @@ Java programming language provides convenient built-in concurrent libraries and 
 
 Java programming language offers many handy facilities for building concurrent programs. For example, language level constructs like synchronized and volatile are keywords of Java.  There are also API level constructs like notify method of an object and some concurrent related convenient classes such as the java.util.concurrent package. There are always more than one ways to finish a task in Java and the preferences of developers evolves fast. We are interested in  the trend of some common concurrent related constructs and the reasons hidden behind the phenomenon.
 
-\textbf{RQ4.} How can these change patterns in history guide the future development?
+\textbf{RQ4.} Is there any context in real-world projects to which we can apply these change patterns?
 
 In order to better demonstrate these change patterns can really help developers understand concurrent programming practice and apply the practice to their projects, we are going to find the appropriate context in open-source projects and pull requests of applying the change patterns. We are insterested to see that how developers will accept our code change suggestions.
 
@@ -870,8 +870,7 @@ Figure 1 shows the numbers of concurrent related commits and all commits of each
 
 We write a program to count and analyze concurrent programming classes usage. Table IV shows top 10 classes added and deleted in the history. Some classes are both active in the added and the deleted column like AtomicInteger and CountDownLatch. This is not surprising because a deletion of class does not mean this class is abandoned. This also indicates this class is active. An interesting observation is that deletions appear more than addition.
 
-\subsection{RQ4. How can these change patterns in history guide the future development?}
-
+\subsection{RQ4. Is there any context in real-world projects to which we can apply these change patterns?}
 
 
 \subsection{Threats to Validity}
@@ -890,9 +889,6 @@ We also have some interesting findings in collecting and analyzing the concurren
 (2) Developers are using some code-checking tools like findbugs to help them inspect their code.
 
 The examples above show that some developers are using code checking tools like findbugs. But these kind of tools don't help developers correct and eliminate the warnings automatically. One developer in Tomcat said "make the volatile anyway so FindBugs doesn't complain" in the commit log.
-
-
-(3) 
 
 This research provides some implications from different kinds of perspectives.
 
