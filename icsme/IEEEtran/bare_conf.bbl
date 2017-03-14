@@ -66,6 +66,30 @@ T.~David, R.~Guerraoui, and V.~Trigonakis, ``Everything you always wanted to
 G.~Pinto, W.~Torres, and F.~Castor, ``A study on the most popular questions
   about concurrent programming,'' in \emph{{PLATEAU@SPLASH}}, 2015.
 
+\bibitem{conf/icsm/Borges16}
+H.~Borges, ``On the popularity of github software,'' in \emph{{ICSME}}.
+
+\bibitem{conf/icsm/BorgesHV16}
+H.~Borges, A.~C. Hora, and M.~T. Valente, ``Understanding the factors that
+  impact the popularity of github repositories,'' in \emph{{ICSME}}.
+
+\bibitem{conf/icse/KimBDA16}
+J.~Kim, D.~S. Batory, D.~Dig, and M.~Azanza, ``Improving refactoring speed by
+  10x,'' in \emph{{ICSE}}, 2016.
+
+\bibitem{conf/icsm/WahlerDS16}
+M.~Wahler, U.~Drofenik, and W.~Snipes, ``Improving code maintainability: {A}
+  case study on the impact of refactoring,'' in \emph{{ICSME}}, 2016.
+
+\bibitem{conf/wcre/JiangPWXZ15}
+Q.~Jiang, X.~Peng, H.~Wang, Z.~Xing, and W.~Zhao, ``Summarizing evolutionary
+  trajectory by grouping and aggregating relevant code changes,'' in
+  \emph{{SANER}}, 2015.
+
+\bibitem{conf/icse/MengKM13}
+N.~Meng, M.~Kim, and K.~S. McKinley, ``{LASE:} locating and applying systematic
+  edits by learning from examples,'' in \emph{{ICSE}}.
+
 \bibitem{conf/sigsoft/GuJSZL15}
 R.~Gu, G.~Jin, L.~Song, L.~Zhu, and S.~Lu, ``What change history tells us about
   thread synchronization,'' in \emph{{ESEC/FSE}}, 2015.
@@ -92,5 +116,9 @@ C.-C. Chang and C.-J. Lin, ``{LIBSVM}: A library for support vector machines,''
 K.~P. Eswaran, J.~Gray, R.~A. Lorie, and I.~L. Traiger, ``The notions of
   consistency and predicate locks in a database system,'' \emph{Commun. {ACM}},
   vol.~19, no.~11, pp. 624--633, 1976.
+
+\bibitem{conf/sigsoft/OkurD12}
+S.~Okur and D.~Dig, ``How do developers use parallel libraries?'' in
+  \emph{{FSE}}.
 
 \end{thebibliography}

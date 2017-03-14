@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2016.11.9)  13 MAR 2017 22:59
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2016.11.9)  14 MAR 2017 13:29
 entering extended mode
 **./bare_conf.tex
 (bare_conf.tex
@@ -290,83 +290,79 @@ Missing character: There is no ™ in font ptmr7t!
 
 ]
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 444.
+(Font)              <8> on input line 450.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 444.
+(Font)              <6> on input line 450.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 444.
+(Font)              <5> on input line 450.
  [2]
-Underfull \vbox (badness 2875) has occurred while \output is active []
+Underfull \vbox (badness 1297) has occurred while \output is active []
 
 
 ("d:\Program Files\MiKTeX 2.9\tex\latex\listings\lstlang1.sty"
 File: lstlang1.sty 2015/06/04 1.6 listings language file
-)
-LaTeX Font Info:    Try loading font information for OT1+pcr on input line 527.
+) [3]
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 549.
 
 
 ("d:\Program Files\MiKTeX 2.9\tex\latex\psnfss\ot1pcr.fd"
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
 LaTeX Font Info:    Font shape `OT1/pcr/bx/n' in size <5> not available
-(Font)              Font shape `OT1/pcr/b/n' tried instead on input line 529.
- [3]
+(Font)              Font shape `OT1/pcr/b/n' tried instead on input line 551.
 LaTeX Font Info:    Font shape `OT1/pcr/m/it' in size <5> not available
-(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 534.
- [4]
+(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 556.
+ [4] [5]
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 809.
+(Font)              <7> on input line 833.
 
-Underfull \hbox (badness 2005) in paragraph at lines 809--810
+Underfull \hbox (badness 2005) in paragraph at lines 833--834
 \OT1/ptm/m/n/10 to Thread-Lo-cal-Ran-dom from JDK7. It is of the is-sue
  []
 
-<cassandra.pdf, id=21, 462.52798pt x 346.89601pt>
+<cassandra.pdf, id=24, 462.52798pt x 346.89601pt>
 File: cassandra.pdf Graphic file (type pdf)
  <use cassandra.pdf>
-Package pdftex.def Info: cassandra.pdf used on input line 815.
+Package pdftex.def Info: cassandra.pdf used on input line 839.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
-<flink.pdf, id=22, 462.52798pt x 346.89601pt>
+<flink.pdf, id=25, 462.52798pt x 346.89601pt>
 File: flink.pdf Graphic file (type pdf)
  <use flink.pdf>
-Package pdftex.def Info: flink.pdf used on input line 816.
+Package pdftex.def Info: flink.pdf used on input line 840.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
-<hadoop.pdf, id=23, 462.52798pt x 346.89601pt>
+<hadoop.pdf, id=26, 462.52798pt x 346.89601pt>
 File: hadoop.pdf Graphic file (type pdf)
  <use hadoop.pdf>
-Package pdftex.def Info: hadoop.pdf used on input line 817.
+Package pdftex.def Info: hadoop.pdf used on input line 841.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
-<lucene-solr.pdf, id=24, 462.52798pt x 346.89601pt>
+<lucene-solr.pdf, id=27, 462.52798pt x 346.89601pt>
 File: lucene-solr.pdf Graphic file (type pdf)
  <use lucene-solr.pdf>
-Package pdftex.def Info: lucene-solr.pdf used on input line 818.
+Package pdftex.def Info: lucene-solr.pdf used on input line 842.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
-<mahout.pdf, id=25, 462.52798pt x 346.89601pt>
+<mahout.pdf, id=28, 462.52798pt x 346.89601pt>
 File: mahout.pdf Graphic file (type pdf)
  <use mahout.pdf>
-Package pdftex.def Info: mahout.pdf used on input line 819.
+Package pdftex.def Info: mahout.pdf used on input line 843.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
-<netty.pdf, id=26, 462.52798pt x 346.89601pt>
+<netty.pdf, id=29, 462.52798pt x 346.89601pt>
 File: netty.pdf Graphic file (type pdf)
  <use netty.pdf>
-Package pdftex.def Info: netty.pdf used on input line 820.
+Package pdftex.def Info: netty.pdf used on input line 844.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
-<tomcat.pdf, id=27, 462.52798pt x 346.89601pt>
+<tomcat.pdf, id=30, 462.52798pt x 346.89601pt>
 File: tomcat.pdf Graphic file (type pdf)
  <use tomcat.pdf>
-Package pdftex.def Info: tomcat.pdf used on input line 821.
+Package pdftex.def Info: tomcat.pdf used on input line 845.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
-
-Underfull \vbox (badness 1515) has occurred while \output is active []
-
- [5]
-[6 <./cassandra.pdf> <./flink.pdf
+ [6]
+(bare_conf.bbl [7 <./cassandra.pdf> <./flink.pdf
 
 pdfTeX warning: pdflatex.exe (file ./flink.pdf): PDF inclusion: multiple pdfs w
 ith page group included in a single page
@@ -390,19 +386,19 @@ ith page group included in a single page
 
 pdfTeX warning: pdflatex.exe (file ./tomcat.pdf): PDF inclusion: multiple pdfs 
 with page group included in a single page
->] (bare_conf.bbl
-Underfull \hbox (badness 3128) in paragraph at lines 86--90
+>]
+Underfull \hbox (badness 3128) in paragraph at lines 110--114
 []\OT1/ptm/m/n/8 C.-C. Chang and C.-J. Lin, ``LIB-SVM: A li-brary for sup-port
  []
 
 
-Underfull \hbox (badness 2042) in paragraph at lines 86--90
+Underfull \hbox (badness 2042) in paragraph at lines 110--114
 \OT1/ptm/m/n/8 vec-tor ma-chines,'' \OT1/ptm/m/it/8 ACM Trans-ac-tions on In-te
 l-li-gent Sys-tems and
  []
 
 
-Underfull \hbox (badness 2126) in paragraph at lines 86--90
+Underfull \hbox (badness 2126) in paragraph at lines 110--114
 \OT1/ptm/m/it/8 Tech-nol-ogy\OT1/ptm/m/n/8 , vol. 2, pp. 27:1--27:27, 2011, sof
 t-ware avail-able at
  []
@@ -419,17 +415,17 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[7
+[8
 
 ] (bare_conf.aux) ) 
 Here is how much of TeX's memory you used:
- 4617 strings out of 493334
- 69292 string characters out of 3139258
- 502643 words of memory out of 3000000
- 8098 multiletter control sequences out of 15000+200000
+ 4624 strings out of 493334
+ 69441 string characters out of 3139258
+ 534857 words of memory out of 3000000
+ 8105 multiletter control sequences out of 15000+200000
  41738 words of font info for 80 fonts, out of 3000000 for 9000
  1144 hyphenation exceptions out of 8191
- 40i,8n,40p,1382b,1511s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 40i,8n,40p,1382b,1455s stack positions out of 5000i,500n,10000p,200000b,50000s
 {d:/Program Files/MiKTeX 2.9/fonts/enc/dvips/fontname/8r.enc
 }<d:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><d:/Pro
 gram Files/MiKTeX 2.9/fonts/type1/urw/courier/ucrb8a.pfb><d:/Program Files/MiKT
@@ -438,9 +434,9 @@ pe1/urw/courier/ucrro8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/
 utmb8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmbi8a.pfb><d:/P
 rogram Files/MiKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb><d:/Program Files/MiKT
 eX 2.9/fonts/type1/urw/times/utmri8a.pfb>
-Output written on bare_conf.pdf (7 pages, 244973 bytes).
+Output written on bare_conf.pdf (8 pages, 251525 bytes).
 PDF statistics:
- 311 PDF objects out of 1000 (max. 8388607)
+ 314 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  36 words of extra memory for PDF output out of 10000 (max. 10000000)
 

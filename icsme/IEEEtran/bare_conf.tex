@@ -405,11 +405,15 @@ The abstract goes here.
 
 
 \section{Introduction}
-Concurrent programs are pervasive \cite{journals/jss/PintoTFFB15} in nowadays software development activities. Using concurrency rightly in programs can exploit the calculation ability better with the rapid development of multi-core system. However, concurrent programming is very hard \cite{journals/corr/McKenney17},\cite{journals/queue/SutterL05} because multiple threads, which access objects simultaneously or depend on each other, usually need complex synchronization and it is hard to debug concurrent programs for the uncertainty of thread interleaving which makes it difficult to reproduce the bug \cite{conf/asplos/LuPSZ08}. Developers often struggle with various of synchronization methods and potential concurrent bugs. There are much research about concurrent programming in the literature such as concurrency bug detection \cite{conf/pldi/FlanaganF09},\cite{conf/kbse/KroeningPSW16},\cite{conf/pldi/FlanaganFY08}, concurrent programming model \cite{conf/java/Lea00},\cite{conf/oopsla/Bagherzadeh15} and some empirical work \cite{conf/sosp/DavidGT13} \cite{conf/oopsla/PintoTC15}.
+Concurrent programs are pervasive \cite{journals/jss/PintoTFFB15} in nowadays software development activities. Using concurrency rightly in programs can exploit the calculation ability better with the rapid development of multi-core system. However, concurrent programming is very hard \cite{journals/corr/McKenney17},\cite{journals/queue/SutterL05} because multiple threads, which access objects simultaneously or depend on each other, usually need complex synchronization and it is hard to debug concurrent programs for the uncertainty of thread interleaving which makes it difficult to reproduce the bug \cite{conf/asplos/LuPSZ08}. Developers often struggle with various of synchronization methods and potential concurrent bugs. There are much research about concurrent programming in the literature such as concurrency bug detection \cite{conf/pldi/FlanaganF09},\cite{conf/kbse/KroeningPSW16},\cite{conf/pldi/FlanaganFY08}, concurrent programming model \cite{conf/java/Lea00},\cite{conf/oopsla/Bagherzadeh15} and some empirical work \cite{conf/sosp/DavidGT13},\cite{conf/oopsla/PintoTC15}.
 
-Rui Gu et al \cite{conf/sigsoft/GuJSZL15} studied change history of thread synchronization. They focus on how critical sections are changed and how the changes solve performance problems and correctness problems. However, concurrency is not only reflected by critical sections, but also some other programming constructs like concurrent libirary usage, thread management. Gustavo Pinto et al \cite{journals/jss/PintoTFFB15} did a large-scale study on the usage of Java’s concurrent programming constructs. They investigated in a static view, but we would like to do it in a dynamic view - program changes.
+Software evolution is another hot topic in software engineering research. Software projects evolves during years because of new functionalities, bugs, reorganization of code. A few of open source software platforms like github has been more and more popular in recent years and so do the projects hosted there \cite{conf/icsm/Borges16},\cite{conf/icsm/BorgesHV16}. They hold a huge amount of software projects and their historic versions. Researchers have shown that software evolution history can provide much useful information for today's software development activities. Many recent studies focus on these topics of software evolution such as refactoring \cite{conf/icse/KimBDA16}, \cite{conf/icsm/WahlerDS16}, transformation patterns \cite{conf/wcre/JiangPWXZ15},\cite{conf/icse/MengKM13}.
 
-Software projects evolves during years because of new functionalities, bugs, reorganization of code. A few of open source software platforms like github has been more and more popular in recent years. They hold a huge amount of software projects and their historic versions. Researchers have shown that software evolution history can provide much useful information for today's software development activities. Many studies focus on topics of software evolution such as refactoring, transformation patterns. Gustavo Santos et al \cite{conf/icsm/SantosAEDV15} studied system specific, source code transformations. However, the change patterns of concurrent programs are less studied.
+Rui Gu et al \cite{conf/sigsoft/GuJSZL15} studied change history of thread synchronization. They checked 250,000 revisions of four open-source projects to figure out how critical sections change. They also conducted case studies to understand how the changes solve performance problems and correctness problems. However, concurrency is not only reflected by critical sections, but also some other programming constructs like concurrent libirary usage, thread resource management. Study on critical sections are not enough to understand real-world thread synchronization.
+
+Gustavo Pinto et al \cite{journals/jss/PintoTFFB15} did a large-scale study on the usage of Java’s concurrent programming constructs. They checked the usage of concurrent programming constructs in a large base of code. They had many findings such as the adoption of concurrent package of Java is moderate (23\% concurrent projects use it). But we all know that software is changing very fast.
+
+Gustavo Santos et al \cite{conf/icsm/SantosAEDV15} studied system specific, source code transformations. However, the change patterns of concurrent programs are less studied.
 
 We studied concurrent programs from a perspective of software evolution history and found many change patterns about concurrent programming. Understanding concurrent program change patterns is very beneficial.
 
@@ -425,11 +429,13 @@ However, this work has to face several challenges:
 
 Our main contributions are:
 
-(1) We identify and classify change patterns in concurrent programs and observe some interesting findings.
+(1) We identify and classify change patterns in concurrent programs from 102028 commits of 7 open-source projects. The most common types of change patterns are thread-safe class replacement, synchronization addition, synchronization removal.
 
-(2) We adopt some change patterns to real software projects and our requests are accepted.
+(2) We observe some interesting findings: .
 
-(3) We give some inspirations to concurrent program or library developers and analysis tool developers.
+(3) We find some contexts to which we can apply the patterns in real-world projects. We make some pull requests and some of them are accepted.
+
+(4) We give some inspirations to concurrent program or library developers and analysis tool developers.
 
 The rest of paper is organized as follows: Section 2 presents the methodology of our study. Section 3 presents our result and discussion. Section 4 presents related work. Section 5 presents future work and Section 6 concludes.
 
@@ -440,7 +446,7 @@ This section presents data set of our study, research questions and tool support
 
 \begin{table}
 	\centering
-	\caption{Projects information (LOC and \#Files are both of Java files)}
+	\caption{Projects Information (LOC and \#Files are both of Java files)}
 	\begin{tabular}{|c|c|c|c|}\hline
 		Project&LOC&\#Files&\#Commits\\\hline
 		Hadoop&1202764&7701&14930\\\hline
@@ -486,8 +492,8 @@ We use the SVM\cite{journals/ml/CortesV95} algorithm to train and classify commi
 
 \begin{table}
 	\centering
-	\caption{Features of data}
-	\begin{tabular}{|c|c|c|c|}\hline
+	\caption{Features of Data}
+	\begin{tabular}{|c|c|}\hline
 		Feature&Explanation\\\hline
 		msgKey&Number of keywords in commit message\\\hline
 		file&Number of files in a commit\\\hline
@@ -510,7 +516,23 @@ We use the SVM\cite{journals/ml/CortesV95} algorithm to train and classify commi
 
 \textbf{Taxonomy} There are so many different concurrent related changes in the code history. We divide them into several types according to their properties. Our taxonomy is based on observed behaviour of code changes. It can also be decided by purposes of code changes. But purpose is a subjective concept and it is more difficult to determine why the changes are made. The taxonomy includes change of lock type, change of lock variable, synchronization addition, synchronization removal, lock release, volatile addition, volatile removal, class replacement, thread-safe class replacement, thread management, thread status management, 
 
-We are going to talk about these change types concretely with examples in the following.
+\begin{table*}
+	\centering
+	\caption{Taxonomy}
+	\begin{tabular}{|c|c|c|}\hline
+		Name&Explanation&Times\\\hline
+		Change of lock type&Switch to another type of lock. We have implicit monitor lock, ReentrantLock and so on&\\\hline
+		Change of lock var&&\\\hline
+		Synchronization addition&&\\\hline
+		Synchronization removal&&\\\hline
+		Volatile addition&Add volatile modifier to a field of class&\\\hline
+		Volatile removal&Remove volatile modifier to a field of class&\\\hline
+		Thread-safe class replacement&Use thread-safe class instead of handling concurrency control manually&\\\hline
+		Other class replacement&Some other concurrent related class replacement&\\\hline
+	\end{tabular}
+\end{table*}
+
+Table III shows overall map of all types, their explanations and occurrence times. We are going to talk about these change types concretely with examples in the following.
 
 \lstset{language=java, numbers=left, breaklines=true,  basicstyle=\ttfamily\tiny, keywordstyle=\color{blue}\bf\ttfamily, xleftmargin=3em, tabsize=2}
 
@@ -719,7 +741,7 @@ It is a commit for bug 58392 in Bugzilla. It is reported by a race detector that
 
 Volatile addition is a removal of the volatile keyword.
 
-\textbf{Class replace}
+
 
 
 
@@ -774,6 +796,8 @@ public final boolean fileExists(String name) {
 
 This commit is from lucene-solr. It is a commit for LUCENE-2779 which is a minor-priority improvement. It is better to use a thread-safe version collection ConcurrentHashMap instead of using HashMap and synchronizing the access code. This thread-safe class not only simplify the way of using a hash map, but also improve the performance compared to manual synchronization like the example. It supports full concurrency of retrievals and high expected concurrency for updates.
 
+\textbf{Other class replace}
+
 \textbf{Thread management}
 
 Thread management is to deal with the management of thread-related resources.
@@ -824,9 +848,31 @@ This example shows a switch from ThreadLocal$<$Random$>$ to ThreadLocalRandom fr
 
 Figure 1 shows the numbers of concurrent related commits and all commits of each month in all projects of our study. It also shows the percentage of concurrent related commits. Each subfigure has two subfigures inside. The x axis represents the time in month. The upper subfigure has two lines. The higher line shows the number of all commits while the lower line shows the number of concurrent related commits. The number of concurrent related commits is relatively small compared to the number of all commits. The two indexes have a positive correlation generally. The bottom subfigure shows the percentage of concurrent related commits. The percentages differ in project and time. For example, the percentage in mahout is relatively lower than other projects.
 
-\subsection{RQ3. What is the trend of concurrent programming construct usage statistically?}
+\subsection{RQ3. What is the trend of concurrent programming classes usage statistically?}
+
+\begin{table}
+	\centering
+	\caption{Top Classes}
+	\begin{tabular}{|c|c||c|c|}\hline
+		Class&\#Add&Class&\#Del\\\hline
+		AtomicInteger&2780&AtomicInteger&4111\\\hline
+		AtomicLong&1701&AtomicBoolean&2504\\\hline
+		CountDownLatch&1698&ConcurrentHashMap&2415\\\hline
+		AtomicBoolean&1676&AtomicLong&2225\\\hline
+		ConcurrentHashMap&1561&CountDownLatch&1513\\\hline
+		AtomicReference&1030&AtomicReference&1224\\\hline
+		Executors&921&Executors&1105\\\hline
+		LinkedBlockingQueue&689&ThreadPoolExecutor&1034\\\hline
+		ConcurrentLinkedQueue&638&LinkedBlockingQueue&864\\\hline
+		ThreadPoolExecutor&583&ConcurrentLinkedQueue&797\\\hline
+	\end{tabular}
+\end{table}
+
+We write a program to count and analyze concurrent programming classes usage. Table IV shows top 10 classes added and deleted in the history. Some classes are both active in the added and the deleted column like AtomicInteger and CountDownLatch. This is not surprising because a deletion of class does not mean this class is abandoned. This also indicates this class is active. An interesting observation is that deletions appear more than addition.
 
 \subsection{RQ4. How can these change patterns in history guide the future development?}
+
+
 
 \subsection{Threats to Validity}
 
@@ -854,15 +900,16 @@ This research provides some implications from different kinds of perspectives.
 
 (2) Automatic tools are needed to help developers inspect and revise concurrent programs with the help of history information. There has already been some tools, but they usually look for concurrent bugs such as race detection, deadlock detection and atomicity violation without considering software evolution history. Both project specific and project independent transformation patterns exist in real-world software projects. So we need some concurrent code refactoring tools to give advice of what code need change and perform the transformations automatically. It is a chance for IDE manufacturer to make the IDE more intelligent in inspecting and modifying the code. Developers will benefit a lot if such kind of automatic tools can actually help them automate their development and maintaining activities.
 
-(3) Researchers 
+%(3) Researchers 
 
 \section{Related work}
-\textbf{Studies on concurrent program}
+\textbf{Empirical studies on concurrent programming}
+Concurrent programming attract many researchers' attention. Many empirical studies have been done. Tudor David et al \cite{conf/sosp/DavidGT13} investigated everything about synchronization people wanted to know but not dared to ask. Semih Okur and Danny Dig \cite{conf/sigsoft/OkurD12} studied how developers use parallel libraries. They analyzed 655 open-source applications developed by 1609 programmers. The applications adopted Task Parallel Library and Parallel Language Integrated Query, which are Microsoft's parallel libraries in C\#. They reveal some interesting facts such as at least 10\% of programmers misuse the two libraries so that the programs run sequentially rather than concurrently, and developers are making their code too complex but it is unnecessary.
 
 \textbf{Program transformation}
 
 \section{Conclusion}
-We conduct a study on change patterns in concurrent programming.
+We conduct a study on change patterns in concurrent programming. We find many change patterns and establish a taxonomy of these change patterns.
 
 
 % An example of a floating figure using the graphicx package.
@@ -968,8 +1015,7 @@ We conduct a study on change patterns in concurrent programming.
 % use section* for acknowledgment
 \section*{Acknowledgment}
 
-
-The authors would like to thank...
+The authors would like to thank anyone who might have helped us with this study.
 
 
 
