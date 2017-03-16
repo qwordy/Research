@@ -520,7 +520,7 @@ We use the SVM\cite{journals/ml/CortesV95} algorithm to train and classify commi
 	\centering
 	\caption{Taxonomy}
 	\begin{tabular}{|c|c|c|}\hline
-		Name&Explanation&Times\\\hline
+		Name&Explanation&Occurrence\\\hline
 		Change of lock type&Switch to another type of lock. We have implicit monitor lock, ReentrantLock and so on&\\\hline
 		Change of lock var&&\\\hline
 		Synchronization addition&&\\\hline
@@ -532,19 +532,17 @@ We use the SVM\cite{journals/ml/CortesV95} algorithm to train and classify commi
 	\end{tabular}
 \end{table*}
 
-Table III shows overall map of all types, their explanations and occurrence times. We are going to talk about these change types concretely with examples in the following.
+Table III shows an overview of all types, their explanations and occurrence times. We are going to talk about these change types concretely with examples in the following.
 
 \lstset{language=java, numbers=left, breaklines=true,  basicstyle=\ttfamily\tiny, keywordstyle=\color{blue}\bf\ttfamily, xleftmargin=3em, tabsize=2}
 
-\textbf{Change of lock type}
+\textbf{Changing lock type}
 
-There are many types of locks in Java like implicit monitor lock, ReentrantLock, ReentrantReadWriteLock, StampedLock. Developers might switch to another type of lock in development and evolution. Lock is a mechanism to synchronize shared resources when multiple threads access them concurrently. Java and its standard library provide many different types of locks. Third-party libraries also provide this kind of facilities.
+We have implicit lock and explicit lock in Java. An implicit lock is denoted by a Java keyword 'synchronized', which can synchronize a block of code as a synchronized block on a monitor object. This keyword can be used to mark both methods and code blocks. It is a special kind of lock for every object has a implicit monitor lock. We do not need to acquire and release locks manually. We do not need to worry about forgetting release locks in a 'finally' block. It is easier for programmers to deal concurrency with 'synchronized' rather than explicit locks. An explicit lock is an implementation of locking in API level. You create a lock object and then you can call the methods of this lock object such as 'lock'. It provides more advanced operations like fairness and condition than implicit lock. Java's standard library provides many locking implementations. Third-party libraries also provide this kind of facilities.
 
-A implicit monitor lock is denoted by a Java keyword 'synchronized', which can synchronize a block of code as a synchronized block on a monitor object. This keyword can be used to mark both methods and code blocks. It is a special kind of lock for every object has a implicit monitor lock. We do not need to acquire and release locks manually. We do not need to worry about forgetting release locks in a 'finally' block. It is easier for programmers to deal concurrency with 'synchronized' rather than explicit locks.
+%ReentrantLock, ReentrantReadWriteLock, StampedLock are all API level locks in Java. Although 'synchronized' keyword is convenient and straightforward, we need other locks when we have more requirements. ReentrantLock is a reentrant lock, which means a lock can be acquired repeatedly in the same thread. It is a exclusive lock with the similar behaviour as monitor lock but has more features such as fairness, condition and tryLock. ReadWriteLock is a pair of locks, which allows concurrent access to read operations when there is no write operation going on but exclusive access to write operations. StampedLock is a lock which provides three modes, namely writing, reading and optimistic reading. This lock is usually used in design of thread-safe classes.
 
-ReentrantLock, ReentrantReadWriteLock, StampedLock are all API level locks in Java. Although 'synchronized' keyword is convenient and straightforward, we need other locks when we have more requirements. ReentrantLock is a reentrant lock, which means a lock can be acquired repeatedly in the same thread. It is a exclusive lock with the similar behaviour as monitor lock but has more features such as fairness, condition and tryLock. ReadWriteLock is a pair of locks, which allows concurrent access to read operations when there is no write operation going on but exclusive access to write operations. StampedLock is a lock which provides three modes, namely writing, reading and optimistic reading. This lock is usually used in design of thread-safe classes.
-
-The reasons of changes vary in different conditions. They might switch to a readlock from a normal lock when there are plenty of concurrent read operations or switch to a reentrant lock from synchronized keyword because the former offers more functions. Here is a example.
+The reasons of changes vary in different conditions. They might switch to a read lock from a normal lock when there are plenty of concurrent read operations or switch to a reentrant lock from synchronized keyword because the former offers more functions. Here is a example.
 
 \begin{lstlisting}
 commit fad9609d13e76e9e3a4e01c96f698bb60b03807e
@@ -577,9 +575,11 @@ Either a plain old lock / synchronization is needed, or some other solution
 (e.g.  org.apache.tomcat.util.collections.ManagedConcurrentWeakHashMap )
 \end{lstlisting}
 
-\textbf{Change of lock variable}
+\textbf{Changing lock instance}
 
-No matter explicit locks or 'synchronize' keyword, we always need a lock variable to be acquired and released. It is important to choose the right lock variable to use and the order to use more than one lock. There are some best practice like two-phase locking \cite{journals/cacm/EswarranGLT76}, which is a locking method to guarantee serializability. It is usually used in database transaction management. The method is relatively simple to understand. It has two phases: the first is expanding phase where you can only acquire locks and the second is shrinking phase where you can only release locks. You can access data between the two phases.
+You need to create an instance of lock like Java's Reentrant class first before you can use it. You also need to choose an object to synchronize on when you use synchronized block. Developers may change lock instance during software evolution. It is important to choose the right lock instance to use and decide the order to acquire and release different locks. Sometimes it is hard for developers to do this.
+
+No matter explicit locks or 'synchronize' keyword, we always need a lock variable to be acquired and released.  There are some best practice like two-phase locking \cite{journals/cacm/EswarranGLT76}, which is a locking method to guarantee serializability. It is usually used in database transaction management. The method is relatively simple to understand. It has two phases: the first is expanding phase where you can only acquire locks and the second is shrinking phase where you can only release locks. You can access data between the two phases.
 
 \begin{lstlisting}
 commit 563e546236217dace58a8031d56d08a27e08160b
