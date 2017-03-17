@@ -429,13 +429,12 @@ However, this work has to face several challenges:
 
 Our main contributions are:
 
-(1) We identify and classify change patterns in concurrent programs from 102028 commits of 7 open-source projects. The most common types of change patterns are thread-safe class replacement, synchronization addition, synchronization removal.
-
-(2) We observe some interesting findings: .
-
-(3) We find some contexts to which we can apply the patterns in real-world projects. We make some pull requests and some of them are accepted.
-
-(4) We give some inspirations to concurrent program or library developers and analysis tool developers.
+\begin{itemize}
+	\item We identify and classify change patterns in concurrent programs from 102028 commits of 7 open-source projects. The most common types of change patterns are thread-safe class replacement, synchronization addition, synchronization removal.
+	\item We observe some interesting findings: .
+	\item We find some contexts to which we can apply the patterns in real-world projects. We make some pull requests and some of them are accepted.
+	\item We give some inspirations to concurrent program or library developers and analysis tool developers.
+\end{itemize}
 
 The rest of paper is organized as follows: Section 2 presents the methodology of our study. Section 3 presents our result and discussion. Section 4 presents related work. Section 5 presents future work and Section 6 concludes.
 
@@ -521,12 +520,10 @@ We use the SVM\cite{journals/ml/CortesV95} algorithm to train and classify commi
 	\caption{Taxonomy}
 	\begin{tabular}{|c|c|c|}\hline
 		Name&Explanation&Occurrence\\\hline
-		Change of lock type&Switch to another type of lock. We have implicit monitor lock, ReentrantLock and so on&\\\hline
-		Change of lock var&&\\\hline
-		Synchronization addition&&\\\hline
-		Synchronization removal&&\\\hline
-		Volatile addition&Add volatile modifier to a field of class&\\\hline
-		Volatile removal&Remove volatile modifier to a field of class&\\\hline
+		Changing lock type&Switch to another type of lock. We have implicit monitor lock, ReentrantLock and so on&\\\hline
+		Changing lock instance&&\\\hline
+		Addition or removing synchronization&&\\\hline
+		Addition or removing volatile modifier&Add volatile modifier to a field of class&\\\hline
 		Thread-safe class replacement&Use thread-safe class instead of handling concurrency control manually&\\\hline
 		Other class replacement&Some other concurrent related class replacement&\\\hline
 	\end{tabular}
@@ -628,7 +625,24 @@ Use single object (membersLock) for all locking
 
 This is another example. The lock variable is originally the monitor of the object and now is membersLock. They turned to use single object (membersLock) for all locking as the commit message said. 
 
-\textbf{Synchronization removal}
+\textbf{Adding or removing synchronization}
+
+Adding synchronization means to add synchronization to the code block which are not synchronized before.
+
+\begin{lstlisting}
+commit 17206cc8c21c439d121a66d7c9934cdfa4791a35
+Author: Mark Thomas <markt@apache.org>
+Date:   Wed Sep 16 13:37:35 2015 +0000
+
+Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58386
+On the basis that access() and finish() are synchronized, extend synchronization to other methods that access same fields.
+
+-    public boolean isAccessed() {
++    public synchronized boolean isAccessed() {
+return this.accessed;
+}
+\end{lstlisting}
+
 
 Synchronization removal is a removal of critical section, which is usually not allowed to be executed by multiple threads. 
 
@@ -700,27 +714,11 @@ isFinished = true;
 
 This is an example from flink. It is a critical bug issue "Deadlock during partition spilling". A user reported the problem. The developer wrote a detailed message, which describes the problem, reason and solution.
 
-\textbf{Synchronization addition}
 
-Synchronization addition is a addition of critical section.
-
-\begin{lstlisting}
-commit 17206cc8c21c439d121a66d7c9934cdfa4791a35
-Author: Mark Thomas <markt@apache.org>
-Date:   Wed Sep 16 13:37:35 2015 +0000
-
-Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58386
-On the basis that access() and finish() are synchronized, extend synchronization to other methods that access same fields.
-
--    public boolean isAccessed() {
-+    public synchronized boolean isAccessed() {
-return this.accessed;
-}
-\end{lstlisting}
 
 \textbf{Release lock}
 
-\textbf{Volatile addition}
+\textbf{Adding or removing volatile modifier}
 
 Volatile addition is a addition of the volatile keyword. Volatile is a keyword of Java. It is used to mark a variable which should be saved in main memory. Any read or write operation of the variable should visit the main memory instead of only using cache. This provides visibility of the latest value of variable across multiple threads. 
 
@@ -737,13 +735,7 @@ Double-checked locking needs to use volatile to be thread-safe
 \end{lstlisting}
 It is a commit for bug 58392 in Bugzilla. It is reported by a race detector that there is data race on field. Double checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like forgetting 'volatile' modifier of the member of object in Java.
 
-\textbf{Volatile removal}
-
 Volatile addition is a removal of the volatile keyword.
-
-
-
-
 
 \textbf{Thread-safe class replacement}
 
