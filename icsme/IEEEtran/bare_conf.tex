@@ -441,7 +441,7 @@ The rest of paper is organized as follows: Section 2 presents the methodology of
 \section{Methodology}
 This section presents data set of our study, research questions and tool support.
 
-\subsection{Data set} We investigate 8 Java open-source projects from Github including Hadoop, Tomcat, Cassandra, Lucene-solr, Netty, Flink, Guava and Mahout as shown in Table 1. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. The Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Tomcat is the most popular implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technologies. Cassandra is a database system which can Manage massive amounts of data, fast, without losing sleep. Lucene-solr is two projects together in one respository in Github. Lucene is a search engine library and solr is a search engine server which uses lucene. Netty is an event-driven asynchronous network application framework. Flink is an open source stream processing framework with powerful stream- and batch-processing capabilities. Mahout is a machine learning project. Table I shows the lines of code in Java, the number of Java files and the number of commits of each project. All the projects are checked out for our study in December 2016.
+\subsection{Data set} We investigate 8 Java open-source projects from Github including Hadoop, Tomcat, Cassandra, Lucene-solr, Netty, Flink and Mahout as shown in Table 1. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. The Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Tomcat is the most popular implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technologies. Cassandra \cite{journals/sigops/LakshmanM10} is a database system which can Manage massive amounts of data, fast, without losing sleep. Lucene-solr is two projects together in one respository in Github. Lucene is a search engine library and solr is a search engine server which uses lucene. Netty is an event-driven asynchronous network application framework. Flink is an open source stream processing framework with powerful stream- and batch-processing capabilities. Mahout is a machine learning project. Table I shows the lines of code in Java, the number of Java files and the number of commits of each project. All the projects are checked out for our study in December 2016.
 
 \begin{table}
 	\centering
@@ -464,7 +464,7 @@ In order to understand the evolution of concurrent code and guide the future dev
 
 \textbf{RQ1.} What are change patterns in concurrent programming?
 
-Similar changes of code can be abstracted into change patterns. Some change patterns are project-specific while others are global, which can be considered as knowledge. Developers made numerous commits to the project repository during software's whole lifetime. There are a great many change patterns in software history. On the other hand, concurrent programming is very popular in today's Java development with the rapid developments of multi-core techniques which help exploit the power of concurrent programming. It is very meaningful to understand change patterns in concurrent programming. What are these change patterns and how many types of these change patterns are there?
+Researchers found that many code changes are similar \cite{conf/icse/KimN09}. Similar changes of code can be extracted into change patterns \cite{conf/icsm/MartinezDM13}. Some change patterns are project-specific while others are global, which can be considered as knowledge. Developers made numerous commits to the project repository during software's whole lifetime. There are a great many change patterns in software history. On the other hand, concurrent programming is very popular in today's Java development with the rapid developments of multi-core techniques which help exploit the power of concurrent programming. It is very meaningful to understand change patterns in concurrent programming. What are these change patterns and how many types of these change patterns are there?
 
 \textbf{RQ2.} How frequent do concurrent related code modification appear in different kinds of Java open-source projects?
 
@@ -472,7 +472,7 @@ Java programming language provides convenient built-in concurrent libraries and 
 
 \textbf{RQ3.} What is the trend of concurrent programming construct usage statistically?
 
-Java programming language offers many handy facilities for building concurrent programs. For example, language level constructs like synchronized and volatile are keywords of Java.  There are also API level constructs like notify method of an object and some concurrent related convenient classes such as the java.util.concurrent package. There are always more than one ways to finish a task in Java and the preferences of developers evolves fast. We are interested in  the trend of some common concurrent related constructs and the reasons hidden behind the phenomenon.
+Java programming language offers many handy facilities for building concurrent programs. For example, language level constructs like synchronized and volatile are keywords of Java.  There are also API level constructs like notify method of an object and some concurrent related convenient classes such as the java.util.concurrent package. There are always more than one ways to finish a task in Java and the preferences of developers evolves fast. We are interested in the trend of some common concurrent related constructs and the reasons hidden behind the phenomenon.
 
 \textbf{RQ4.} Is there any context in real-world projects to which we can apply these change patterns?
 
@@ -715,9 +715,6 @@ isFinished = true;
 This is an example from flink. It is a critical bug issue "Deadlock during partition spilling". A user reported the problem. The developer wrote a detailed message, which describes the problem, reason and solution.
 
 
-
-\textbf{Release lock}
-
 \textbf{Adding or removing volatile modifier}
 
 Volatile addition is a addition of the volatile keyword. Volatile is a keyword of Java. It is used to mark a variable which should be saved in main memory. Any read or write operation of the variable should visit the main memory instead of only using cache. This provides visibility of the latest value of variable across multiple threads. 
@@ -790,7 +787,9 @@ This commit is from lucene-solr. It is a commit for LUCENE-2779 which is a minor
 
 \textbf{Other class replace}
 
-\textbf{Thread management}
+\textbf{Thread resource management}
+
+When we do concurrent programming, we need to pay attention to resource management such as threads, locks.
 
 Thread management is to deal with the management of thread-related resources.
 

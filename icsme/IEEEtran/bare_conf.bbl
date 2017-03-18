@@ -98,6 +98,18 @@ R.~Gu, G.~Jin, L.~Song, L.~Zhu, and S.~Lu, ``What change history tells us about
 G.~Santos, N.~Anquetil, A.~Etien, S.~Ducasse, and M.~T. Valente, ``System
   specific, source code transformations,'' in \emph{{ICSME}}, 2015.
 
+\bibitem{journals/sigops/LakshmanM10}
+A.~Lakshman and P.~Malik, ``Cassandra: a decentralized structured storage
+  system,'' \emph{Operating Systems Review}, vol.~44, no.~2, pp. 35--40, 2010.
+
+\bibitem{conf/icse/KimN09}
+M.~Kim and D.~Notkin, ``Discovering and representing systematic code changes,''
+  in \emph{{ICSE}}, 2009.
+
+\bibitem{conf/icsm/MartinezDM13}
+M.~Martinez, L.~Duchien, and M.~Monperrus, ``Automatically extracting instances
+  of code change patterns with {AST} analysis,'' in \emph{{ICSME}}, 2013.
+
 \bibitem{conf/icse/TianLL12}
 Y.~Tian, J.~L. Lawall, and D.~Lo, ``Identifying linux bug fixing patches,'' in
   \emph{{ICSE}}, 2012.
