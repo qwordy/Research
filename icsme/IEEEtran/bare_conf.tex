@@ -468,11 +468,11 @@ Researchers found that many code changes are similar \cite{conf/icse/KimN09}. Si
 
 \textbf{RQ2.} How frequent do concurrent related code modification appear in different kinds of Java open-source projects?
 
-Java programming language provides convenient built-in concurrent libraries and users can also invoke third-party libraries like Apache Commons and Guava, which are both very famous libraries providing reusable conponents. Although developers can use their own concurrent related classes or third-party libraries, they are always using the facilities provided by Java standard libraries in most cases except they are facing special and rigour requirement. We want to know how frequent do concurrent related code change occur in software projects. What are the differences of frequency in different kinds of software projects?
+Java programming language provides convenient built-in concurrent libraries and users can also invoke third-party libraries like Apache Commons and Guava, which are both very famous libraries providing reusable conponents. Although developers can use their own concurrent related classes or third-party libraries, they are always using the facilities provided by Java standard libraries in most cases except they are facing special and rigour requirement. Previous researches \cite{journals/jss/PintoTFFB15},\cite{journals/infsof/WuCZX16},\cite{conf/sigsoft/OkurD12} investigated the usage of concurrent libraries. We want to know how frequent do concurrent related code change occur in software projects. What are the differences of frequency in different kinds of software projects?
 
 \textbf{RQ3.} What is the trend of concurrent programming construct usage statistically?
 
-Java programming language offers many handy facilities for building concurrent programs. For example, language level constructs like synchronized and volatile are keywords of Java.  There are also API level constructs like notify method of an object and some concurrent related convenient classes such as the java.util.concurrent package. There are always more than one ways to finish a task in Java and the preferences of developers evolves fast. We are interested in the trend of some common concurrent related constructs and the reasons hidden behind the phenomenon.
+Java programming language offers many handy facilities for building concurrent programs. For example, language level constructs like synchronized and volatile are keywords of Java. There are also API level constructs like notify method of an object and some concurrent related convenient classes such as the java.util.concurrent package. There are always more than one ways to finish a task in Java and the preferences of developers evolves fast. We are interested in the trend of some common concurrent related constructs and the reasons hidden behind the phenomenon.
 
 \textbf{RQ4.} Is there any context in real-world projects to which we can apply these change patterns?
 
@@ -485,7 +485,7 @@ We have developed a tool to collect and analyze data. The tool has the following
 All the projects of our study are under git which is one of the most popular version control systems in the world. Some projects of the study used svn or some other version control systems before because they have long histories, but they all support git now. We employ JGit, a  lightweight, pure java library implementation of git, to retrieve all the commit logs in projects' histories. A typical commit log contains commit id which is a 20-character-long string uniquely identifying a commit, author, date and message. Once we get a commit id, we use "git show" command to show the log message and textual diff. The diff result contains one or more change files which contain one or more change hunks.
 
 \subsubsection{Classification}
-There are many commits which are not concurrent related in the commits which we have collected.  We need to select concurrent related commits. Yuan Tian et al. gave a successful example of identifing bug fixing patches using machine learning\cite{conf/icse/TianLL12}. We use machine learning to train and predict whether a commit is concurrent related. We adopt both text analysis and code analysis to extract features. A commit log uses natural language to present what was changed and why the change was made in most cases. We treat each commit log as a bag of words then match the words to a set of concurrent keywords which we have defined as the Java concurrent keywords like "synchronized", "volatile" and names of common classes or interfaces in Java libraries which are related to concurrency. We also do a code analysis based on the diff result. 12 features are extracted for each commit, which is shown in Table II.
+There are many commits which are not concurrent related in the commits which we have collected.  We need to select concurrent related commits. Yuan Tian et al. gave a successful example of identifing bug fixing patches using machine learning\cite{conf/icse/TianLL12}. We use machine learning to train and predict whether a commit is concurrent related. We adopt both text analysis and code analysis to extract features. A commit log uses natural language to present what was changed and why the change was made in most cases. We treat each commit log as a bag of words then match the words to a set of concurrent keywords which we have defined as the Java concurrent keywords like "synchronized", "volatile" and names of common classes or interfaces in Java libraries which are related to concurrency. We also do a code analysis based on the diff result. 12 features are extracted for each commit, which is shown in Table II. The first column shows the feature names and the second column shows the explanations.
 
 We use the SVM\cite{journals/ml/CortesV95} algorithm to train and classify commits as concurrent-related or not. SVM is a supervised classification algorithm which needs both positive and negative labeled data for training. In our tool, we use an implementation of SVM, LIBSVM\cite{libsvm}. We manually label some data as a training data set first then train a model. The trained classifier selects 135 positive instances from all the commits which we have collected.
 
@@ -513,7 +513,9 @@ We use the SVM\cite{journals/ml/CortesV95} algorithm to train and classify commi
 
 \subsection{RQ1. How many types of change patterns in concurrent programming?}
 
-\textbf{Taxonomy} There are so many different concurrent related changes in the code history. We divide them into several types according to their properties. Our taxonomy is based on observed behaviour of code changes. It can also be decided by purposes of code changes. But purpose is a subjective concept and it is more difficult to determine why the changes are made. The taxonomy includes change of lock type, change of lock variable, synchronization addition, synchronization removal, lock release, volatile addition, volatile removal, class replacement, thread-safe class replacement, thread management, thread status management, 
+\textbf{Taxonomy} There are so many different concurrent related changes in the code history. We can classify them into ? types according to their observed code changes. We first read the commit message to know what this commit does and why. We then examine the added and deleted lines. We catch the concurrent related keywords. We classify changes basically into two big categories. The first is using libraries instead of manual concurrency control. The second is adjustment of concurrency control itself. It can also be decided by purposes of code changes like eliminating deadlock. But purpose is a subjective concept and it is more difficult to determine the reasons behind the changes.
+
+%The taxonomy includes change of lock type, change of lock variable, synchronization addition, synchronization removal, lock release, volatile addition, volatile removal, class replacement, thread-safe class replacement, thread management, thread status management, 
 
 \begin{table*}
 	\centering
@@ -529,17 +531,19 @@ We use the SVM\cite{journals/ml/CortesV95} algorithm to train and classify commi
 	\end{tabular}
 \end{table*}
 
-Table III shows an overview of all types, their explanations and occurrence times. We are going to talk about these change types concretely with examples in the following.
+Table III shows an overview of all types, their explanations and occurrence times. We are going to discuss these change types concretely with examples below.
 
 \lstset{language=java, numbers=left, breaklines=true,  basicstyle=\ttfamily\tiny, keywordstyle=\color{blue}\bf\ttfamily, xleftmargin=3em, tabsize=2}
 
 \textbf{Changing lock type}
 
-We have implicit lock and explicit lock in Java. An implicit lock is denoted by a Java keyword 'synchronized', which can synchronize a block of code as a synchronized block on a monitor object. This keyword can be used to mark both methods and code blocks. It is a special kind of lock for every object has a implicit monitor lock. We do not need to acquire and release locks manually. We do not need to worry about forgetting release locks in a 'finally' block. It is easier for programmers to deal concurrency with 'synchronized' rather than explicit locks. An explicit lock is an implementation of locking in API level. You create a lock object and then you can call the methods of this lock object such as 'lock'. It provides more advanced operations like fairness and condition than implicit lock. Java's standard library provides many locking implementations. Third-party libraries also provide this kind of facilities.
+Developers switch to different types of locks during the software evolution. We have implicit lock and explicit lock in Java. An implicit lock is denoted by a Java keyword 'synchronized', which can synchronize a block of code as a synchronized block on a monitor object. This keyword can be used to mark both methods and code blocks. It is a special kind of lock for every object has a implicit monitor lock. We do not need to acquire and release locks manually. We do not need to worry about forgetting release locks in a 'finally' block. It is easier for programmers to deal concurrency with 'synchronized' rather than explicit locks. An explicit lock is an implementation of locking in API level. You create a lock object and then you can call the methods of this lock object such as 'lock'. It provides more advanced operations like fairness and condition than implicit lock. Java's standard library provides many locking implementations. Third-party libraries also provide this kind of facilities.
+
+We can also view locks in a different perspective like exclusive and shared locks \cite{journals/jacm/KedemS83}. This classification is usually used in database system.
 
 %ReentrantLock, ReentrantReadWriteLock, StampedLock are all API level locks in Java. Although 'synchronized' keyword is convenient and straightforward, we need other locks when we have more requirements. ReentrantLock is a reentrant lock, which means a lock can be acquired repeatedly in the same thread. It is a exclusive lock with the similar behaviour as monitor lock but has more features such as fairness, condition and tryLock. ReadWriteLock is a pair of locks, which allows concurrent access to read operations when there is no write operation going on but exclusive access to write operations. StampedLock is a lock which provides three modes, namely writing, reading and optimistic reading. This lock is usually used in design of thread-safe classes.
 
-The reasons of changes vary in different conditions. They might switch to a read lock from a normal lock when there are plenty of concurrent read operations or switch to a reentrant lock from synchronized keyword because the former offers more functions. Here is a example.
+The reasons of changes vary in different conditions. When a synchronized block cannot satisfy some advanced requirement like fairness or condition, developers might switch to explicit locks. When they find that they only need a simple exclusive lock, they switch to synchronized block. They also might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. Here are some examples.
 
 \begin{lstlisting}
 commit fad9609d13e76e9e3a4e01c96f698bb60b03807e
@@ -560,7 +564,7 @@ totalPreemptionAllowed);
 }
 \end{lstlisting}
 
-This is a commit of YARN-5825 - ProportionalPreemptionalPolicy could use readLock over LeafQueue instead of synchronized block. They think it is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a read lock. There are many different locks which can be used to synchronize. A read lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance.
+This is a commit of YARN-5825 - ProportionalPreemptionalPolicy could use readLock over LeafQueue instead of synchronized block. It is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a reader lock. There are many different locks which can be used to synchronize. A reader lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance under the scenario where most of the operations are reading.
 
 \begin{lstlisting}
 commit 3e4b1ae6dc786b268505aa2e64067432519c2bcf
@@ -572,11 +576,13 @@ Either a plain old lock / synchronization is needed, or some other solution
 (e.g.  org.apache.tomcat.util.collections.ManagedConcurrentWeakHashMap )
 \end{lstlisting}
 
+This is an example in Tomcat. The developer said a ReadWriteLock cannot guard a WeakHashMap. A plain old lock or synchronization should be used.
+
 \textbf{Changing lock instance}
 
 You need to create an instance of lock like Java's Reentrant class first before you can use it. You also need to choose an object to synchronize on when you use synchronized block. Developers may change lock instance during software evolution. It is important to choose the right lock instance to use and decide the order to acquire and release different locks. Sometimes it is hard for developers to do this.
 
-No matter explicit locks or 'synchronize' keyword, we always need a lock variable to be acquired and released.  There are some best practice like two-phase locking \cite{journals/cacm/EswarranGLT76}, which is a locking method to guarantee serializability. It is usually used in database transaction management. The method is relatively simple to understand. It has two phases: the first is expanding phase where you can only acquire locks and the second is shrinking phase where you can only release locks. You can access data between the two phases.
+No matter explicit locks or synchronized blocks, we always need a lock instance to be acquired and released.  There are some best practice like two-phase locking \cite{journals/cacm/EswarranGLT76}, which is a locking method to guarantee serializability. It is a concept originally in database transaction management. %The method is relatively simple to understand. It has two phases: the first is expanding phase where you can only acquire locks and the second is shrinking phase where you can only release locks. You can access data between the two phases.
 
 \begin{lstlisting}
 commit 563e546236217dace58a8031d56d08a27e08160b
@@ -601,7 +607,7 @@ public FutureTask<Path> createTmpFile(String name, DistributedCacheEntry entry, 
 }
 \end{lstlisting}
 
-This is a commit of FLINK-1419 - DistributedCache doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the DistributedCache.
+This is a commit of FLINK-1419 - DistributedCache doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the DistributedCache. They synchronized on 'count', which is a map instance. Instead, they used 'lock', which is an instance of Object class. The difference is this instance is only used for synchronization while the former one has its own role not only as a lock. We do not need to blame preference of synchronization usage. This commit also made other changes about synchronization. They modified the critical sections as well.
 
 \begin{lstlisting}
 commit f0e627bb8c9daedb3b064027cac37ce4849bab64
@@ -625,7 +631,7 @@ Use single object (membersLock) for all locking
 
 This is another example. The lock variable is originally the monitor of the object and now is membersLock. They turned to use single object (membersLock) for all locking as the commit message said. 
 
-\textbf{Adding or removing synchronization}
+\textbf{Changing critical sections}
 
 Adding synchronization means to add synchronization to the code block which are not synchronized before.
 
@@ -875,11 +881,22 @@ We collect all the commits from the initialization of projects. The time range o
 \section{Discussion}
 We also have some interesting findings in collecting and analyzing the concurrent related code changes.
 
-(1) Some changes are contrary. Different developers may modify their code in an opposite direction.
+(1) Some changes are contrary. Different developers may modify their code in an opposite direction. Here is an example.
+
+\begin{lstlisting}
+commit f5fab1f64ba11e04e52bd6251ca62fc854e9578c
+Whoops. Fix regression in r1724015.
+Code was used although I can't see why a simple AtomicInteger wasn't sufficient.
+
++    private final AtomicInteger aprPoolDestroyed = new AtomicInteger(0);
+-    private static final AtomicIntegerFieldUpdater<OpenSSLContext> DESTROY_UPDATER = AtomicIntegerFieldUpdater.newUpdater(OpenSSLContext.class, "aprPoolDestroyed");
+\end{lstlisting}
+
+A previous commit switched to AtomicInteger from AtomicIntegerFieldUpdater. But now this developer reverse the change. AtomicIntegerFieldUpdater is a class which enables atomic updates to volatile field of classes.
 
 (2) Developers are using some code-checking tools like findbugs to help them inspect their code.
 
-The examples above show that some developers are using code checking tools like findbugs. But these kind of tools don't help developers correct and eliminate the warnings automatically. One developer in Tomcat said "make the volatile anyway so FindBugs doesn't complain" in the commit log.
+The examples above show that some developers are using code checking tools like findbugs. Some tools are useful in development environments \cite{conf/oopsla/AyewahPMPZ07}. But these kind of tools don't help developers correct and eliminate the warnings automatically. One developer in Tomcat said "make the volatile anyway so FindBugs doesn't complain" in the commit log. This indicates code checking tools still have room to improve.
 
 This research provides some implications from different kinds of perspectives.
 

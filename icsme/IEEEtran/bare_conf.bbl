@@ -110,6 +110,15 @@ M.~Kim and D.~Notkin, ``Discovering and representing systematic code changes,''
 M.~Martinez, L.~Duchien, and M.~Monperrus, ``Automatically extracting instances
   of code change patterns with {AST} analysis,'' in \emph{{ICSME}}, 2013.
 
+\bibitem{journals/infsof/WuCZX16}
+D.~Wu, L.~Chen, Y.~Zhou, and B.~Xu, ``An extensive empirical study on {C++}
+  concurrency constructs,'' \emph{Information {\&} Software Technology},
+  vol.~76, pp. 1--18, 2016.
+
+\bibitem{conf/sigsoft/OkurD12}
+S.~Okur and D.~Dig, ``How do developers use parallel libraries?'' in
+  \emph{{FSE}}.
+
 \bibitem{conf/icse/TianLL12}
 Y.~Tian, J.~L. Lawall, and D.~Lo, ``Identifying linux bug fixing patches,'' in
   \emph{{ICSE}}, 2012.
@@ -124,13 +133,21 @@ C.-C. Chang and C.-J. Lin, ``{LIBSVM}: A library for support vector machines,''
   27:1--27:27, 2011, software available at
   \url{http://www.csie.ntu.edu.tw/~cjlin/libsvm}.
 
+\bibitem{journals/jacm/KedemS83}
+Z.~M. Kedem and A.~Silberschatz, ``Locking protocols: From exclusive to shared
+  locks,'' \emph{J. {ACM}}, vol.~30, no.~4, pp. 787--804, 1983.
+
+\bibitem{journals/cacm/CouroisHP71}
+P.~Courtois, F.~Heymans, and D.~L. Parnas, ``Concurrent control with "readers"
+  and "writers",'' \emph{Commun. {ACM}}, vol.~14, no.~10, pp. 667--668, 1971.
+
 \bibitem{journals/cacm/EswarranGLT76}
 K.~P. Eswaran, J.~Gray, R.~A. Lorie, and I.~L. Traiger, ``The notions of
   consistency and predicate locks in a database system,'' \emph{Commun. {ACM}},
   vol.~19, no.~11, pp. 624--633, 1976.
 
-\bibitem{conf/sigsoft/OkurD12}
-S.~Okur and D.~Dig, ``How do developers use parallel libraries?'' in
-  \emph{{FSE}}.
+\bibitem{conf/oopsla/AyewahPMPZ07}
+N.~Ayewah, W.~Pugh, J.~D. Morgenthaler, J.~Penix, and Y.~Zhou, ``Using findbugs
+  on production software,'' in \emph{{OOPSLA} Companion}, 2007.
 
 \end{thebibliography}
