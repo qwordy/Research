@@ -146,8 +146,20 @@ K.~P. Eswaran, J.~Gray, R.~A. Lorie, and I.~L. Traiger, ``The notions of
   consistency and predicate locks in a database system,'' \emph{Commun. {ACM}},
   vol.~19, no.~11, pp. 624--633, 1976.
 
+\bibitem{conf/ispass/IshizakiDN14}
+K.~Ishizaki, S.~Daijavad, and T.~Nakatani, ``Transforming java programs for
+  concurrency using double-checked locking pattern,'' in \emph{{ISPASS}}, 2014.
+
 \bibitem{conf/oopsla/AyewahPMPZ07}
 N.~Ayewah, W.~Pugh, J.~D. Morgenthaler, J.~Penix, and Y.~Zhou, ``Using findbugs
   on production software,'' in \emph{{OOPSLA} Companion}, 2007.
+
+\bibitem{conf/ecoop/OkurED14}
+S.~Okur, C.~Erdogan, and D.~Dig, ``Converting parallel code from low-level
+  abstractions to higher-level abstractions,'' in \emph{{ECOOP}}, 2014.
+
+\bibitem{conf/sigsoft/LinRD14}
+Y.~Lin, C.~Radoi, and D.~Dig, ``Retrofitting concurrency for android
+  applications through refactoring,'' in \emph{{FSE}}.
 
 \end{thebibliography}

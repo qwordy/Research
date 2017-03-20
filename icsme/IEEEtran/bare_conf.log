@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2016.11.9)  19 MAR 2017 23:33
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2016.11.9)  21 MAR 2017 00:19
 entering extended mode
 **./bare_conf.tex
 (bare_conf.tex
@@ -312,53 +312,53 @@ LaTeX Font Info:    Font shape `OT1/pcr/bx/n' in size <5> not available
 LaTeX Font Info:    Font shape `OT1/pcr/m/it' in size <5> not available
 (Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 555.
  [4] [5]
-Underfull \hbox (badness 2005) in paragraph at lines 830--831
-\OT1/ptm/m/n/10 to Thread-Lo-cal-Ran-dom from JDK7. It is of the is-sue
- []
-
 <cassandra.pdf, id=25, 462.52798pt x 346.89601pt>
 File: cassandra.pdf Graphic file (type pdf)
  <use cassandra.pdf>
-Package pdftex.def Info: cassandra.pdf used on input line 836.
+Package pdftex.def Info: cassandra.pdf used on input line 809.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
 <flink.pdf, id=26, 462.52798pt x 346.89601pt>
 File: flink.pdf Graphic file (type pdf)
  <use flink.pdf>
-Package pdftex.def Info: flink.pdf used on input line 837.
+Package pdftex.def Info: flink.pdf used on input line 810.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
 <hadoop.pdf, id=27, 462.52798pt x 346.89601pt>
 File: hadoop.pdf Graphic file (type pdf)
  <use hadoop.pdf>
-Package pdftex.def Info: hadoop.pdf used on input line 838.
+Package pdftex.def Info: hadoop.pdf used on input line 811.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
 <lucene-solr.pdf, id=28, 462.52798pt x 346.89601pt>
 File: lucene-solr.pdf Graphic file (type pdf)
  <use lucene-solr.pdf>
-Package pdftex.def Info: lucene-solr.pdf used on input line 839.
+Package pdftex.def Info: lucene-solr.pdf used on input line 812.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
 <mahout.pdf, id=29, 462.52798pt x 346.89601pt>
 File: mahout.pdf Graphic file (type pdf)
  <use mahout.pdf>
-Package pdftex.def Info: mahout.pdf used on input line 840.
+Package pdftex.def Info: mahout.pdf used on input line 813.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
 <netty.pdf, id=30, 462.52798pt x 346.89601pt>
 File: netty.pdf Graphic file (type pdf)
  <use netty.pdf>
-Package pdftex.def Info: netty.pdf used on input line 841.
+Package pdftex.def Info: netty.pdf used on input line 814.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
 <tomcat.pdf, id=31, 462.52798pt x 346.89601pt>
 File: tomcat.pdf Graphic file (type pdf)
  <use tomcat.pdf>
-Package pdftex.def Info: tomcat.pdf used on input line 842.
+Package pdftex.def Info: tomcat.pdf used on input line 815.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
  [6]
-(bare_conf.bbl [7 <./cassandra.pdf> <./flink.pdf
+Underfull \hbox (badness 2005) in paragraph at lines 869--870
+\OT1/ptm/m/n/10 to Thread-Lo-cal-Ran-dom from JDK7. It is of the is-sue
+ []
+
+[7 <./cassandra.pdf> <./flink.pdf
 
 pdfTeX warning: pdflatex.exe (file ./flink.pdf): PDF inclusion: multiple pdfs w
 ith page group included in a single page
@@ -383,6 +383,15 @@ ith page group included in a single page
 pdfTeX warning: pdflatex.exe (file ./tomcat.pdf): PDF inclusion: multiple pdfs 
 with page group included in a single page
 >]
+! You can't use `macro parameter character #' in horizontal mode.
+l.915 ...coop/OkurED14} studied 880 open-source C#
+                                                   projects and found that c...
+Sorry, but I'm not programmed to handle this case;
+I'll just pretend that you didn't ask for it.
+If you're in the wrong mode, you might be able to
+return to the right one by typing `I}' or `I$' or `I\par'.
+
+(bare_conf.bbl
 Underfull \hbox (badness 3128) in paragraph at lines 131--135
 []\OT1/ptm/m/n/8 C.-C. Chang and C.-J. Lin, ``LIB-SVM: A li-brary for sup-port
  []
@@ -399,7 +408,7 @@ Underfull \hbox (badness 2126) in paragraph at lines 131--135
 t-ware avail-able at
  []
 
-)
+[8])
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -411,17 +420,17 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[8
+[9
 
 ] (bare_conf.aux) ) 
 Here is how much of TeX's memory you used:
  4645 strings out of 493334
- 69864 string characters out of 3139258
- 564494 words of memory out of 3000000
+ 69945 string characters out of 3139258
+ 476508 words of memory out of 3000000
  8126 multiletter control sequences out of 15000+200000
  41738 words of font info for 80 fonts, out of 3000000 for 9000
  1144 hyphenation exceptions out of 8191
- 40i,8n,40p,1423b,1449s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 40i,8n,40p,1423b,1365s stack positions out of 5000i,500n,10000p,200000b,50000s
 {d:/Program Files/MiKTeX 2.9/fonts/enc/dvips/fontname/8r.enc
 }<d:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><d:/Pro
 gram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy7.pfb><d:/Program File
@@ -431,9 +440,9 @@ ourier/ucrro8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmb8a.pf
 b><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmbi8a.pfb><d:/Program Fi
 les/MiKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb><d:/Program Files/MiKTeX 2.9/fo
 nts/type1/urw/times/utmri8a.pfb>
-Output written on bare_conf.pdf (8 pages, 262183 bytes).
+Output written on bare_conf.pdf (9 pages, 266339 bytes).
 PDF statistics:
- 318 PDF objects out of 1000 (max. 8388607)
+ 321 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  36 words of extra memory for PDF output out of 10000 (max. 10000000)
 
