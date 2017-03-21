@@ -384,7 +384,7 @@ Fax: (888) 555--1212}}
 % As a general rule, do not put math, special symbols or citations
 % in the abstract
 \begin{abstract}
-Concurrent programming is pervasive in nowadays software development. But concurrent programming is difficult as everyone knows.
+Concurrent programming is pervasive in nowadays software development. But it is a well-known fact that concurrent programming is difficult and error-prone. Developers make numerous changes to their projects constantly. We can understand concurrent programming better by examining these changes.This paper studies concurrent related change patterns from a large amount of commits from 7 popular and representative Java open-source projects. We create a taxonomy of these change patterns. We also have some interesting findings.
 \end{abstract}
 
 % no keywords
@@ -493,11 +493,13 @@ We use the SVM \cite{journals/ml/CortesV95} algorithm to train and classify comm
 
 All the change patterns are summarized from real commits of projects. Different developers may have different taste and preference. Their behavior on similar conditions may be different sometimes contradictory. We indeed find that some changes are contradictory.
 
-Some change patterns are not easy to determine the right occasion to apply especially those concurrency control problems like dead lock, race condition. They usually need rigorous analysis based on the dependent code.
+Some change patterns are not easy to determine the right occasion to apply especially those concurrency control problems like dead lock, race condition. They usually need rigorous analysis based on the dependent code. So we might omit some change patterns.
 
 We collect all the commits from the initialization of projects. The time range of them is very wide. Some changes are not very new. The development of software is very fast, so some change patterns which are not very new might not be suitable for the newest software.
 
 \textbf{External factors}
+
+We only analyse 7 Java projects Github. Maybe concurrent related changes are different in other languages and other projects.
 
 \begin{table}
 	\centering
@@ -660,6 +662,26 @@ On the basis that access() and finish() are synchronized, extend synchronization
 This is an example of adding synchronization. The mothod was not synchronoized before. The basic reason of adding synchronization to existing code is the piece of code might be access concurrently.
 
 \begin{lstlisting}
+commit c93d9eaf363a535dff25cc4e7db400d879e73bb1
+Add option to use single actor system for local execution. Use local connection manager if a single task manager is used for local execution. Remove synchronized blcok in getReceiverList of ChannelManager which effectively serialized the connection lookup calls of a single task manager.
+...
+-			synchronized (this.channelLookup) {
+-				try{
+-					lookupResponse = AkkaUtils.<JobManagerMessages.ConnectionInformation>ask(channelLookup,
+-							new JobManagerMessages.LookupConnectionInformation(connectionInfo, jobID,
+-									sourceChannelID), timeout).response();
+-				}catch(IOException ioe) {
+-					throw ioe;
+-				}
+-			}
++			lookupResponse = AkkaUtils.<JobManagerMessages.ConnectionInformation>ask(channelLookup,
++					new JobManagerMessages.LookupConnectionInformation(connectionInfo, jobID,
++							sourceChannelID), timeout).response();
+\end{lstlisting}
+
+This example is from Flink. Developers remove the synchronization of a code block. If you find the code will not be access concurrently or it can be accessed safely in a concurrent way, you do not need to synchronize the code.
+
+\begin{lstlisting}
 commit 7e56bfe40589a1aa9b5ef20b342e421823cd0592
 Author: Suresh Srinivas <suresh@apache.org>
 Date:   Mon Nov 26 20:47:58 2012 +0000
@@ -691,7 +713,7 @@ HDFS-4200. Reduce the size of synchronized sections in PacketResponder. Contribu
      }
 \end{lstlisting}
 
-This is a commit of HDFS-4200 - Reduce the size of synchronized sections in PacketResponder. It is a major improvement. The developers said the size of synchronized sections can be reduced. It is always meaningful to remove the unnecessary synchronizations. Over-synchronization \cite{conf/sigsoft/GuJSZL15} is a real issue in real-world software.
+This is a commit of HDFS-4200 - Reduce the size of synchronized sections in PacketResponder. It is a major improvement. This example contains mutiple types of changes. They change the lock instance, remove synchronization of some code, add some new synchronized code. The developers said the size of synchronized sections can be reduced. It is always meaningful to remove the unnecessary synchronizations. Over-synchronization \cite{conf/sigsoft/GuJSZL15} is a real issue in real-world software.
 
 \begin{lstlisting}
 commit efca79cfb7b496b4bec70561cc94af069c644ef2
@@ -707,22 +729,21 @@ Solution: Move the wait outside the synchronized block. This was not necessary
 before, because no operation assumes the spilling to be finished when the
 finish call has returned.
 
-public void finish() throws IOException {
-synchronized (buffers) {
-if (add(EventSerializer.toBuffer(EndOfPartitionEvent.INSTANCE))) {
--			// If we are spilling/have spilled, wait for the writer to finish.
--			if (spillWriter != null) {
--				spillWriter.close();
--			}
-isFinished = true;
-}
-}
-+
-+	// If we are spilling/have spilled, wait for the writer to finish.
-+	if (spillWriter != null) {
-+		spillWriter.close();
-+	}
-}
+ public void finish() throws IOException {
+   synchronized (buffers) {
+     if (add(EventSerializer.toBuffer(EndOfPartitionEvent.INSTANCE))) {
+-      // If we are spilling/have spilled, wait for the writer to finish.
+-      if (spillWriter != null) {
+-        spillWriter.close();
+-      }
+     isFinished = true;
+     }
+   }
++  // If we are spilling/have spilled, wait for the writer to finish.
++  if (spillWriter != null) {
++    spillWriter.close();
++  }
+ }
 \end{lstlisting}
 
 This is an example from flink. It is a critical bug issue "Deadlock during partition spilling". A user reported the problem. The developer wrote a detailed message, which describes the problem, reason and solution.
