@@ -98,6 +98,22 @@ R.~Gu, G.~Jin, L.~Song, L.~Zhu, and S.~Lu, ``What change history tells us about
 G.~Santos, N.~Anquetil, A.~Etien, S.~Ducasse, and M.~T. Valente, ``System
   specific, source code transformations,'' in \emph{{ICSME}}, 2015.
 
+\bibitem{conf/pldi/MengKM11}
+N.~Meng, M.~Kim, and K.~S. McKinley, ``Systematic editing: generating program
+  transformations from an example,'' in \emph{{PLDI}}.
+
+\bibitem{conf/ppopp/SamakR14}
+M.~Samak and M.~K. Ramanathan, ``Trace driven dynamic deadlock detection and
+  reproduction,'' in \emph{{PPoPP}}, 2014.
+
+\bibitem{conf/sigsoft/EslamimehrP14}
+M.~Eslamimehr and J.~Palsberg, ``Sherlock: scalable deadlock detection for
+  concurrent programs,'' in \emph{{FSE}}, 2014.
+
+\bibitem{conf/pldi/BiswasHSB14}
+S.~Biswas, J.~Huang, A.~Sengupta, and M.~D. Bond, ``Doublechecker: efficient
+  sound and precise atomicity checking,'' in \emph{{PLDI}}, 2014.
+
 \bibitem{journals/sigops/LakshmanM10}
 A.~Lakshman and P.~Malik, ``Cassandra: a decentralized structured storage
   system,'' \emph{Operating Systems Review}, vol.~44, no.~2, pp. 35--40, 2010.
@@ -118,6 +134,11 @@ D.~Wu, L.~Chen, Y.~Zhou, and B.~Xu, ``An extensive empirical study on {C++}
 \bibitem{conf/sigsoft/OkurD12}
 S.~Okur and D.~Dig, ``How do developers use parallel libraries?'' in
   \emph{{FSE}}.
+
+\bibitem{books/daglib/0022839}
+J.~Loeliger, \emph{Version Control with Git - Powerful techniques for
+  centralized and distributed project management}.\hskip 1em plus 0.5em minus
+  0.4em\relax O'Reilly, 2009.
 
 \bibitem{conf/icse/TianLL12}
 Y.~Tian, J.~L. Lawall, and D.~Lo, ``Identifying linux bug fixing patches,'' in
@@ -153,6 +174,20 @@ K.~Ishizaki, S.~Daijavad, and T.~Nakatani, ``Transforming java programs for
 \bibitem{conf/oopsla/AyewahPMPZ07}
 N.~Ayewah, W.~Pugh, J.~D. Morgenthaler, J.~Penix, and Y.~Zhou, ``Using findbugs
   on production software,'' in \emph{{OOPSLA} Companion}, 2007.
+
+\bibitem{conf/msr/SadowskiYK12}
+C.~Sadowski, J.~Yi, and S.~Kim, ``The evolution of data races,'' in
+  \emph{{MSR}}, 2012.
+
+\bibitem{conf/icsm/XinQHXZWG13}
+R.~Xin, Z.~Qi, S.~Huang, C.~Xiang, Y.~Zheng, Y.~Wang, and H.~Guan, ``An
+  automation-assisted empirical study on lock usage for concurrent programs,''
+  in \emph{{ICSM}}, 2013.
+
+\bibitem{journals/tse/ZhangWLQRZ16}
+M.~Zhang, Y.~Wu, S.~Lu, S.~Qi, J.~Ren, and W.~Zheng, ``A lightweight system for
+  detecting and tolerating concurrency bugs,'' \emph{{IEEE} Trans. Software
+  Eng.}
 
 \bibitem{conf/ecoop/OkurED14}
 S.~Okur, C.~Erdogan, and D.~Dig, ``Converting parallel code from low-level
