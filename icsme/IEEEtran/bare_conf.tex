@@ -415,9 +415,20 @@ Santos et al. \cite{conf/icsm/SantosAEDV15} studied system specific, source code
 
 \textbf{Benefits} We study concurrent programs from a perspective of software evolution history and find many change patterns about concurrent programming. Understanding concurrent program change patterns is very beneficial.
 
-1) Developers are facing many concurrent programming requirements now. But concurrent programming is notoriously error-prone \cite{conf/asplos/LuPSZ08} because of the complexity of data synchronization and thread interleaving. Our study gives developers some guidelines of writing concurrent programs. Use handy concurrent libraries to finish the job instead of rewriting them by yourself unless all the available concurrent libraries cannot satisfy your requirement and you are absolutely confident of your concurrent programming skills. Using existing libraries allows you to  write less code to finish the same work and enjoy the high quality of implementation which is always reliable, strong and fast.
+1) Developers are facing many concurrent programming requirements now. But concurrent programming is notoriously error-prone \cite{conf/asplos/LuPSZ08} because of the complexity of thread synchronization and scheduling. Even experienced developer might also be confused sometimes. Our study gives developers some guidelines of writing concurrent programs. Use handy concurrent libraries to finish the job instead of rewriting them by yourself unless all the available concurrent libraries cannot satisfy your requirement and you are absolutely confident of your concurrent programming skills. Using existing libraries allows you to  write less code to finish the same work and enjoy the high quality of implementation which is always reliable, strong and fast.
 
-2) Automatic tools are needed to help developers inspect and revise concurrent programs with the help of history information. We can learn from existing change patterns \cite{conf/pldi/MengKM11}. There has already been some tools \cite{conf/ppopp/SamakR14, conf/sigsoft/EslamimehrP14, conf/pldi/BiswasHSB14}, but they usually look for concurrent bugs such as race detection, deadlock detection and atomicity violation without considering software evolution history. Both project specific and project independent transformation patterns exist in real-world software projects. So we need some concurrent code refactoring tools to give advice of what code need change and perform the transformations automatically. It is a chance for IDE manufacturer to make the IDE more intelligent in inspecting and modifying the code. Developers will benefit a lot if such kind of automatic tools can actually help them with automating their development and maintenance.
+2) Automatic tools are needed to help developers inspect and revise concurrent programs with the help of history information. We can learn from existing change patterns \cite{conf/pldi/MengKM11}. There has already been some tools \cite{conf/ppopp/SamakR14, conf/sigsoft/EslamimehrP14, conf/pldi/BiswasHSB14}, but they usually look for concurrent bugs such as race detection, deadlock detection and atomicity violation without considering software evolution history.
+
+\lstset{language=java, numbers=left, breaklines=true,  basicstyle=\ttfamily\tiny,  xleftmargin=3em, tabsize=2}
+%keywordstyle=\color{blue}\bf\ttfamily,
+\begin{lstlisting}
+commit a6092d771ec50cf9aa434c75455b842f3ac6c628
+Threading / initialisation issues. Not all were valid. Make them volatile anyway so FindBugs doesn't complain.
+\end{lstlisting}
+
+This is a commit message of Mark Thomas. He is a member of the Apache Tomcat Project Management Committee, and senior software engineer at the Covalent division of SpringSource. He has submitted more than 10,000 commits to Tomcat. He said that he made the changes anyway to eliminate FindBugs' warning. This indicates that experienced programmer 
+
+Both project specific and project independent transformation patterns exist in real-world software projects. So we need some concurrent code refactoring tools to give advice of what code need change and perform the transformations automatically. It is a chance for IDE manufacturer to make the IDE more intelligent in inspecting and modifying the code. Developers will benefit a lot if such kind of automatic tools can actually help them with automating their development and maintenance.
 
 \textbf{Challenges} However, this work has to face several challenges:
 
@@ -544,8 +555,6 @@ We only analyse 7 Java projects Github. Maybe concurrent related changes are dif
 \end{table*}
 
 Table III shows an overview of all types, their explanations and occurrence times. We are going to discuss these change types concretely with examples below.
-
-\lstset{language=java, numbers=left, breaklines=true,  basicstyle=\ttfamily\tiny, keywordstyle=\color{blue}\bf\ttfamily, xleftmargin=3em, tabsize=2}
 
 \textbf{Changing lock type}
 

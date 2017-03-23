@@ -1,12 +1,10 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2015/dev/Debian) (preloaded format=pdflatex 2016.11.9)  21 MAR 2017 16:55
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2016.11.9)  23 MAR 2017 23:12
 entering extended mode
- restricted \write18 enabled.
- %&-line parsing enabled.
-**bare_conf.tex
-(./bare_conf.tex
-LaTeX2e <2014/05/01>
-Babel <3.9l> and hyphenation patterns for 79 languages loaded.
-(./IEEEtran.cls
+**./bare_conf.tex
+(bare_conf.tex
+LaTeX2e <2016/03/31> patch level 3
+Babel <3.9r> and hyphenation patterns for 75 language(s) loaded.
+(IEEEtran.cls
 Document Class: IEEEtran 2015/08/26 V1.8b by Michael Shell
 -- See the "IEEEtran_HOWTO" manual for usage information.
 -- http://www.michaelshell.org/tex/ieeetran/
@@ -19,7 +17,7 @@ Document Class: IEEEtran 2015/08/26 V1.8b by Michael Shell
 \@IEEEtrantmptoksA=\toks14
 LaTeX Font Info:    Try loading font information for OT1+ptm on input line 503.
 
-(/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1ptm.fd
+("d:\Program Files\MiKTeX 2.9\tex\latex\psnfss\ot1ptm.fd"
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 )
 -- Using 8.5in x 11in (letter) paper.
@@ -113,9 +111,9 @@ LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <24> not available
 \IEEEPARstartletwidth=\dimen125
 \c@IEEEbiography=\count93
 \@IEEEtranrubishbin=\box27
-) (/usr/share/texlive/texmf-dist/tex/latex/listings/listings.sty
-(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty
-Package: keyval 2014/05/08 v1.15 key=value parser (DPC)
+) ("d:\Program Files\MiKTeX 2.9\tex\latex\listings\listings.sty"
+("d:\Program Files\MiKTeX 2.9\tex\latex\graphics\keyval.sty"
+Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
 \KV@toks@=\toks15
 )
 \lst@mode=\count94
@@ -131,48 +129,48 @@ Package: keyval 2014/05/08 v1.15 key=value parser (DPC)
 \lst@lineno=\count99
 \lst@maxwidth=\dimen129
 
-(/usr/share/texlive/texmf-dist/tex/latex/listings/lstmisc.sty
-File: lstmisc.sty 2014/09/06 1.5e (Carsten Heinz)
+("d:\Program Files\MiKTeX 2.9\tex\latex\listings\lstmisc.sty"
+File: lstmisc.sty 2015/06/04 1.6 (Carsten Heinz)
 \c@lstnumber=\count100
 \lst@skipnumbers=\count101
 \lst@framebox=\box29
 )
-(/usr/share/texlive/texmf-dist/tex/latex/listings/listings.cfg
-File: listings.cfg 2014/09/06 1.5e listings configuration
+("d:\Program Files\MiKTeX 2.9\tex\latex\listings\listings.cfg"
+File: listings.cfg 2015/06/04 1.6 listings configuration
 ))
-Package: listings 2014/09/06 1.5e (Carsten Heinz)
+Package: listings 2015/06/04 1.6 (Carsten Heinz)
 
-(/usr/share/texlive/texmf-dist/tex/latex/xcolor/xcolor.sty
-Package: xcolor 2007/01/21 v2.11 LaTeX color extensions (UK)
+("d:\Program Files\MiKTeX 2.9\tex\latex\xcolor\xcolor.sty"
+Package: xcolor 2016/05/11 v2.12 LaTeX color extensions (UK)
 
-(/usr/share/texlive/texmf-dist/tex/latex/latexconfig/color.cfg
-File: color.cfg 2007/01/18 v1.5 color configuration of teTeX/TeXLive
+("d:\Program Files\MiKTeX 2.9\tex\latex\00miktex\color.cfg"
+File: color.cfg 2016/01/02 v1.6 sample color configuration
 )
 Package xcolor Info: Driver file: pdftex.def on input line 225.
 
-(/usr/share/texlive/texmf-dist/tex/latex/pdftex-def/pdftex.def
-File: pdftex.def 2011/05/27 v0.06d Graphics/color for pdfTeX
+("d:\Program Files\MiKTeX 2.9\tex\latex\graphics-def\pdftex.def"
+File: pdftex.def 2016/07/10 v0.06j Graphics/color for pdfTeX
 
-(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/infwarerr.sty
-Package: infwarerr 2010/04/08 v1.3 Providing info/warning/error messages (HO)
+("d:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\infwarerr.sty"
+Package: infwarerr 2016/05/16 v1.4 Providing info/warning/error messages (HO)
 )
-(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ltxcmds.sty
-Package: ltxcmds 2011/11/09 v1.22 LaTeX kernel commands for general use (HO)
+("d:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\ltxcmds.sty"
+Package: ltxcmds 2016/05/16 v1.23 LaTeX kernel commands for general use (HO)
 )
 \Gread@gobject=\count102
 )
-Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1337.
-Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1341.
-Package xcolor Info: Model `RGB' extended on input line 1353.
-Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1355.
-Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1356.
-Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1357.
-Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1358.
-Package xcolor Info: Model `Gray' substituted by `gray' on input line 1359.
-Package xcolor Info: Model `wave' substituted by `hsb' on input line 1360.
+Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1348.
+Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1352.
+Package xcolor Info: Model `RGB' extended on input line 1364.
+Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1366.
+Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1367.
+Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1368.
+Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1369.
+Package xcolor Info: Model `Gray' substituted by `gray' on input line 1370.
+Package xcolor Info: Model `wave' substituted by `hsb' on input line 1371.
 )
-(/usr/share/texlive/texmf-dist/tex/latex/subfigure/subfigure.sty
-Package: subfigure 2002/03/15 v2.1.5 subfigure package
+("d:\Program Files\MiKTeX 2.9\tex\latex\subfigure\subfigure.sty"
+Package: subfigure 2002/07/30 v2.1.4 subfigure package
 \subfigtopskip=\skip44
 \subfigcapskip=\skip45
 \subfigcaptopadj=\dimen130
@@ -187,28 +185,28 @@ Package: subfigure 2002/03/15 v2.1.5 subfigure package
 ****************************************
 * Local config file subfigure.cfg used *
 ****************************************
-(/usr/share/texlive/texmf-dist/tex/latex/subfigure/subfigure.cfg)
+("d:\Program Files\MiKTeX 2.9\tex\latex\subfigure\subfigure.cfg")
 \subfig@top=\skip48
 \subfig@bottom=\skip49
 )
-(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
-Package: graphicx 2014/04/25 v1.0g Enhanced LaTeX Graphics (DPC,SPQR)
+("d:\Program Files\MiKTeX 2.9\tex\latex\graphics\graphicx.sty"
+Package: graphicx 2014/10/28 v1.0g Enhanced LaTeX Graphics (DPC,SPQR)
 
-(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
-Package: graphics 2009/02/05 v1.0o Standard LaTeX Graphics (DPC,SPQR)
+("d:\Program Files\MiKTeX 2.9\tex\latex\graphics\graphics.sty"
+Package: graphics 2016/07/10 v1.0t Standard LaTeX Graphics (DPC,SPQR)
 
-(/usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty
-Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+("d:\Program Files\MiKTeX 2.9\tex\latex\graphics\trig.sty"
+Package: trig 2016/01/03 v1.10 sin cos tan (DPC)
 )
-(/usr/share/texlive/texmf-dist/tex/latex/latexconfig/graphics.cfg
-File: graphics.cfg 2010/04/23 v1.9 graphics configuration of TeX Live
+("d:\Program Files\MiKTeX 2.9\tex\latex\00miktex\graphics.cfg"
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
 )
-Package graphics Info: Driver file: pdftex.def on input line 91.
+Package graphics Info: Driver file: pdftex.def on input line 99.
 )
 \Gin@req@height=\dimen132
 \Gin@req@width=\dimen133
 )
-(./bare_conf.aux)
+(bare_conf.aux)
 \openout1 = `bare_conf.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 319.
@@ -226,7 +224,7 @@ LaTeX Font Info:    ... okay on input line 319.
 
 -- Lines per column: 56 (exact).
 \c@lstlisting=\count107
-(/usr/share/texlive/texmf-dist/tex/context/base/supp-pdf.mkii
+("d:\Program Files\MiKTeX 2.9\tex\context\base\supp-pdf.mkii"
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count108
 \scratchdimen=\dimen134
@@ -239,170 +237,163 @@ LaTeX Font Info:    ... okay on input line 319.
 \MPnumerator=\count112
 \makeMPintoPDFobject=\count113
 \everyMPtoPDFconversion=\toks18
-) (/usr/share/texlive/texmf-dist/tex/generic/oberdiek/pdftexcmds.sty
-Package: pdftexcmds 2011/11/29 v0.20 Utility functions of pdfTeX for LuaTeX (HO
+) ("d:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\pdftexcmds.sty"
+Package: pdftexcmds 2016/05/21 v0.22 Utility functions of pdfTeX for LuaTeX (HO
 )
 
-(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ifluatex.sty
-Package: ifluatex 2010/03/01 v1.3 Provides the ifluatex switch (HO)
+("d:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\ifluatex.sty"
+Package: ifluatex 2016/05/16 v1.4 Provides the ifluatex switch (HO)
 Package ifluatex Info: LuaTeX not detected.
 )
-(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ifpdf.sty
-Package: ifpdf 2011/01/30 v2.3 Provides the ifpdf switch (HO)
-Package ifpdf Info: pdfTeX in PDF mode is detected.
+("d:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\ifpdf.sty"
+Package: ifpdf 2016/05/14 v3.1 Provides the ifpdf switch
 )
 Package pdftexcmds Info: LuaTeX not detected.
 Package pdftexcmds Info: \pdf@primitive is available.
 Package pdftexcmds Info: \pdf@ifprimitive is available.
 Package pdftexcmds Info: \pdfdraftmode found.
 )
-(/usr/share/texlive/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
-Package: epstopdf-base 2010/02/09 v2.5 Base part for package epstopdf
+("d:\Program Files\MiKTeX 2.9\tex\latex\oberdiek\epstopdf-base.sty"
+Package: epstopdf-base 2016/05/15 v2.6 Base part for package epstopdf
 
-(/usr/share/texlive/texmf-dist/tex/latex/oberdiek/grfext.sty
-Package: grfext 2010/08/19 v1.1 Manage graphics extensions (HO)
+("d:\Program Files\MiKTeX 2.9\tex\latex\oberdiek\grfext.sty"
+Package: grfext 2016/05/16 v1.2 Manage graphics extensions (HO)
 
-(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/kvdefinekeys.sty
-Package: kvdefinekeys 2011/04/07 v1.3 Define keys (HO)
+("d:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\kvdefinekeys.sty"
+Package: kvdefinekeys 2016/05/16 v1.4 Define keys (HO)
 ))
-(/usr/share/texlive/texmf-dist/tex/latex/oberdiek/kvoptions.sty
-Package: kvoptions 2011/06/30 v3.11 Key value format for package options (HO)
+("d:\Program Files\MiKTeX 2.9\tex\latex\oberdiek\kvoptions.sty"
+Package: kvoptions 2016/05/16 v3.12 Key value format for package options (HO)
 
-(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/kvsetkeys.sty
-Package: kvsetkeys 2012/04/25 v1.16 Key value parser (HO)
+("d:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\kvsetkeys.sty"
+Package: kvsetkeys 2016/05/16 v1.17 Key value parser (HO)
 
-(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/etexcmds.sty
-Package: etexcmds 2011/02/16 v1.5 Avoid name clashes with e-TeX commands (HO)
+("d:\Program Files\MiKTeX 2.9\tex\generic\oberdiek\etexcmds.sty"
+Package: etexcmds 2016/05/16 v1.6 Avoid name clashes with e-TeX commands (HO)
 Package etexcmds Info: Could not find \expanded.
 (etexcmds)             That can mean that you are not using pdfTeX 1.50 or
 (etexcmds)             that some package has redefined \expanded.
 (etexcmds)             In the latter case, load this package earlier.
 )))
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+38.
 Package grfext Info: Graphics extension search list:
 (grfext)             [.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPE
 G,.JBIG2,.JB2,.eps]
-(grfext)             \AppendGraphicsExtensions on input line 452.
-
-(/usr/share/texlive/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
-File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
-e
-))
+(grfext)             \AppendGraphicsExtensions on input line 456.
+)
 Missing character: There is no â in font ptmr7t!
 Missing character: There is no € in font ptmr7t!
 Missing character: There is no ™ in font ptmr7t!
-
-[1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}
+ [1{C:/ProgramData/MiKTeX/2.9/pdftex/config/pdftex.map}
 
 
 ]
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 431.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 431.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 447.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 447.
- [2] [3]
-(/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
-File: lstlang1.sty 2014/09/06 1.5e listings language file
+("d:\Program Files\MiKTeX 2.9\tex\latex\listings\lstlang1.sty"
+File: lstlang1.sty 2015/06/04 1.6 listings language file
 )
-LaTeX Font Info:    Try loading font information for OT1+pcr on input line 560.
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 424.
 
 
-(/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1pcr.fd
+("d:\Program Files\MiKTeX 2.9\tex\latex\psnfss\ot1pcr.fd"
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
 LaTeX Font Info:    Font shape `OT1/pcr/bx/n' in size <5> not available
-(Font)              Font shape `OT1/pcr/b/n' tried instead on input line 562.
+(Font)              Font shape `OT1/pcr/b/n' tried instead on input line 426.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 442.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <5> on input line 442.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 458.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 458.
+ [2] [3]
 LaTeX Font Info:    Font shape `OT1/pcr/m/it' in size <5> not available
-(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 567.
- [4] [5] [6]
-<cassandra.pdf, id=29, 462.52798pt x 346.89601pt>
+(Font)              Font shape `OT1/pcr/m/sl' tried instead on input line 576.
+ [4] [5]
+[6] <cassandra.pdf, id=28, 462.52798pt x 346.89601pt>
 File: cassandra.pdf Graphic file (type pdf)
  <use cassandra.pdf>
-Package pdftex.def Info: cassandra.pdf used on input line 840.
+Package pdftex.def Info: cassandra.pdf used on input line 849.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
-<flink.pdf, id=30, 462.52798pt x 346.89601pt>
+<flink.pdf, id=29, 462.52798pt x 346.89601pt>
 File: flink.pdf Graphic file (type pdf)
  <use flink.pdf>
-Package pdftex.def Info: flink.pdf used on input line 841.
+Package pdftex.def Info: flink.pdf used on input line 850.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
-<hadoop.pdf, id=31, 462.52798pt x 346.89601pt>
+<hadoop.pdf, id=30, 462.52798pt x 346.89601pt>
 File: hadoop.pdf Graphic file (type pdf)
  <use hadoop.pdf>
-Package pdftex.def Info: hadoop.pdf used on input line 842.
+Package pdftex.def Info: hadoop.pdf used on input line 851.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
-<lucene-solr.pdf, id=32, 462.52798pt x 346.89601pt>
+<lucene-solr.pdf, id=31, 462.52798pt x 346.89601pt>
 File: lucene-solr.pdf Graphic file (type pdf)
  <use lucene-solr.pdf>
-Package pdftex.def Info: lucene-solr.pdf used on input line 843.
+Package pdftex.def Info: lucene-solr.pdf used on input line 852.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
-<mahout.pdf, id=33, 462.52798pt x 346.89601pt>
+<mahout.pdf, id=32, 462.52798pt x 346.89601pt>
 File: mahout.pdf Graphic file (type pdf)
  <use mahout.pdf>
-Package pdftex.def Info: mahout.pdf used on input line 844.
+Package pdftex.def Info: mahout.pdf used on input line 853.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
-<netty.pdf, id=34, 462.52798pt x 346.89601pt>
+<netty.pdf, id=33, 462.52798pt x 346.89601pt>
 File: netty.pdf Graphic file (type pdf)
  <use netty.pdf>
-Package pdftex.def Info: netty.pdf used on input line 845.
+Package pdftex.def Info: netty.pdf used on input line 854.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
-<tomcat.pdf, id=35, 462.52798pt x 346.89601pt>
+<tomcat.pdf, id=34, 462.52798pt x 346.89601pt>
 File: tomcat.pdf Graphic file (type pdf)
  <use tomcat.pdf>
-Package pdftex.def Info: tomcat.pdf used on input line 846.
+Package pdftex.def Info: tomcat.pdf used on input line 855.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 893--894
+Underfull \hbox (badness 10000) in paragraph at lines 902--903
 []\OT1/ptm/m/n/10 This ex-am-ple shows a change from
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 893--894
+Underfull \hbox (badness 10000) in paragraph at lines 902--903
 \OT1/ptm/m/n/10 ThreadLocal$\OML/cmm/m/it/10 <$\OT1/ptm/m/n/10 Random$\OML/cmm/
 m/it/10 >$ \OT1/ptm/m/n/10 to Thread-Lo-cal-Ran-dom from
  []
 
 
-Underfull \hbox (badness 2547) in paragraph at lines 893--894
+Underfull \hbox (badness 2547) in paragraph at lines 902--903
 \OT1/ptm/m/n/10 Thread-Lo-cal-Ran-dom should be used when avail-able in
  []
 
-[7]
-Underfull \vbox (badness 10000) has occurred while \output is active []
+[7] [8 <./cassandra.pdf> <./flink.pdf
 
- [8 <./cassandra.pdf> <./flink.pdf
-
-pdfTeX warning: pdflatex (file ./flink.pdf): PDF inclusion: multiple pdfs with 
-page group included in a single page
+pdfTeX warning: pdflatex.exe (file ./flink.pdf): PDF inclusion: multiple pdfs w
+ith page group included in a single page
 > <./hadoop.pdf
 
-pdfTeX warning: pdflatex (file ./hadoop.pdf): PDF inclusion: multiple pdfs with
- page group included in a single page
+pdfTeX warning: pdflatex.exe (file ./hadoop.pdf): PDF inclusion: multiple pdfs 
+with page group included in a single page
 > <./lucene-solr.pdf
 
-pdfTeX warning: pdflatex (file ./lucene-solr.pdf): PDF inclusion: multiple pdfs
- with page group included in a single page
+pdfTeX warning: pdflatex.exe (file ./lucene-solr.pdf): PDF inclusion: multiple 
+pdfs with page group included in a single page
 > <./mahout.pdf
 
-pdfTeX warning: pdflatex (file ./mahout.pdf): PDF inclusion: multiple pdfs with
- page group included in a single page
+pdfTeX warning: pdflatex.exe (file ./mahout.pdf): PDF inclusion: multiple pdfs 
+with page group included in a single page
 > <./netty.pdf
 
-pdfTeX warning: pdflatex (file ./netty.pdf): PDF inclusion: multiple pdfs with 
-page group included in a single page
+pdfTeX warning: pdflatex.exe (file ./netty.pdf): PDF inclusion: multiple pdfs w
+ith page group included in a single page
 > <./tomcat.pdf
 
-pdfTeX warning: pdflatex (file ./tomcat.pdf): PDF inclusion: multiple pdfs with
- page group included in a single page
->] (./bare_conf.bbl
+pdfTeX warning: pdflatex.exe (file ./tomcat.pdf): PDF inclusion: multiple pdfs 
+with page group included in a single page
+>] (bare_conf.bbl
 Underfull \hbox (badness 3128) in paragraph at lines 152--156
 []\OT1/ptm/m/n/8 C.-C. Chang and C.-J. Lin, ``LIB-SVM: A li-brary for sup-port
  []
@@ -431,28 +422,27 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[9] (./bare_conf.aux) ) 
+[9] (bare_conf.aux) ) 
 Here is how much of TeX's memory you used:
- 4664 strings out of 493105
- 70675 string characters out of 6137072
- 434848 words of memory out of 5000000
- 8078 multiletter control sequences out of 15000+600000
- 41738 words of font info for 80 fonts, out of 8000000 for 9000
+ 4677 strings out of 493334
+ 70544 string characters out of 3139258
+ 395306 words of memory out of 3000000
+ 8158 multiletter control sequences out of 15000+200000
+ 41738 words of font info for 80 fonts, out of 3000000 for 9000
  1144 hyphenation exceptions out of 8191
- 37i,8n,40p,1921b,1453s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.e
-nc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></u
-sr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/shar
-e/texlive/texmf-dist/fonts/type1/urw/courier/ucrb8a.pfb></usr/share/texlive/tex
-mf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texlive/texmf-dist/fonts
-/type1/urw/courier/ucrro8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/t
-imes/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmbi8a.pf
-b></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/t
-exlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on bare_conf.pdf (9 pages, 242639 bytes).
+ 40i,8n,40p,1923b,1449s stack positions out of 5000i,500n,10000p,200000b,50000s
+{d:/Program Files/MiKTeX 2.9/fonts/enc/dvips/fontname/8r.e
+nc}<d:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><d:/P
+rogram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy7.pfb><d:/Program Fi
+les/MiKTeX 2.9/fonts/type1/urw/courier/ucrb8a.pfb><d:/Program Files/MiKTeX 2.9/
+fonts/type1/urw/courier/ucrr8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw
+/courier/ucrro8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmb8a.
+pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmbi8a.pfb><d:/Program 
+Files/MiKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb><d:/Program Files/MiKTeX 2.9/
+fonts/type1/urw/times/utmri8a.pfb>
+Output written on bare_conf.pdf (9 pages, 270160 bytes).
 PDF statistics:
- 323 PDF objects out of 1000 (max. 8388607)
- 86 compressed objects within 1 object stream
+ 321 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  36 words of extra memory for PDF output out of 10000 (max. 10000000)
 
