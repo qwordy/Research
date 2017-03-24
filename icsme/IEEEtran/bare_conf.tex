@@ -415,18 +415,20 @@ Santos et al. \cite{conf/icsm/SantosAEDV15} studied system specific, source code
 
 \textbf{Benefits} We study concurrent programs from a perspective of software evolution history and find many change patterns about concurrent programming. Understanding concurrent program change patterns is very beneficial.
 
-1) Developers are facing many concurrent programming requirements now. But concurrent programming is notoriously error-prone \cite{conf/asplos/LuPSZ08} because of the complexity of thread synchronization and scheduling. Even experienced developer might also be confused sometimes. Our study gives developers some guidelines of writing concurrent programs. Use handy concurrent libraries to finish the job instead of rewriting them by yourself unless all the available concurrent libraries cannot satisfy your requirement and you are absolutely confident of your concurrent programming skills. Using existing libraries allows you to  write less code to finish the same work and enjoy the high quality of implementation which is always reliable, strong and fast.
+1) Developers are facing many concurrent programming requirements now. But concurrent programming is notoriously error-prone \cite{conf/asplos/LuPSZ08} because of the complexity of thread synchronization and scheduling. Even experienced developers might also be confused sometimes. Our study gives developers some guidelines of writing concurrent programs such as using handy concurrent libraries to finish the job instead of rewriting them by yourself unless all the available concurrent libraries cannot satisfy your requirement and you are absolutely confident of your concurrent programming skills.
+
+%Using existing libraries allows you to  write less code to finish the same work and enjoy the high quality of implementation which is always reliable, strong and fast.
 
 2) Automatic tools are needed to help developers inspect and revise concurrent programs with the help of history information. We can learn from existing change patterns \cite{conf/pldi/MengKM11}. There has already been some tools \cite{conf/ppopp/SamakR14, conf/sigsoft/EslamimehrP14, conf/pldi/BiswasHSB14}, but they usually look for concurrent bugs such as race detection, deadlock detection and atomicity violation without considering software evolution history.
 
-\lstset{language=java, numbers=left, breaklines=true,  basicstyle=\ttfamily\tiny,  xleftmargin=3em, tabsize=2}
-%keywordstyle=\color{blue}\bf\ttfamily,
+\lstset{numbers=left, breaklines=true,  basicstyle=\ttfamily\tiny,  xleftmargin=3em, tabsize=2}
+%keywordstyle=\color{blue}\bf\ttfamily, language=java, 
 \begin{lstlisting}
 commit a6092d771ec50cf9aa434c75455b842f3ac6c628
 Threading / initialisation issues. Not all were valid. Make them volatile anyway so FindBugs doesn't complain.
 \end{lstlisting}
 
-This is a commit message of Mark Thomas. He is a member of the Apache Tomcat Project Management Committee, and senior software engineer at the Covalent division of SpringSource. He has submitted more than 10,000 commits to Tomcat. He said that he made the changes anyway to eliminate FindBugs' warning. This indicates that experienced programmer 
+This is a commit message of Mark Thomas. He is a member of the Apache Tomcat Project Management Committee, and senior software engineer at the Covalent division of SpringSource. He has submitted more than 10,000 commits to Tomcat. He said that he made the changes anyway to eliminate FindBugs' warning. This indicates that a experienced programmer also feels bothered with these problems.
 
 Both project specific and project independent transformation patterns exist in real-world software projects. So we need some concurrent code refactoring tools to give advice of what code need change and perform the transformations automatically. It is a chance for IDE manufacturer to make the IDE more intelligent in inspecting and modifying the code. Developers will benefit a lot if such kind of automatic tools can actually help them with automating their development and maintenance.
 
@@ -439,7 +441,7 @@ Both project specific and project independent transformation patterns exist in r
 \textbf{Contributions} Our main contributions are:
 
 \begin{itemize}
-	\item We identify and classify change patterns into ? types in concurrent programs from 102028 commits of 7 open-source projects. The most common types of change patterns are thread-safe class replacement, Changing critical sections.
+	\item We identify and classify change patterns into ? types in concurrent programs from 102,028 commits of 7 open-source projects. The most common types of change patterns are thread-safe class replacement, changing critical sections.
 	\item We find some interesting findings: Some changes are contrary. Different developers may modify their code in an opposite direction. Developers are using some code-checking tools like findbugs to help them inspect their code, but sometimes these tools are not enough.
 	\item We affirm that our change patterns can be applied to appropriate  contexts from real world open-source projects.
 	\item We give some inspirations to concurrent program or library developers and analysis tool developers. Automated tools can be improved to help developers with program transformations.
@@ -481,7 +483,7 @@ Java programming language provides convenient built-in concurrent libraries and 
 
 \textbf{RQ3.} What is the trend of concurrent programming construct usage statistically?
 
-Java programming language offers many handy facilities for building concurrent programs. For example, language level constructs like synchronized and volatile are keywords of Java. There are also API level constructs like notify method of an object and some concurrent related convenient classes such as the java.util.concurrent package. There are always more than one ways to finish a task in Java and the preferences of developers evolves fast. We are interested in the trend of some common concurrent related constructs and the reasons hidden behind the phenomenon.
+Java programming language offers many handy facilities for building concurrent programs. For example, there are language level constructs like \texttt{synchronized} and \texttt{volatile}. They are keywords of Java. There are also API level constructs like notify method of an object and some concurrent related convenient classes such as the \texttt{java.util.concurrent} package. There are always more than one ways to finish a task in Java and the preferences of developers evolves fast. We are interested in the trend of some common concurrent related constructs and the reasons hidden behind the phenomenon.
 
 \textbf{RQ4.} Can these change patterns be applied to real world projects?
 
@@ -491,10 +493,10 @@ In order to better demonstrate these change patterns can really help developers 
 We have developed a tool to collect and analyze data. The tool has the following parts.
 
 \subsubsection{Collecting commits}
-All the projects of our study are under git which is one of the most popular version control systems in the world. Some projects of the study used svn or some other version control systems before because they have long histories, but they all support git \cite{books/daglib/0022839} now. We employ JGit, a lightweight, pure java library implementation of git, to retrieve all the commit logs in projects' histories. A typical commit log contains commit id which is a 20-character-long string uniquely identifying a commit, author, date and message. Once we get a commit id, we use 'git show' command to show the log message and textual 'diff'. The 'diff' result contains one or more change files which contain one or more change hunks.
+All the projects of our study are under git which is one of the most popular version control systems in the world. Some projects of the study used svn or some other version control systems before because they have long histories, but they all support git \cite{books/daglib/0022839} now. We employ JGit, a lightweight, pure Java library implementation of git, to retrieve all the commit logs in projects' histories. A typical commit log contains commit id which is a 20-character-long string uniquely identifying a commit, author, date and message. Once we get a commit id, we use \texttt{git show} command to show the log message and textual \texttt{diff}. The \texttt{diff} result contains one or more change files which contain one or more change hunks.
 
 \subsubsection{Classification}
-There are many commits which are not concurrent related in the commits which we have collected.  We need to select concurrent related commits. Tian et al. gave a successful example of identifing bug fixing patches using machine learning \cite{conf/icse/TianLL12}. We use machine learning to train and predict whether a commit is concurrent related. We adopt both text analysis and code analysis to extract features. A commit log uses natural language to present what was changed and why the change was made in most cases. We treat each commit log as a bag of words then match the words to a set of concurrent keywords which we have defined as the Java concurrent keywords like 'synchronized', 'volatile' and names of common classes or interfaces in Java libraries which are related to concurrency. We also do a code analysis based on the 'diff' result. 12 features are extracted for each commit, which is shown in Table II. The first column shows the feature names and the second column shows the explanations.
+There are many commits which are not concurrent related in the commits which we have collected.  We need to select concurrent related commits. Tian et al. gave a successful example of identifing bug fixing patches using machine learning \cite{conf/icse/TianLL12}. We use machine learning to train and predict whether a commit is concurrent related. We adopt both text analysis and code analysis to extract features. A commit log uses natural language to present what was changed and why the change was made in most cases. We treat each commit log as a bag of words then match the words to a set of concurrent keywords which we have defined as the Java concurrent keywords like \texttt{synchronized}, \texttt{volatile} and names of common classes or interfaces in Java libraries which are related to concurrency. We also do a code analysis based on the \texttt{diff} result. 12 features are extracted for each commit, which is shown in Table II. The first column shows the feature names and the second column shows the explanations.
 
 We use the SVM \cite{journals/ml/CortesV95} algorithm to train and classify commits as concurrent-related or not. SVM is a supervised classification algorithm which needs both positive and negative labeled data for training. In our tool, we use an implementation of SVM, LIBSVM \cite{libsvm}. We manually label some data as a training data set first then train a model. The trained classifier selects 135 positive instances from all the commits which we have collected.
 
@@ -504,7 +506,7 @@ We use the SVM \cite{journals/ml/CortesV95} algorithm to train and classify comm
 
 All the change patterns are summarized from real commits of projects. Different developers may have different taste and preference. Their behavior on similar conditions may be different sometimes contradictory. We indeed find that some changes are contradictory.
 
-Some change patterns are not easy to determine the right occasion to apply especially those concurrency control problems like dead lock, race condition. They usually need rigorous analysis based on the dependent code. So we might omit some change patterns.
+Some change patterns are not easy to determine the right occasion to apply especially those concurrency control problems like deadlock, race condition. They usually need rigorous analysis based on the dependent code. So we might omit some change patterns.
 
 We collect all the commits from the initialization of projects. The time range of them is very wide. Some changes are not very new. The development of software is very fast, so some change patterns which are not very new might not be suitable for the newest software.
 
@@ -543,16 +545,21 @@ We only analyse 7 Java projects Github. Maybe concurrent related changes are dif
 \begin{table*}
 	\centering
 	\caption{Taxonomy}
-	\begin{tabular}{|c|l|c|}\hline
-		Name&Explanation&Occurrence\\\hline
-		Changing lock type&Switch to another type of lock&4\\\hline
-		Changing lock instance&Switch to another lock instace&6\\\hline
-		Changing critical sections&Change critical sections, which are protected by synchronization&35\\\hline
-		Addition or removing 'volatile'&Add or remove 'volatile' modifier of a class field&47\\\hline
+	\begin{tabular}{|c|c|c|}\hline
+		Type&Example&Occurrence\\\hline
+		Changing lock type&\includegraphics[scale=0.35]{pattern1}&4\\\hline
+		Changing lock instance&\includegraphics[scale=0.35]{pattern2}&6\\\hline
+		Changing critical sections&\includegraphics[scale=0.35]{pattern3}&35\\\hline
+		Addition or removing \texttt{volatile}&\includegraphics[scale=0.35]{pattern4}&47\\\hline
 		Thread-safe class replacement&Use thread-safe class instead of handling concurrency control manually&32\\\hline
 		%Other class replacement&Some other concurrent related class replacement&\\\hline
 	\end{tabular}
 \end{table*}
+
+%Switch to another type of lock
+%Switch to another lock instace
+%Change critical sections, which are protected by synchronization
+%Add or remove 'volatile' modifier of a class field
 
 Table III shows an overview of all types, their explanations and occurrence times. We are going to discuss these change types concretely with examples below.
 
@@ -585,7 +592,7 @@ totalPreemptionAllowed);
 }
 \end{lstlisting}
 
-This is a commit of YARN-5825 - ProportionalPreemptionalPolicy could use readLock over LeafQueue instead of synchronized block. It is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a reader lock. There are many different locks which can be used to synchronize. A reader lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance under the scenario where most of the operations are reading.
+This is a commit of YARN-5825 - \texttt{ProportionalPreemptionalPolicy} could use \texttt{readLock} over \texttt{LeafQueue} instead of a synchronized block. It is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a reader lock. There are many different locks which can be used to synchronize. A reader lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance under the scenario where most of the operations are reading.
 
 \begin{lstlisting}
 commit 3e4b1ae6dc786b268505aa2e64067432519c2bcf
@@ -595,13 +602,22 @@ WeakHashMap may modify itself on get(), as it processes the reference
 queue of items removed by GC.
 Either a plain old lock / synchronization is needed, or some other solution
 (e.g.  org.apache.tomcat.util.collections.ManagedConcurrentWeakHashMap )
+
+-        Lock readlock = classLoaderContainerMapLock.readLock();
+-        try {
+-            readlock.lock();
++        synchronized (classLoaderContainerMapLock) {
+             result = classLoaderContainerMap.get(tccl);
+-        } finally {
+-            readlock.unlock();
+-        }
 \end{lstlisting}
 
-This is an example in Tomcat. The developer said a ReadWriteLock cannot guard a WeakHashMap. A plain old lock or synchronization should be used.
+This is an example in Tomcat. The developer said a \texttt{ReadWriteLock} cannot guard a \texttt{WeakHashMap}. It is because get() may modify a \texttt{WeakHashMap}, in which case a reader lock is not enough. A plain old lock or synchronization should be used. In this example, the synchronization is used finally.
 
 \textbf{Changing lock instance}
 
-You need to create an instance of lock like Java's Reentrant class first before you can use it. You also need to choose an object to synchronize on when you use synchronized block. Developers may change lock instance during software evolution. It is important to choose the right lock instance to use and decide the order to acquire and release different locks. Sometimes it is hard for developers to do this.
+You need to create an instance of lock like Java's \texttt{ReentrantLock} class first before you can use it. You also need to choose an object to synchronize on when you use synchronized block. Developers may change lock instance during software evolution. It is important to choose the right lock instance to use and decide the order to acquire and release different locks. Sometimes it is hard for developers to do this.
 
 No matter explicit locks or synchronized blocks, we always need a lock instance to be acquired and released.  There are some best practice like two-phase locking \cite{journals/cacm/EswarranGLT76}, which is a locking method to guarantee serializability. It is a concept originally in database transaction management. %The method is relatively simple to understand. It has two phases: the first is expanding phase where you can only acquire locks and the second is shrinking phase where you can only release locks. You can access data between the two phases.
 
@@ -628,7 +644,7 @@ public FutureTask<Path> createTmpFile(String name, DistributedCacheEntry entry, 
 }
 \end{lstlisting}
 
-This is a commit of FLINK-1419 - DistributedCache doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the DistributedCache. They synchronized on 'count', which is a map instance. Instead, they used 'lock', which is an instance of Object class. The difference is this instance is only used for synchronization while the former one has its own role not only as a lock. We do not need to blame preference of synchronization usage. This commit also made other changes about synchronization. They modified the critical sections as well.
+This is a commit of FLINK-1419 - \texttt{DistributedCache} doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the \texttt{DistributedCache}. They synchronized on \texttt{count}, which is a map instance. Instead, they used \texttt{lock}, which is an instance of \texttt{Object} class. The difference is this instance is only used for synchronization while the former one has its own role not only as a lock. We do not need to blame preference of synchronization usage. This commit also made other changes about synchronization. They modified the critical sections as well.
 
 \begin{lstlisting}
 commit f0e627bb8c9daedb3b064027cac37ce4849bab64
@@ -636,9 +652,9 @@ Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58382
 Use single object (membersLock) for all locking
 
 /**
-* Reset the membership and start over fresh. i.e., delete all the members
-* and wait for them to ping again and join this membership.
-*/
+  * Reset the membership and start over fresh. i.e., delete all the members
+  * and wait for them to ping again and join this membership.
+  */
 -    public synchronized void reset() {
 -        map.clear();
 -        members = EMPTY_MEMBERS ;
@@ -650,15 +666,14 @@ Use single object (membersLock) for all locking
 }
 \end{lstlisting}
 
-This is another example. The lock instance was originally the instance of the class and now is membersLock. They use single object (membersLock) for all locking as the commit message said. Using a separated locking instance can allow you to have more precise concurrency control than using synchronized methods.
+This is another example. The lock instance was originally the instance of the class and now is \texttt{membersLock}. They use single object (\texttt{membersLock}) for all locking as the commit message said. Using a separated locking instance can allow you to have more precise concurrency control than using synchronized methods.
 
 \textbf{Changing critical sections}
 
-Critical section is a code block guarded by synchronization. This the most common changes in terms of concurrency control. We classify these changes into five subtypes: adding synchronization, removing synchronization, adding statements, removing statements, modifing statements. Adding synchronization means to add synchronization to the statements which are not synchronized before. Removing synchronization means to remove synchronization of the statements, which are no more protected now but still exist outside the critical sections. Adding statements means to add new statements to the critical sections. Removing statements means to remove existing statements inside the critical sections. Modifing statements means to modify statements inside the critical sections. The reasons behind the changes depend on specific context.
+Critical section is a code block guarded by synchronization. It is the most common change in terms of concurrency control. We classify these changes into five subtypes: adding synchronization, removing synchronization, adding statements, removing statements, modifing statements. Adding synchronization means to add synchronization to the statements which are not synchronized before. Removing synchronization means to remove synchronization of the statements, which are no more protected now but still exist outside the critical sections. Adding statements means to add new statements to the critical sections. Removing statements means to remove existing statements inside the critical sections. Modifing statements means to modify statements inside the critical sections. The reasons behind the changes depend on specific context.
 
 \begin{lstlisting}
 commit 17206cc8c21c439d121a66d7c9934cdfa4791a35
-
 Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58386
 On the basis that access() and finish() are synchronized, extend synchronization to other methods that access same fields.
 
@@ -673,28 +688,25 @@ This is an example of adding synchronization. The mothod was not synchronoized b
 \begin{lstlisting}
 commit c93d9eaf363a535dff25cc4e7db400d879e73bb1
 Add option to use single actor system for local execution. Use local connection manager if a single task manager is used for local execution. Remove synchronized blcok in getReceiverList of ChannelManager which effectively serialized the connection lookup calls of a single task manager.
-...
--			synchronized (this.channelLookup) {
--				try{
--					lookupResponse = AkkaUtils.<JobManagerMessages.ConnectionInformation>ask(channelLookup,
--							new JobManagerMessages.LookupConnectionInformation(connectionInfo, jobID,
--									sourceChannelID), timeout).response();
--				}catch(IOException ioe) {
--					throw ioe;
--				}
--			}
-+			lookupResponse = AkkaUtils.<JobManagerMessages.ConnectionInformation>ask(channelLookup,
-+					new JobManagerMessages.LookupConnectionInformation(connectionInfo, jobID,
-+							sourceChannelID), timeout).response();
+
+-synchronized (this.channelLookup) {
+-  try{
+-    lookupResponse = AkkaUtils.<JobManagerMessages.ConnectionInformation>ask(channelLookup,
+-      new JobManagerMessages.LookupConnectionInformation(connectionInfo, jobID,
+-      sourceChannelID), timeout).response();
+-  }catch(IOException ioe) {
+-    throw ioe;
+-  }
+-}
++lookupResponse = AkkaUtils.<JobManagerMessages.ConnectionInformation>ask(channelLookup,
++  new JobManagerMessages.LookupConnectionInformation(connectionInfo, jobID,
++    sourceChannelID), timeout).response();
 \end{lstlisting}
 
 This example is from Flink. Developers remove the synchronization of a code block. If you find the code will not be access concurrently or it can be accessed safely in a concurrent way, you do not need to synchronize the code.
 
 \begin{lstlisting}
 commit 7e56bfe40589a1aa9b5ef20b342e421823cd0592
-Author: Suresh Srinivas <suresh@apache.org>
-Date:   Mon Nov 26 20:47:58 2012 +0000
-
 HDFS-4200. Reduce the size of synchronized sections in PacketResponder. Contributed by Suresh Srinivas.
 
 -    synchronized void enqueue(final long seqno,
@@ -722,13 +734,10 @@ HDFS-4200. Reduce the size of synchronized sections in PacketResponder. Contribu
      }
 \end{lstlisting}
 
-This is a commit of HDFS-4200 - Reduce the size of synchronized sections in PacketResponder. It is a major improvement. This example contains mutiple types of changes. They change the lock instance, remove synchronization of some code, add some new synchronized code. The developers said the size of synchronized sections can be reduced. It is always meaningful to remove the unnecessary synchronizations. Over-synchronization \cite{conf/sigsoft/GuJSZL15} is a real issue in real-world software.
+This is a commit of HDFS-4200 - Reduce the size of synchronized sections in \texttt{PacketResponder}, which is a major improvement. This is a complex change compared to former examples. This example contains mutiple types of changes. They change the lock instance, remove synchronization of some code, add some new synchronized code. The developers said the size of synchronized sections can be reduced. It is always meaningful to remove the unnecessary synchronizations. Over-synchronization \cite{conf/sigsoft/GuJSZL15} is a real issue in real-world software.
 
 \begin{lstlisting}
 commit efca79cfb7b496b4bec70561cc94af069c644ef2
-Author: Ufuk Celebi <uce@apache.org>
-Date:   Thu Jul 23 15:19:57 2015 +0200
-
 [FLINK-2384] [runtime] Move blocking I/O call outside of synchronized block
 Problem: Waiting on asynchronous write requests with the partition lock can
 result in a deadlock, because all other operations on the same partition are
@@ -755,11 +764,34 @@ finish call has returned.
  }
 \end{lstlisting}
 
-This is an example from flink. It is a critical bug issue "Deadlock during partition spilling". A user reported the problem. The developer wrote a detailed message, which describes the problem, reason and solution.
+\begin{figure}
+	\centering
+	\includegraphics[height=1.2in]{deadlock}
+	\caption{Deadlock}
+\end{figure}
+
+This is an example from Flink. It is a critical bug issue ``Deadlock during partition spilling''. A user reported the problem. Here is selected parts of the stack trace.
+
+\begin{lstlisting}
+"CHAIN DataSource (at createInput(ExecutionEnvironment.java:502) (org.apache.flink.api.java.hadoop.mapreduce.HadoopInputFormat)) -> FlatMap (FlatMap at readFlinkTuplesFromThriftParquet(ParquetThriftEntitons.java:96)) (7/8)" daemon prio=10 tid=0x00007f934005b000 nid=0x73c4 in Object.wait() [0x00007f93c16ac000]
+java.lang.Thread.State: TIMED_WAITING (on object monitor)
+
+"IOManager writer thread #1" daemon prio=10 tid=0x00007f93d8b7b000 nid=0x73a8 waiting for monitor entry [0x00007f93c2fc5000]
+java.lang.Thread.State: BLOCKED (on object monitor)
+
+"Map (Projection [0, 1, 2, 3, 4]) (7/8)" daemon prio=10 tid=0x00007f92b0434800 nid=0x74a3 waiting for monitor entry [0x00007f93a32f1000]
+java.lang.Thread.State: BLOCKED (on object monitor)
+\end{lstlisting}
+
+The \texttt{DataSource} is waiting to be notified by the \texttt{Writer} when holding lock A. THe \texttt{Writer} is trying to acquire lock B. But lock B is held by the \texttt{Map}. And the \texttt{Map} is trying to acquire lock A, which is held by the \texttt{DataSource}. Here is a waiting chain. This is a kind of bug known as deadlock.
+
+The 
+
+The developer wrote a commit message, which describes the problem, causing reason and solution.
 
 \textbf{Adding or removing volatile modifier}
 
-Volatile is a Java keyword, which is used to mark a variable which should be saved in main memory so that every thread which reads the variable can read the latest value from the main memory not the outdated value in the CPU cache. This provides visibility of variables across multiple threads. Using volatile correctly instead of locking can improve the performance in terms of concurrency. But this keyword is subtle. Developers need careful reasoning when dealing with volatile. Sometimes volatile is not enough. There may be race conditions when multiple thread read and write volatile fields simultaneously.
+\texttt{volatile} is a Java keyword, which is used to mark a variable which should be saved in main memory so that every thread which reads the variable can read the latest value from the main memory not the outdated value in the CPU cache. This provides visibility of variables across multiple threads. Using \texttt{volatile} correctly instead of locking can improve the performance in terms of concurrency. But this keyword is subtle. Developers need careful reasoning when dealing with \texttt{volatile}. Sometimes \texttt{volatile} is not enough. There may be race conditions when multiple thread read and write \texttt{volatile} fields simultaneously.
 
 \begin{lstlisting}
 commit 8313fa0f1ca277e9633a78f461804abc3c5515b8
@@ -769,7 +801,7 @@ Double-checked locking needs to use volatile to be thread-safe
 -    protected Membership membership = null;
 +    protected volatile Membership membership = null;
 \end{lstlisting}
-It is a commit for bug 58392 in Bugzilla. It is reported by a race detector that there is data race on field. Double-checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like omitting 'volatile' modifier of a class member. If 'volatile' is not used, another thread which get in the method cannot immediately see 'membership' has been assigned already. As a result, this thread will create an instance again and this violates the semantics of singleton pattern. Some work has been done in double-checked locking pattern \cite{conf/ispass/IshizakiDN14}, which can use this pattern automatically.
+It is a commit for bug 58392 in Bugzilla. It is reported by a race detector that there is data race on field. Double-checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like omitting \texttt{volatile} modifier of a class member. If \texttt{volatile} is not used, another thread which get in the method cannot immediately see ``membership'' has been assigned already. As a result, this thread will create an instance again and this violates the semantics of singleton pattern. Some work has been done in double-checked locking pattern \cite{conf/ispass/IshizakiDN14}, which can use this pattern automatically.
 
 \begin{lstlisting}
 commit 560cd00890b3f6af2aca0c3a9d51a45f880692dd
@@ -784,7 +816,7 @@ Fix a FindBugs warning (increment of volatile not atomic)
 +        requestCount.incrementAndGet();
 \end{lstlisting}
 
-This is an example in Tomcat. The developer used FindBugs to check the code and it said increment of volatile is not atomic. This is a wrong demonstration of how to use volatile. The original code is not safe because increment is not an atomic operation. It includes read, calculate and write operations to complete the increment. So the developer used a thread-safe class instead.
+This is an example in Tomcat. The developer used FindBugs to check the code and it said increment of a \texttt{volatile} field is not atomic. This is a wrong demonstration of how to use \texttt{volatile}. The original code is not safe because increment is not an atomic operation. It includes read, calculate and write operations to complete the increment. So the developer used a thread-safe class instead.
 
 \textbf{Thread-safe class replacement}
 
@@ -915,11 +947,11 @@ Code was used although I can't see why a simple AtomicInteger wasn't sufficient.
 -    private static final AtomicIntegerFieldUpdater<OpenSSLContext> DESTROY_UPDATER = AtomicIntegerFieldUpdater.newUpdater(OpenSSLContext.class, "aprPoolDestroyed");
 \end{lstlisting}
 
-A previous commit switched to AtomicInteger from AtomicIntegerFieldUpdater. But now this developer reverse the change. In this example, AtomicIntegerFieldUpdater is a class which enables atomic updates to volatile field of classes. We can see that developers in one project may have divergence in a problem.
+A previous commit switched to \texttt{AtomicInteger} from \texttt{AtomicIntegerFieldUpdater}. But now this developer reverse the change. In this example, \texttt{AtomicIntegerFieldUpdater} is a class which enables atomic updates to \texttt{volatile} field of classes. We can see that developers in one project may have divergence in a problem.
 
-(2) Developers are using some code-checking tools like findbugs to help them inspect their code, but sometimes these tools are not enough.
+(2) Developers are using some code-checking tools like FindBugs to help them inspect their code, but sometimes these tools are not enough.
 
-The examples above show that some developers are using code checking tools like findbugs. Some tools are useful in development environments \cite{conf/oopsla/AyewahPMPZ07}. But these kind of tools don't help developers correct and eliminate the warnings automatically. One developer in Tomcat said "make the volatile anyway so FindBugs doesn't complain" in the commit log. This indicates code checking tools still have room to improve.
+The examples above show that some developers are using code checking tools like FindBugs. Some tools are useful in development environments \cite{conf/oopsla/AyewahPMPZ07}. But these kind of tools don't help developers correct and eliminate the warnings automatically. One developer in Tomcat said "make the volatile anyway so FindBugs doesn't complain" in the commit log. This indicates code checking tools still have room to improve.
 
 This research provides some implications from different kinds of perspectives.
 
