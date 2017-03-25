@@ -452,7 +452,7 @@ The rest of paper is organized as follows: Section 2 presents the methodology of
 \section{Methodology}
 This section presents data set of our study, research questions and tool support.
 
-\subsection{Data set} We investigate 8 Java open-source projects from Github including Hadoop, Tomcat, Cassandra, Lucene-solr, Netty, Flink and Mahout as shown in Table 1. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. The Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Tomcat is the most popular implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technologies. Cassandra \cite{journals/sigops/LakshmanM10} is a database system which can Manage massive amounts of data, fast, without losing sleep. Lucene-solr is two projects together in one respository in Github. Lucene is a search engine library and solr is a search engine server which uses lucene. Netty is an event-driven asynchronous network application framework. Flink is an open source stream processing framework with powerful stream- and batch-processing capabilities. Mahout is a machine learning project. Table I shows the lines of code in Java, the number of Java files and the number of commits of each project. All the projects are checked out for our study in December 2016.
+\subsection{Data set} We investigate 8 Java open-source projects from Github including Hadoop\footnote{http://hadoop.apache.org/}, Tomcat\footnote{http://tomcat.apache.org/}, Cassandra\footnote{http://cassandra.apache.org/}, Lucene-solr\footnote{http://lucene.apache.org/}, Netty\footnote{http://netty.io/}, Flink\footnote{https://flink.apache.org/} and Mahout\footnote{http://mahout.apache.org/} as shown in Table 1. Some projects are mirrored in Github. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. The Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Tomcat is the most popular implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technologies. Cassandra \cite{journals/sigops/LakshmanM10} is a database system which can Manage massive amounts of data, fast, without losing sleep. Lucene-solr is two projects together in one respository in Github. Lucene is a search engine library and solr is a search engine server which uses lucene. Netty is an event-driven asynchronous network application framework. Flink is an open source stream processing framework with powerful stream- and batch-processing capabilities. Mahout is a machine learning project. Table I shows the lines of code in Java, the number of Java files and the number of commits of each project. All the projects are checked out for our study in December 2016.
 
 \begin{table}
 	\centering
@@ -502,7 +502,7 @@ We use the SVM \cite{journals/ml/CortesV95} algorithm to train and classify comm
 
 \subsection{Threats to Validity}
 
-\textbf{Internal factors}
+\textbf{Threats to internal validity}
 
 All the change patterns are summarized from real commits of projects. Different developers may have different taste and preference. Their behavior on similar conditions may be different sometimes contradictory. We indeed find that some changes are contradictory.
 
@@ -510,9 +510,9 @@ Some change patterns are not easy to determine the right occasion to apply espec
 
 We collect all the commits from the initialization of projects. The time range of them is very wide. Some changes are not very new. The development of software is very fast, so some change patterns which are not very new might not be suitable for the newest software.
 
-\textbf{External factors}
+\textbf{Threats to external validity}
 
-We only analyse 7 Java projects Github. Maybe concurrent related changes are different in other languages and other projects.
+We analyze 7 Java open-source projects. The number of the projects we select is small compared to the huge amount of open-source projects. These 7 projects may not contains all change patterns in concurrent programming. Concurrent programming is a concept not only in Java but many other programming languages can support concurrent programming. The projects of our study are all written in Java. The change patterns may be different among different programming languages.
 
 \begin{table}
 	\centering
@@ -734,7 +734,7 @@ HDFS-4200. Reduce the size of synchronized sections in PacketResponder. Contribu
      }
 \end{lstlisting}
 
-This is a commit of HDFS-4200 - Reduce the size of synchronized sections in \texttt{PacketResponder}, which is a major improvement. This is a complex change compared to former examples. This example contains mutiple types of changes. They change the lock instance, remove synchronization of some code, add some new synchronized code. The developers said the size of synchronized sections can be reduced. It is always meaningful to remove the unnecessary synchronizations. Over-synchronization \cite{conf/sigsoft/GuJSZL15} is a real issue in real-world software.
+This is a commit of HDFS-4200 - Reduce the size of synchronized sections in \texttt{PacketResponder}, which is a major improvement. The previous two examples are very easy. This is a complex change compared to previous examples. This example contains multiple types of changes. They change the lock instance, remove synchronization of some code, add some new synchronized code. The developers said the size of synchronized sections can be reduced. It is always meaningful to remove the unnecessary synchronizations. Over-synchronization \cite{conf/sigsoft/GuJSZL15} is a real issue in real-world software.
 
 \begin{lstlisting}
 commit efca79cfb7b496b4bec70561cc94af069c644ef2
@@ -783,15 +783,11 @@ java.lang.Thread.State: BLOCKED (on object monitor)
 java.lang.Thread.State: BLOCKED (on object monitor)
 \end{lstlisting}
 
-The \texttt{DataSource} is waiting to be notified by the \texttt{Writer} when holding lock A. THe \texttt{Writer} is trying to acquire lock B. But lock B is held by the \texttt{Map}. And the \texttt{Map} is trying to acquire lock A, which is held by the \texttt{DataSource}. Here is a waiting chain. This is a kind of bug known as deadlock.
-
-The 
-
-The developer wrote a commit message, which describes the problem, causing reason and solution.
+The \texttt{DataSource} is waiting to be notified by the \texttt{Writer} when holding lock A. THe \texttt{Writer} is trying to acquire lock B. But lock B is held by the \texttt{Map}. And the \texttt{Map} is trying to acquire lock A, which is held by the \texttt{DataSource}. Here is a waiting chain. This is a kind of bug known as deadlock. The problem is that the \texttt{DataSource} does not need to hold lock A while waiting to be notified. So the developer removed the unnecessary synchronization.
 
 \textbf{Adding or removing volatile modifier}
 
-\texttt{volatile} is a Java keyword, which is used to mark a variable which should be saved in main memory so that every thread which reads the variable can read the latest value from the main memory not the outdated value in the CPU cache. This provides visibility of variables across multiple threads. Using \texttt{volatile} correctly instead of locking can improve the performance in terms of concurrency. But this keyword is subtle. Developers need careful reasoning when dealing with \texttt{volatile}. Sometimes \texttt{volatile} is not enough. There may be race conditions when multiple thread read and write \texttt{volatile} fields simultaneously.
+\texttt{volatile} is a Java keyword, which is used to mark a variable which should be saved in main memory so that every thread which reads the variable can read the latest value from the main memory not the outdated value in the CPU cache. This provides visibility of variables across multiple threads. It also guarantees the happen-before relation. Using \texttt{volatile} correctly instead of locking can improve the performance in terms of concurrency. But this keyword is subtle. Developers need careful reasoning when dealing with \texttt{volatile}. Sometimes \texttt{volatile} is not enough. There may be race conditions when multiple thread read and write \texttt{volatile} fields simultaneously.
 
 \begin{lstlisting}
 commit 8313fa0f1ca277e9633a78f461804abc3c5515b8
@@ -801,7 +797,7 @@ Double-checked locking needs to use volatile to be thread-safe
 -    protected Membership membership = null;
 +    protected volatile Membership membership = null;
 \end{lstlisting}
-It is a commit for bug 58392 in Bugzilla. It is reported by a race detector that there is data race on field. Double-checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like omitting \texttt{volatile} modifier of a class member. If \texttt{volatile} is not used, another thread which get in the method cannot immediately see ``membership'' has been assigned already. As a result, this thread will create an instance again and this violates the semantics of singleton pattern. Some work has been done in double-checked locking pattern \cite{conf/ispass/IshizakiDN14}, which can use this pattern automatically.
+It is a commit for bug 58392 in Bugzilla. It is reported by a race detector that there is data race on field. Double-checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like omitting \texttt{volatile} modifier of a class member. If \texttt{volatile} is not used, another thread which gets into the method may observe that \texttt{membership} has been assigned but the real initialization of the object has not been done yet due to the JVM's instructions reordering. Some work has been done in double-checked locking pattern \cite{conf/ispass/IshizakiDN14}, which can use this pattern automatically.
 
 \begin{lstlisting}
 commit 560cd00890b3f6af2aca0c3a9d51a45f880692dd
@@ -1071,9 +1067,9 @@ We conduct a study on change patterns in concurrent programming. We find many ch
 
 
 % use section* for acknowledgment
-\section*{Acknowledgment}
+%\section*{Acknowledgment}
 
-The authors would like to thank my mentor and anyone who might have helped us with this study.
+%The authors would like to thank my mentor and anyone who might have helped us with this study.
 
 
 
