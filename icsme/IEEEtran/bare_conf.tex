@@ -504,11 +504,11 @@ We use the SVM \cite{journals/ml/CortesV95} algorithm to train and classify comm
 
 \textbf{Threats to internal validity}
 
-All the change patterns are summarized from real commits of projects. Different developers may have different taste and preference. Their behavior on similar conditions may be different sometimes contradictory. We indeed find that some changes are contradictory.
+%All the change patterns are summarized from real commits of projects. Different developers may have different taste and preference. Their behavior on similar conditions may be different, sometimes contradictory. We indeed find that some changes are contradictory.
 
-Some change patterns are not easy to determine the right occasion to apply especially those concurrency control problems like deadlock, race condition. They usually need rigorous analysis based on the dependent code. So we might omit some change patterns.
+Some change patterns are complex. They span many files and versions. We cannot easily identify them without explanation and documentation from developers. They usually need rigorous analysis based on the relevant code. So we might omit some change patterns.
 
-We collect all the commits from the initialization of projects. The time range of them is very wide. Some changes are not very new. The development of software is very fast, so some change patterns which are not very new might not be suitable for the newest software.
+We collect all the commits from the initialization of projects. The time range of them is very wide. Some changes are not very recent. The development of software is very fast, so some change patterns which are not very recent might not be suitable for the newest software.
 
 \textbf{Threats to external validity}
 
@@ -856,19 +856,19 @@ LUCENE-2779: Use ConcurrentHashMap in RAMDirectory
 
 This commit is from lucene-solr. It is a commit for LUCENE-2779 which is a minor-priority improvement. It is better to use a thread-safe version collection ConcurrentHashMap instead of using HashMap and synchronizing the access code. This thread-safe class not only simplify the way of using a hash map, but also improve the performance compared to manual synchronization like the example because the implementation of ConcurrentHashMap is carefully designed. Retrieval operations do not acquire any locks at all and update operations do not lock the entire map. It supports full concurrency of retrievals and high expected concurrency for updates.
 
-\textbf{Other class replace}
-
-\textbf{Thread resource management}
-
-When we do concurrent programming, we need to pay attention to resource management such as threads, locks.
-
-Thread management is to deal with the management of thread-related resources.
-
-\textbf{Thread sleep wait notify}
-
-It is a another way of synchronization which is less common than locking.
-
-\textbf{Final in multiple threads}
+%\textbf{Other class replace}
+%
+%\textbf{Thread resource management}
+%
+%When we do concurrent programming, we need to pay attention to resource management such as threads, locks.
+%
+%Thread management is to deal with the management of thread-related resources.
+%
+%\textbf{Thread sleep wait notify}
+%
+%It is a another way of synchronization which is less common than locking.
+%
+%\textbf{Final in multiple threads}
 
 \subsection{RQ2. How frequent do concurrent related code modification appear in different kinds of Java open-source projects?}
 
@@ -905,6 +905,18 @@ Figure 1 shows the numbers of concurrent related commits and all commits of each
 		ThreadPoolExecutor&583&ConcurrentLinkedQueue&797\\\hline
 	\end{tabular}
 \end{table}
+
+\begin{figure}
+	\centering
+	\includegraphics[height=1.5in]{CountDownLatchAdd}
+	\caption{A sample black and white graphic.}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[height=1.5in]{CountDownLatchMinus}
+	\caption{A sample black and white graphic.}
+\end{figure}
 
 We write a program to count and analyze concurrent programming classes usage. Table IV shows top 10 classes added and deleted in the history. Some classes are both active in the added and the deleted column like AtomicInteger and CountDownLatch. This is not surprising because a deletion of class does not mean this class is abandoned. This also indicates this class is active. An interesting observation is that deletions appear more than addition.
 
