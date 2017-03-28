@@ -384,7 +384,7 @@ Fax: (888) 555--1212}}
 % As a general rule, do not put math, special symbols or citations
 % in the abstract
 \begin{abstract}
-Concurrent programming is pervasive in nowadays software development. But it is a well-known fact that concurrent programming is difficult and error-prone. Many methods and tools have been presented to alleviate the difficulty of developing concurrent programs. On the other hand, developers are making numerous changes to their projects constantly. We can understand concurrent programming better by examining these changes. This paper studies concurrent related change patterns from a large amount of commits from 7 popular and representative Java open-source projects. We first select concurrent related commits by a combination of textual analysis and machine learning. We then examine the selected changes to understand what are changed and why changes happen. We create a taxonomy of these change patterns. The taxonomy comprise changing lock type, changing lock instance, changing critical section, adding or removing volatile and thread-safe class replacement. We also have some interesting findings:(1).
+Concurrent programming is pervasive in nowadays software development. But it is a well-known fact that concurrent programming is difficult and error-prone. Many methods and tools have been presented to alleviate the difficulty of developing concurrent programs. On the other hand, developers are making numerous changes to their projects constantly. We can understand concurrent programming better by examining these changes. This paper studies concurrent related change patterns from a large amount of commits from 7 popular and representative Java open-source projects. We first select concurrent related commits by a combination of textual analysis and machine learning. We then examine the selected changes to understand what are changed and why changes happen. We create a taxonomy of these change patterns. The taxonomy comprise changing lock type, changing lock instance, changing critical section, adding or removing volatile and thread-safe class replacement. We also have some interesting findings: (1) Some changes are contrary. Different developers may modify their code in an opposite direction. (2) Developers are using some code-checking tools like FindBugs to help them inspect their code, but sometimes these tools are not enough.
 
 \end{abstract}
 
@@ -910,16 +910,18 @@ Figure 1 shows the numbers of concurrent related commits and all commits of each
 \begin{figure}
 	\centering
 	\includegraphics[height=1.5in]{CountDownLatchAdd}
-	\caption{A sample black and white graphic.}
+	\caption{Addition of CountDownLatch}
 \end{figure}
 
 \begin{figure}
 	\centering
 	\includegraphics[height=1.5in]{CountDownLatchMinus}
-	\caption{A sample black and white graphic.}
+	\caption{Removal of CountDownLatch}
 \end{figure}
 
 We write a program to count and analyze concurrent programming classes usage. Table IV shows top 10 classes added and deleted in the history. Some classes are both active in the added and the deleted column like AtomicInteger and CountDownLatch. This is not surprising because a deletion of class does not mean this class is abandoned. This also indicates this class is active. An interesting observation is that deletions appear more than addition.
+
+We draw line for addition and removal of each class. Figure 3 and figure 4 show examples. We can see that both numbers of addition and removal increase as a whole as time passing by. This indicates that this class is attracting developers' attention.
 
 \subsection{RQ4. Can these change patterns be applied to real world projects?}
 
