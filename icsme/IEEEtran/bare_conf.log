@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2016.11.9)  28 MAR 2017 13:27
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2016.11.9)  30 MAR 2017 23:38
 entering extended mode
 **./bare_conf.tex
 (bare_conf.tex
@@ -285,64 +285,63 @@ G,.JBIG2,.JB2,.eps]
 Missing character: There is no â in font ptmr7t!
 Missing character: There is no € in font ptmr7t!
 Missing character: There is no ™ in font ptmr7t!
- [1{C:/ProgramData/MiKTeX/2.9/pdftex/config/pdftex.map}
-
-
-]
-LaTeX Font Info:    Try loading font information for OT1+pcr on input line 427.
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 429.
 
 
 ("d:\Program Files\MiKTeX 2.9\tex\latex\psnfss\ot1pcr.fd"
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
-)
+) [1{C:/ProgramData/MiKTeX/2.9/pdftex/config/pdftex.map}
+
+
+]
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 445.
+(Font)              <7> on input line 447.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 445.
+(Font)              <5> on input line 447.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 456.
+(Font)              <8> on input line 458.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 456.
+(Font)              <6> on input line 458.
  [2] [3]
 <pattern1.pdf, id=17, 530.73282pt x 119.69719pt>
 File: pattern1.pdf Graphic file (type pdf)
  <use pattern1.pdf>
-Package pdftex.def Info: pattern1.pdf used on input line 551.
+Package pdftex.def Info: pattern1.pdf used on input line 553.
 (pdftex.def)             Requested size: 185.75926pt x 41.89464pt.
 
 <pattern2.pdf, id=18, 539.01375pt x 56.46094pt>
 File: pattern2.pdf Graphic file (type pdf)
  <use pattern2.pdf>
-Package pdftex.def Info: pattern2.pdf used on input line 552.
+Package pdftex.def Info: pattern2.pdf used on input line 554.
 (pdftex.def)             Requested size: 188.65762pt x 19.76161pt.
 
 <pattern3.pdf, id=19, 539.01375pt x 56.46094pt>
 File: pattern3.pdf Graphic file (type pdf)
  <use pattern3.pdf>
-Package pdftex.def Info: pattern3.pdf used on input line 553.
+Package pdftex.def Info: pattern3.pdf used on input line 555.
 (pdftex.def)             Requested size: 188.65762pt x 19.76161pt.
 
 <pattern4.pdf, id=20, 351.56343pt x 27.10126pt>
 File: pattern4.pdf Graphic file (type pdf)
  <use pattern4.pdf>
-Package pdftex.def Info: pattern4.pdf used on input line 554.
+Package pdftex.def Info: pattern4.pdf used on input line 556.
 (pdftex.def)             Requested size: 123.04904pt x 9.48557pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 596--597
+Underfull \hbox (badness 10000) in paragraph at lines 598--599
 []\OT1/ptm/m/n/10 This is a com-mit of YARN-5825 -
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 596--597
+Underfull \hbox (badness 10000) in paragraph at lines 598--599
 \OT1/pcr/m/n/10 ProportionalPreemptionalPolicy \OT1/ptm/m/n/10 could use
  []
 
-[4]
-Underfull \hbox (badness 2088) in paragraph at lines 621--622
+
+Underfull \hbox (badness 2088) in paragraph at lines 623--624
 []\OT1/ptm/m/n/10 You need to cre-ate an in-stance of lock like Java's
  []
 
-[5 <./pattern1.pdf> <./pattern2.pdf
+[4] [5 <./pattern1.pdf> <./pattern2.pdf
 
 pdfTeX warning: pdflatex.exe (file ./pattern2.pdf): PDF inclusion: multiple pdf
 s with page group included in a single page
@@ -354,101 +353,101 @@ s with page group included in a single page
 
 pdfTeX warning: pdflatex.exe (file ./pattern4.pdf): PDF inclusion: multiple pdf
 s with page group included in a single page
->] <deadlock.pdf, id=58, 313.9228pt x 207.77625pt>
+>] <deadlock.pdf, id=58, 370.38374pt x 286.06876pt>
 File: deadlock.pdf Graphic file (type pdf)
  <use deadlock.pdf>
-Package pdftex.def Info: deadlock.pdf used on input line 770.
-(pdftex.def)             Requested size: 131.02757pt x 86.72377pt.
- [6 <./deadlock.pdf>] <cassandra.pdf, id=70, 462.52798pt x 346.89601pt>
+Package pdftex.def Info: deadlock.pdf used on input line 772.
+(pdftex.def)             Requested size: 159.06975pt x 122.85876pt.
+ [6 <./deadlock.pdf>] <cassandra.pdf, id=72, 462.52798pt x 346.89601pt>
 File: cassandra.pdf Graphic file (type pdf)
 
 <use cassandra.pdf>
-Package pdftex.def Info: cassandra.pdf used on input line 878.
+Package pdftex.def Info: cassandra.pdf used on input line 880.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
- <flink.pdf, id=71, 462.52798pt x 346.89601pt>
+ <flink.pdf, id=73, 462.52798pt x 346.89601pt>
 File: flink.pdf Graphic file (type pdf)
 
 <use flink.pdf>
-Package pdftex.def Info: flink.pdf used on input line 879.
+Package pdftex.def Info: flink.pdf used on input line 881.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
- <hadoop.pdf, id=72, 462.52798pt x 346.89601pt>
+ <hadoop.pdf, id=74, 462.52798pt x 346.89601pt>
 File: hadoop.pdf Graphic file (type pdf)
 
 <use hadoop.pdf>
-Package pdftex.def Info: hadoop.pdf used on input line 880.
+Package pdftex.def Info: hadoop.pdf used on input line 882.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
- <lucene-solr.pdf, id=73, 462.52798pt x 346.89601pt>
+ <lucene-solr.pdf, id=75, 462.52798pt x 346.89601pt>
 File: lucene-solr.pdf Graphic file (type pdf)
 
 <use lucene-solr.pdf>
-Package pdftex.def Info: lucene-solr.pdf used on input line 881.
+Package pdftex.def Info: lucene-solr.pdf used on input line 883.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
- <mahout.pdf, id=74, 462.52798pt x 346.89601pt>
+ <mahout.pdf, id=76, 462.52798pt x 346.89601pt>
 File: mahout.pdf Graphic file (type pdf)
 
 <use mahout.pdf>
-Package pdftex.def Info: mahout.pdf used on input line 882.
+Package pdftex.def Info: mahout.pdf used on input line 884.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
- <netty.pdf, id=75, 462.52798pt x 346.89601pt>
+ <netty.pdf, id=77, 462.52798pt x 346.89601pt>
 File: netty.pdf Graphic file (type pdf)
  <use netty.pdf>
-Package pdftex.def Info: netty.pdf used on input line 883.
+Package pdftex.def Info: netty.pdf used on input line 885.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
-<tomcat.pdf, id=76, 462.52798pt x 346.89601pt>
+<tomcat.pdf, id=78, 462.52798pt x 346.89601pt>
 File: tomcat.pdf Graphic file (type pdf)
  <use tomcat.pdf>
-Package pdftex.def Info: tomcat.pdf used on input line 884.
+Package pdftex.def Info: tomcat.pdf used on input line 886.
 (pdftex.def)             Requested size: 115.6317pt x 86.72377pt.
 
-<CountDownLatchAdd.pdf, id=77, 462.52798pt x 346.89601pt>
+<CountDownLatchAdd.pdf, id=79, 462.52798pt x 346.89601pt>
 File: CountDownLatchAdd.pdf Graphic file (type pdf)
 
 <use CountDownLatchAdd.pdf>
-Package pdftex.def Info: CountDownLatchAdd.pdf used on input line 912.
+Package pdftex.def Info: CountDownLatchAdd.pdf used on input line 914.
 (pdftex.def)             Requested size: 144.53963pt x 108.405pt.
 
-<CountDownLatchMinus.pdf, id=78, 462.52798pt x 346.89601pt>
+<CountDownLatchMinus.pdf, id=80, 462.52798pt x 346.89601pt>
 File: CountDownLatchMinus.pdf Graphic file (type pdf)
 
 <use CountDownLatchMinus.pdf>
-Package pdftex.def Info: CountDownLatchMinus.pdf used on input line 918.
+Package pdftex.def Info: CountDownLatchMinus.pdf used on input line 920.
 (pdftex.def)             Requested size: 144.53963pt x 108.405pt.
  [7]
-Underfull \hbox (badness 10000) in paragraph at lines 945--946
+Underfull \hbox (badness 10000) in paragraph at lines 947--948
 []\OT1/ptm/m/n/10 This ex-am-ple shows a change from
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 945--946
+Underfull \hbox (badness 10000) in paragraph at lines 947--948
 \OT1/ptm/m/n/10 ThreadLocal$\OML/cmm/m/it/10 <$\OT1/ptm/m/n/10 Random$\OML/cmm/
 m/it/10 >$ \OT1/ptm/m/n/10 to Thread-Lo-cal-Ran-dom from
  []
 
 
-Underfull \hbox (badness 2547) in paragraph at lines 945--946
+Underfull \hbox (badness 2547) in paragraph at lines 947--948
 \OT1/ptm/m/n/10 Thread-Lo-cal-Ran-dom should be used when avail-able in
  []
 
 
-Underfull \hbox (badness 7186) in paragraph at lines 961--962
+Underfull \hbox (badness 7186) in paragraph at lines 963--964
 []\OT1/ptm/m/n/10 A pre-vi-ous com-mit switched to \OT1/pcr/m/n/10 AtomicIntege
 r
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 961--962
+Underfull \hbox (badness 10000) in paragraph at lines 963--964
 \OT1/ptm/m/n/10 from \OT1/pcr/m/n/10 AtomicIntegerFieldUpdater\OT1/ptm/m/n/10 .
  But now
  []
 
 
-Underfull \hbox (badness 7099) in paragraph at lines 961--962
+Underfull \hbox (badness 7099) in paragraph at lines 963--964
 \OT1/ptm/m/n/10 this de-vel-oper re-verse the change. In this ex-am-ple,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 961--962
+Underfull \hbox (badness 10000) in paragraph at lines 963--964
 \OT1/pcr/m/n/10 AtomicIntegerFieldUpdater \OT1/ptm/m/n/10 is a class which
  []
 
@@ -513,25 +512,27 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[10] (bare_conf.aux) ) 
+[10
+
+] (bare_conf.aux) ) 
 Here is how much of TeX's memory you used:
  4294 strings out of 493334
  65487 string characters out of 3139258
- 551160 words of memory out of 3000000
+ 445160 words of memory out of 3000000
  7772 multiletter control sequences out of 15000+200000
  44083 words of font info for 82 fonts, out of 3000000 for 9000
  1144 hyphenation exceptions out of 8191
- 40i,13n,35p,2281b,1430s stack positions out of 5000i,500n,10000p,200000b,50000s
-{d:/Program Files/MiKTeX 2.9/fonts/enc/dvips/fontname/8r.
-enc}<d:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><d:/
-Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy7.pfb><d:/Program F
-iles/MiKTeX 2.9/fonts/type1/urw/courier/ucrr8a.pfb><d:/Program Files/MiKTeX 2.9
-/fonts/type1/urw/times/utmb8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/
-times/utmbi8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb
-><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmri8a.pfb>
-Output written on bare_conf.pdf (10 pages, 624270 bytes).
+ 40i,13n,35p,2281b,1436s stack positions out of 5000i,500n,10000p,200000b,50000s
+{d:/Program Files/MiKTeX 2.9/fonts/enc/dvips/fontname/8r.enc
+}<d:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><d:/Pro
+gram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy7.pfb><d:/Program File
+s/MiKTeX 2.9/fonts/type1/urw/courier/ucrr8a.pfb><d:/Program Files/MiKTeX 2.9/fo
+nts/type1/urw/times/utmb8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/tim
+es/utmbi8a.pfb><d:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb><d
+:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmri8a.pfb>
+Output written on bare_conf.pdf (10 pages, 766362 bytes).
 PDF statistics:
- 429 PDF objects out of 1000 (max. 8388607)
+ 431 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  71 words of extra memory for PDF output out of 10000 (max. 10000000)
 
