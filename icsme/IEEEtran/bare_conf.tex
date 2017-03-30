@@ -21,7 +21,7 @@
 %% Legal Notice:
 %% This code is offered as-is without any warranty either expressed or
 %% implied; without even the implied warranty of MERCHANTABILITY or
-%% FITNESS FOR A PARTICULAR PURPOSE! 
+%% FITNESS FOR A PARTICULAR PURPOSE!
 %% User assumes all risk.
 %% In no event shall the IEEE or any contributor to this code be liable for
 %% any damages or losses, including, but not limited to, incidental,
@@ -136,7 +136,7 @@
 % graphicx was written by David Carlisle and Sebastian Rahtz. It is
 % required if you want graphics, photos, etc. graphicx.sty is already
 % installed on most LaTeX systems. The latest version and documentation
-% can be obtained at: 
+% can be obtained at:
 % http://www.ctan.org/pkg/graphicx
 % Another good source of documentation is "Using Imported Graphics in
 % LaTeX2e" by Keith Reckdahl which can be found at:
@@ -315,7 +315,8 @@
 \usepackage{xcolor}
 \usepackage{subfigure}
 \usepackage{graphicx}
-
+\usepackage{balance}
+\usepackage{hyperref}
 \begin{document}
 %
 % paper title
@@ -324,28 +325,29 @@
 % not capitalized unless they are the first or last word of the title.
 % Linebreaks \\ can be used within to get better formatting as desired.
 % Do not put math or special symbols in the title.
-\title{Understanding Change Patterns\\ of Concurrent Programming}
+\title{How do Programmers Maintain Concurrency Code}
 
 
 % author names and affiliations
 % use a multiple column layout for up to three different
 % affiliations
-\author{\IEEEauthorblockN{Michael Shell}
-\IEEEauthorblockA{School of Electrical and\\Computer Engineering\\
-Georgia Institute of Technology\\
-Atlanta, Georgia 30332--0250\\
-Email: http://www.michaelshell.org/contact.html}
-\and
-\IEEEauthorblockN{Homer Simpson}
-\IEEEauthorblockA{Twentieth Century Fox\\
-Springfield, USA\\
-Email: homer@thesimpsons.com}
-\and
-\IEEEauthorblockN{James Kirk\\ and Montgomery Scott}
-\IEEEauthorblockA{Starfleet Academy\\
-San Francisco, California 96678--2391\\
-Telephone: (800) 555--1212\\
-Fax: (888) 555--1212}}
+\author{\IEEEauthorblockN{Anonymous Authors}
+%\IEEEauthorblockA{School of Electrical and\\Computer Engineering\\
+%Georgia Institute of Technology\\
+%Atlanta, Georgia 30332--0250\\
+%Email: http://www.michaelshell.org/contact.html}
+%\and
+%\IEEEauthorblockN{Homer Simpson}
+%\IEEEauthorblockA{Twentieth Century Fox\\
+%Springfield, USA\\
+%Email: homer@thesimpsons.com}
+%\and
+%\IEEEauthorblockN{James Kirk\\ and Montgomery Scott}
+%\IEEEauthorblockA{Starfleet Academy\\
+%San Francisco, California 96678--2391\\
+%Telephone: (800) 555--1212\\
+%Fax: (888) 555--1212}
+}
 
 % conference papers do not typically use \thanks and this command
 % is locked out in conference mode. If really needed, such as for
@@ -354,10 +356,10 @@ Fax: (888) 555--1212}}
 
 % for over three affiliations, or if they all won't fit within the width
 % of the page, use this alternative format:
-% 
+%
 %\author{\IEEEauthorblockN{Michael Shell\IEEEauthorrefmark{1},
 %Homer Simpson\IEEEauthorrefmark{2},
-%James Kirk\IEEEauthorrefmark{3}, 
+%James Kirk\IEEEauthorrefmark{3},
 %Montgomery Scott\IEEEauthorrefmark{3} and
 %Eldon Tyrell\IEEEauthorrefmark{4}}
 %\IEEEauthorblockA{\IEEEauthorrefmark{1}School of Electrical and Computer Engineering\\
@@ -423,7 +425,7 @@ Santos \textit{et al}. \cite{conf/icsm/SantosAEDV15} studied system specific, so
 2) Automatic tools are needed to help developers inspect and revise concurrent programs with the help of history information. We can learn from existing change patterns \cite{conf/pldi/MengKM11}. There has already been some tools \cite{conf/ppopp/SamakR14, conf/sigsoft/EslamimehrP14, conf/pldi/BiswasHSB14}, but they usually look for concurrent bugs such as race detection, deadlock detection and atomicity violation without considering software evolution history.
 
 \lstset{numbers=left, breaklines=true,  basicstyle=\ttfamily\tiny,  xleftmargin=3em, tabsize=2}
-%keywordstyle=\color{blue}\bf\ttfamily, language=java, 
+%keywordstyle=\color{blue}\bf\ttfamily, language=java,
 \begin{lstlisting}
 commit a6092d771ec50cf9aa434c75455b842f3ac6c628
 Threading / initialisation issues. Not all were valid. Make them volatile anyway so FindBugs doesn't complain.
@@ -541,7 +543,7 @@ We analyze 7 Java open-source projects. The number of the projects we select is 
 
 \textbf{Taxonomy} There are so many different concurrent related changes in the code history. We can classify them into ? types according to their observed code changes. We first read the commit message to know what this commit does and why. We then examine the added and deleted lines. We catch the concurrent related keywords. We classify changes basically into two big categories. The first is using libraries instead of manual concurrency control. The second is adjustment of concurrency control itself. These types do not contain all the concurrent related code changes. Some changes are infrequent and difficult to classify. It can also be decided by purposes of code changes like eliminating deadlock. But purpose is a subjective concept and it is more difficult to determine the reasons behind the changes.
 
-%The taxonomy includes change of lock type, change of lock variable, synchronization addition, synchronization removal, lock release, volatile addition, volatile removal, class replacement, thread-safe class replacement, thread management, thread status management, 
+%The taxonomy includes change of lock type, change of lock variable, synchronization addition, synchronization removal, lock release, volatile addition, volatile removal, class replacement, thread-safe class replacement, thread management, thread status management,
 
 \begin{table*}
 	\centering
@@ -1000,7 +1002,7 @@ We conduct a study on change patterns in concurrent programming. We select concu
 %\begin{figure}[!t]
 %\centering
 %\includegraphics[width=2.5in]{myfigure}
-% where an .eps filename suffix will be assumed under latex, 
+% where an .eps filename suffix will be assumed under latex,
 % and a .pdf suffix will be assumed for pdflatex; or what has been declared
 % via \DeclareGraphicsExtensions.
 %\caption{Simulation results for the network.}
@@ -1016,7 +1018,7 @@ We conduct a study on change patterns in concurrent programming. We select concu
 % The subfigure \label commands are set within each subfloat command,
 % and the \label for the overall figure must come after \caption.
 % \hfil is used as a separator to get equal spacing.
-% Watch out that the combined width of all the subfigures on a 
+% Watch out that the combined width of all the subfigures on a
 % line do not exceed the text width or a line break will occur.
 %
 %\begin{figure*}[!t]
@@ -1073,7 +1075,7 @@ We conduct a study on change patterns in concurrent programming. We select concu
 % in-text middle ("here") positioning is typically not used, but it
 % is allowed and encouraged for Computer Society conferences (but
 % not Computer Society journals). Most IEEE journals/conferences use
-% top floats exclusively. 
+% top floats exclusively.
 % Note that, LaTeX2e, unlike IEEE journals/conferences, places
 % footnotes above bottom floats. This can be corrected via the
 % \fnbelowfloat command of the stfloats package.
@@ -1106,6 +1108,7 @@ We conduct a study on change patterns in concurrent programming. We select concu
 % http://mirror.ctan.org/biblio/bibtex/contrib/doc/
 % The IEEEtran BibTeX style support page is at:
 % http://www.michaelshell.org/tex/ieeetran/bibtex/
+\balance
 \bibliographystyle{IEEEtran}
 % argument is your BibTeX string definitions and bibliography database(s)
 \bibliography{bare_conf}
