@@ -1,7 +1,9 @@
 \section{Methodology}
-This section presents data set of our study, research questions and tool support.
+\label{sec:method}
+This section presents our research questions (Section~\ref{sec:method:rq}), our data set (Section~\ref{sec:method:data}), and our support tool (Section~\ref{sec:method:tool}).
 \subsection{Research questions}
-In order to understand the evolution of concurrent code and guide the future development better, we proposed 4 research questions:
+\label{sec:method:rq}
+To understand how concurrency code is maintained, in this study, we focus on the following research questions:
 
 \textbf{RQ1.} What are change patterns in concurrent programming?
 
@@ -18,7 +20,9 @@ Java programming language offers many handy facilities for building concurrent p
 \textbf{RQ4.} Can these change patterns be applied to real world projects?
 
 In order to better demonstrate these change patterns can really help developers understand concurrent programming practice and apply the practice to their projects, we are going to find the appropriate context in open-source projects and pull requests of applying the change patterns. We are insterested to see that how developers will accept our code change suggestions.
-\subsection{Data set} We investigate 8 Java open-source projects from Github including Hadoop\footnote{http://hadoop.apache.org/}, Tomcat\footnote{http://tomcat.apache.org/}, Cassandra\footnote{http://cassandra.apache.org/}, Lucene-solr\footnote{http://lucene.apache.org/}, Netty\footnote{http://netty.io/}, Flink\footnote{https://flink.apache.org/} and Mahout\footnote{http://mahout.apache.org/} as shown in Table 1. Some projects are mirrored in Github. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. The Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Tomcat is the most popular implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technologies. Cassandra \cite{journals/sigops/LakshmanM10} is a database system which can Manage massive amounts of data, fast, without losing sleep. Lucene-solr is two projects together in one respository in Github. Lucene is a search engine library and solr is a search engine server which uses lucene. Netty is an event-driven asynchronous network application framework. Flink is an open source stream processing framework with powerful stream- and batch-processing capabilities. Mahout is a machine learning project. Table I shows the lines of code in Java, the number of Java files and the number of commits of each project. All the projects are checked out for our study in December 2016.
+\subsection{Data set} 
+\label{sec:method:data}
+We investigate 8 Java open-source projects from Github including Hadoop\footnote{http://hadoop.apache.org/}, Tomcat\footnote{http://tomcat.apache.org/}, Cassandra\footnote{http://cassandra.apache.org/}, Lucene-solr\footnote{http://lucene.apache.org/}, Netty\footnote{http://netty.io/}, Flink\footnote{https://flink.apache.org/} and Mahout\footnote{http://mahout.apache.org/} as shown in Table 1. Some projects are mirrored in Github. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. The Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Tomcat is the most popular implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technologies. Cassandra \cite{journals/sigops/LakshmanM10} is a database system which can Manage massive amounts of data, fast, without losing sleep. Lucene-solr is two projects together in one respository in Github. Lucene is a search engine library and solr is a search engine server which uses lucene. Netty is an event-driven asynchronous network application framework. Flink is an open source stream processing framework with powerful stream- and batch-processing capabilities. Mahout is a machine learning project. Table I shows the lines of code in Java, the number of Java files and the number of commits of each project. All the projects are checked out for our study in December 2016.
 
 \begin{table}
 	\centering
@@ -39,6 +43,7 @@ In order to better demonstrate these change patterns can really help developers 
 
 
 \subsection{Tool support}
+\label{sec:method:tool}
 We have developed a tool to collect and analyze data. The tool has the following parts.
 
 \subsubsection{Collecting commits}
