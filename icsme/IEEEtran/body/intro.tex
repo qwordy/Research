@@ -26,15 +26,6 @@ In this example, we find that even experienced programmers can have problems in 
 \noindent
 \textbf{Benefit 2.} The results can be useful to improve existing tools. For example, Meng \emph{et al.}~\cite{conf/pldi/MengKM11} propose an approach that applies changes systematically based on a given example. With extensions, it can be feasible to apply our extract change patterns to update concurrency code. As another example, our results can be useful to improve existing bug detection approaches \cite{conf/ppopp/SamakR14, conf/sigsoft/EslamimehrP14}.
 
-\lstset{numbers=left, breaklines=true,  basicstyle=\ttfamily\tiny,  xleftmargin=3em, tabsize=2}
-%keywordstyle=\color{blue}\bf\ttfamily, language=java,
-\begin{lstlisting}
-commit a6092d771ec50cf9aa434c75455b842f3ac6c628
-Threading / initialisation issues. Not all were valid. Make them volatile anyway so FindBugs doesn't complain.
-\end{lstlisting}
-
-
-
 However, to fulfil the above benefits, we have to overcome the following challenges:
 
 \noindent
@@ -42,14 +33,13 @@ However, to fulfil the above benefits, we have to overcome the following challen
 
 
 \noindent
-\textbf{Challenge 2.}
+\textbf{Challenge 2.} The changes on concurrency code can be complicated. A recent study~\cite{tufano2016there} show that only 38\% commits are compilable. To analyze code that is not compilable, researchers typically use partial-code tools such as PPA~\cite{DagenaisH08ppa} and ChangeDistiller~\cite{fluri2007change} to analyze commits. However, as partial programs lose information, partial-code tools are imprecise and typically do not support advanced analysis. Furthermore, as we do not know what patterns can be followed, it is difficult to implement a automatic tool. As a result, it is inevitable to take much human effort when we conduct the empirical study. 
 
-2) The changes of code usually have complex relationship with the context not only in the file where change happens but also other files. Some change patterns have implicit dependency on the existing code. This raises a challenge to identify real change patterns which can be applied to other context correctly.
+In this paper, we collected 102,028 commits from seven popular open-source projects. \zhong{Please add more details}
 
 \textbf{Contributions} Our main contributions are:
 
 \begin{itemize}
-	\item We identify and classify change patterns into ? types in concurrent programs from 102,028 commits of 7 open-source projects. The most common types of change patterns are thread-safe class replacement, changing critical sections.
 	\item We find some interesting findings: Some changes are contrary. Different developers may modify their code in an opposite direction. Developers are using some code-checking tools like findbugs to help them inspect their code, but sometimes these tools are not enough.
 	\item We affirm that our change patterns can be applied to appropriate  contexts from real world open-source projects.
 	\item We give some inspirations to concurrent program or library developers and analysis tool developers. Automated tools can be improved to help developers with program transformations.
