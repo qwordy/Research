@@ -9,7 +9,7 @@ In recent years, to fully leverage the potential of multi-core CPUs, concurrency
 
 
 \noindent
-\textbf{Benefit 1.} The results can deepen the knowledge on how to correctly maintain concurrency code. Due to the complexity of concurrency programming, we find that even experienced developers can be confused when they maintain relevant code. For example, Mark Thomas is a member of the Apache Tomcat Project Management Committee\zhong{Please add a footnote}, and senior software engineer at the Covalent division of SpringSource\zhong{Please add a footnote}. He contributed more than 10,000 commits to Tomcat. In a commit message, he left the complain as follow:
+\textbf{Benefit 1.} The results can deepen the knowledge on how to correctly maintain concurrency code. Due to the complexity of concurrency programming, we find that even experienced developers can be confused when they maintain relevant code. For example, Mark Thomas is a member of the Apache Tomcat Project Management Committee\footnote{http://tomcat.apache.org/whoweare.html}, and senior software engineer at the Covalent division of SpringSource\footnote{https://sourceforge.net/projects/covalent/}. He contributed more than 10,000 commits to Tomcat. In a commit message, he left the complain as follow:
 
 \lstset{numbers=left, breaklines=true,  basicstyle=\ttfamily\tiny,  xleftmargin=3em, tabsize=2}
 %keywordstyle=\color{blue}\bf\ttfamily, language=java,
@@ -35,7 +35,7 @@ However, to fulfil the above benefits, we have to overcome the following challen
 \noindent
 \textbf{Challenge 2.} The changes on concurrency code can be complicated. A recent study~\cite{tufano2016there} show that only 38\% commits are compilable. To analyze code that is not compilable, researchers typically use partial-code tools such as PPA~\cite{DagenaisH08ppa} and ChangeDistiller~\cite{fluri2007change} to analyze commits. However, as partial programs lose information, partial-code tools are imprecise and typically do not support advanced analysis. Furthermore, as we do not know what patterns can be followed, it is difficult to implement a automatic tool. As a result, it is inevitable to take much human effort when we conduct the empirical study.
 
-In this paper, we collected 102,028 commits from seven popular open-source projects. \zhong{Please add more details}
+In this paper, we select possible 696 concurrent-related commits automatically from 102,028 commits of 7 popular and representative open-source projects such as Hadoop\footnote{http://hadoop.apache.org/} and Tomcat\footnote{http://tomcat.apache.org/}. We then examine the selected commits manually. We establish a taxonomy of concurrent-related changes and also answer other some questions about these changes.
 
 \textbf{Contributions} Our main contributions are:
 

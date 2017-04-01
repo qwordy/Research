@@ -24,21 +24,21 @@ Java programming language offers many handy facilities for building concurrent p
 In order to better demonstrate these change patterns can really help developers understand concurrent programming practice and apply the practice to their projects, we are going to find the appropriate context in open-source projects and pull requests of applying the change patterns. We are insterested to see that how developers will accept our code change suggestions.
 \subsection{Data set}
 \label{sec:method:data}
-We investigate 8 Java open-source projects from Github including Hadoop\footnote{http://hadoop.apache.org/}, Tomcat\footnote{http://tomcat.apache.org/}, Cassandra\footnote{http://cassandra.apache.org/}, Lucene-solr\footnote{http://lucene.apache.org/}, Netty\footnote{http://netty.io/}, Flink\footnote{https://flink.apache.org/} and Mahout\footnote{http://mahout.apache.org/} as shown in Table 1. Some projects are mirrored in Github. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. The Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Tomcat is the most popular implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technologies. Cassandra \cite{journals/sigops/LakshmanM10} is a database system which can Manage massive amounts of data, fast, without losing sleep. Lucene-solr is two projects together in one respository in Github. Lucene is a search engine library and solr is a search engine server which uses lucene. Netty is an event-driven asynchronous network application framework. Flink is an open source stream processing framework with powerful stream- and batch-processing capabilities. Mahout is a machine learning project. Table I shows the lines of code in Java, the number of Java files and the number of commits of each project. All the projects are checked out for our study in December 2016.
+We investigate 7 Java open-source projects from Github including Hadoop, Tomcat, Cassandra\footnote{http://cassandra.apache.org/}, Lucene-solr\footnote{http://lucene.apache.org/}, Netty\footnote{http://netty.io/}, Flink\footnote{https://flink.apache.org/} and Mahout\footnote{http://mahout.apache.org/} as shown in Table 1. Some projects are mirrored in Github. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. The Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Tomcat is the most popular implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technologies. Cassandra \cite{journals/sigops/LakshmanM10} is a database system which can Manage massive amounts of data, fast, without losing sleep. Lucene-solr is two projects together in one respository in Github. Lucene is a search engine library and solr is a search engine server which uses lucene. Netty is an event-driven asynchronous network application framework. Flink is an open source stream processing framework with powerful stream- and batch-processing capabilities. Mahout is a machine learning project. Table I shows the lines of code in Java, the number of Java files and the number of commits of each project. All the projects are checked out for our study in December 2016.
 
 \begin{table}
 	\centering
 	\caption{Projects Information (LOC and \#Files are both of Java files)}
 	\begin{tabular}{|c|c|c|c|}\hline
 		Project&LOC&\#Files&\#Commits\\\hline
-		Hadoop&1202764&7701&14930\\\hline
-		Tomcat&301173&2192&17731\\\hline
-		Cassandra&387980&2143&21982\\\hline
-		Lucene-solr&918398&6310&26152\\\hline
-		Netty&218131&2054&7759\\\hline
-		Flink&414264&4068&9771\\\hline
-		Guava&251205&1672&3850\\\hline
-		Mahout&109584&1215&3703\\\hline
+		Hadoop&1,202,764&7,701&14,930\\\hline
+		Tomcat&301,173&2,192&17,731\\\hline
+		Cassandra&387,980&2,143&21,982\\\hline
+		Lucene-solr&918,398&6,310&26,152\\\hline
+		Netty&218,131&2,054&7,759\\\hline
+		Flink&414,264&4,068&9,771\\\hline
+		%Guava&251,205&1,672&3,850\\\hline
+		Mahout&109,584&1,215&3,703\\\hline
 	\end{tabular}
 \end{table}
 
@@ -50,7 +50,7 @@ We have developed a tool to collect and analyze data. The tool has the following
 All the projects of our study are under git which is one of the most popular version control systems in the world. Some projects of the study used svn or some other version control systems before because they have long histories, but they all support git \cite{books/daglib/0022839} now. We employ JGit, a lightweight, pure Java library implementation of git, to retrieve all the commit logs in projects' histories. A typical commit log contains commit id which is a 20-character-long string uniquely identifying a commit, author, date and message. Once we get a commit id, we use \texttt{git show} command to show the log message and textual \texttt{diff}. The \texttt{diff} result contains one or more change files which contain one or more change hunks.
 
 \subsubsection{Classification}
-There are many commits which are not concurrent related in the commits which we have collected.  We need to select concurrent related commits. Tian \textit{et al}. gave a successful example of identifing bug fixing patches using machine learning \cite{conf/icse/TianLL12}. We use machine learning to train and predict whether a commit is concurrent related. We adopt both text analysis and code analysis to extract features. A commit log uses natural language to present what was changed and why the change was made in most cases. We treat each commit log as a bag of words then match the words to a set of concurrent keywords which we have defined as the Java concurrent keywords like \texttt{synchronized}, \texttt{volatile} and names of common classes or interfaces in Java libraries which are related to concurrency. We also do a code analysis based on the \texttt{diff} result. 12 features are extracted for each commit, which is shown in Table II. The first column shows the feature names and the second column shows the explanations.
+There are many commits which are not concurrent related in the commits which we have collected. We need to select concurrent related commits. Tian \textit{et al}. gave a successful example of identifing bug fixing patches using machine learning \cite{conf/icse/TianLL12}. We use machine learning to train and predict whether a commit is concurrent related. We adopt both text analysis and code analysis to extract features. A commit log uses natural language to present what was changed and why the change was made in most cases. We treat each commit log as a bag of words then match the words to a set of concurrent keywords which we have defined as the Java concurrent keywords like \texttt{synchronized}, \texttt{volatile} and names of common classes or interfaces in Java libraries which are related to concurrency. We also do a code analysis based on the \texttt{diff} result. 12 features are extracted for each commit, which is shown in Table II. The first column shows the feature names and the second column shows the explanations.
 
 We use the SVM \cite{journals/ml/CortesV95} algorithm to train and classify commits as concurrent-related or not. SVM is a supervised classification algorithm which needs both positive and negative labeled data for training. In our tool, we use an implementation of SVM, LIBSVM \cite{libsvm}. We manually label some data as a training data set first then train a model. The trained classifier selects 135 positive instances from all the commits which we have collected.
 
