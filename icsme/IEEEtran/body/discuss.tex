@@ -1,0 +1,38 @@
+\section{Discussion}
+We also have some interesting findings in collecting and analyzing the concurrent related code changes.
+
+(1) Some changes are contrary. Different developers may modify their code in an opposite direction. Here is an example.
+
+\begin{lstlisting}
+commit f5fab1f64ba11e04e52bd6251ca62fc854e9578c
+Whoops. Fix regression in r1724015.
+Code was used although I can't see why a simple AtomicInteger wasn't sufficient.
+
++    private final AtomicInteger aprPoolDestroyed = new AtomicInteger(0);
+-    private static final AtomicIntegerFieldUpdater<OpenSSLContext> DESTROY_UPDATER = AtomicIntegerFieldUpdater.newUpdater(OpenSSLContext.class, "aprPoolDestroyed");
+\end{lstlisting}
+
+A previous commit switched to \texttt{AtomicInteger} from \texttt{AtomicIntegerFieldUpdater}. But now this developer reverse the change. In this example, \texttt{AtomicIntegerFieldUpdater} is a class which enables atomic updates to \texttt{volatile} field of classes. We can see that developers in one project may have divergence in a problem.
+
+(2) Developers are using some code-checking tools like FindBugs to help them inspect their code, but sometimes these tools are not enough.
+
+The examples above show that some developers are using code checking tools like FindBugs. Some tools are useful in development environments \cite{conf/oopsla/AyewahPMPZ07}. But these kind of tools don't help developers correct and eliminate the warnings automatically. One developer in Tomcat said "make the volatile anyway so FindBugs doesn't complain" in the commit log. This indicates code checking tools still have room to improve.
+
+This research provides some implications from different kinds of perspectives.
+
+(1) Developers are facing more and more concurrent programming requirements now. But concurrent programming is notoriously error-prone because of the complexity of data synchronization and thread interleaving. Our study gives developers some guidelines of writing concurrent programs. First, use handy concurrent libraries to finish the job instead of rewrite them by yourself unless all the available concurrent libraries cannot satisfy your requirement and you are absolutely confident of your comcurrent programming skills. Using existing libraries allows you to  write less code to finish the same work and enjoy the high quality of implementation which is always reliable, strong and fast. Second, always switch to new-version libraries because they usually provide higher performance and robustness.
+
+(2) Automatic tools are needed to help developers inspect and revise concurrent programs with the help of history information. There has already been some tools, but they usually look for concurrent bugs such as race detection, deadlock detection and atomicity violation without considering software evolution history. Both project specific and project independent transformation patterns exist in real-world software projects. So we need some concurrent code refactoring tools to give advice of what code need change and perform the transformations automatically. It is a chance for IDE manufacturer to make the IDE more intelligent in inspecting and modifying the code. Developers will benefit a lot if such kind of automatic tools can actually help them automate their development and maintaining activities.
+\subsection{Threats to Validity}
+
+\textbf{Threats to internal validity}
+
+%All the change patterns are summarized from real commits of projects. Different developers may have different taste and preference. Their behavior on similar conditions may be different, sometimes contradictory. We indeed find that some changes are contradictory.
+
+Some change patterns are complex. They span many files and versions. We cannot easily identify them without explanation and documentation from developers. They usually need rigorous analysis based on the relevant code. So we might omit some change patterns.
+
+We collect all the commits from the initialization of projects. The time range of them is very wide. Some changes are not very recent. The development of software is very fast, so some change patterns which are not very recent might not be suitable for the newest software.
+
+\textbf{Threats to external validity}
+
+We analyze 7 Java open-source projects. The number of the projects we select is small compared to the huge amount of open-source projects. These 7 projects may not contains all change patterns in concurrent programming. Concurrent programming is a concept not only in Java but many other programming languages can support concurrent programming. The projects of our study are all written in Java. The change patterns may be different among different programming languages. 
