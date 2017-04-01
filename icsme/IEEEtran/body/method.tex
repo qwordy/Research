@@ -7,7 +7,7 @@ To understand how concurrency code is maintained, in this study, we focus on the
 
 \textbf{RQ1.} What patterns are followed when programmers maintain concurrency code?
 
-Kim and Notkin~\cite{conf/icse/KimN09} show that code changes can be repetitive. Martinez \emph{et al.}\cite{conf/icsm/MartinezDM13} show that it is feasible to extract change patterns from such repetitive changes. 
+Kim and Notkin~\cite{conf/icse/KimN09} show that code changes can be repetitive. Martinez \emph{et al.}\cite{conf/icsm/MartinezDM13} show that it is feasible to extract change patterns from such repetitive changes.
 
 Some change patterns are project-specific while others are global, which can be considered as knowledge. Developers made numerous commits to the project repository during software's whole lifetime. There are a great many change patterns in software history. On the other hand, concurrent programming is very popular in today's Java development with the rapid developments of multi-core techniques which help exploit the power of concurrent programming. It is very meaningful to understand change patterns in concurrent programming.% What are these change patterns and how many types of these change patterns are there?
 
@@ -49,6 +49,7 @@ We investigate 7 Java open-source projects from Github including Hadoop, Tomcat,
 		%Guava&251,205&1,672&3,850\\\hline
 		Mahout&109,584&1,215&3,703&0\\\hline
 	\end{tabular}
+\zhong{Add a total row. Remove Mahout, since you did not analyze its commits.}
 \end{table}
 
 \subsection{Tool support}
@@ -133,4 +134,4 @@ We will show how we examine the changes. We first read the commit message to und
 
 %Figure 1 shows the basic workflow of our study. We first collect all the commits from the 7 projects using our tool. Then we use textual analysis and machine learning to select concurrent-related commits using our tool. Finally we manually analyze the potential concurrent-related commits to understand them.
 
-%The first two steps have been described in Section Tool Support. Now we have got potential concurrent-related commits. 
+%The first two steps have been described in Section Tool Support. Now we have got potential concurrent-related commits.
