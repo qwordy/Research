@@ -506,6 +506,46 @@ There are many commits which are not concurrent related in the commits which we 
 
 We use the SVM \cite{journals/ml/CortesV95} algorithm to train and classify commits as concurrent-related or not. SVM is a supervised classification algorithm which needs both positive and negative labeled data for training. In our tool, we use an implementation of SVM, LIBSVM \cite{libsvm}. We manually label some data as a training data set first then train a model. The trained classifier selects 135 positive instances from all the commits which we have collected.
 
+\subsection{Workflow}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=2in]{workflow}
+	\caption{Workflow}
+\end{figure}
+
+Figure 1 shows the basic workflow of our study. We first collect all the commits from the 7 projects using our tool. Then we use textual analysis and machine learning to select concurrent-related commits using our tool. Finally we manually analyze the potential concurrent-related commits to understand them.
+
+The first two steps have been described in Section Tool Support. Now we have got potential concurrent-related commits. Here is an example. We list part of lines. The first several lines describe the metadata of this commit. The rest describes differences between two versions of code.
+
+\begin{lstlisting}
+commit 563e546236217dace58a8031d56d08a27e08160b
+Author: zentol <s.motsu@web.de>
+Date:   Mon Jan 26 11:07:53 2015 +0100
+[FLINK-1419] [runtime] Fix: distributed cache properly synchronized
+This closes #339
+
+public FutureTask<Path> createTmpFile(String name, DistributedCacheEntry entry, JobID jobID) {
+-    synchronized (count) {
+-      Pair<JobID, String> key = new ImmutablePair<JobID, String>(jobID, name);
+-      if (count.containsKey(key)) {
+-        count.put(key, count.get(key) + 1);
++    synchronized (lock) {
++      if (!jobCounts.containsKey(jobID)) {
++        jobCounts.put(jobID, new HashMap<String, Integer>());
++      }
++      Map<String, Integer> count = jobCounts.get(jobID);
++      if (count.containsKey(name)) {
++        count.put(name, count.get(name) + 1);
+       } else {
+-        count.put(key, 1);
++        count.put(name, 1);
+       }
+     }
+\end{lstlisting}
+
+We will show how we examine the changes. We first read the commit message to understand what this commit does and why. If the message explicitly involves concurrency, it will enhance our confidence that this one deserves our attention. Then we scan the differences and try to find concurrency keywords. If we find occurrence of concurrency keywords, we will read the nearby code. The ``+'' symbol marks the line as added line while the ``-'' symbol marks the line as removed line. But differences are usually insufficient for us to understand the changes because some important contexts are not shown in this kind of file. So if we find something confusing, for example, we do not know the type and definition of a variable, we will consult the original and modified versions of full files for help. For example, we cannot know the type and definition of variable \texttt{count} and \texttt{lock}. With help of full files, we know the types of them are \texttt{Map} and \texttt{Object} respectively.
+
 \subsection{Threats to Validity}
 
 \textbf{Threats to internal validity}
