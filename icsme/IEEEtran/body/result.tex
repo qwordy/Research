@@ -37,34 +37,23 @@ We can also view locks in a different perspective like exclusive and shared lock
 
 The reasons of changes vary in different conditions. When a synchronized block cannot satisfy some advanced requirement like fairness or condition, developers might switch to explicit locks. When they find that they only need a simple exclusive lock, they switch to synchronized block. They also might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. Here are some examples.
 
-\begin{figure}
+%fad9609d13e76e9e3a4e01c96f698bb60b03807e
+\begin{figure*}
 	\centering
-	\includegraphics[height=0.6in]{locktype1}
+	\includegraphics[scale=0.3]{locktype1}
 	\caption{Example 1}
-\end{figure}
+\end{figure*}
 
-This is a commit of YARN-5825 - \texttt{ProportionalPreemptionalPolicy} could use \texttt{readLock} over \texttt{LeafQueue} instead of a synchronized block. It is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a reader lock. \texttt{LeafQueue} is a method \texttt{getReadLock} which is inherited from its base class. This method returns an instance of \texttt{ReentrantReadWriteLock.ReadLock}. There are many different locks which can be used to synchronize. A reader lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance under the scenario where most of the operations are reading.
+Figure 1 is an example of YARN-5825 - \texttt{ProportionalPreemptionalPolicy} could use \texttt{readLock} over \texttt{LeafQueue} instead of a synchronized block. It is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a reader lock. \texttt{LeafQueue} is a method \texttt{getReadLock} which is inherited from its base class. This method returns an instance of \texttt{ReentrantReadWriteLock.ReadLock}. There are many different locks which can be used to synchronize. A reader lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance under the scenario where most of the operations are reading.
 
-\begin{lstlisting}
-commit 3e4b1ae6dc786b268505aa2e64067432519c2bcf
-FRom kkolinko:
-A ReadWriteLock cannot be used to guard a WeakHashMap.  The
-WeakHashMap may modify itself on get(), as it processes the reference
-queue of items removed by GC.
-Either a plain old lock / synchronization is needed, or some other solution
-(e.g.  org.apache.tomcat.util.collections.ManagedConcurrentWeakHashMap )
+%3e4b1ae6dc786b268505aa2e64067432519c2bcf
+\begin{figure*}
+	\centering
+	\includegraphics[scale=0.3]{locktype2}
+	\caption{Example 2}
+\end{figure*}
 
--        Lock readlock = classLoaderContainerMapLock.readLock();
--        try {
--            readlock.lock();
-+        synchronized (classLoaderContainerMapLock) {
-             result = classLoaderContainerMap.get(tccl);
--        } finally {
--            readlock.unlock();
--        }
-\end{lstlisting}
-
-This is an example in Tomcat. The developer said a \texttt{ReadWriteLock} cannot guard a \texttt{WeakHashMap}. It is because get() may modify a \texttt{WeakHashMap}, in which case a reader lock is not enough. A plain old lock or synchronization should be used. In this example, the synchronization is used finally.
+Figure 2 is an example in Tomcat. The developer said a \texttt{ReadWriteLock} cannot guard a \texttt{WeakHashMap}. It is because get() may modify the \texttt{WeakHashMap}, in which case a reader lock is not enough. A plain old lock or synchronization should be used. In this example, the synchronization is used finally. This example is more complex than the previous one although they seem a bit similar. %todo more detail
 
 \textbf{Changing lock instance}
 
@@ -72,28 +61,12 @@ You need to create an instance of lock like Java's \texttt{ReentrantLock} class 
 
 No matter explicit locks or synchronized blocks, we always need a lock instance to be acquired and released.  There are some best practice like two-phase locking \cite{journals/cacm/EswarranGLT76}, which is a locking method to guarantee serializability. It is a concept originally in database transaction management. %The method is relatively simple to understand. It has two phases: the first is expanding phase where you can only acquire locks and the second is shrinking phase where you can only release locks. You can access data between the two phases.
 
-\begin{lstlisting}
-commit 563e546236217dace58a8031d56d08a27e08160b
-[FLINK-1419] [runtime] Fix: distributed cache properly synchronized
-
-public FutureTask<Path> createTmpFile(String name, DistributedCacheEntry entry, JobID jobID) {
--    synchronized (count) {
--      Pair<JobID, String> key = new ImmutablePair<JobID, String>(jobID, name);
--      if (count.containsKey(key)) {
--        count.put(key, count.get(key) + 1);
-+    synchronized (lock) {
-+      if (!jobCounts.containsKey(jobID)) {
-+        jobCounts.put(jobID, new HashMap<String, Integer>());
-+      }
-+      Map<String, Integer> count = jobCounts.get(jobID);
-+      if (count.containsKey(name)) {
-+        count.put(name, count.get(name) + 1);
-       } else {
--        count.put(key, 1);
-+        count.put(name, 1);
-       }
-}
-\end{lstlisting}
+%563e546236217dace58a8031d56d08a27e08160b
+%\begin{figure*}
+%	\centering
+%	\includegraphics[scale=0.3]{lockins1}
+%	\caption{Example 3}
+%\end{figure*}
 
 This is a commit of FLINK-1419 - \texttt{DistributedCache} doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the \texttt{DistributedCache}. They synchronized on \texttt{count}, which is a map instance. Instead, they used \texttt{lock}, which is an instance of \texttt{Object} class. The difference is this instance is only used for synchronization while the former one has its own role not only as a lock. We do not need to blame preference of synchronization usage. This commit also made other changes about synchronization. They modified the critical sections as well.
 
