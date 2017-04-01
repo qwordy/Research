@@ -51,7 +51,24 @@ def histogram():
   for filename in os.listdir('data'):
     print filename
     a, b = np.loadtxt('data/' + filename, unpack=True)
-    
 
-line()
+def rq3():
+  lastClass = ''
+  for filename in os.listdir('data'):
+    print filename
+    file = open('data/' + filename)
+    strs = filename.split()
+    if strs[0] != lastClass:
+      dict = {}
+      lastClass = strs[0]
+    for line in file:
+      nums = line.split()
+      key = int(nums[0])
+      value = int(nums[1])
+      dict[key] = dict.get(key, 0) + value
+      print key, dict[key]
+    
+    
+rq3()
+#line()
 #test()
