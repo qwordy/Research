@@ -37,26 +37,13 @@ We can also view locks in a different perspective like exclusive and shared lock
 
 The reasons of changes vary in different conditions. When a synchronized block cannot satisfy some advanced requirement like fairness or condition, developers might switch to explicit locks. When they find that they only need a simple exclusive lock, they switch to synchronized block. They also might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. Here are some examples.
 
-\begin{lstlisting}
-commit fad9609d13e76e9e3a4e01c96f698bb60b03807e
-YARN-5825. ProportionalPreemptionalPolicy should use readLock over LeafQueue instead of synchronized block. Contributed by Sunil G
+\begin{figure}
+	\centering
+	\includegraphics[height=0.6in]{locktype1}
+	\caption{Example 1}
+\end{figure}
 
--      synchronized (leafQueue) {
-+      try {
-+        leafQueue.getReadLock().lock();
-// go through all ignore-partition-exclusivity containers first to make
-// sure such containers will be preemptionCandidates first
-Map<String, TreeSet<RMContainer>> ignorePartitionExclusivityContainers =
-@@ -147,6 +148,8 @@
-preemptAMContainers(clusterResource, selectedCandidates, skippedAMContainerlist,
-resToObtainByPartition, skippedAMSize, maxAMCapacityForThisQueue,
-totalPreemptionAllowed);
-+      } finally {
-+        leafQueue.getReadLock().unlock();
-}
-\end{lstlisting}
-
-This is a commit of YARN-5825 - \texttt{ProportionalPreemptionalPolicy} could use \texttt{readLock} over \texttt{LeafQueue} instead of a synchronized block. It is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a reader lock. There are many different locks which can be used to synchronize. A reader lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance under the scenario where most of the operations are reading.
+This is a commit of YARN-5825 - \texttt{ProportionalPreemptionalPolicy} could use \texttt{readLock} over \texttt{LeafQueue} instead of a synchronized block. It is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a reader lock. \texttt{LeafQueue} is a method \texttt{getReadLock} which is inherited from its base class. This method returns an instance of \texttt{ReentrantReadWriteLock.ReadLock}. There are many different locks which can be used to synchronize. A reader lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance under the scenario where most of the operations are reading.
 
 \begin{lstlisting}
 commit 3e4b1ae6dc786b268505aa2e64067432519c2bcf

@@ -95,7 +95,7 @@ Date:   Mon Jan 26 11:07:53 2015 +0100
 [FLINK-1419] [runtime] Fix: distributed cache properly synchronized
 This closes #339
 
-public FutureTask<Path> createTmpFile(String name, DistributedCacheEntry entry, JobID jobID) {
+   public FutureTask<Path> createTmpFile(String name, DistributedCacheEntry entry, JobID jobID) {
 -    synchronized (count) {
 -      Pair<JobID, String> key = new ImmutablePair<JobID, String>(jobID, name);
 -      if (count.containsKey(key)) {
