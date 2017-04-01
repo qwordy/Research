@@ -9,7 +9,7 @@ In recent years, to fully leverage the potential of multi-core CPUs, concurrency
 
 
 \noindent
-\textbf{Benefit 1.} The results can deepen the knowledge on how to correctly maintain concurrency code. Due to the complexity of concurrency programming, we find that even experienced developers can be confused when they maintain relevant code. For example, Mark Thomas is a member of the Apache Tomcat Project Management Committee, and senior software engineer at the Covalent division of SpringSource. He contributed more than 10,000 commits to Tomcat. In a commit message, he left the complain as follow:
+\textbf{Benefit 1.} The results can deepen the knowledge on how to correctly maintain concurrency code. Due to the complexity of concurrency programming, we find that even experienced developers can be confused when they maintain relevant code. For example, Mark Thomas is a member of the Apache Tomcat Project Management Committee\zhong{Please add a footnote}, and senior software engineer at the Covalent division of SpringSource\zhong{Please add a footnote}. He contributed more than 10,000 commits to Tomcat. In a commit message, he left the complain as follow:
 
 \lstset{numbers=left, breaklines=true,  basicstyle=\ttfamily\tiny,  xleftmargin=3em, tabsize=2}
 %keywordstyle=\color{blue}\bf\ttfamily, language=java,
@@ -29,11 +29,11 @@ In this example, we find that even experienced programmers can have problems in 
 However, to fulfil the above benefits, we have to overcome the following challenges:
 
 \noindent
-\textbf{Challenge 1.} To ensure the reliability of our result, we have to collect many code changes that are related to concurrency programming. It is tedious to manually collect many related code changes for analysis. Tian \emph{et al.}~\cite{tian2012identifying} work on a similar research problem. They propose an approach that identifies bug fixes from commits. Their results show that even advanced techniques can fail to identify many desirable commits. 
+\textbf{Challenge 1.} To ensure the reliability of our result, we have to collect many code changes that are related to concurrency programming. It is tedious to manually collect many related code changes for analysis. Tian \emph{et al.}~\cite{tian2012identifying} work on a similar research problem. They propose an approach that identifies bug fixes from commits. Their results show that even advanced techniques can fail to identify many desirable commits.
 
 
 \noindent
-\textbf{Challenge 2.} The changes on concurrency code can be complicated. A recent study~\cite{tufano2016there} show that only 38\% commits are compilable. To analyze code that is not compilable, researchers typically use partial-code tools such as PPA~\cite{DagenaisH08ppa} and ChangeDistiller~\cite{fluri2007change} to analyze commits. However, as partial programs lose information, partial-code tools are imprecise and typically do not support advanced analysis. Furthermore, as we do not know what patterns can be followed, it is difficult to implement a automatic tool. As a result, it is inevitable to take much human effort when we conduct the empirical study. 
+\textbf{Challenge 2.} The changes on concurrency code can be complicated. A recent study~\cite{tufano2016there} show that only 38\% commits are compilable. To analyze code that is not compilable, researchers typically use partial-code tools such as PPA~\cite{DagenaisH08ppa} and ChangeDistiller~\cite{fluri2007change} to analyze commits. However, as partial programs lose information, partial-code tools are imprecise and typically do not support advanced analysis. Furthermore, as we do not know what patterns can be followed, it is difficult to implement a automatic tool. As a result, it is inevitable to take much human effort when we conduct the empirical study.
 
 In this paper, we collected 102,028 commits from seven popular open-source projects. \zhong{Please add more details}
 
