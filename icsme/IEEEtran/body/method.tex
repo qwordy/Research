@@ -29,7 +29,7 @@ We count the times of changes involving these constructs over time and visualize
 
 In order to better demonstrate these change patterns can really help developers understand concurrent programming practice and apply the practices to their projects, we are going to find the appropriate context in open-source projects and pull requests of applying the change patterns. We are interested to see that how developers will accept our code change suggestions.
 
-We search the matching code in open-source projects and do find some context which can be applied with some pattern. Our changes have been accepted by the owner of the project.
+We search the matching code in open-source projects and do find some context which can be applied with some pattern. Our changes have been accepted by the owner of some project\footnote{https://github.com/derekmu/Schmince-2}.
 
 \subsection{Data set}
 \label{sec:method:data}
@@ -53,7 +53,7 @@ We investigate 7 Java open-source projects from Github including Hadoop, Tomcat,
 
 \subsection{Tool support}
 \label{sec:method:tool}
-We have developed a tool to collect and analyze data. The tool has the following parts.
+We have developed a tool to collect and analyze data. The tool has the following functions.
 
 \subsubsection{Collecting commits}
 All the projects of our study are under git which is one of the most popular version control systems in the world. Some projects of the study used svn or some other version control systems before because they have long histories, but they all support git \cite{books/daglib/0022839} now. We employ JGit, a lightweight, pure Java library implementation of git, to retrieve all the commit logs in projects' histories. A typical commit log contains commit id which is a 20-character-long string uniquely identifying a commit, author, date and message. Once we get a commit id, we use \texttt{git show} command to show the log message and textual \texttt{diff}. The \texttt{diff} result contains one or more change files which contain one or more change hunks.
@@ -84,6 +84,10 @@ We use the SVM \cite{journals/ml/CortesV95} algorithm to train and classify comm
 \end{table}
 
 \subsection{Workflow}
+
+\textbf{Selection} We first need to select concurrent-related commits from repositories. A concurrent-related commit here is defined as a commit which performs code changes about concurrent programming. It hard to give a concise definition. But a concurrent-related commit is usually correlated with synchronization, thread, concurrent class, etc.
+
+\textbf{}
 
 \begin{figure}
 	\centering
