@@ -7,11 +7,7 @@ To understand how concurrency code is maintained, in this study, we focus on the
 
 \textbf{RQ1.} What patterns are followed when programmers maintain concurrency code?
 
-Kim and Notkin~\cite{conf/icse/KimN09} show that code changes can be repetitive. Martinez \emph{et al.}\cite{conf/icsm/MartinezDM13} show that it is feasible to extract change patterns from such repetitive changes.
-
-Some change patterns are project-specific while others are global, which can be considered as knowledge. Developers made numerous commits to the project repository during software's whole lifetime. There are a great many change patterns in software history. On the other hand, concurrent programming is very popular in today's Java development with the rapid developments of multi-core techniques which help exploit the power of concurrent programming. It is very meaningful to understand change patterns in concurrent programming.% What are these change patterns and how many types of these change patterns are there?
-
-In order to answer this question, we manually examine 696 potential concurrent-related commits selected from 102,028 commits by our tool, which is described in Section~\ref{sec:method:tool}. We establish a taxonomy of concurrent-related changes.
+In each day, programmers can make numerous commits. Based on their analysis on commits, Kim and Notkin~\cite{conf/icse/KimN09} find that code changes can be repetitive, and Martinez \emph{et al.}~\cite{conf/icsm/MartinezDM13} further extract change patterns to denote such repetitive changes. However, the change patterns of concurrency programming is rarely studied. The recent study~\cite{conf/sigsoft/GuJSZL15} mainly focuses on changes only on critical sections. As a result, this research question is still largely open. To explore this research question, we carefully put our selected concurrent-related commits into \zhong{??} categories (see Section~\ref{sec:result:rq1} for details). 
 
 \textbf{RQ2.} How frequent do concurrent-related code changes appear in different kinds of Java open-source projects?
 
