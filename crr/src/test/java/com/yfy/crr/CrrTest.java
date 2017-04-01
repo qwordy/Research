@@ -23,6 +23,11 @@ public class CrrTest {
   }
 
   @Test
+  public void countCrrKeywords() throws Exception {
+    new CountCrrKey().count();
+  }
+
+  @Test
   public void initTable() throws Exception {
     Db db = new Db();
     db.createTable("guava");
