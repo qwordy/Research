@@ -51,6 +51,7 @@ Figure 1 is an example of YARN-5825 - \texttt{ProportionalPreemptionalPolicy} co
 	\centering
 	\includegraphics[scale=0.3]{locktype2}
 	\caption{Example 2}
+\zhong{It may be better, if you merge the example figures into a table like Table 1.}
 \end{figure*}
 
 Figure 2 is an example in Tomcat. The developer said a \texttt{ReadWriteLock} cannot guard a \texttt{WeakHashMap}. It is because get() may modify the \texttt{WeakHashMap}, in which case a reader lock is not enough. A plain old lock or synchronization should be used. In this example, the synchronization is used finally. This example is more complex than the previous one although they seem a bit similar. %todo more detail
