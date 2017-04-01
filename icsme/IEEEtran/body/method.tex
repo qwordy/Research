@@ -9,9 +9,13 @@ To understand how concurrency code is maintained, in this study, we focus on the
 
 In each day, programmers can make numerous commits. Based on their analysis on commits, Kim and Notkin~\cite{conf/icse/KimN09} find that code changes can be repetitive, and Martinez \emph{et al.}~\cite{conf/icsm/MartinezDM13} further extract change patterns to denote such repetitive changes. However, the change patterns of concurrency programming is rarely studied. The recent study~\cite{conf/sigsoft/GuJSZL15} mainly focuses on changes only on critical sections. As a result, this research question is still largely open. To explore this research question, we carefully put our selected concurrent-related commits into \zhong{??} categories (see Section~\ref{sec:result:rq1} for details). 
 
-\textbf{RQ2.} How frequent do concurrent-related code changes appear in different kinds of Java open-source projects?
+\textbf{RQ2.} How frequent are concurrency code modified?
 
-Java programming language provides convenient built-in concurrent libraries and users can also invoke third-party libraries like Apache Commons and Guava, which are both very famous libraries providing reusable components. Although developers can use their own concurrent-related classes or third-party libraries, they are always using the facilities provided by Java standard libraries in most cases except they are facing special and rigour requirement. Previous researches \cite{journals/jss/PintoTFFB15, journals/infsof/WuCZX16, conf/sigsoft/OkurD12} investigated the usage of concurrent libraries. We want to know how frequent (do) concurrent-related code change occur in software projects and what the differences of frequency in different kinds of software projects are.
+J2SE provides standard APIs\footnote{\url{https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/package-summary.html}} for developing concurrency code. Alternatively, programmers can use third-party libraries such as Apache Commons\footnote{\url{https://commons.apache.org/}} and Guava\footnote{\url{https://github.com/google/guava}}, since they provide similar and extensive functions. 
+
+
+
+which are both very famous libraries providing reusable components. Although developers can use their own concurrent-related classes or third-party libraries, they are always using the facilities provided by Java standard libraries in most cases except they are facing special and rigour requirement. Previous researches \cite{journals/jss/PintoTFFB15, journals/infsof/WuCZX16, conf/sigsoft/OkurD12} investigated the usage of concurrent libraries. We want to know how frequent (do) concurrent-related code change occur in software projects and what the differences of frequency in different kinds of software projects are.
 
 We use our tool to count the number of concurrent-related code changes and visualize the statistics. We use a method of machine learning combined with textual analysis to decide whether a commit in history is concurrent-related or not.
 
@@ -97,7 +101,7 @@ Date:   Mon Jan 26 11:07:53 2015 +0100
 [FLINK-1419] [runtime] Fix: distributed cache properly synchronized
 This closes #339
 
-   public FutureTask<Path> createTmpFile(String name, DistributedCacheEntry entry, JobID jobID) {
+public FutureTask<Path> createTmpFile(String name, DistributedCacheEntry entry, JobID jobID) {
 -    synchronized (count) {
 -      Pair<JobID, String> key = new ImmutablePair<JobID, String>(jobID, name);
 -      if (count.containsKey(key)) {
