@@ -303,32 +303,40 @@ Figure 1 shows the numbers of concurrent related commits and all commits of each
 \label{sec:result:trend}
 \begin{table}
 	\centering
-	\caption{Top Classes}
-	\begin{tabular}{|c|c||c|c|}\hline
-		Class&\#Add&Class&\#Del\\\hline
-		AtomicInteger&2780&AtomicInteger&4111\\\hline
-		AtomicLong&1701&AtomicBoolean&2504\\\hline
-		CountDownLatch&1698&ConcurrentHashMap&2415\\\hline
-		AtomicBoolean&1676&AtomicLong&2225\\\hline
-		ConcurrentHashMap&1561&CountDownLatch&1513\\\hline
-		AtomicReference&1030&AtomicReference&1224\\\hline
-		Executors&921&Executors&1105\\\hline
-		LinkedBlockingQueue&689&ThreadPoolExecutor&1034\\\hline
-		ConcurrentLinkedQueue&638&LinkedBlockingQueue&864\\\hline
-		ThreadPoolExecutor&583&ConcurrentLinkedQueue&797\\\hline
+	\caption{Top Active Classes}
+	\begin{tabular}{|c|c|}\hline
+		Class&Occurrence\\\hline
+		AtomicInteger&2780\\\hline
+		AtomicLong&1701\\\hline
+		CountDownLatch&1698\\\hline
+		AtomicBoolean&1676\\\hline
+		ConcurrentHashMap&1561\\\hline
+		AtomicReference&1030\\\hline
+		Executors&921\\\hline
+		LinkedBlockingQueue&689\\\hline
+		ConcurrentLinkedQueue&638\\\hline
+		ThreadPoolExecutor&583\\\hline
 	\end{tabular}
 \end{table}
 
-\begin{figure}
-	\centering
-	\includegraphics[height=1.5in]{CountDownLatchAdd}
-	\caption{Addition of CountDownLatch}
-\end{figure}
+%\begin{figure}
+%	\centering
+%	\includegraphics[height=1.5in]{CountDownLatchAdd}
+%	\caption{Addition of CountDownLatch}
+%\end{figure}
+%
+%\begin{figure}
+%	\centering
+%	\includegraphics[height=1.5in]{CountDownLatchMinus}
+%	\caption{Removal of CountDownLatch}
+%\end{figure}
 
 \begin{figure}
 	\centering
-	\includegraphics[height=1.5in]{CountDownLatchMinus}
-	\caption{Removal of CountDownLatch}
+	\subfigure[Rise]{\includegraphics[height=0.9in]{CountDownLatch}}
+	\subfigure[Drop]{\includegraphics[height=0.9in]{LinkedTransferQueue}}
+	\subfigure[Other]{\includegraphics[height=0.9in]{ThreadPoolExecutor}}
+	\caption{Typical Trend of Change Frequency}
 \end{figure}
 
 We write a program to count and analyze concurrent programming classes usage. Table IV shows top 10 classes added and deleted in the history. Some classes are both active in the added and the deleted column like AtomicInteger and CountDownLatch. This is not surprising because a deletion of class does not mean this class is abandoned. This also indicates this class is active. An interesting observation is that deletions appear more than addition.

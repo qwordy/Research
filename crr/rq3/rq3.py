@@ -101,7 +101,7 @@ def draw():
     #print e
     #print f
     plt.cla()
-    plt.figure(figsize=(8, 4))
+    plt.figure(figsize=(8, 2))
     plt.plot(e, f)
     plt.xlim(1, xmax - xmin + 1)
     plt.ylim(0)
