@@ -303,19 +303,19 @@ Figure 1 shows the numbers of concurrent related commits and all commits of each
 \label{sec:result:trend}
 \begin{table}
 	\centering
-	\caption{Top Active Classes}
+	\caption{Top 10 Active Classes}
 	\begin{tabular}{|c|c|}\hline
 		Class&Occurrence\\\hline
-		AtomicInteger&2780\\\hline
-		AtomicLong&1701\\\hline
-		CountDownLatch&1698\\\hline
-		AtomicBoolean&1676\\\hline
-		ConcurrentHashMap&1561\\\hline
-		AtomicReference&1030\\\hline
-		Executors&921\\\hline
-		LinkedBlockingQueue&689\\\hline
-		ConcurrentLinkedQueue&638\\\hline
-		ThreadPoolExecutor&583\\\hline
+		AtomicInteger&6,891\\
+		AtomicBoolean&4,180\\
+		ConcurrentHashMap&3,976\\
+		AtomicLong&3,926\\
+		CountDownLatch&3,211\\
+		AtomicReference&2,254\\
+		Executors&2,026\\
+		ThreadPoolExecutor&1,617\\
+		LinkedBlockingQueue&1,553\\
+		ConcurrentLinkedQueue&1,435\\\hline
 	\end{tabular}
 \end{table}
 
@@ -333,15 +333,19 @@ Figure 1 shows the numbers of concurrent related commits and all commits of each
 
 \begin{figure}
 	\centering
-	\subfigure[Rise]{\includegraphics[height=0.9in]{CountDownLatch}}
-	\subfigure[Drop]{\includegraphics[height=0.9in]{LinkedTransferQueue}}
-	\subfigure[Other]{\includegraphics[height=0.9in]{ThreadPoolExecutor}}
+	\subfigure[Ascending]{\includegraphics[height=0.8in]{CountDownLatch}}
+	\subfigure[Descending]{\includegraphics[height=0.8in]{LinkedTransferQueue}}
+	\subfigure[Other]{\includegraphics[height=0.8in]{ThreadPoolExecutor}}
 	\caption{Typical Trend of Change Frequency}
 \end{figure}
 
-We write a program to count and analyze concurrent programming classes usage. Table IV shows top 10 classes added and deleted in the history. Some classes are both active in the added and the deleted column like AtomicInteger and CountDownLatch. This is not surprising because a deletion of class does not mean this class is abandoned. This also indicates this class is active. An interesting observation is that deletions appear more than addition.
+Programmers are changing their code constantly. We analyze the trend of concurrent-related class usage during the software evolution. We count the occurrence of 53 concurrent-related classes in Java. Table IV shows the top 10 active classes which are involved in changes in the history. For example, the most common class in changes is \texttt{AtomicInteger}. There are 6891 changes which are related to this class. This indicates that this class is very popular. We notice that the first several classes in the table are all famous and easy to use. The values of different classes vary. For the last 10 classes, the sum of their values is only 148. \%10 classes account for over 50\% occurrence of changes
 
-We draw line for addition and removal of each class. Figure 3 and figure 4 show examples. We can see that both numbers of addition and removal increase as a whole as time passing by. This indicates that this class is attracting developers' attention.
+We draw the tendency chart of each class as time goes. Figure 4 shows 3 typical tendencies of these charts. They are ascending lines, descending lines and others. Figure (a) shows an example of ascending tendency. It is \texttt{CountDownLatch}. We are not meaning it is in a strict ascending order. Its overall tendency is rising. Figure (b) shows an example of descending tendency. It is \texttt{LinkedTransferQueue}. However, most charts are like figure (c). They are fluctuating without certain ascending or descending tendency. There are 13 ascending charts, 4 descending charts and 36 other charts.
+
+%We write a program to count and analyze concurrent programming classes usage. Table IV shows top 10 classes added and deleted in the history. Some classes are both active in the added and the deleted column like AtomicInteger and CountDownLatch. This is not surprising because a deletion of class does not mean this class is abandoned. This also indicates this class is active. An interesting observation is that deletions appear more than addition.
+
+%We draw line for addition and removal of each class. Figure 3 and figure 4 show examples. We can see that both numbers of addition and removal increase as a whole as time passing by. This indicates that this class is attracting developers' attention.
 
 \subsection{RQ4. Can these change patterns be applied to real world projects?}
 \label{sec:result:sample}
