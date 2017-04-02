@@ -33,25 +33,23 @@ We search the matching code in open-source projects and do find some context whi
 
 \subsection{Data set}
 \label{sec:method:data}
-We investigate 7 Java open-source projects from Github including Hadoop\footnote{http://hadoop.apache.org/}, Tomcat\footnote{http://tomcat.apache.org/}, Cassandra\footnote{http://cassandra.apache.org/}, Lucene-solr\footnote{http://lucene.apache.org/}, Netty\footnote{http://netty.io/}, Flink\footnote{https://flink.apache.org/} and Mahout\footnote{http://mahout.apache.org/} as shown in Table 1. Some projects are mirrored in Github. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. The Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Tomcat is the most popular implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technologies. Cassandra \cite{journals/sigops/LakshmanM10} is a database system which can Manage massive amounts of data, fast, without losing sleep. Lucene-solr is two projects together in one respository in Github. Lucene is a search engine library and solr is a search engine server which uses lucene. Netty is an event-driven asynchronous network application framework. Flink is an open source stream processing framework with powerful stream- and batch-processing capabilities. Mahout is a machine learning project. Table I shows the lines of code in Java, the number of Java files, the number of commits and the number of selected concurrent-related commits, which are examined by us, of each project. All the projects are checked out for our study in December 2016.
+We investigate 7 Java open-source projects from Github including Hadoop, Tomcat, Cassandra\footnote{http://cassandra.apache.org/}, Lucene-solr\footnote{http://lucene.apache.org/}, Netty\footnote{http://netty.io/}, Flink\footnote{https://flink.apache.org/} and Mahout\footnote{http://mahout.apache.org/} as shown in Table 1. Some projects are mirrored in Github. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. The Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Tomcat is the most popular implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technologies. Cassandra \cite{journals/sigops/LakshmanM10} is a database system which can Manage massive amounts of data, fast, without losing sleep. Lucene-solr is two projects together in one respository in Github. Lucene is a search engine library and solr is a search engine server which uses lucene. Netty is an event-driven asynchronous network application framework. Flink is an open source stream processing framework with powerful stream- and batch-processing capabilities. Mahout is a machine learning project. Table I shows the lines of code in Java, the number of Java files, the number of commits and the number of selected concurrent-related commits, which are examined by us, of each project. All the projects are checked out for our study in December 2016.
 
 \begin{table}
 	\centering
 	\caption{Projects Information (LOC and \#Files are both of Java files)}
 	\begin{tabular}{|c|c|c|c|c|}\hline
 		Project&LOC&\#Files&\#Commits&\#Selected Commits\\\hline
-		Hadoop&1,202,764&7,701&14,930&49\\
-		Tomcat&301,173&2,192&17,731&159\\
-		Cassandra&387,980&2,143&21,982&48\\
-		Lucene-solr&918,398&6,310&26,152&74\\
-		Netty&218,131&2,054&7,759&202\\
+		Hadoop&1,202,764&7,701&14,930&49\\\hline
+		Tomcat&301,173&2,192&17,731&159\\\hline
+		Cassandra&387,980&2,143&21,982&48\\\hline
+		Lucene-solr&918,398&6,310&26,152&74\\\hline
+		Netty&218,131&2,054&7,759&202\\\hline
 		Flink&414,264&4,068&9,771&28\\\hline
 		%Guava&251,205&1,672&3,850\\\hline
-		%Mahout&109,584&1,215&3,703&0\\\hline
-		Total&3,442,710&24,468&98,352&?\\\hline
+		Mahout&109,584&1,215&3,703&0\\\hline
 	\end{tabular}
-%todo selected commits
-%\zhong{Add a total row. Remove Mahout, since you did not analyze its commits.}
+\zhong{Add a total row. Remove Mahout, since you did not analyze its commits.}
 \end{table}
 
 \subsection{Tool support}
