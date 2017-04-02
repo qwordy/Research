@@ -101,6 +101,7 @@ def draw():
     #print e
     #print f
     plt.cla()
+    plt.axes(aspect=0.5)
     plt.plot(e, f)
     plt.xlim(1, xmax - xmin + 1)
     plt.ylim(0)
@@ -114,7 +115,7 @@ def sort():
     path = 'newdata/' + filename
     os.system('sort -n -k 1 ' + path + ' -o ' + path)
 
-sort()
+#sort()
 draw()
 #prepareData()
 #line()
