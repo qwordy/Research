@@ -15,7 +15,8 @@
 		Changing lock instance&\includegraphics[scale=0.35]{pattern2}&6\\\hline
 		Changing critical section&\includegraphics[scale=0.35]{pattern3}&35\\\hline
 		Adding or removing \texttt{volatile}&\includegraphics[scale=0.35]{pattern4}&47\\\hline
-		Thread-safe class replacement&Use thread-safe class instead of handling concurrency control manually&32\\\hline
+		Thread-safe class replacement&\includegraphics[scale=0.35]{pattern5}&32\\\hline
+		Thread management&&\\\hline
 		%Other class replacement&Some other concurrent related class replacement&\\\hline
 	\end{tabular}
 \end{table*}
@@ -24,6 +25,7 @@
 %Switch to another lock instace
 %Change critical sections, which are protected by synchronization
 %Add or remove 'volatile' modifier of a class field
+%Use thread-safe class instead of handling concurrency control manually
 
 Table III shows an overview of all types, their explanations and occurrence times. We are going to discuss these change types concretely with examples below.
 
@@ -50,7 +52,7 @@ The reasons of changes vary in different conditions. When a synchronized block c
 %	\caption{Example 1}
 %\end{figure*}
 
-Example 1 is an example of YARN-5825 - \texttt{ProportionalPreemptionalPolicy} could use \texttt{readLock} over \texttt{LeafQueue} instead of a synchronized block. It is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a reader lock. \texttt{LeafQueue} is a method \texttt{getReadLock} which is inherited from its base class. This method returns an instance of \texttt{ReentrantReadWriteLock.ReadLock}. There are many different locks which can be used to synchronize. A reader lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance under the scenario where most of the operations are reading.
+Example 1 is an example of YARN-5825\footnote{\url{https://issues.apache.org/jira/browse/YARN-5825}} - \texttt{ProportionalPreemptionalPolicy} could use \texttt{readLock} over \texttt{LeafQueue} instead of a synchronized block. It is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a reader lock. \texttt{LeafQueue} is a method \texttt{getReadLock} which is inherited from its base class. This method returns an instance of \texttt{ReentrantReadWriteLock.ReadLock}. There are many different locks which can be used to synchronize. A reader lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance under the scenario where most of the operations are reading.
 
 %3e4b1ae6dc786b268505aa2e64067432519c2bcf
 %\begin{figure*}
@@ -75,7 +77,7 @@ No matter explicit locks or synchronized blocks, we always need a lock instance 
 %	\caption{Example 3}
 %\end{figure*}
 
-Example 3 is an example of FLINK-1419 - \texttt{DistributedCache} doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the \texttt{DistributedCache}. They synchronized on \texttt{count}, which is a map instance. Instead, they used \texttt{lock}, which is an instance of \texttt{Object} class. The difference is this instance is only used for synchronization while the former one has its own role not only as a lock. We do not need to blame preference of synchronization usage. This commit also made other changes about synchronization. They modified the critical sections as well.
+Example 3 is an example of FLINK-1419\footnote{\url{https://issues.apache.org/jira/browse/FLINK-1419}} - \texttt{DistributedCache} doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the \texttt{DistributedCache}. They synchronized on \texttt{count}, which is a map instance. Instead, they used \texttt{lock}, which is an instance of \texttt{Object} class. The difference is this instance is only used for synchronization while the former one has its own role not only as a lock. We do not need to blame preference of synchronization usage. This commit also made other changes about synchronization. They modified the critical sections as well.
 
 %f0e627bb8c9daedb3b064027cac37ce4849bab64
 
@@ -83,11 +85,11 @@ In example 4, The lock instance was originally the instance of the class and now
 
 \textbf{Changing critical section}
 
-Critical section is a code block guarded by synchronization. It is the most common change in terms of concurrency control. We classify these changes into three subtypes: changing synchronization, changing statement and changing communication lock. Changing synchronization means adding or removing synchronization to the statements which are not synchronized before or are synchronized already. Changing statements means adding new statements to the critical sections, removing or amending statements in the critical sections. Changing communication lock means.
+Critical section is a code block guarded by synchronization. It is the most common change in terms of concurrency control. We classify these changes into three subtypes: changing synchronization, changing statement and changing communication lock. Changing synchronization means adding or removing synchronization to the statements which are not synchronized before or are synchronized already. Changing statements means adding new statements to the critical sections, removing or amending statements in the critical sections. Changing communication lock means. %todo
 
 %17206cc8c21c439d121a66d7c9934cdfa4791a35
 
-Example 5 shows an example of changing synchronization. The method was not synchronized before. The basic reason of adding synchronization to existing code is the piece of code might be access concurrently. It is a change to fix a bug\footnote{https://bz.apache.org/bugzilla/show\_bug.cgi?id=58386}. This bug was reported by RV-Predict, a dynamic race detector. It said
+Example 5 shows an example of adding synchronization. The method was not synchronized before. The basic reason of adding synchronization to existing code is the piece of code might be access concurrently. It is a change to fix a bug\footnote{\url{https://bz.apache.org/bugzilla/show\_bug.cgi?id=58386}}. This bug was reported by RV-Predict, a dynamic race detector. It said
 
 \begin{lstlisting}
 Reported by RV-Predict (a dynamic race detector) when running the test suite:
@@ -97,25 +99,10 @@ Concurrent write in thread T93 (locks held: {Monitor@8a841fe, Monitor@8a9a01a})
 
 When two or more threads access one object concurrently and at least one is modifying the object, a data race might happen. The easiest way to tackle this problem is adding synchronization to the access of the object.
 
-\begin{lstlisting}
-commit c93d9eaf363a535dff25cc4e7db400d879e73bb1
-Add option to use single actor system for local execution. Use local connection manager if a single task manager is used for local execution. Remove synchronized blcok in getReceiverList of ChannelManager which effectively serialized the connection lookup calls of a single task manager.
+%c93d9eaf363a535dff25cc4e7db400d879e73bb1
+%Add option to use single actor system for local execution. Use local connection manager if a single task manager is used for local execution. Remove synchronized blcok in getReceiverList of ChannelManager which effectively serialized the connection lookup calls of a single task manager.
 
--synchronized (this.channelLookup) {
--  try{
--    lookupResponse = AkkaUtils.<JobManagerMessages.ConnectionInformation>ask(channelLookup,
--      new JobManagerMessages.LookupConnectionInformation(connectionInfo, jobID,
--      sourceChannelID), timeout).response();
--  }catch(IOException ioe) {
--    throw ioe;
--  }
--}
-+lookupResponse = AkkaUtils.<JobManagerMessages.ConnectionInformation>ask(channelLookup,
-+  new JobManagerMessages.LookupConnectionInformation(connectionInfo, jobID,
-+    sourceChannelID), timeout).response();
-\end{lstlisting}
-
-This example is from Flink. Developers remove the synchronization of a code block. If you find the code will not be access concurrently or it can be accessed safely in a concurrent way, you do not need to synchronize the code.
+Example 6 shows an example of removing synchronization. Developers remove the synchronization of a code block. They said they used a single task manager and removed synchronized block in \texttt{ChannelManager}. If you find the code will not be accessed concurrently or it can be accessed safely in a concurrent way, you do not need to synchronize the code.
 
 \begin{lstlisting}
 commit 7e56bfe40589a1aa9b5ef20b342e421823cd0592
@@ -146,35 +133,17 @@ HDFS-4200. Reduce the size of synchronized sections in PacketResponder. Contribu
      }
 \end{lstlisting}
 
-This is a commit of HDFS-4200 - Reduce the size of synchronized sections in \texttt{PacketResponder}, which is a major improvement. The previous two examples are very easy. This is a complex change compared to previous examples. This example contains multiple types of changes. They change the lock instance, remove synchronization of some code, add some new synchronized code. The developers said the size of synchronized sections can be reduced. It is always meaningful to remove the unnecessary synchronizations. Over-synchronization \cite{conf/sigsoft/GuJSZL15} is a real issue in real-world software.
+This is a commit of HDFS-4200\footnote{\url{https://issues.apache.org/jira/browse/HDFS-4200}} - Reduce the size of synchronized sections in \texttt{PacketResponder}, which is a major improvement. The previous two examples are very easy. This is a complex change compared to previous examples. This example contains multiple types of changes. They change the lock instance, remove synchronization of some code, add some new synchronized code. The developers said the size of synchronized sections can be reduced. It is always meaningful to remove the unnecessary synchronizations. Over-synchronization \cite{conf/sigsoft/GuJSZL15} is a real issue in real-world software.
 
-\begin{lstlisting}
-commit efca79cfb7b496b4bec70561cc94af069c644ef2
-[FLINK-2384] [runtime] Move blocking I/O call outside of synchronized block
-Problem: Waiting on asynchronous write requests with the partition lock can
-result in a deadlock, because all other operations on the same partition are
-blocked. It is possible that the I/O writer itself needs to access the
-partition, in which cases the whole program blocks.
-Solution: Move the wait outside the synchronized block. This was not necessary
-before, because no operation assumes the spilling to be finished when the
-finish call has returned.
-
- public void finish() throws IOException {
-   synchronized (buffers) {
-     if (add(EventSerializer.toBuffer(EndOfPartitionEvent.INSTANCE))) {
--      // If we are spilling/have spilled, wait for the writer to finish.
--      if (spillWriter != null) {
--        spillWriter.close();
--      }
-     isFinished = true;
-     }
-   }
-+  // If we are spilling/have spilled, wait for the writer to finish.
-+  if (spillWriter != null) {
-+    spillWriter.close();
-+  }
- }
-\end{lstlisting}
+%efca79cfb7b496b4bec70561cc94af069c644ef2
+%[FLINK-2384] [runtime] Move blocking I/O call outside of synchronized block
+%Problem: Waiting on asynchronous write requests with the partition lock can
+%result in a deadlock, because all other operations on the same partition are
+%blocked. It is possible that the I/O writer itself needs to access the
+%partition, in which cases the whole program blocks.
+%Solution: Move the wait outside the synchronized block. This was not necessary
+%before, because no operation assumes the spilling to be finished when the
+%finish call has returned.
 
 \begin{figure}
 	\centering
@@ -182,7 +151,7 @@ finish call has returned.
 	\caption{Deadlock}
 \end{figure}
 
-This is an example from Flink. It is a critical bug issue ``Deadlock during partition spilling''. A user reported the problem. Here is selected parts of the stack trace.
+Example 8 is a fix of a bug. It is a critical bug issue\footnote{\url{https://issues.apache.org/jira/browse/FLINK-2384}} ``Deadlock during partition spilling''. A user reported the problem. Here is selected parts of the stack trace.
 
 \begin{lstlisting}
 "CHAIN DataSource (at createInput(ExecutionEnvironment.java:502) (org.apache.flink.api.java.hadoop.mapreduce.HadoopInputFormat)) -> FlatMap (FlatMap at readFlinkTuplesFromThriftParquet(ParquetThriftEntitons.java:96)) (7/8)" daemon prio=10 tid=0x00007f934005b000 nid=0x73c4 in Object.wait() [0x00007f93c16ac000]
