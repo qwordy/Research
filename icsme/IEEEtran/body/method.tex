@@ -12,14 +12,13 @@ In each day, programmers can make numerous commits. Based on their analysis on c
 
 \textbf{RQ2.} How useful are our extract change patterns, when programmers maintain concurrency code?
 
-To assess the usefulness of our extracted change patterns, we search open source search code in open-source projects with our change patterns. In particular, \zhong{Please explain how you build queries for the search, and how to write your pull requests.} Our changes have been accepted by the owner of some project\footnote{https://github.com/derekmu/Schmince-2}.
+To assess the usefulness of our extracted change patterns, we search open source search code in open-source projects with our change patterns. In particular, \zhong{Please explain how you build queries for the search, and how to write your pull requests.} Our changes have been accepted by the owner of some project\footnote{https://github.com/derekmu/Schmince-2}. In Section~\ref{sec:result:sample}, ...
 
 
 
 \textbf{RQ3.} What are the change trends of using parallel APIs?
 
-J2SE provides standard APIs\footnote{\url{https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/package-summary.html}} for developing concurrency code. Alternatively, programmers can use third-party libraries such as Apache Commons\footnote{\url{https://commons.apache.org/}} and Guava\footnote{\url{https://github.com/google/guava}}, since they provide similar and extensive functions. In practice, programmers can choose different APIs to implement their concurrency code. Their different choices can lead to different change trends that can be examined through their revision histories. For example, a parallel API can be difficult to use, so programmers have to constantly modify corresponding code, during software maintenance. In Section~\ref{}
-We count the times of changes involving these constructs over time and visualize the statistics. We find that some constructs are getting more and more popular while others are quitting the stage gradually.
+J2SE provides standard APIs\footnote{\url{https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/package-summary.html}} for developing concurrency code. Alternatively, programmers can use third-party libraries such as Apache Commons\footnote{\url{https://commons.apache.org/}} and Guava\footnote{\url{https://github.com/google/guava}}, since they provide similar and extensive functions. In practice, programmers can choose different APIs to implement their concurrency code. Their different choices can lead to different change trends that can be examined through their revision histories. For example, a parallel API can be difficult to use, so programmers have to constantly modify corresponding code, during software maintenance. In Section~\ref{sec:result:trend}, we count commits that involve different parallel APIs over time. We find that ?? types of change trends. \zhong{Please add details.}
 
 \textbf{RQ4.} How frequent are concurrency code modified?
 
