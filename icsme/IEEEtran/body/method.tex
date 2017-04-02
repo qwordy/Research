@@ -20,15 +20,9 @@ To assess the usefulness of our extracted change patterns, we search open source
 
 J2SE provides standard APIs\footnote{\url{https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/package-summary.html}} for developing concurrency code. Alternatively, programmers can use third-party libraries such as Apache Commons\footnote{\url{https://commons.apache.org/}} and Guava\footnote{\url{https://github.com/google/guava}}, since they provide similar and extensive functions. In practice, programmers can choose different APIs to implement their concurrency code. Their different choices can lead to different change trends that can be examined through their revision histories. For example, a parallel API can be difficult to use, so programmers have to constantly modify corresponding code, during software maintenance. In Section~\ref{sec:result:trend}, we count commits that involve different parallel APIs over time. We find that ?? types of change trends. \zhong{Please add details.}
 
-\textbf{RQ4.} How frequent are concurrency code modified?
+\textbf{RQ4.} Are there any correlations between code changes and changes on concurrency code?
 
-
-
-
-
-which are both very famous libraries providing reusable components. Although developers can use their own concurrent-related classes or third-party libraries, they are always using the facilities provided by Java standard libraries in most cases except they are facing special and rigour requirement. Previous researches \cite{journals/jss/PintoTFFB15, journals/infsof/WuCZX16, conf/sigsoft/OkurD12} investigated the usage of concurrent libraries. We want to know how frequent (do) concurrent-related code change occur in software projects and what the differences of frequency in different kinds of software projects are.
-
-We use our tool to count the number of concurrent-related code changes and visualize the statistics. We use a method of machine learning combined with textual analysis to decide whether a commit in history is concurrent-related or not.
+Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} compare the code changes and changes on concurrency code, and they find strong correlation between the two types of code changes. With a different data set, we explore whether their finding still holds on other projects. Our results show that \zhong{Please add details.}
 
 \subsection{Data set}
 \label{sec:method:data}
