@@ -1,6 +1,6 @@
 \section{Results}
 \label{sec:result}
-\subsection{RQ1. How many types of change patterns in concurrent programming?}
+\subsection{RQ1. What patterns are followed when programmers maintain concurrency code?}
 \label{sec:result:pattern}
 \textbf{Taxonomy} There are so many different concurrent related changes in the code history. We can classify them into ? types according to their observed code changes. We first read the commit message to know what this commit does and why. We then examine the added and deleted lines. We catch the concurrent related keywords. We classify changes basically into two big categories. The first is using libraries instead of manual concurrency control. The second is adjustment of concurrency control itself. These types do not contain all the concurrent related code changes. Some changes are infrequent and difficult to classify. It can also be decided by purposes of code changes like eliminating deadlock. But purpose is a subjective concept and it is more difficult to determine the reasons behind the changes.
 
@@ -75,28 +75,27 @@ No matter explicit locks or synchronized blocks, we always need a lock instance 
 %	\caption{Example 3}
 %\end{figure*}
 
-Example 3 is a commit of FLINK-1419 - \texttt{DistributedCache} doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the \texttt{DistributedCache}. They synchronized on \texttt{count}, which is a map instance. Instead, they used \texttt{lock}, which is an instance of \texttt{Object} class. The difference is this instance is only used for synchronization while the former one has its own role not only as a lock. We do not need to blame preference of synchronization usage. This commit also made other changes about synchronization. They modified the critical sections as well.
+Example 3 is an example of FLINK-1419 - \texttt{DistributedCache} doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the \texttt{DistributedCache}. They synchronized on \texttt{count}, which is a map instance. Instead, they used \texttt{lock}, which is an instance of \texttt{Object} class. The difference is this instance is only used for synchronization while the former one has its own role not only as a lock. We do not need to blame preference of synchronization usage. This commit also made other changes about synchronization. They modified the critical sections as well.
 
 %f0e627bb8c9daedb3b064027cac37ce4849bab64
 
-This is another example. The lock instance was originally the instance of the class and now is \texttt{membersLock}. They used single object (\texttt{membersLock}) for all locking as the commit message said. Using a separated locking instance can allow you to have more precise concurrency control than using synchronized methods.
+In example 4, The lock instance was originally the instance of the class and now is \texttt{membersLock}. They used single object (\texttt{membersLock}) for all locking as the commit message said. Using a separated locking instance can allow you to have more precise concurrency control than using synchronized methods.
 
 \textbf{Changing critical section}
 
-Critical section is a code block guarded by synchronization. It is the most common change in terms of concurrency control. We classify these changes into five subtypes: adding synchronization, removing synchronization, adding statements, removing statements, modifing statements. Adding synchronization means to add synchronization to the statements which are not synchronized before. Removing synchronization means to remove synchronization of the statements, which are no more protected now but still exist outside the critical sections. Adding statements means to add new statements to the critical sections. Removing statements means to remove existing statements inside the critical sections. Modifing statements means to modify statements inside the critical sections. The reasons behind the changes depend on specific context.
+Critical section is a code block guarded by synchronization. It is the most common change in terms of concurrency control. We classify these changes into three subtypes: changing synchronization, changing statement and changing communication lock. Changing synchronization means adding or removing synchronization to the statements which are not synchronized before or are synchronized already. Changing statements means adding new statements to the critical sections, removing or amending statements in the critical sections. Changing communication lock means.
+
+%17206cc8c21c439d121a66d7c9934cdfa4791a35
+
+Example 5 shows an example of changing synchronization. The method was not synchronized before. The basic reason of adding synchronization to existing code is the piece of code might be access concurrently. It is a change to fix a bug\footnote{https://bz.apache.org/bugzilla/show\_bug.cgi?id=58386}. This bug was reported by RV-Predict, a dynamic race detector. It said
 
 \begin{lstlisting}
-commit 17206cc8c21c439d121a66d7c9934cdfa4791a35
-Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58386
-On the basis that access() and finish() are synchronized, extend synchronization to other methods that access same fields.
-
--    public boolean isAccessed() {
-+    public synchronized boolean isAccessed() {
-       return this.accessed;
-}
+Reported by RV-Predict (a dynamic race detector) when running the test suite:
+Data race on field org.apache.catalina.tribes.io.ObjectReader.accessed: {{{
+Concurrent write in thread T93 (locks held: {Monitor@8a841fe, Monitor@8a9a01a})
 \end{lstlisting}
 
-This is an example of adding synchronization. The mothod was not synchronoized before. The basic reason of adding synchronization to existing code is the piece of code might be access concurrently.
+When two or more threads access one object concurrently and at least one is modifying the object, a data race might happen. The easiest way to tackle this problem is adding synchronization to the access of the object.
 
 \begin{lstlisting}
 commit c93d9eaf363a535dff25cc4e7db400d879e73bb1
@@ -283,23 +282,28 @@ This commit is from lucene-solr. It is a commit for LUCENE-2779 which is a minor
 %
 %\textbf{Final in multiple threads}
 
-\subsection{RQ2. How frequent do concurrent related code modification appear in different kinds of Java open-source projects?}
+\subsection{RQ2. How useful are our extracted change patterns, when programmers maintain concurrency code?}
+\label{sec:result:sample}
+The answer is yes. We have found some contexts which are suitable for the change patterns in different projects.
 
-\begin{figure*}
-\centering
-\subfigure[Cassandra]{\includegraphics[height=1.2in]{cassandra}}
-\subfigure[Flink]{\includegraphics[height=1.2in]{flink}}
-\subfigure[Hadoop]{\includegraphics[height=1.2in]{hadoop}}
-\subfigure[Lucene-Solr]{\includegraphics[height=1.2in]{lucene-solr}}
-\subfigure[Mahout]{\includegraphics[height=1.2in]{mahout}}
-\subfigure[Netty]{\includegraphics[height=1.2in]{netty}}
-\subfigure[Tomcat]{\includegraphics[height=1.2in]{tomcat}}
-\caption{Number of concurrent related commits compared to all commits}
-\end{figure*}
+\begin{lstlisting}
++import java.util.concurrent.ThreadLocalRandom;
+public class DRandom {
+-    private static ThreadLocal<Random> random = new ThreadLocal<Random>() {
+-        protected Random initialValue() {
+-            return new Random();
+-        }
+-    };
+public static Random get() {
+-        return random.get();
++        ThreadLocalRandom.current();
+}
+}
+\end{lstlisting}
 
-Figure 1 shows the numbers of concurrent related commits and all commits of each month in all projects of our study. It also shows the percentage of concurrent related commits. Each subfigure has two subfigures inside. The x axis represents the time in month. The upper subfigure has two lines. The higher line shows the number of all commits while the lower line shows the number of concurrent related commits. The number of concurrent related commits is relatively small compared to the number of all commits. The two indexes have a positive correlation generally. The bottom subfigure shows the percentage of concurrent related commits. The percentages differ in project and time. For example, the percentage of concurrent related commits in mahout is relatively lower than other projects. The percentage in Hadoop is stable and high compared to other projects.
+This example shows a change from ThreadLocal$<$Random$>$ to ThreadLocalRandom from JDK7. It is from a Schmince-2, a game on Google Play. ThreadLocalRandom should be used when available in place of ThreadLocal$<$Random$>$. For JDK7 the difference is minimal, but JDK8 starts including optimizations for ThreadLocalRandom. The ThreadLocal class provides thread-local variables. The ThreadLocalRandom class is a random number generator isolated to the current thread.
 
-\subsection{RQ3. What is the trend of concurrent programming classes usage statistically?}
+\subsection{RQ3. What are the change trends of using parallel APIs}
 \label{sec:result:trend}
 \begin{table}
 	\centering
@@ -335,36 +339,33 @@ Figure 1 shows the numbers of concurrent related commits and all commits of each
 	\centering
 	\subfigure[Ascending]{\includegraphics[height=0.8in]{CountDownLatch}}
 	\subfigure[Descending]{\includegraphics[height=0.8in]{LinkedTransferQueue}}
-	\subfigure[Other]{\includegraphics[height=0.8in]{ThreadPoolExecutor}}
+	\subfigure[Hybrid]{\includegraphics[height=0.8in]{ThreadPoolExecutor}}
 	\caption{Typical Trend of Change Frequency}
 \end{figure}
 
 Programmers are changing their code constantly. We analyze the trend of concurrent-related class usage during the software evolution. We count the occurrence of 53 concurrent-related classes in Java. Table IV shows the top 10 active classes which are involved in changes in the history. For example, the most common class in changes is \texttt{AtomicInteger}. There are 6891 changes which are related to this class. This indicates that this class is very popular. We notice that the first several classes in the table are all famous and easy to use. The values of different classes vary. For the last 10 classes, the sum of their values is only 148. \%10 classes account for over 50\% occurrence of changes
 
-We draw the tendency chart of each class as time goes. Figure 4 shows 3 typical tendencies of these charts. They are ascending lines, descending lines and others. Figure (a) shows an example of ascending tendency. It is \texttt{CountDownLatch}. We are not meaning it is in a strict ascending order. Its overall tendency is rising. Figure (b) shows an example of descending tendency. It is \texttt{LinkedTransferQueue}. However, most charts are like figure (c). They are fluctuating without certain ascending or descending tendency. There are 13 ascending charts, 4 descending charts and 36 other charts.
+We draw the tendency chart of each class as time goes. Figure 4 shows 3 typical tendencies of these charts. They are ascending lines, descending lines and hybrids. Figure (a) shows an example of ascending tendency. It is \texttt{CountDownLatch}. We are not meaning it is in a strict ascending order. Its overall tendency is rising. Figure (b) shows an example of descending tendency. It is \texttt{LinkedTransferQueue}. However, most charts are like figure (c). They are fluctuating without certain ascending or descending tendency. There are 13 ascending charts, 4 descending charts and 36 hybrid charts.
 
 %We write a program to count and analyze concurrent programming classes usage. Table IV shows top 10 classes added and deleted in the history. Some classes are both active in the added and the deleted column like AtomicInteger and CountDownLatch. This is not surprising because a deletion of class does not mean this class is abandoned. This also indicates this class is active. An interesting observation is that deletions appear more than addition.
 
 %We draw line for addition and removal of each class. Figure 3 and figure 4 show examples. We can see that both numbers of addition and removal increase as a whole as time passing by. This indicates that this class is attracting developers' attention.
 
-\subsection{RQ4. Can these change patterns be applied to real world projects?}
-\label{sec:result:sample}
-The answer is yes. We have found some contexts which are suitable for the change patterns in different projects.
+\subsection{RQ4. Are there any correlations between code changes and changes on concurrency code?}
 
-\begin{lstlisting}
-+import java.util.concurrent.ThreadLocalRandom;
- public class DRandom {
--    private static ThreadLocal<Random> random = new ThreadLocal<Random>() {
--        protected Random initialValue() {
--            return new Random();
--        }
--    };
-     public static Random get() {
--        return random.get();
-+        ThreadLocalRandom.current();
-     }
- }
-\end{lstlisting}
+\begin{figure*}
+	\centering
+	\subfigure[Cassandra]{\includegraphics[height=1.2in]{cassandra}}
+	\subfigure[Flink]{\includegraphics[height=1.2in]{flink}}
+	\subfigure[Hadoop]{\includegraphics[height=1.2in]{hadoop}}
+	\subfigure[Lucene-Solr]{\includegraphics[height=1.2in]{lucene-solr}}
+	\subfigure[Mahout]{\includegraphics[height=1.2in]{mahout}}
+	\subfigure[Netty]{\includegraphics[height=1.2in]{netty}}
+	\subfigure[Tomcat]{\includegraphics[height=1.2in]{tomcat}}
+	\caption{Number of concurrent related commits compared to all commits}
+\end{figure*}
 
-This example shows a change from ThreadLocal$<$Random$>$ to ThreadLocalRandom from JDK7. It is from a Schmince-2, a game on Google Play. ThreadLocalRandom should be used when available in place of ThreadLocal$<$Random$>$. For JDK7 the difference is minimal, but JDK8 starts including optimizations for ThreadLocalRandom. The ThreadLocal class provides thread-local variables. The ThreadLocalRandom class is a random number generator isolated to the current thread.
+Figure 1 shows the numbers of concurrent related commits and all commits of each month in all projects of our study. It also shows the percentage of concurrent related commits. Each subfigure has two subfigures inside. The x axis represents the time in month. The upper subfigure has two lines. The higher line shows the number of all commits while the lower line shows the number of concurrent related commits. The number of concurrent related commits is relatively small compared to the number of all commits. The two indexes have a positive correlation generally. The bottom subfigure shows the percentage of concurrent related commits. The percentages differ in project and time. For example, the percentage of concurrent related commits in mahout is relatively lower than other projects. The percentage in Hadoop is stable and high compared to other projects.
+
+
 
