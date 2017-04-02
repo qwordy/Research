@@ -7,17 +7,14 @@ To understand how concurrency code is maintained, in this study, we focus on the
 
 \textbf{RQ1.} What patterns are followed when programmers maintain concurrency code?
 
-In each day, programmers can make numerous commits. Based on their analysis on commits, Kim and Notkin~\cite{conf/icse/KimN09} find that code changes can be repetitive, and Martinez \emph{et al.}~\cite{conf/icsm/MartinezDM13} further extract change patterns to denote such repetitive changes. However, the change patterns of concurrency programming is rarely studied. The recent study~\cite{conf/sigsoft/GuJSZL15} mainly focuses on changes only on critical sections. As a result, this research question is still largely open. To explore this research question, we carefully put our selected concurrent-related commits into \zhong{??} categories (see Section~\ref{sec:result:rq1} for details). 
-
-\textbf{RQ2.} How frequent are concurrency code modified?
-
-J2SE provides standard APIs\footnote{\url{https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/package-summary.html}} for developing concurrency code. Alternatively, programmers can use third-party libraries such as Apache Commons\footnote{\url{https://commons.apache.org/}} and Guava\footnote{\url{https://github.com/google/guava}}, since they provide similar and extensive functions. 
+In each day, programmers can make numerous commits. Based on their analysis on commits, Kim and Notkin~\cite{conf/icse/KimN09} find that code changes can be repetitive, and Martinez \emph{et al.}~\cite{conf/icsm/MartinezDM13} further extract change patterns to denote such repetitive changes. However, the change patterns of concurrency programming is rarely studied. The recent study~\cite{conf/sigsoft/GuJSZL15} mainly focuses on changes only on critical sections. As a result, this research question is still largely open. To explore this research question, we carefully put our selected concurrent-related commits into \zhong{??} categories (see Section~\ref{sec:result:rq1} for details).
 
 
+\textbf{RQ2.} How useful are our extract change patterns, when programmers maintain concurrency code?
 
-which are both very famous libraries providing reusable components. Although developers can use their own concurrent-related classes or third-party libraries, they are always using the facilities provided by Java standard libraries in most cases except they are facing special and rigour requirement. Previous researches \cite{journals/jss/PintoTFFB15, journals/infsof/WuCZX16, conf/sigsoft/OkurD12} investigated the usage of concurrent libraries. We want to know how frequent (do) concurrent-related code change occur in software projects and what the differences of frequency in different kinds of software projects are.
+To assess the usefulness of our extracted change patterns, we search open source search code in open-source projects with our change patterns. In particular, \zhong{Please explain how you build queries for the search, and how to write your pull requests.} Our changes have been accepted by the owner of some project\footnote{https://github.com/derekmu/Schmince-2}.
 
-We use our tool to count the number of concurrent-related code changes and visualize the statistics. We use a method of machine learning combined with textual analysis to decide whether a commit in history is concurrent-related or not.
+
 
 \textbf{RQ3.} What is the trend of concurrent programming construct usage statistically?
 
@@ -25,11 +22,15 @@ Java programming language offers many handy facilities for building concurrent p
 
 We count the times of changes involving these constructs over time and visualize the statistics. We find that some constructs are getting more and more popular while others are quitting the stage gradually.
 
-\textbf{RQ4.} Can these change patterns be applied to real world projects?
+\textbf{RQ2.} How frequent are concurrency code modified?
 
-In order to better demonstrate these change patterns can really help developers understand concurrent programming practice and apply the practices to their projects, we are going to find the appropriate context in open-source projects and pull requests of applying the change patterns. We are interested to see that how developers will accept our code change suggestions.
+J2SE provides standard APIs\footnote{\url{https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/package-summary.html}} for developing concurrency code. Alternatively, programmers can use third-party libraries such as Apache Commons\footnote{\url{https://commons.apache.org/}} and Guava\footnote{\url{https://github.com/google/guava}}, since they provide similar and extensive functions.
 
-We search the matching code in open-source projects and do find some context which can be applied with some pattern. Our changes have been accepted by the owner of some project\footnote{https://github.com/derekmu/Schmince-2}.
+
+
+which are both very famous libraries providing reusable components. Although developers can use their own concurrent-related classes or third-party libraries, they are always using the facilities provided by Java standard libraries in most cases except they are facing special and rigour requirement. Previous researches \cite{journals/jss/PintoTFFB15, journals/infsof/WuCZX16, conf/sigsoft/OkurD12} investigated the usage of concurrent libraries. We want to know how frequent (do) concurrent-related code change occur in software projects and what the differences of frequency in different kinds of software projects are.
+
+We use our tool to count the number of concurrent-related code changes and visualize the statistics. We use a method of machine learning combined with textual analysis to decide whether a commit in history is concurrent-related or not.
 
 \subsection{Data set}
 \label{sec:method:data}
