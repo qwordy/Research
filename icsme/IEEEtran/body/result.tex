@@ -166,34 +166,22 @@ java.lang.Thread.State: BLOCKED (on object monitor)
 
 The \texttt{DataSource} is waiting to be notified by the \texttt{Writer} when holding lock A. The \texttt{Writer} is trying to acquire lock B. But lock B is held by the \texttt{Map}. And the \texttt{Map} is trying to acquire lock A, which is held by the \texttt{DataSource}. Here is a waiting chain. This is a kind of bug known as deadlock. The problem is that the \texttt{DataSource} does not need to hold lock A while waiting to be notified. So the developer removed the unnecessary synchronization.
 
+Example 9.
+
 \textbf{Adding or removing volatile}
 
 \texttt{volatile} is a Java keyword, which is used to mark a variable which should be saved in main memory so that every thread which reads the variable can read the latest value from the main memory not the outdated value in the CPU cache. This provides visibility of variables across multiple threads. It also guarantees the happen-before relation. Using \texttt{volatile} correctly instead of locking can improve the performance in terms of concurrency. But this keyword is subtle. Developers need careful reasoning when dealing with \texttt{volatile}. Sometimes \texttt{volatile} is not enough. There may be race conditions when multiple thread read and write \texttt{volatile} fields simultaneously.
 
-\begin{lstlisting}
-commit 8313fa0f1ca277e9633a78f461804abc3c5515b8
-Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58392
-Double-checked locking needs to use volatile to be thread-safe
+%8313fa0f1ca277e9633a78f461804abc3c5515b8
+%Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58392
+%Double-checked locking needs to use volatile to be thread-safe
 
--    protected Membership membership = null;
-+    protected volatile Membership membership = null;
-\end{lstlisting}
-It is a commit for bug 58392 in Bugzilla. It is reported by a race detector that there is data race on field. Double-checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like omitting \texttt{volatile} modifier of a class member. If \texttt{volatile} is not used, another thread which gets into the method may observe that \texttt{membership} has been assigned but the real initialization of the object has not been done yet due to the JVM's instructions reordering. Some work has been done in double-checked locking pattern \cite{conf/ispass/IshizakiDN14}, which can use this pattern automatically.
+Example 10 is a fix of bug 58392\footnote{\url{https://bz.apache.org/bugzilla/show_bug.cgi?id=58392}} in Bugzilla. It is reported by a race detector that there is data race on field. Double-checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like omitting \texttt{volatile} modifier of a class member. If \texttt{volatile} is not used, another thread which gets into the method may observe that \texttt{membership} has been assigned but the real initialization of the object has not been done yet due to the JVM's instructions reordering. Some work has been done in double-checked locking pattern \cite{conf/ispass/IshizakiDN14}, which can use this pattern automatically.
 
-\begin{lstlisting}
-commit 560cd00890b3f6af2aca0c3a9d51a45f880692dd
-Fix a FindBugs warning (increment of volatile not atomic)
+%560cd00890b3f6af2aca0c3a9d51a45f880692dd
+%Fix a FindBugs warning (increment of volatile not atomic)
 
--    private volatile int requestCount;
--    private volatile int errorCount;
-+    private final AtomicInteger requestCount = new AtomicInteger(0);
-+    private final AtomicInteger errorCount = new AtomicInteger(0);
-...
--        requestCount++;
-+        requestCount.incrementAndGet();
-\end{lstlisting}
-
-This is an example in Tomcat. The developer used FindBugs to check the code and it said increment of a \texttt{volatile} field is not atomic. This is a wrong demonstration of how to use \texttt{volatile}. The original code is not safe because increment is not an atomic operation. It includes read, calculate and write operations to complete the increment. So the developer used a thread-safe class instead.
+Example 11 shows that \texttt{volatile} is not almighty. The developer used FindBugs to check the code and it said increment of a \texttt{volatile} field is not atomic. This is a wrong demonstration of how to use \texttt{volatile}. The original code is not safe because increment is not an atomic operation. It includes read, calculate and write operations to complete the increment. So the developer used a thread-safe class instead.
 
 \textbf{Thread-safe class replacement}
 
