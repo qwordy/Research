@@ -20,25 +20,20 @@ To assess the usefulness of our extracted change patterns, we search open source
 
 J2SE provides standard APIs\footnote{\url{https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/package-summary.html}} for developing concurrency code. Alternatively, programmers can use third-party libraries such as Apache Commons\footnote{\url{https://commons.apache.org/}} and Guava\footnote{\url{https://github.com/google/guava}}, since they provide similar and extensive functions. In practice, programmers can choose different APIs to implement their concurrency code. Their different choices can lead to different change trends that can be examined through their revision histories. For example, a parallel API can be difficult to use, so programmers have to constantly modify corresponding code, during software maintenance. In Section~\ref{sec:result:trend}, we count commits that involve different parallel APIs over time. We find that ?? types of change trends. \zhong{Please add details.}
 
-\textbf{RQ4.} How frequent are concurrency code modified?
+\textbf{RQ4.} Are there any correlations between code changes and changes on concurrency code?
 
-
-
-
-
-which are both very famous libraries providing reusable components. Although developers can use their own concurrent-related classes or third-party libraries, they are always using the facilities provided by Java standard libraries in most cases except they are facing special and rigour requirement. Previous researches \cite{journals/jss/PintoTFFB15, journals/infsof/WuCZX16, conf/sigsoft/OkurD12} investigated the usage of concurrent libraries. We want to know how frequent (do) concurrent-related code change occur in software projects and what the differences of frequency in different kinds of software projects are.
-
-We use our tool to count the number of concurrent-related code changes and visualize the statistics. We use a method of machine learning combined with textual analysis to decide whether a commit in history is concurrent-related or not.
+Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} compare the code changes and changes on concurrency code, and they find strong correlation between the two types of code changes. With a different data set, we explore whether their finding still holds on other projects. Our results show that \zhong{Please add details.}
 
 \subsection{Data set}
 \label{sec:method:data}
-We investigate 7 Java open-source projects from Github including Hadoop, Tomcat, Cassandra\footnote{http://cassandra.apache.org/}, Lucene-solr\footnote{http://lucene.apache.org/}, Netty\footnote{http://netty.io/}, Flink\footnote{https://flink.apache.org/} and Mahout\footnote{http://mahout.apache.org/} as shown in Table 1. Some projects are mirrored in Github. They are all popular, large-scale, active, representative Java open-source projects and cover different areas like distributed computing, web server, database, information retrieval, I/O and machine learning. The Hadoop project develops open-source software for reliable, scalable, distributed computing and has become one of the most famous Java open-source software for many years. Tomcat is the most popular implementation of the Java Servlet, JavaServer Pages, Java Expression Language and Java WebSocket technologies. Cassandra \cite{journals/sigops/LakshmanM10} is a database system which can Manage massive amounts of data, fast, without losing sleep. Lucene-solr is two projects together in one respository in Github. Lucene is a search engine library and solr is a search engine server which uses lucene. Netty is an event-driven asynchronous network application framework. Flink is an open source stream processing framework with powerful stream- and batch-processing capabilities. Mahout is a machine learning project. Table I shows the lines of code in Java, the number of Java files, the number of commits and the number of selected concurrent-related commits, which are examined by us, of each project. All the projects are checked out for our study in December 2016.
+In this study, we collected commits from seven open-source projects such as Hadoop\footnote{\url{http://hadoop.apache.org/}}, Tomcat\footnote{\url{http://tomcat.apache.org/}}, Cassandra\footnote{\url{http://cassandra.apache.org/}}, Solr\footnote{\url{http://lucene.apache.org/solr/}}, Netty\footnote{\url{http://netty.io/}}, Flink\footnote{\url{https://flink.apache.org/}} and Mahout\footnote{\url{http://mahout.apache.org/}}. Table~\ref{table:dataset} shows the details of our data set. We selected these projects, since they are popular and active. These projects cover various types of projects such as distributed computing, web server, database, information retrieval, I/O and machine learning. In particular, Hadoop is one of the most popular distributed computing frameworks in Java. Tomcat is a popular server. Cassandra is a database system that manages massive data. Solr is an enterprise search platform. Netty is an asynchronous network application framework. Flink is a stream processing framework. Mahout is a machine learning library. Column ``LOC'' lists the lines of code. Column ``\#Files'' lists number of source files. Column ``\#Commits'' lists number of commits. Column ``\#Selected Commits'' lists our manually investigated commits. Section~\ref{sec:method:steps} explains how we selected these commits. We checked out all the commits in December 2016.
 
 \begin{table}
 	\centering
 	\caption{Projects Information (LOC and \#Files are both of Java files)}
-	\begin{tabular}{|c|c|c|c|c|}\hline
-		Project&LOC&\#Files&\#Commits&\#Selected Commits\\\hline
+    \label{table:dataset}
+	\begin{tabular}{|c|r|r|r|r|}\hline
+		Project&\multicolumn{1}{|c|}{LOC}&\#Files&\#Commits&\#Selected Commits\\\hline
 		Hadoop&1,202,764&7,701&14,930&49\\\hline
 		Tomcat&301,173&2,192&17,731&159\\\hline
 		Cassandra&387,980&2,143&21,982&48\\\hline
@@ -86,7 +81,7 @@ Finally we have 561 potential concurrent-related commits selected by keyword mat
 \end{table}
 
 \subsection{Workflow}
-
+\label{sec:method:steps}
 \textbf{RQ1.} We first need to select concurrent-related commits from repositories. A concurrent-related commit here is defined as a commit which performs code changes about concurrent programming. It hard to give a concise definition. But a concurrent-related commit is usually correlated with synchronization, thread, concurrent class, etc. We use our tool to do this job. We use textual analysis and machine learning.
 
 Once we have set prepared set of concurrent-related commits, we manually analyze these potential concurrent-related commits to understand the changes made to code. Here is an example. We list part of lines. The first several lines describe the metadata of this commit. The rest describes differences between two versions of code.
