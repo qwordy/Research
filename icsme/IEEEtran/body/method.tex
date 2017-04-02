@@ -46,12 +46,12 @@ In this study, we collected commits from seven open-source projects such as Hado
 \zhong{Add a total row. Remove Mahout, since you did not analyze its commits.}
 \end{table}
 
-\subsection{Tool support}
+\subsection{Study mechanism}
 \label{sec:method:tool}
-We have developed a tool to collect and analyze data. The tool has the following functions.
+As introduced in Section~\ref{sec:intro}, it is quite difficult to implement a single tool to automate our analysis. Instead, we employ and implement a set of tools to reduce the analysis effort. Inevitably, we have to introduce manual analysis in several steps. Our study mechanism has the following steps:
 
-\subsubsection{Collecting commits}
-All the projects of our study are under git which is one of the most popular version control systems in the world. Some projects of the study used svn or some other version control systems before because they have long histories, but they all support git \cite{books/daglib/0022839} now. We employ JGit, a lightweight, pure Java library implementation of git, to retrieve all the commit logs in projects' histories. A typical commit log contains commit id which is a 20-character-long string uniquely identifying a commit, author, date and message. Once we get a commit id, we use \texttt{git show} command to show the log message and textual \texttt{diff}. The \texttt{diff} result contains one or more change files which contain one or more change hunks.
+\noindent
+\textbf{Step 1. Collecting commits.} All the projects in our study use Git\footnote{\url{https://git-scm.com/}} as their version control system. We implement a tool to check out all their commits. Our tool is based on JGit\footnote{\url{https://eclipse.org/jgit/}}, a lightweight library of manipulating Git repositories. A typical commit log contains a commit id, an author name, the commit date, and a message. Based on the Once we get a commit id, our tool uses the \texttt{git show} command to list details, and then uses the textual \texttt{diff} command to produce its change hunks.
 
 \subsubsection{Classification}
 There are many commits which are not concurrent-related in the commits which we have collected. We need to select concurrent-related commits. We can match keywords in commit messages. Tian \emph{et al.} gave a successful example of identifing bug fixing patches using machine learning \cite{conf/icse/TianLL12}. We use machine learning to train and predict whether a commit is concurrent-related. We adopt both text analysis and code analysis to extract features. A commit log uses natural language to present what was changed and why the change was made in most cases. We treat each commit log as a bag of words then match the words to a set of concurrent keywords which we have defined as the Java concurrent keywords like \texttt{synchronized}, \texttt{volatile} and names of common classes or interfaces in Java libraries which are related to concurrency. We also do a code analysis based on the \texttt{diff} result. 12 features are extracted for each commit, which is shown in Table II. The first column shows the feature names and the second column shows the explanations.
