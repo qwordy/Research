@@ -1,0 +1,4 @@
+rare 11
+rise 11
+drop 
+other 1111
