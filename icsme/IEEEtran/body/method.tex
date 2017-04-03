@@ -10,15 +10,15 @@ To understand how concurrency code is maintained, in this study, we focus on the
 In each day, programmers can make numerous commits. Based on their analysis on commits, Kim and Notkin~\cite{conf/icse/KimN09} find that code changes can be repetitive, and Martinez \emph{et al.}~\cite{conf/icsm/MartinezDM13} further extract change patterns to denote such repetitive changes. However, the change patterns of concurrency programming is rarely studied. The recent study~\cite{conf/sigsoft/GuJSZL15} mainly focuses on changes only on critical sections. As a result, this research question is still largely open. To explore this research question, we carefully put our selected concurrent-related commits into \zhong{??} categories (see Section~\ref{sec:result:rq1} for details).
 
 
-\textbf{RQ2.} How useful are our extract change patterns, when programmers maintain concurrency code?
+\textbf{RQ2.} How useful are our extracted change patterns, when programmers maintain concurrency code?
 
-To assess the usefulness of our extracted change patterns, we search open source search code in open-source projects with our change patterns. In particular, \zhong{Please explain how you build queries for the search, and how to write your pull requests.} Our changes have been accepted by the owner of some project\footnote{https://github.com/derekmu/Schmince-2}. In Section~\ref{sec:result:sample}, ...
+To assess the usefulness of our extracted change patterns, we search open source search code in open-source projects with our change patterns. In particular, \zhong{Please explain how you build queries for the search, and how to write your pull requests.} Our changes have been accepted by the owner of some project\footnote{\url{https://github.com/derekmu/Schmince-2}}. In Section~\ref{sec:result:sample}, ...
 
 
 
 \textbf{RQ3.} What are the change trends of using parallel APIs?
 
-J2SE provides standard APIs\footnote{\url{https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/package-summary.html}} for developing concurrency code. Alternatively, programmers can use third-party libraries such as Apache Commons\footnote{\url{https://commons.apache.org/}} and Guava\footnote{\url{https://github.com/google/guava}}, since they provide similar and extensive functions. In practice, programmers can choose different APIs to implement their concurrency code. Their different choices can lead to different change trends that can be examined through their revision histories. For example, a parallel API can be difficult to use, so programmers have to constantly modify corresponding code, during software maintenance. In Section~\ref{sec:result:trend}, we count commits that involve different parallel APIs over time. We find that ?? types of change trends. \zhong{Please add details.}
+J2SE provides standard APIs\footnote{\url{https://docs.oracle.com/javase/7/docs/api/java/util/concurrent/package-summary.html}} for developing concurrency code. Alternatively, programmers can use third-party libraries such as Apache Commons\footnote{\url{https://commons.apache.org/}} and Guava\footnote{\url{https://github.com/google/guava}}, since they provide similar and extensive functions. In practice, programmers can choose different APIs to implement their concurrency code. Their different choices can lead to different change trends that can be examined through their revision histories. For example, a parallel API can be difficult to use, so programmers have to constantly modify corresponding code, during software maintenance. In Section~\ref{sec:result:trend}, we count commits that involve different parallel APIs over time. We find 3 types of change trends. They are ascending trends (24\%), descending trends (8\%) and hybrid trends (68\%).%\zhong{Please add details.}
 
 \textbf{RQ4.} Are there any correlations between code changes and changes on concurrency code?
 
@@ -34,16 +34,17 @@ In this study, we collected commits from seven open-source projects such as Hado
     \label{table:dataset}
 	\begin{tabular}{|c|r|r|r|r|}\hline
 		Project&\multicolumn{1}{|c|}{LOC}&\#Files&\#Commits&\#Selected Commits\\\hline
-		Hadoop&1,202,764&7,701&14,930&49\\\hline
-		Tomcat&301,173&2,192&17,731&159\\\hline
-		Cassandra&387,980&2,143&21,982&48\\\hline
-		Lucene-solr&918,398&6,310&26,152&74\\\hline
-		Netty&218,131&2,054&7,759&202\\\hline
+		Hadoop&1,202,764&7,701&14,930&49\\
+		Tomcat&301,173&2,192&17,731&159\\
+		Cassandra&387,980&2,143&21,982&48\\
+		Lucene-solr&918,398&6,310&26,152&74\\
+		Netty&218,131&2,054&7,759&202\\
 		Flink&414,264&4,068&9,771&28\\\hline
 		%Guava&251,205&1,672&3,850\\\hline
-		Mahout&109,584&1,215&3,703&0\\\hline
+		%Mahout&109,584&1,215&3,703&0\\\hline
+		Total&3,442,710&24,468&98,352&?\\\hline
 	\end{tabular}
-\zhong{Add a total row. Remove Mahout, since you did not analyze its commits.}
+%\zhong{Add a total row. Remove Mahout, since you did not analyze its commits.}
 \end{table}
 
 \subsection{Study mechanism}
@@ -52,7 +53,7 @@ As introduced in Section~\ref{sec:intro}, it is quite difficult to implement a s
 
 \subsubsection{Step 1. Collecting commits} All the projects in our study use Git\footnote{\url{https://git-scm.com/}} as their version control system. We implement a tool to check out all their commits. Our tool is based on JGit\footnote{\url{https://eclipse.org/jgit/}}, a lightweight library of manipulating Git repositories. A typical commit log contains a commit id, an author name, the commit date, and a message. Based on the Once we get a commit id, our tool uses the \texttt{git show} command to list details, and then uses the textual \texttt{diff} command to produce its change hunks.
 
-\subsubsection{Step 2. Identifying commits for the follow-up analysis} From collected commits, the second step is to extract commits that are related to concurrency code. Researchers have explored related problems. For example, Tian \emph{et al.}~\cite{conf/icse/TianLL12} propose an approach that identifies bug fixing patches with classification techniques. Motivated by their approach, we train a classifier to predict whether a commit is related to concurrency code. When training the classifier, we combine both text analysis and code analysis to extract features. A commit log is written in natural language, and it often explains which files are modified and why programmers make such modifications. We define a list of keywords that are related to concurrency programming (\emph{e.g.}, \texttt{synchronized}, \texttt{volatile}, and related API class names). Our tool searches commit logs for the frequencies of our defined keywords, and uses the frequencies as our natural language features. In addition, our tool analyzes change hunks that are produced by the \texttt{diff} command, and uses the results as our code features. In total, our tool extracts 12 features from each commit. Table~\ref{table:feature} shows the details. The first column shows the feature names, and the second column shows the explanations.
+\subsubsection{Step 2. Identifying commits for the follow-up analysis} From collected commits, the second step is to extract commits that are related to concurrency code. Researchers have explored related problems. For example, Tian \emph{et al.}~\cite{conf/icse/TianLL12} propose an approach that identifies bug fixing patches with classification techniques. Motivated by their approach, we train a classifier to predict whether a commit is related to concurrency code. When training the classifier, we combine both text analysis and code analysis to extract features. A commit log is written in natural language, and it often explains which files are modified and why programmers make such modifications. We define a list of keywords that are related to concurrency programming (\emph{e.g.}, \texttt{synchronized}, \texttt{volatile}, and related API class names). Our tool searches commit logs for the frequencies of our defined keywords, and uses the frequencies as our natural language features. In addition, our tool analyzes change hunks that are produced by the \texttt{diff} command, and uses the results as our code features. As shown in Table~\ref{table:feature}, in total, our tool extracts 12 features from each commit. The first column shows the feature names, and the second column shows the explanations.
 
 We use the SVM \cite{journals/ml/CortesV95} algorithm to train and classify commits as concurrent-related or not. SVM is a supervised classification algorithm which needs both positive and negative labeled data for training. In our tool, we use an implementation of SVM, LIBSVM \cite{libsvm}. We manually label some data as a training data set first then train a model. The trained classifier selects 135 positive instances from all the commits which we have collected.
 
@@ -62,19 +63,19 @@ Finally we have 561 potential concurrent-related commits selected by keyword mat
 	\centering
 	\caption{Features of Data}
 \label{table:feature}
-	\begin{tabular}{|c|l|}\hline
-		Feature&\multicolumn{1}{|c|}{Explanation}\\\hline
-		msgKey&Number of keywords in commit message\\\hline
-		file&Number of files in a commit\\\hline
-		hunk&Number of hunks in a commit\\\hline
-		lineAdd&Number of added lines in a commit\\\hline
-		lineRemove&Number of removed lines in a commit\\\hline
-		lineSub&lineAdd - lineRemove\\\hline
-		lineSum&lineAdd + lineRemove\\\hline
-		keyAdd&Number of added keywords in a commit\\\hline
-		keyRemove&Number of removed keywords in a commit\\\hline
-		keySub&keyAdd - keyRemove\\\hline
-		keySum&keyAdd + keyRemove\\\hline
+	\begin{tabular}{|c|c|}\hline
+		Feature&Explanation\\\hline
+		msgKey&Number of keywords in commit message\\
+		file&Number of files in a commit\\
+		hunk&Number of hunks in a commit\\
+		lineAdd&Number of added lines in a commit\\
+		lineRemove&Number of removed lines in a commit\\
+		lineSub&lineAdd - lineRemove\\
+		lineSum&lineAdd + lineRemove\\
+		keyAdd&Number of added keywords in a commit\\
+		keyRemove&Number of removed keywords in a commit\\
+		keySub&keyAdd - keyRemove\\
+		keySum&keyAdd + keyRemove\\
 		contextKey&Number of keywords in context code\\\hline
 	\end{tabular}
 \end{table}
