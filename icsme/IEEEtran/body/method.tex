@@ -118,7 +118,7 @@ public FutureTask<Path> createTmpFile(String name, DistributedCacheEntry entry, 
 For each commit, we first read the metadata and the corresponding issue to understand why programmers make the commit. After that, we scan change hunks to understand the details. In a change hunk, the ``+'' symbol denotes added lines, and the ``-'' symbol denotes removed lines. In some cases, it is infeasible to determine the category of a commit based on only its change hunks. For example, as change hunks are limited, it can be infeasible to determine the type of a variable. In such cases, we check out the original and modified versions of all files to analyze. In this example, we cannot determine the type of the \texttt{count} and \texttt{lock} variables. After we check out all the files, we understand that the types of them are \texttt{Map} and \texttt{Object}, respectively.
 
 
-We classify concurrency commits into different categories, mainly according to our observed code changes. During classification, we consider various issues such as modified code elements, employed parallel libraries, . \zhong{Please explain what issues do you consider!}
+We classify concurrency commits into different categories, mainly according to our observed code changes. During the classification, we consider various issues such as the modifications on code elements, parallel libraries, and control flows.
 
 \textbf{RQ2. Exploring the usefulness of our change patterns.} We search the keywords of pattern in repositories. \zhong{Please explain how to build queries according to your patterns. Please explain how to you generate your patches?}
 
