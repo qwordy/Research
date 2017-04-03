@@ -120,11 +120,14 @@ For each commit, we first read the metadata and the corresponding issue to under
 
 We classify concurrency commits into different categories, mainly according to our observed code changes. During classification, we consider various issues such as modified code elements, employed parallel libraries, . \zhong{Please explain what issues do you consider!}
 
-\textbf{RQ2.} We first decide whether a commit is concurrent-related or not through the method described before. For each project's each month, we count the total number of commits and the number concurrent-related commits. We also calculate the percentage of concurrent-related commits. We draw figures to show them visually.
+\textbf{RQ2. Exploring the usefulness of our change patterns.} We search the keywords of pattern in repositories. \zhong{Please explain how to build queries according to your patterns. Please explain how to you generate your patches?}
+
+
+\textbf{RQ3. Determining the trends of using parallel APIs.} We count the usages of parallel APIs in the interval of months. \zhong{What are those parallel APIs? How you select them?} For each parallel API class, we examine its trends of modifications during time, and put them into different categories.
 
 \textbf{RQ3.} We take all commits of the 7 projects into consideration. We count the occurrence times of each concurrent-related class in the added lines or the deleted lines of each month during history. We use tables and figures to show them clearly.
 
-\textbf{RQ4.} It is hard to read tremendous amount of source code of open-source projects line by line to find which piece of concurrent-related code can be applied with the patterns. We search the keywords of pattern in repositories.
+
 
 %\begin{figure}
 %	\centering
