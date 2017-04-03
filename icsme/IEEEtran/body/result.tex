@@ -1,8 +1,8 @@
 \section{Results}
 \label{sec:result}
-\subsection{RQ1. What patterns are followed when programmers maintain concurrency code?}
+\subsection{RQ1. How many types of change patterns in concurrent programming?}
 \label{sec:result:pattern}
-\textbf{Taxonomy} There are so many different concurrent related changes in the code history. We can classify them into ? types according to their observed code changes. We first read the commit message to know what this commit does and why. We then examine the added and deleted lines. We catch the concurrent related keywords. We classify changes basically into two big categories. The first is using libraries instead of manual concurrency control. The second is adjustment of concurrency control itself. These types do not contain all the concurrent related code changes. Some changes are infrequent and difficult to classify. It can also be decided by purposes of code changes like eliminating deadlock. But purpose is a subjective concept and it is more difficult to determine the reasons behind the changes.
+
 
 %The taxonomy includes change of lock type, change of lock variable, synchronization addition, synchronization removal, lock release, volatile addition, volatile removal, class replacement, thread-safe class replacement, thread management, thread status management,
 
@@ -15,8 +15,7 @@
 		Changing lock instance&\includegraphics[scale=0.35]{pattern2}&6\\\hline
 		Changing critical section&\includegraphics[scale=0.35]{pattern3}&35\\\hline
 		Adding or removing \texttt{volatile}&\includegraphics[scale=0.35]{pattern4}&47\\\hline
-		Thread-safe class replacement&\includegraphics[scale=0.35]{pattern5}&32\\\hline
-		Thread management&&\\\hline
+		Thread-safe class replacement&Use thread-safe class instead of handling concurrency control manually&32\\\hline
 		%Other class replacement&Some other concurrent related class replacement&\\\hline
 	\end{tabular}
 \end{table*}
@@ -25,15 +24,8 @@
 %Switch to another lock instace
 %Change critical sections, which are protected by synchronization
 %Add or remove 'volatile' modifier of a class field
-%Use thread-safe class instead of handling concurrency control manually
 
 Table III shows an overview of all types, their explanations and occurrence times. We are going to discuss these change types concretely with examples below.
-
-\begin{figure*}
-	\centering
-	\includegraphics[width=1\textwidth]{patterns}
-	\caption{Patterns}
-\end{figure*}
 
 \textbf{Changing lock type}
 
@@ -46,23 +38,23 @@ We can also view locks in a different perspective like exclusive and shared lock
 The reasons of changes vary in different conditions. When a synchronized block cannot satisfy some advanced requirement like fairness or condition, developers might switch to explicit locks. When they find that they only need a simple exclusive lock, they switch to synchronized block. They also might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. Here are some examples.
 
 %fad9609d13e76e9e3a4e01c96f698bb60b03807e
-%\begin{figure*}
-%	\centering
-%	\includegraphics[scale=0.3]{locktype1}
-%	\caption{Example 1}
-%\end{figure*}
+\begin{figure*}
+	\centering
+	\includegraphics[scale=0.3]{locktype1}
+	\caption{Example 1}
+\end{figure*}
 
-Example 1 is an example of YARN-5825\footnote{\url{https://issues.apache.org/jira/browse/YARN-5825}} - \texttt{ProportionalPreemptionalPolicy} could use \texttt{readLock} over \texttt{LeafQueue} instead of a synchronized block. It is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a reader lock. \texttt{LeafQueue} is a method \texttt{getReadLock} which is inherited from its base class. This method returns an instance of \texttt{ReentrantReadWriteLock.ReadLock}. There are many different locks which can be used to synchronize. A reader lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance under the scenario where most of the operations are reading.
+Figure 1 is an example of YARN-5825 - \texttt{ProportionalPreemptionalPolicy} could use \texttt{readLock} over \texttt{LeafQueue} instead of a synchronized block. It is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a reader lock. \texttt{LeafQueue} is a method \texttt{getReadLock} which is inherited from its base class. This method returns an instance of \texttt{ReentrantReadWriteLock.ReadLock}. There are many different locks which can be used to synchronize. A reader lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance under the scenario where most of the operations are reading.
 
 %3e4b1ae6dc786b268505aa2e64067432519c2bcf
-%\begin{figure*}
-%	\centering
-%	\includegraphics[scale=0.3]{locktype2}
-%	\caption{Example 2}
-%\zhong{It may be better, if you merge the example figures into a table like Table 1.}
-%\end{figure*}
+\begin{figure*}
+	\centering
+	\includegraphics[scale=0.3]{locktype2}
+	\caption{Example 2}
+\zhong{It may be better, if you merge the example figures into a table like Table 1.}
+\end{figure*}
 
-Example 2 is an example in Tomcat. The developer said a \texttt{ReadWriteLock} cannot guard a \texttt{WeakHashMap}. It is because get() may modify the \texttt{WeakHashMap}, in which case a reader lock is not enough. A plain old lock or synchronization should be used. In this example, the synchronization is used finally. This example is more complex than the previous one although they seem a bit similar. %todo more detail
+Figure 2 is an example in Tomcat. The developer said a \texttt{ReadWriteLock} cannot guard a \texttt{WeakHashMap}. It is because get() may modify the \texttt{WeakHashMap}, in which case a reader lock is not enough. A plain old lock or synchronization should be used. In this example, the synchronization is used finally. This example is more complex than the previous one although they seem a bit similar. %todo more detail
 
 \textbf{Changing lock instance}
 
@@ -71,38 +63,72 @@ You need to create an instance of lock like Java's \texttt{ReentrantLock} class 
 No matter explicit locks or synchronized blocks, we always need a lock instance to be acquired and released.  There are some best practice like two-phase locking \cite{journals/cacm/EswarranGLT76}, which is a locking method to guarantee serializability. It is a concept originally in database transaction management. %The method is relatively simple to understand. It has two phases: the first is expanding phase where you can only acquire locks and the second is shrinking phase where you can only release locks. You can access data between the two phases.
 
 %563e546236217dace58a8031d56d08a27e08160b
-%\begin{figure*}
-%	\centering
-%	\includegraphics[scale=0.3]{lockins1}
-%	\caption{Example 3}
-%\end{figure*}
+\begin{figure*}
+	\centering
+	\includegraphics[scale=0.3]{lockins1}
+	\caption{Example 3}
+\end{figure*}
 
-Example 3 is an example of FLINK-1419\footnote{\url{https://issues.apache.org/jira/browse/FLINK-1419}} - \texttt{DistributedCache} doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the \texttt{DistributedCache}. They synchronized on \texttt{count}, which is a map instance. Instead, they used \texttt{lock}, which is an instance of \texttt{Object} class. The difference is this instance is only used for synchronization while the former one has its own role not only as a lock. We do not need to blame preference of synchronization usage. This commit also made other changes about synchronization. They modified the critical sections as well.
+This is a commit of FLINK-1419 - \texttt{DistributedCache} doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the \texttt{DistributedCache}. They synchronized on \texttt{count}, which is a map instance. Instead, they used \texttt{lock}, which is an instance of \texttt{Object} class. The difference is this instance is only used for synchronization while the former one has its own role not only as a lock. We do not need to blame preference of synchronization usage. This commit also made other changes about synchronization. They modified the critical sections as well.
 
-%f0e627bb8c9daedb3b064027cac37ce4849bab64
+\begin{lstlisting}
+commit f0e627bb8c9daedb3b064027cac37ce4849bab64
+Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58382
+Use single object (membersLock) for all locking
 
-In example 4, The lock instance was originally the instance of the class and now is \texttt{membersLock}. They used single object (\texttt{membersLock}) for all locking as the commit message said. Using a separated locking instance can allow you to have more precise concurrency control than using synchronized methods.
+/**
+  * Reset the membership and start over fresh. i.e., delete all the members
+  * and wait for them to ping again and join this membership.
+  */
+-    public synchronized void reset() {
+-        map.clear();
+-        members = EMPTY_MEMBERS ;
++    public void reset() {
++        synchronized (membersLock) {
++            map.clear();
++            members = EMPTY_MEMBERS ;
++        }
+}
+\end{lstlisting}
+
+This is another example. The lock instance was originally the instance of the class and now is \texttt{membersLock}. They use single object (\texttt{membersLock}) for all locking as the commit message said. Using a separated locking instance can allow you to have more precise concurrency control than using synchronized methods.
 
 \textbf{Changing critical section}
 
-Critical section is a code block guarded by synchronization. It is the most common change in terms of concurrency control. We classify these changes into three subtypes: changing synchronization, changing statement and changing communication lock. Changing synchronization means adding or removing synchronization to the statements which are not synchronized before or are synchronized already. Changing statements means adding new statements to the critical sections, removing or amending statements in the critical sections. Changing communication lock means. %todo
-
-%17206cc8c21c439d121a66d7c9934cdfa4791a35
-
-Example 5 shows an example of adding synchronization. The method was not synchronized before. The basic reason of adding synchronization to existing code is the piece of code might be access concurrently. It is a change to fix a bug\footnote{\url{https://bz.apache.org/bugzilla/show\_bug.cgi?id=58386}}. This bug was reported by RV-Predict, a dynamic race detector. It said
+Critical section is a code block guarded by synchronization. It is the most common change in terms of concurrency control. We classify these changes into five subtypes: adding synchronization, removing synchronization, adding statements, removing statements, modifing statements. Adding synchronization means to add synchronization to the statements which are not synchronized before. Removing synchronization means to remove synchronization of the statements, which are no more protected now but still exist outside the critical sections. Adding statements means to add new statements to the critical sections. Removing statements means to remove existing statements inside the critical sections. Modifing statements means to modify statements inside the critical sections. The reasons behind the changes depend on specific context.
 
 \begin{lstlisting}
-Reported by RV-Predict (a dynamic race detector) when running the test suite:
-Data race on field org.apache.catalina.tribes.io.ObjectReader.accessed: {{{
-Concurrent write in thread T93 (locks held: {Monitor@8a841fe, Monitor@8a9a01a})
+commit 17206cc8c21c439d121a66d7c9934cdfa4791a35
+Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58386
+On the basis that access() and finish() are synchronized, extend synchronization to other methods that access same fields.
+
+-    public boolean isAccessed() {
++    public synchronized boolean isAccessed() {
+       return this.accessed;
+}
 \end{lstlisting}
 
-When two or more threads access one object concurrently and at least one is modifying the object, a data race might happen. The easiest way to tackle this problem is adding synchronization to the access of the object.
+This is an example of adding synchronization. The mothod was not synchronoized before. The basic reason of adding synchronization to existing code is the piece of code might be access concurrently.
 
-%c93d9eaf363a535dff25cc4e7db400d879e73bb1
-%Add option to use single actor system for local execution. Use local connection manager if a single task manager is used for local execution. Remove synchronized blcok in getReceiverList of ChannelManager which effectively serialized the connection lookup calls of a single task manager.
+\begin{lstlisting}
+commit c93d9eaf363a535dff25cc4e7db400d879e73bb1
+Add option to use single actor system for local execution. Use local connection manager if a single task manager is used for local execution. Remove synchronized blcok in getReceiverList of ChannelManager which effectively serialized the connection lookup calls of a single task manager.
 
-Example 6 shows an example of removing synchronization. Developers remove the synchronization of a code block. They said they used a single task manager and removed synchronized block in \texttt{ChannelManager}. If you find the code will not be accessed concurrently or it can be accessed safely in a concurrent way, you do not need to synchronize the code.
+-synchronized (this.channelLookup) {
+-  try{
+-    lookupResponse = AkkaUtils.<JobManagerMessages.ConnectionInformation>ask(channelLookup,
+-      new JobManagerMessages.LookupConnectionInformation(connectionInfo, jobID,
+-      sourceChannelID), timeout).response();
+-  }catch(IOException ioe) {
+-    throw ioe;
+-  }
+-}
++lookupResponse = AkkaUtils.<JobManagerMessages.ConnectionInformation>ask(channelLookup,
++  new JobManagerMessages.LookupConnectionInformation(connectionInfo, jobID,
++    sourceChannelID), timeout).response();
+\end{lstlisting}
+
+This example is from Flink. Developers remove the synchronization of a code block. If you find the code will not be access concurrently or it can be accessed safely in a concurrent way, you do not need to synchronize the code.
 
 \begin{lstlisting}
 commit 7e56bfe40589a1aa9b5ef20b342e421823cd0592
@@ -133,17 +159,35 @@ HDFS-4200. Reduce the size of synchronized sections in PacketResponder. Contribu
      }
 \end{lstlisting}
 
-This is a commit of HDFS-4200\footnote{\url{https://issues.apache.org/jira/browse/HDFS-4200}} - Reduce the size of synchronized sections in \texttt{PacketResponder}, which is a major improvement. The previous two examples are very easy. This is a complex change compared to previous examples. This example contains multiple types of changes. They change the lock instance, remove synchronization of some code, add some new synchronized code. The developers said the size of synchronized sections can be reduced. It is always meaningful to remove the unnecessary synchronizations. Over-synchronization \cite{conf/sigsoft/GuJSZL15} is a real issue in real-world software.
+This is a commit of HDFS-4200 - Reduce the size of synchronized sections in \texttt{PacketResponder}, which is a major improvement. The previous two examples are very easy. This is a complex change compared to previous examples. This example contains multiple types of changes. They change the lock instance, remove synchronization of some code, add some new synchronized code. The developers said the size of synchronized sections can be reduced. It is always meaningful to remove the unnecessary synchronizations. Over-synchronization \cite{conf/sigsoft/GuJSZL15} is a real issue in real-world software.
 
-%efca79cfb7b496b4bec70561cc94af069c644ef2
-%[FLINK-2384] [runtime] Move blocking I/O call outside of synchronized block
-%Problem: Waiting on asynchronous write requests with the partition lock can
-%result in a deadlock, because all other operations on the same partition are
-%blocked. It is possible that the I/O writer itself needs to access the
-%partition, in which cases the whole program blocks.
-%Solution: Move the wait outside the synchronized block. This was not necessary
-%before, because no operation assumes the spilling to be finished when the
-%finish call has returned.
+\begin{lstlisting}
+commit efca79cfb7b496b4bec70561cc94af069c644ef2
+[FLINK-2384] [runtime] Move blocking I/O call outside of synchronized block
+Problem: Waiting on asynchronous write requests with the partition lock can
+result in a deadlock, because all other operations on the same partition are
+blocked. It is possible that the I/O writer itself needs to access the
+partition, in which cases the whole program blocks.
+Solution: Move the wait outside the synchronized block. This was not necessary
+before, because no operation assumes the spilling to be finished when the
+finish call has returned.
+
+ public void finish() throws IOException {
+   synchronized (buffers) {
+     if (add(EventSerializer.toBuffer(EndOfPartitionEvent.INSTANCE))) {
+-      // If we are spilling/have spilled, wait for the writer to finish.
+-      if (spillWriter != null) {
+-        spillWriter.close();
+-      }
+     isFinished = true;
+     }
+   }
++  // If we are spilling/have spilled, wait for the writer to finish.
++  if (spillWriter != null) {
++    spillWriter.close();
++  }
+ }
+\end{lstlisting}
 
 \begin{figure}
 	\centering
@@ -151,7 +195,7 @@ This is a commit of HDFS-4200\footnote{\url{https://issues.apache.org/jira/brows
 	\caption{Deadlock}
 \end{figure}
 
-Example 8 is a fix of a bug. It is a critical bug issue\footnote{\url{https://issues.apache.org/jira/browse/FLINK-2384}} ``Deadlock during partition spilling''. A user reported the problem. Here is selected parts of the stack trace.
+This is an example from Flink. It is a critical bug issue ``Deadlock during partition spilling''. A user reported the problem. Here is selected parts of the stack trace.
 
 \begin{lstlisting}
 "CHAIN DataSource (at createInput(ExecutionEnvironment.java:502) (org.apache.flink.api.java.hadoop.mapreduce.HadoopInputFormat)) -> FlatMap (FlatMap at readFlinkTuplesFromThriftParquet(ParquetThriftEntitons.java:96)) (7/8)" daemon prio=10 tid=0x00007f934005b000 nid=0x73c4 in Object.wait() [0x00007f93c16ac000]
@@ -166,22 +210,34 @@ java.lang.Thread.State: BLOCKED (on object monitor)
 
 The \texttt{DataSource} is waiting to be notified by the \texttt{Writer} when holding lock A. The \texttt{Writer} is trying to acquire lock B. But lock B is held by the \texttt{Map}. And the \texttt{Map} is trying to acquire lock A, which is held by the \texttt{DataSource}. Here is a waiting chain. This is a kind of bug known as deadlock. The problem is that the \texttt{DataSource} does not need to hold lock A while waiting to be notified. So the developer removed the unnecessary synchronization.
 
-Example 9.
-
 \textbf{Adding or removing volatile}
 
 \texttt{volatile} is a Java keyword, which is used to mark a variable which should be saved in main memory so that every thread which reads the variable can read the latest value from the main memory not the outdated value in the CPU cache. This provides visibility of variables across multiple threads. It also guarantees the happen-before relation. Using \texttt{volatile} correctly instead of locking can improve the performance in terms of concurrency. But this keyword is subtle. Developers need careful reasoning when dealing with \texttt{volatile}. Sometimes \texttt{volatile} is not enough. There may be race conditions when multiple thread read and write \texttt{volatile} fields simultaneously.
 
-%8313fa0f1ca277e9633a78f461804abc3c5515b8
-%Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58392
-%Double-checked locking needs to use volatile to be thread-safe
+\begin{lstlisting}
+commit 8313fa0f1ca277e9633a78f461804abc3c5515b8
+Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58392
+Double-checked locking needs to use volatile to be thread-safe
 
-Example 10 is a fix of bug 58392\footnote{\url{https://bz.apache.org/bugzilla/show_bug.cgi?id=58392}} in Bugzilla. It is reported by a race detector that there is data race on field. Double-checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like omitting \texttt{volatile} modifier of a class member. If \texttt{volatile} is not used, another thread which gets into the method may observe that \texttt{membership} has been assigned but the real initialization of the object has not been done yet due to the JVM's instructions reordering. Some work has been done in double-checked locking pattern \cite{conf/ispass/IshizakiDN14}, which can use this pattern automatically.
+-    protected Membership membership = null;
++    protected volatile Membership membership = null;
+\end{lstlisting}
+It is a commit for bug 58392 in Bugzilla. It is reported by a race detector that there is data race on field. Double-checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like omitting \texttt{volatile} modifier of a class member. If \texttt{volatile} is not used, another thread which gets into the method may observe that \texttt{membership} has been assigned but the real initialization of the object has not been done yet due to the JVM's instructions reordering. Some work has been done in double-checked locking pattern \cite{conf/ispass/IshizakiDN14}, which can use this pattern automatically.
 
-%560cd00890b3f6af2aca0c3a9d51a45f880692dd
-%Fix a FindBugs warning (increment of volatile not atomic)
+\begin{lstlisting}
+commit 560cd00890b3f6af2aca0c3a9d51a45f880692dd
+Fix a FindBugs warning (increment of volatile not atomic)
 
-Example 11 shows that \texttt{volatile} is not almighty. The developer used FindBugs to check the code and it said increment of a \texttt{volatile} field is not atomic. This is a wrong demonstration of how to use \texttt{volatile}. The original code is not safe because increment is not an atomic operation. It includes read, calculate and write operations to complete the increment. So the developer used a thread-safe class instead.
+-    private volatile int requestCount;
+-    private volatile int errorCount;
++    private final AtomicInteger requestCount = new AtomicInteger(0);
++    private final AtomicInteger errorCount = new AtomicInteger(0);
+...
+-        requestCount++;
++        requestCount.incrementAndGet();
+\end{lstlisting}
+
+This is an example in Tomcat. The developer used FindBugs to check the code and it said increment of a \texttt{volatile} field is not atomic. This is a wrong demonstration of how to use \texttt{volatile}. The original code is not safe because increment is not an atomic operation. It includes read, calculate and write operations to complete the increment. So the developer used a thread-safe class instead.
 
 \textbf{Thread-safe class replacement}
 
@@ -239,90 +295,76 @@ This commit is from lucene-solr. It is a commit for LUCENE-2779 which is a minor
 %
 %\textbf{Final in multiple threads}
 
-\subsection{RQ2. How useful are our extracted change patterns, when programmers maintain concurrency code?}
+\subsection{RQ2. How frequent do concurrent related code modification appear in different kinds of Java open-source projects?}
+
+\begin{figure*}
+\centering
+\subfigure[Cassandra]{\includegraphics[height=1.2in]{cassandra}}
+\subfigure[Flink]{\includegraphics[height=1.2in]{flink}}
+\subfigure[Hadoop]{\includegraphics[height=1.2in]{hadoop}}
+\subfigure[Lucene-Solr]{\includegraphics[height=1.2in]{lucene-solr}}
+\subfigure[Mahout]{\includegraphics[height=1.2in]{mahout}}
+\subfigure[Netty]{\includegraphics[height=1.2in]{netty}}
+\subfigure[Tomcat]{\includegraphics[height=1.2in]{tomcat}}
+\caption{Number of concurrent related commits compared to all commits}
+\end{figure*}
+
+Figure 1 shows the numbers of concurrent related commits and all commits of each month in all projects of our study. It also shows the percentage of concurrent related commits. Each subfigure has two subfigures inside. The x axis represents the time in month. The upper subfigure has two lines. The higher line shows the number of all commits while the lower line shows the number of concurrent related commits. The number of concurrent related commits is relatively small compared to the number of all commits. The two indexes have a positive correlation generally. The bottom subfigure shows the percentage of concurrent related commits. The percentages differ in project and time. For example, the percentage of concurrent related commits in mahout is relatively lower than other projects. The percentage in Hadoop is stable and high compared to other projects.
+
+\subsection{RQ3. What is the trend of concurrent programming classes usage statistically?}
+\label{sec:result:trend}
+\begin{table}
+	\centering
+	\caption{Top Classes}
+	\begin{tabular}{|c|c||c|c|}\hline
+		Class&\#Add&Class&\#Del\\\hline
+		AtomicInteger&2780&AtomicInteger&4111\\\hline
+		AtomicLong&1701&AtomicBoolean&2504\\\hline
+		CountDownLatch&1698&ConcurrentHashMap&2415\\\hline
+		AtomicBoolean&1676&AtomicLong&2225\\\hline
+		ConcurrentHashMap&1561&CountDownLatch&1513\\\hline
+		AtomicReference&1030&AtomicReference&1224\\\hline
+		Executors&921&Executors&1105\\\hline
+		LinkedBlockingQueue&689&ThreadPoolExecutor&1034\\\hline
+		ConcurrentLinkedQueue&638&LinkedBlockingQueue&864\\\hline
+		ThreadPoolExecutor&583&ConcurrentLinkedQueue&797\\\hline
+	\end{tabular}
+\end{table}
+
+\begin{figure}
+	\centering
+	\includegraphics[height=1.5in]{CountDownLatchAdd}
+	\caption{Addition of CountDownLatch}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[height=1.5in]{CountDownLatchMinus}
+	\caption{Removal of CountDownLatch}
+\end{figure}
+
+We write a program to count and analyze concurrent programming classes usage. Table IV shows top 10 classes added and deleted in the history. Some classes are both active in the added and the deleted column like AtomicInteger and CountDownLatch. This is not surprising because a deletion of class does not mean this class is abandoned. This also indicates this class is active. An interesting observation is that deletions appear more than addition.
+
+We draw line for addition and removal of each class. Figure 3 and figure 4 show examples. We can see that both numbers of addition and removal increase as a whole as time passing by. This indicates that this class is attracting developers' attention.
+
+\subsection{RQ4. Can these change patterns be applied to real world projects?}
 \label{sec:result:sample}
 The answer is yes. We have found some contexts which are suitable for the change patterns in different projects.
 
 \begin{lstlisting}
 +import java.util.concurrent.ThreadLocalRandom;
-public class DRandom {
+ public class DRandom {
 -    private static ThreadLocal<Random> random = new ThreadLocal<Random>() {
 -        protected Random initialValue() {
 -            return new Random();
 -        }
 -    };
-public static Random get() {
+     public static Random get() {
 -        return random.get();
 +        ThreadLocalRandom.current();
-}
-}
+     }
+ }
 \end{lstlisting}
 
-This example shows a change from ThreadLocal$<$Random$>$ to ThreadLocalRandom from JDK7. It is from a Schmince-2, a game on Google Play. We make the change and our pull request\footnote{\url{https://github.com/derekmu/Schmince-2/pull/1}} has been accept. ThreadLocalRandom should be used when available in place of ThreadLocal$<$Random$>$. For JDK7 the difference is minimal, but JDK8 starts including optimizations for ThreadLocalRandom. The ThreadLocal class provides thread-local variables. The ThreadLocalRandom class is a random number generator isolated to the current thread.
-
-\subsection{RQ3. What are the change trends of using parallel APIs}
-\label{sec:result:trend}
-\begin{table}
-	\centering
-	\caption{Top 10 Active Classes}
-	\begin{tabular}{|c|c|}\hline
-		Class&Occurrence\\\hline
-		AtomicInteger&6,891\\
-		AtomicBoolean&4,180\\
-		ConcurrentHashMap&3,976\\
-		AtomicLong&3,926\\
-		CountDownLatch&3,211\\
-		AtomicReference&2,254\\
-		Executors&2,026\\
-		ThreadPoolExecutor&1,617\\
-		LinkedBlockingQueue&1,553\\
-		ConcurrentLinkedQueue&1,435\\\hline
-	\end{tabular}
-\end{table}
-
-%\begin{figure}
-%	\centering
-%	\includegraphics[height=1.5in]{CountDownLatchAdd}
-%	\caption{Addition of CountDownLatch}
-%\end{figure}
-%
-%\begin{figure}
-%	\centering
-%	\includegraphics[height=1.5in]{CountDownLatchMinus}
-%	\caption{Removal of CountDownLatch}
-%\end{figure}
-
-\begin{figure}
-	\centering
-	\subfigure[Ascending]{\includegraphics[height=0.8in]{CountDownLatch}}
-	\subfigure[Descending]{\includegraphics[height=0.8in]{LinkedTransferQueue}}
-	\subfigure[Hybrid]{\includegraphics[height=0.8in]{ThreadPoolExecutor}}
-	\caption{Typical Trend of Change Frequency}
-\end{figure}
-
-Programmers are changing their code constantly. We analyze the trend of concurrent-related class usage during the software evolution. We count the occurrence of 53 concurrent-related classes in Java. Table IV shows the top 10 active classes which are involved in changes in the history. For example, the most common class in changes is \texttt{AtomicInteger}. There are 6891 changes which are related to this class. This indicates that this class is very popular. We notice that the first several classes in the table are all famous and easy to use. The values of different classes vary. For the last 10 classes, the sum of their values is only 148. \%10 classes account for over 50\% occurrence of changes
-
-We draw the tendency chart of each class as time goes. Figure 4 shows 3 typical tendencies of these charts. They are ascending lines, descending lines and hybrids. Figure (a) shows an example of ascending tendency. It is \texttt{CountDownLatch}. We are not meaning it is in a strict ascending order. Its overall tendency is rising. Figure (b) shows an example of descending tendency. It is \texttt{LinkedTransferQueue}. However, most charts are like figure (c). They are fluctuating without certain ascending or descending tendency. There are 13 ascending charts, 4 descending charts and 36 hybrid charts.
-
-%We write a program to count and analyze concurrent programming classes usage. Table IV shows top 10 classes added and deleted in the history. Some classes are both active in the added and the deleted column like AtomicInteger and CountDownLatch. This is not surprising because a deletion of class does not mean this class is abandoned. This also indicates this class is active. An interesting observation is that deletions appear more than addition.
-
-%We draw line for addition and removal of each class. Figure 3 and figure 4 show examples. We can see that both numbers of addition and removal increase as a whole as time passing by. This indicates that this class is attracting developers' attention.
-
-\subsection{RQ4. Are there any correlations between code changes and changes on concurrency code?}
-
-\begin{figure*}
-	\centering
-	\subfigure[Cassandra]{\includegraphics[height=1.2in]{cassandra}}
-	\subfigure[Flink]{\includegraphics[height=1.2in]{flink}}
-	\subfigure[Hadoop]{\includegraphics[height=1.2in]{hadoop}}
-	\subfigure[Lucene-Solr]{\includegraphics[height=1.2in]{lucene-solr}}
-	\subfigure[Mahout]{\includegraphics[height=1.2in]{mahout}}
-	\subfigure[Netty]{\includegraphics[height=1.2in]{netty}}
-	\subfigure[Tomcat]{\includegraphics[height=1.2in]{tomcat}}
-	\caption{Number of concurrent related commits compared to all commits}
-\end{figure*}
-
-Figure 1 shows the numbers of concurrent related commits and all commits of each month in all projects of our study. It also shows the percentage of concurrent related commits. Each subfigure has two subfigures inside. The x axis represents the time in month. The upper subfigure has two lines. The higher line shows the number of all commits while the lower line shows the number of concurrent related commits. The number of concurrent related commits is relatively small compared to the number of all commits. The two indexes have a positive correlation generally. The bottom subfigure shows the percentage of concurrent related commits. The percentages differ in project and time. For example, the percentage of concurrent related commits in mahout is relatively lower than other projects. The percentage in Hadoop is stable and high compared to other projects.
-
-
+This example shows a change from ThreadLocal$<$Random$>$ to ThreadLocalRandom from JDK7. It is from a Schmince-2, a game on Google Play. ThreadLocalRandom should be used when available in place of ThreadLocal$<$Random$>$. For JDK7 the difference is minimal, but JDK8 starts including optimizations for ThreadLocalRandom. The ThreadLocal class provides thread-local variables. The ThreadLocalRandom class is a random number generator isolated to the current thread.
 
