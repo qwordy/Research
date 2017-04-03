@@ -195,9 +195,8 @@ Example 10 is a fix of bug 58392\footnote{\url{https://bz.apache.org/bugzilla/sh
 
 Example 11 shows that \texttt{volatile} is not almighty. The developer used FindBugs to check the code and it said increment of a \texttt{volatile} field is not atomic. This is a wrong demonstration of how to use \texttt{volatile}. The original code is not safe because increment is not an atomic operation. It includes read, calculate and write operations to complete the increment. So the developer used a thread-safe class instead.
 
-\textbf{Thread-safe class replacement}
-
-Thread-safe class replacement is an adoption of thread-safe class instead of handling the concurrency control by yourself. This type of changes is a very common in practice. There are two major advantages to apply thread-safe classes. Firstly, it simplifies the code. Developers usually need to write less code by simply calling APIs than implementing on their own. Secondly, these classes are mostly carefully designed by experienced class authors who are good at concurrent programming. So these classes can offer not only better correctness and robustness, but also possible performance improvement. Developers can spend less time in writing and debugging their code when employing thread-safe classes. This type of changes can improve both the efficiency and quality of software development. For example, developers can employ thread-safe containers instead of adding synchronizations with use of non-thread-safe containers.
+\noindent
+\textbf{5. Replacing self code with Parallel APIs.} Programmers can implement concurrency code by themselves, but later they realize that it is easier to call APIs that already implement their functionalities. For example, a previous version of Hadoop has the following code: \zhong{Replace the below commit with the buggy code.}
 
 \begin{lstlisting}
 commit a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
@@ -214,7 +213,27 @@ HDFS-4029. GenerationStamp should use an AtomicLong. Contributed by Eli Collins
    }
 \end{lstlisting}
 
-This commit is from hadoop. It is a fix of issue HDFS-4029 "GenerationStamp should use an AtomicLong" whose priority is major. The code synchronize the method nextStamp for it might be invoked concurrently. Method nextStamp increases genstamp by one and then return it. The developers found that it would be cleaner to use an AtomicLong so that genstamp itself is atomic and they do not have to synchronize the various accesses to it. AtomicLong is a thread-safe version of type long. It allows users to update it atomically without any synchronization. Its internal implementation is not using synchronized method or block. It uses sun.misc.Unsafe which provides many unsafe but fast operations.
+Later, a programmer realizes that it is better to replace the above code with the \CodeIn{AtomicLong} class. He reported the issue (HDFS-4029), and set its priority as major. Here, \CodeIn{AtomicLong} is a thread-safe version of type long. It allows updating a \CodeIn{Long} value without explicit synchronization and it is fast. The fixed code is as follow:
+
+\zhong{Replace the below commit with the fixed code.}
+
+\begin{lstlisting}
+commit a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
+HDFS-4029. GenerationStamp should use an AtomicLong. Contributed by Eli Collins
+
+-  private volatile long genstamp;
++  private AtomicLong genstamp = new AtomicLong();
+...
+-  public synchronized long nextStamp() {
+-    this.genstamp++;
+-    return this.genstamp;
++  public long nextStamp() {
++    return genstamp.incrementAndGet();
+   }
+\end{lstlisting}
+
+
+\zhong{Rewrite the following sample as I did in the previous one.}
 
 \begin{lstlisting}
 commit 7f443f67eaa588323f912f3922cff9b699b38fbd
