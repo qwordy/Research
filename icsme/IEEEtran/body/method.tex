@@ -82,8 +82,6 @@ Finally we have 561 potential concurrent-related commits selected by keyword mat
 
 \subsubsection{Step 3. Analyzing commits according to different research questions} We then conduct detailed analysis according to our research questions.
 
-
-
 \textbf{RQ1. Determining change patterns.} To explore this research question, we manually analyze concurrency commits. For example, the below is a concurrency commit. The top five lines describe the metadata of the commit. The other lines describe the differences between two versions of code.
 
 \begin{lstlisting}
@@ -117,13 +115,11 @@ For each commit, we first read the metadata and the corresponding issue to under
 
 We classify concurrency commits into different categories, mainly according to our observed code changes. During the classification, we consider various issues such as the modifications on code elements, parallel libraries, and control flows.
 
-\textbf{RQ2. Exploring the usefulness of our change patterns.} We search the keywords of pattern in repositories. \zhong{Please explain how to build queries according to your patterns. Please explain how to you generate your patches?}
+\textbf{RQ2. Exploring the usefulness of our change patterns.} We search the keywords of pattern in repositories. We search code in Github with a group of keywords of a pattern. We find numerous code pieces in the search results. We manually check the code and decide whether it is acceptable for the pattern. If it is, we fork the project, make our changes, commit and submit the pull request. %similar answer?%\zhong{Please explain how to build queries according to your patterns. Please explain how to you generate your patches?}
 
+\textbf{RQ3. Determining the trends of using parallel APIs.} We count the usages of parallel APIs in the interval of months. \texttt{java.util.concurrent} package is a frequently-used package when writing concurrent programs. \zhong{What are those parallel APIs? How you select them?} To explore this research question, we analyze the trend of parallel APIs during the software evolution. In particular, we count the occurrence of 53 API classes. \zhong{How did you select these classes?} For each parallel API class, we draw a figure to denote its trend of modifications over time. Based on the shapes of such figures, we put parallel API classes into different categories. \zhong{How did you determine that a parallel class is related to a commit?}
 
-\textbf{RQ3. Determining the trends of using parallel APIs.} We count the usages of parallel APIs in the interval of months. \zhong{What are those parallel APIs? How you select them?}  To explore this research question, we analyze the trend of parallel APIs during the software evolution. In particular, we count the occurrence of 53 API classes. \zhong{How did you select these classes?} For each parallel API class, we draw a figure to denote its trend of modifications over time. Based on the shapes of such figures, we put parallel API classes into different categories. \zhong{How did you determine that a parallel class is related to a commit?}
-
-\textbf{RQ4. Determining the correlations between commits and concurrency commits} \zhong{Please explain what measure do you use to determine the correlations}
-
+\textbf{RQ4. Determining the correlations between commits and concurrency commits} We count the number of commits and concurrency commits in each month respectively. We use Spearman's rank correlation to measure how two variables are correlated. The result is .%\zhong{Please explain what measure do you use to determine the correlations}
 
 
 %\begin{figure}
