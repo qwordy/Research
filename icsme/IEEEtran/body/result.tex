@@ -179,9 +179,8 @@ The \texttt{DataSource} is waiting to be notified by the \texttt{Writer} when ho
 
 Example 9.
 
-\textbf{Adding or removing volatile}
-
-\texttt{volatile} is a Java keyword, which is used to mark a variable which should be saved in main memory so that every thread which reads the variable can read the latest value from the main memory not the outdated value in the CPU cache. This provides visibility of variables across multiple threads. It also guarantees the happen-before relation. Using \texttt{volatile} correctly instead of locking can improve the performance in terms of concurrency. But this keyword is subtle. Developers need careful reasoning when dealing with \texttt{volatile}. Sometimes \texttt{volatile} is not enough. There may be race conditions when multiple thread read and write \texttt{volatile} fields simultaneously.
+\noindent
+\textbf{4. Changing the \CodeIn{volatile} keyword.} In Java, the \CodeIn{volatile} keyword denotes a variable that is saved in the main memory. For a \CodeIn{volatile} variable, a thread reads its latest value from the main memory, instead of the obsolete  value in the cache. Although it can improve the overall performance, races can occur, when multiple threads read and write \CodeIn{volatile} variables simultaneously.
 
 %8313fa0f1ca277e9633a78f461804abc3c5515b8
 %Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58392
@@ -191,6 +190,8 @@ Example 10 is a fix of bug 58392\footnote{\url{https://bz.apache.org/bugzilla/sh
 
 %560cd00890b3f6af2aca0c3a9d51a45f880692dd
 %Fix a FindBugs warning (increment of volatile not atomic)
+
+\zhong{Please explain why you need two samples for this situation.}
 
 Example 11 shows that \texttt{volatile} is not almighty. The developer used FindBugs to check the code and it said increment of a \texttt{volatile} field is not atomic. This is a wrong demonstration of how to use \texttt{volatile}. The original code is not safe because increment is not an atomic operation. It includes read, calculate and write operations to complete the increment. So the developer used a thread-safe class instead.
 
