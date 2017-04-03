@@ -34,7 +34,7 @@ Table~\ref{} and \ref{} show an overview of our extracted change patterns. \zhon
 	\centering
 	\includegraphics[width=1\textwidth]{patterns}
 	\caption{Patterns}
-\zhong{Please add labels to all your figures, tables, and sections. Please refer to your figures with labels. Please split the figure into two figures. Use Table instead of Figure}
+\zhong{Please add labels to all your figures, tables, and sections. Please refer to your figures with labels. Please split the figure into two figures. Use Table instead of Figure. The font is too small.}
 \end{figure*}
 
 \noindent
@@ -69,7 +69,7 @@ Example 1 is an example of YARN-5825\footnote{\url{https://issues.apache.org/jir
 
 They also might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. Here are some examples. \zhong{add an example for this.}
 
-Example 2 is an example in Tomcat. The developer said a \texttt{ReadWriteLock} cannot guard a \texttt{WeakHashMap}. It is because get() may modify the \texttt{WeakHashMap}, in which case a reader lock is not enough. A plain old lock or synchronization should be used. In this example, the synchronization is used finally. This example is more complex than the previous one although they seem a bit similar. %todo more detail
+Example 2 is an example in Tomcat. \zhong{The issue number?} The developer said a \texttt{ReadWriteLock} cannot guard a \texttt{WeakHashMap}. It is because get() may modify the \texttt{WeakHashMap}, in which case a reader lock is not enough. A plain old lock or synchronization should be used. In this example, the synchronization is used finally. This example is more complex than the previous one although they seem a bit similar. %todo more detail
 
 
  When they find that they only need a simple exclusive lock, they switch to synchronized block. \zhong{add an example for this}
@@ -88,17 +88,15 @@ Example 2 is an example in Tomcat. The developer said a \texttt{ReadWriteLock} c
 Example 3 is an example of FLINK-1419\footnote{\url{https://issues.apache.org/jira/browse/FLINK-1419}} - \texttt{DistributedCache} doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the \texttt{DistributedCache}. They synchronized on \texttt{count}, which is a map instance. Instead, they used \texttt{lock}, which is an instance of \texttt{Object} class. The difference is this instance is only used for synchronization while the former one has its own role not only as a lock. We do not need to blame preference of synchronization usage. This commit also made other changes about synchronization. They modified the critical sections as well.
 
 %f0e627bb8c9daedb3b064027cac37ce4849bab64
-\zhong{Explain a situation first, before you present its examples!}
+\zhong{Explain a situation first, before you present its examples! After you present an example, further explain why the sample fit your situation!}
 
 In example 4, The lock instance was originally the instance of the class and now is \texttt{membersLock}. They used single object (\texttt{membersLock}) for all locking as the commit message said. Using a separated locking instance can allow you to have more precise concurrency control than using synchronized methods.
 
-\textbf{Changing critical section}
+\noindent
+\textbf{3. Modifications on critical sections.} A critical section is a code block that is executed, when a thread locked the corresponding resources. \zhong{Based on what??}, we classify such modifications into three categories such as modifications on locks, statements, and locked resources. 
 
-Critical section is a code block guarded by synchronization. It is the most common change in terms of concurrency control. We classify these changes into three subtypes: changing synchronization, changing statement and changing communication lock. Changing synchronization means adding or removing synchronization to the statements which are not synchronized before or are synchronized already. Changing statements means adding new statements to the critical sections, removing or amending statements in the critical sections. Changing communication lock means. %todo
 
-%17206cc8c21c439d121a66d7c9934cdfa4791a35
-
-Example 5 shows an example of adding synchronization. The method was not synchronized before. The basic reason of adding synchronization to existing code is the piece of code might be access concurrently. It is a change to fix a bug\footnote{\url{https://bz.apache.org/bugzilla/show\_bug.cgi?id=58386}}. This bug was reported by RV-Predict, a dynamic race detector. It said
+Modifications on locks either add or remove locks. For example, the ?? row in Table~\ref{} shows an example of adding synchronization. The method was not synchronized before. The basic reason of adding synchronization to existing code is the piece of code might be access concurrently. It is a change to fix a bug\footnote{\url{https://bz.apache.org/bugzilla/show\_bug.cgi?id=58386}}. This bug was reported by RV-Predict, a dynamic race detector. It said
 
 \begin{lstlisting}
 Reported by RV-Predict (a dynamic race detector) when running the test suite:
@@ -110,7 +108,7 @@ When two or more threads access one object concurrently and at least one is modi
 
 %c93d9eaf363a535dff25cc4e7db400d879e73bb1
 %Add option to use single actor system for local execution. Use local connection manager if a single task manager is used for local execution. Remove synchronized blcok in getReceiverList of ChannelManager which effectively serialized the connection lookup calls of a single task manager.
-
+Modifications on statements change statements of critical sections. 
 Example 6 shows an example of removing synchronization. Developers remove the synchronization of a code block. They said they used a single task manager and removed synchronized block in \texttt{ChannelManager}. If you find the code will not be accessed concurrently or it can be accessed safely in a concurrent way, you do not need to synchronize the code.
 
 \begin{lstlisting}
@@ -160,6 +158,9 @@ This is a commit of HDFS-4200\footnote{\url{https://issues.apache.org/jira/brows
 	\caption{Deadlock}
 \zhong{Please add resource columns and add edges to denote resource manipulations.}
 \end{figure}
+
+
+Modifications on locked resources change the criteria of entering critical sections.  \zhong{Please check whether the samples explain the corresponding situations.}
 
 Example 8 is a fix of a bug. It is a critical bug issue\footnote{\url{https://issues.apache.org/jira/browse/FLINK-2384}} ``Deadlock during partition spilling''. A user reported the problem. Here is selected parts of the stack trace.
 
