@@ -300,6 +300,7 @@ This example shows a change from ThreadLocal$<$Random$>$ to ThreadLocalRandom fr
 \begin{table}
 	\centering
 	\caption{Top 10 Active Classes}
+\label{table:topapi}
 	\begin{tabular}{|c|c|}\hline
 		Class&Occurrence\\\hline
 		AtomicInteger&6,891\\
@@ -336,7 +337,7 @@ This example shows a change from ThreadLocal$<$Random$>$ to ThreadLocalRandom fr
 \zhong{Please add more detailed figures! Divide them by their frequencies first! Add \%}
 \end{figure}
 
-Table IV shows the top 10 active classes which are involved in changes in the history. For example, the most common class in changes is \texttt{AtomicInteger}. There are 6891 changes which are related to this class. This indicates that this class is very popular. We notice that the first several classes in the table are all famous and easy to use. The values of different classes vary. For the last 10 classes, the sum of their values is only 148. \%10 classes account for over 50\% occurrence of changes
+Table~\ref{table:topapi} shows the top ten active parallel API classes. \zhong{Explain columns.} For example, the most common class in changes is \texttt{AtomicInteger}. There are 6,891 changes which are related to this class. This indicates that this class is very popular. We notice that the first several classes in the table are all famous and easy to use. The values of different classes vary. For the last 10 classes, the sum of their values is only 148. \%10 classes account for over 50\% occurrence of changes
 
 We draw the tendency chart of each class as time goes. Figure 4 shows 3 typical tendencies of these charts. They are ascending lines, descending lines and hybrids. Figure (a) shows an example of ascending tendency. It is \texttt{CountDownLatch}. We are not meaning it is in a strict ascending order. Its overall tendency is rising. Figure (b) shows an example of descending tendency. It is \texttt{LinkedTransferQueue}. However, most charts are like figure (c). They are fluctuating without certain ascending or descending tendency. There are 13 ascending charts, 4 descending charts and 36 hybrid charts.
 
@@ -344,7 +345,7 @@ We draw the tendency chart of each class as time goes. Figure 4 shows 3 typical 
 
 %We draw line for addition and removal of each class. Figure 3 and figure 4 show examples. We can see that both numbers of addition and removal increase as a whole as time passing by. This indicates that this class is attracting developers' attention.
 
-\subsection{RQ4. Are there any correlations between code changes and changes on concurrency code?}
+\subsection{RQ4. The correlations between commits and concurrency commits.}
 
 \begin{figure*}
 	\centering
@@ -358,8 +359,13 @@ We draw the tendency chart of each class as time goes. Figure 4 shows 3 typical 
 	\caption{Number of concurrent related commits compared to all commits}
 \zhong{add confidence!}
 \end{figure*}
+\zhong{Cite and discuss Lu Shan's paper first, before you introduce your results. Explain why you conduct the study, given that Lu Shan already did that.}
 
 Figure 1 shows the numbers of concurrent related commits and all commits of each month in all projects of our study. It also shows the percentage of concurrent related commits. Each subfigure has two subfigures inside. The x axis represents the time in month. The upper subfigure has two lines. The higher line shows the number of all commits while the lower line shows the number of concurrent related commits. The number of concurrent related commits is relatively small compared to the number of all commits. The two indexes have a positive correlation generally. The bottom subfigure shows the percentage of concurrent related commits. The percentages differ in project and time. For example, the percentage of concurrent related commits in mahout is relatively lower than other projects. The percentage in Hadoop is stable and high compared to other projects.
 
+\zhong{Explain whether your results are consistent with Shan Lu or not. }
 
+\subsection{Threats to Validity}
+
+The threats to internal validity include that our tool can omit some concurrency commits. Due to various issues, our tool can fail to identify all concurrency commits. To reduce the threat, we employ both the query-based search and a classifier in our study. The threat could be further reduced by more advanced identification techniques. The threads to internal validity also include obsolete commits. With the rapid development of software, such commits may present obsolete or even wrong usages. To reduce the threat, in our study, we prefer to recent commits. The threats to external validity include our selected projects and programming language. The number of the projects we select is small compared to the huge amount of open-source projects. The threat could be reduced by introducing more projects and languages in future work.
 
