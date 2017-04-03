@@ -7,14 +7,11 @@ To understand how concurrency code is maintained, in this study, we focus on the
 
 \textbf{RQ1.} What patterns are followed when programmers maintain concurrency code?
 
-In each day, programmers can make numerous commits. Based on their analysis on commits, Kim and Notkin~\cite{conf/icse/KimN09} find that code changes can be repetitive, and Martinez \emph{et al.}~\cite{conf/icsm/MartinezDM13} further extract change patterns to denote such repetitive changes. However, the change patterns of concurrency programming is rarely studied. The recent study~\cite{conf/sigsoft/GuJSZL15} mainly focuses on changes only on critical sections. As a result, this research question is still largely open. To explore this research question, we carefully put our selected concurrent-related commits into \zhong{??} categories (see Section~\ref{sec:result:rq1} for details).
-
+In each day, programmers can make numerous commits. Based on their analysis on commits, Kim and Notkin~\cite{conf/icse/KimN09} find that code changes can be repetitive, and Martinez \emph{et al.}~\cite{conf/icsm/MartinezDM13} further extract change patterns to denote such repetitive changes. However, the change patterns of concurrency programming is rarely studied. The recent study~\cite{conf/sigsoft/GuJSZL15} mainly focuses on changes only on critical sections. As a result, this research question is still largely open. To explore this research question, we carefully put our selected concurrent-related commits into 6 categories (see Section~\ref{sec:result:rq1} for details).
 
 \textbf{RQ2.} How useful are our extracted change patterns, when programmers maintain concurrency code?
 
-To assess the usefulness of our extracted change patterns, we search open source search code in open-source projects with our change patterns. In particular, \zhong{Please explain how you build queries for the search, and how to write your pull requests.} Our changes have been accepted by the owner of some project\footnote{\url{https://github.com/derekmu/Schmince-2}}. In Section~\ref{sec:result:sample}, ...
-
-
+To assess the usefulness of our extracted change patterns, we search open source search code in open-source projects with our change patterns. In particular, we search code in Github with a group of keywords of a pattern. We find numerous code pieces in the search results. We manually check the code and decide whether it is acceptable for the pattern. If it is, we fork the project, make our changes, commit and submit the pull request. Our changes have been accepted by the owner of some project\footnote{\url{https://github.com/derekmu/Schmince-2}}. See more details in Section~\ref{sec:result:sample}.
 
 \textbf{RQ3.} What are the change trends of using parallel APIs?
 
