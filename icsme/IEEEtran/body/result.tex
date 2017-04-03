@@ -196,7 +196,7 @@ Example 10 is a fix of bug 58392\footnote{\url{https://bz.apache.org/bugzilla/sh
 Example 11 shows that \texttt{volatile} is not almighty. The developer used FindBugs to check the code and it said increment of a \texttt{volatile} field is not atomic. This is a wrong demonstration of how to use \texttt{volatile}. The original code is not safe because increment is not an atomic operation. It includes read, calculate and write operations to complete the increment. So the developer used a thread-safe class instead.
 
 \noindent
-\textbf{5. Replacing self code with Parallel APIs.} Programmers can implement concurrency code by themselves, but later they realize that it is easier to call APIs that already implement their functionalities. For example, a previous version of Hadoop has the following code: \zhong{Replace the below commit with the buggy code.}
+\textbf{5. Replacing self-written code with Parallel APIs.} Programmers can implement concurrency code by themselves, but later they realize that it is easier to call APIs that already implement their functionalities. For example, a previous version of Hadoop has the following code: \zhong{Replace the below commit with the buggy code.}
 
 \begin{lstlisting}
 commit a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
