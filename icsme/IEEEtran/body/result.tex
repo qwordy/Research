@@ -47,7 +47,7 @@ We can also view locks in a different perspective like exclusive and shared lock
 
 %ReentrantLock, ReentrantReadWriteLock, StampedLock are all API level locks in Java. Although 'synchronized' keyword is convenient and straightforward, we need other locks when we have more requirements. ReentrantLock is a reentrant lock, which means a lock can be acquired repeatedly in the same thread. It is a exclusive lock with the similar behaviour as monitor lock but has more features such as fairness, condition and tryLock. ReadWriteLock is a pair of locks, which allows concurrent access to read operations when there is no write operation going on but exclusive access to write operations. StampedLock is a lock which provides three modes, namely writing, reading and optimistic reading. This lock is usually used in design of thread-safe classes.
 %Programmers can change their lock types due to various considerations. For example, the \CodeIn{synchronized} keyword can fail to satisfy fairness (\zhong{What is fairness? Why does it matter?}), programmers have to change such implicit locks to explicit locks. \zhong{Add an example for each situation.}
-Programmers can change their lock types due to various considerations. They might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. The reverse transition also exists. The following two examples give more details of these transitions.%For example, the \CodeIn{synchronized} keyword cannot suffice to the situation where most operations are not repulsive, in which case a reader-writer lock is more suitable. 
+Programmers can change their lock types due to various considerations. They might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. The reverse transition also exists. The following two examples give more details of these transitions. The transitions are not limited to these two specific types.%For example, the \CodeIn{synchronized} keyword cannot suffice to the situation where most operations are not repulsive, in which case a reader-writer lock is more suitable. 
 
 %fad9609d13e76e9e3a4e01c96f698bb60b03807e
 %\begin{figure*}
@@ -56,7 +56,7 @@ Programmers can change their lock types due to various considerations. They migh
 %	\caption{Example 1}
 %\end{figure*}
 
-Example 1 is an example of YARN-5825\footnote{\url{https://issues.apache.org/jira/browse/YARN-5825} To save space, we remove the URLs of the other Apache issues. Their URLs can be built by replacing the above URL with their issue number. \zhong{Please remove the URLs}} - \CodeIn{ProportionalPreemptionalPolicy} could use \CodeIn{readLock} over \CodeIn{LeafQueue} instead of a synchronized block. It is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a reader lock. \CodeIn{LeafQueue} is a method \CodeIn{getReadLock} which is inherited from its base class. This method returns an instance of \CodeIn{ReentrantReadWriteLock.ReadLock}. There are many different locks which can be used to synchronize. A reader lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance under the scenario where most of the operations are reading.
+Example 1 is an example of YARN-5825\footnote{\url{https://issues.apache.org/jira/browse/YARN-5825} To save space, we remove the URLs of the other Apache issues. Their URLs can be built by replacing the above URL with their issue number.} - \CodeIn{ProportionalPreemptionalPolicy} could use \CodeIn{readLock} over \CodeIn{LeafQueue} instead of a synchronized block. It is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a reader lock. \CodeIn{LeafQueue} is a method \CodeIn{getReadLock} which is inherited from its base class. This method returns an instance of \CodeIn{ReentrantReadWriteLock.ReadLock}. There are many different locks which can be used to synchronize. A reader lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance under the scenario where most of the operations are reading.
 
 %3e4b1ae6dc786b268505aa2e64067432519c2bcf
 %\begin{figure*}
@@ -70,26 +70,32 @@ Example 1 is an example of YARN-5825\footnote{\url{https://issues.apache.org/jir
 
 %They also might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. Here are some examples. \zhong{add an example for this.}
 
-Example 2 is an example in Tomcat. \zhong{The issue number?} The developer said a \CodeIn{ReadWriteLock} cannot guard a \CodeIn{WeakHashMap}. It is because get() may modify the \CodeIn{WeakHashMap}, in which case a reader lock is not enough. A plain old lock or synchronization should be used. In this example, the synchronization is used finally. This example is more complex than the previous one although they seem a bit similar.%todo more detail
+Example 2 is an example in Tomcat. This example is not involved in the issue tracking systems. The developer said a \CodeIn{ReadWriteLock} cannot guard a \CodeIn{WeakHashMap}. It is because get() may modify the \CodeIn{WeakHashMap}, in which case a reader lock is not enough. A plain old lock or synchronization should be used. In this example, the synchronization is used finally. This example is more complex than the previous one although they seem a bit similar.%todo more detail
 
 %When they find that they only need a simple exclusive lock, they switch to synchronized block. \zhong{add an example for this}
 
 \zhong{Never use YOU in your paper!}
  
 \noindent 
-\textbf{2. Changing locked resources.} A program needs to lock a resource before it enters the corresponding critical section. Programmers can change locked resources, when they maintain concurrency code.  \zhong{Why they do that? To fix bugs?}
+\textbf{2. Changing locked resources.} A program needs to lock a resource before it enters the corresponding critical section. Programmers can change locked resources, when they maintain concurrency code. The reasons behind this kind of changes are usually fixing bugs and refactoring.%\zhong{Why they do that? To fix bugs?}
 %\begin{figure*}
 %	\centering
 %	\includegraphics[scale=0.3]{lockins1}
 %	\caption{Example 3}
 %\end{figure*}
 
-Example 3 is an example of FLINK-1419\footnote{\url{https://issues.apache.org/jira/browse/FLINK-1419}} - \CodeIn{DistributedCache} doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the \CodeIn{DistributedCache}. They synchronized on \CodeIn{count}, which is a map instance. Instead, they used \CodeIn{lock}, which is an instance of \CodeIn{Object} class. The difference is this instance is only used for synchronization while the former one has its own role not only as a lock. We do not need to blame preference of synchronization usage. This commit also made other changes about synchronization. They modified the critical sections as well.
+Fixing bugs are always what developers do when they maintain their software. Changing locked resources is usually a part of changes which are conducted to fix a bug. For example, when an inappropriate resource is locked, something might get wrong when running the program.
+
+Example 3 is an example of FLINK-1419 - \CodeIn{DistributedCache} doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the \CodeIn{DistributedCache}. They synchronized on \CodeIn{count}, which is a map instance. Instead, they used \CodeIn{lock}, which is an instance of \CodeIn{Object} class. The difference is this instance is only used for synchronization while the former one has its own role not only as a lock. We do not need to blame preference of synchronization usage. This commit also made other changes about synchronization. They modified the critical sections as well and then finally fixed the bug.
+
+In example 4, 
 
 %f0e627bb8c9daedb3b064027cac37ce4849bab64
-\zhong{Explain a situation first, before you present its examples! After you present an example, further explain why the sample fit your situation!}
+%\zhong{Explain a situation first, before you present its examples! After you present an example, further explain why the sample fit your situation!}
 
-In example 4, The lock instance was originally the instance of the class and now is \CodeIn{membersLock}. They used single object (\CodeIn{membersLock}) for all locking as the commit message said. Using a separated locking instance can allow you to have more precise concurrency control than using synchronized methods.
+In some cases, things are not so serious to become a bug. Developers refactor the software 
+
+In example 5, The lock instance was originally the instance of the class and now is \CodeIn{membersLock}. They used single object (\CodeIn{membersLock}) for all locking as the commit message said. Using a separated locking instance can allow you to have more precise concurrency control than using synchronized methods.
 
 \noindent
 \textbf{3. Modifications on critical sections.} A critical section is a code block that is executed, when a thread locked the corresponding resources. \zhong{Based on what??}, we classify such modifications into three categories such as modifications on locks, statements, and locked resources. 
