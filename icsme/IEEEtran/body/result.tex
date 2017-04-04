@@ -6,21 +6,21 @@
 
 %The taxonomy includes change of lock type, change of lock variable, synchronization addition, synchronization removal, lock release, volatile addition, volatile removal, class replacement, thread-safe class replacement, thread management, thread status management,
 
-\begin{table*}
-\zhong{Please delete this table.}
-	\centering
-	\caption{Taxonomy}
-	\begin{tabular}{|c|c|c|}\hline
-		Type&Example&Occurrence\\\hline
-		Changing lock type&\includegraphics[scale=0.35]{pattern1}&4\\\hline
-		Changing lock instance&\includegraphics[scale=0.35]{pattern2}&6\\\hline
-		Changing critical section&\includegraphics[scale=0.35]{pattern3}&35\\\hline
-		Adding or removing \texttt{volatile}&\includegraphics[scale=0.35]{pattern4}&47\\\hline
-		Thread-safe class replacement&\includegraphics[scale=0.35]{pattern5}&32\\\hline
-		Thread management&&\\\hline
-		%Other class replacement&Some other concurrent related class replacement&\\\hline
-	\end{tabular}
-\end{table*}
+%\begin{table*}
+%\zhong{Please delete this table.}
+%	\centering
+%	\caption{Taxonomy}
+%	\begin{tabular}{|c|c|c|}\hline
+%		Type&Example&Occurrence\\\hline
+%		Changing lock type&\includegraphics[scale=0.35]{pattern1}&4\\\hline
+%		Changing lock instance&\includegraphics[scale=0.35]{pattern2}&6\\\hline
+%		Changing critical section&\includegraphics[scale=0.35]{pattern3}&35\\\hline
+%		Adding or removing \texttt{volatile}&\includegraphics[scale=0.35]{pattern4}&47\\\hline
+%		Thread-safe class replacement&\includegraphics[scale=0.35]{pattern5}&32\\\hline
+%		Thread management&&\\\hline
+%		%Other class replacement&Some other concurrent related class replacement&\\\hline
+%	\end{tabular}
+%\end{table*}
 
 %Switch to another type of lock
 %Switch to another lock instace
@@ -30,15 +30,15 @@
 
 %Table~\ref{} and \ref{} show an overview of our extracted change patterns. \zhong{Please explain the columns.}
 
-Figure~\ref{figure:patterns} shows an overview of our extracted change patterns. The first column is the sequence number of patterns. The ``source'' column shows the concrete examples of patterns. We put related source code in it. The left is the original code and the right is the modified code. We align the corresponding statements. We use different colors to mark modified lines. The ``pattern'' column shows the extracted patterns. They are short as they ignore the specific statements.
+Table~\ref{table:patterns} shows an overview of our extracted change patterns. The first column is the sequence number of patterns. The ``source'' column shows the concrete examples of patterns. We put related source code in it. The left is the original code and the right is the modified code. We align the corresponding statements. We use different colors to mark modified lines. The ``pattern'' column shows the extracted patterns. They are short as they ignore the specific statements.
 
-\begin{figure*}
-	\label{figure:patterns}
+\begin{table*}
 	\centering
 	\includegraphics[width=1\textwidth]{patterns}
 	\caption{Patterns}
+	\label{table:patterns}
 \zhong{Please add labels to all your figures, tables, and sections. Please refer to your figures with labels. Please split the figure into two figures. Use Table instead of Figure. The font is too small.}
-\end{figure*}
+\end{table*}
 
 \noindent
 \textbf{1. Changing lock types.} It is feasible to lock resources with different mechanisms. For example, Java has a keyword, \CodeIn{synchronized}. The keyword can lock a block of code lines. With the keyword, programmers do not have to acquire and release resources explicitly. Alternatively, programmers can explicitly lock resources with APIs (\emph{e.g.}, \CodeIn{ReentrantLock}). Explicit locks offer more features which \CodeIn{synchronized} do not have such as condition, \CodeIn{tryLock} and fairness.%\zhong{Please introduce the benefits of explicit locks.}
