@@ -93,7 +93,7 @@ Example 3 is an example of FLINK-1419 - \CodeIn{DistributedCache} doesn't preser
 
 In some cases, things are not so serious to become a bug. Developers refactor the software.
 
-In example 4, The lock instance was originally the instance of the class and now is \CodeIn{membersLock}. They used single object (\CodeIn{membersLock}) for all locking as the commit message said. Using a separated locking instance can allow you to have more precise concurrency control than using synchronized methods.
+In example 4, The lock instance was originally the instance of the class and now is \CodeIn{membersLock}. They used single object (\CodeIn{membersLock}) for all locking as the commit message said. Using a separated locking instance can allow developers to have more precise concurrency control than using synchronized methods.
 
 \noindent
 \textbf{3. Modifications on critical sections.} A critical section is a code block that is executed, when a thread locked the corresponding resources. The modifications can be on locks, statements or both.% \zhong{Based on what??}, we classify such modifications into two categories namely modifications on locks, statements.
@@ -208,42 +208,42 @@ It seems easy to simply add or delete a \CodeIn{volatile} modifier of a variable
 \noindent
 \textbf{5. Replacing self-written code with Parallel APIs.} Programmers can implement concurrency code by themselves, but later they realize that it is easier to call APIs that already implement their functionalities. For example, a previous version of Hadoop has the following code:% \zhong{Replace the below commit with the buggy code.}
 
-\begin{lstlisting}
-commit a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
-HDFS-4029. GenerationStamp should use an AtomicLong. Contributed by Eli Collins
-
--  private volatile long genstamp;
-+  private AtomicLong genstamp = new AtomicLong();
-...
--  public synchronized long nextStamp() {
--    this.genstamp++;
--    return this.genstamp;
-+  public long nextStamp() {
-+    return genstamp.incrementAndGet();
-   }
-\end{lstlisting}
-
-Later, a programmer realizes that it is better to replace the above code with the \CodeIn{AtomicLong} class. He reported the issue (HDFS-4029), and set its priority as major. Here, \CodeIn{AtomicLong} is a thread-safe version of type long. It allows updating a \CodeIn{Long} value without explicit synchronization and it is fast. The fixed code is as follow:
-
-\zhong{Replace the below commit with the fixed code.}
+%\begin{lstlisting}
+%commit a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
+%HDFS-4029. GenerationStamp should use an AtomicLong. Contributed by Eli Collins
+%
+%-  private volatile long genstamp;
+%+  private AtomicLong genstamp = new AtomicLong();
+%...
+%-  public synchronized long nextStamp() {
+%-    this.genstamp++;
+%-    return this.genstamp;
+%+  public long nextStamp() {
+%+    return genstamp.incrementAndGet();
+%   }
+%\end{lstlisting}
 
 \begin{lstlisting}
-commit a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
-HDFS-4029. GenerationStamp should use an AtomicLong. Contributed by Eli Collins
-
--  private volatile long genstamp;
-+  private AtomicLong genstamp = new AtomicLong();
-...
--  public synchronized long nextStamp() {
--    this.genstamp++;
--    return this.genstamp;
-+  public long nextStamp() {
-+    return genstamp.incrementAndGet();
-   }
+private volatile long genstamp;
+public synchronized long nextStamp() {
+  this.genstamp++;
+  return this.genstamp;
+}
 \end{lstlisting}
 
+Later, a programmer realizes that it is better to replace the above code with the \CodeIn{AtomicLong} class. He reported the issue (HDFS-4029), and set its priority as major. Here, \CodeIn{AtomicLong} is a thread-safe version of type long. It allows updating a \CodeIn{Long} value without explicit synchronization and it is fast. It not only offers a simple interface, but also has a different implementation than the example code above. It uses \CodeIn{Unsafe} class, which provides unsafe operations as its name represents. This class allows low-level programming in Java, which is considered unsafe but can save running time without the check to guarantee safety. It might be promoted to be public API in Java 9. The fixed code is as follow:
+
+%\zhong{Replace the below commit with the fixed code.}
+
+\begin{lstlisting}
+private volatile long genstamp;
+public long nextStamp() {
+  return genstamp.incrementAndGet();
+}
+\end{lstlisting}
 
 \zhong{Rewrite the following sample as I did in the previous one.}
+Another example is from Lucene. A previous version of Lucene has the following code:
 
 \begin{lstlisting}
 commit 7f443f67eaa588323f912f3922cff9b699b38fbd
