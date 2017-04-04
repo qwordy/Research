@@ -37,17 +37,17 @@ Table~\ref{table:patterns} shows an overview of our extracted change patterns. T
 	\includegraphics[width=1\textwidth]{patterns}
 	\caption{Patterns}
 	\label{table:patterns}
-\zhong{Please add labels to all your figures, tables, and sections. Please refer to your figures with labels. Please split the figure into two figures. Use Table instead of Figure. The font is too small.}
+%\zhong{Please add labels to all your figures, tables, and sections. Please refer to your figures with labels. Please split the figure into two figures. Use Table instead of Figure. The font is too small.}
 \end{table*}
 
 \noindent
 \textbf{1. Changing lock types.} It is feasible to lock resources with different mechanisms. For example, Java has a keyword, \CodeIn{synchronized}. The keyword can lock a block of code lines. With the keyword, programmers do not have to acquire and release resources explicitly. Alternatively, programmers can explicitly lock resources with APIs (\emph{e.g.}, \CodeIn{ReentrantLock}). Explicit locks offer more features which \CodeIn{synchronized} do not have such as condition, \CodeIn{tryLock} and fairness.%\zhong{Please introduce the benefits of explicit locks.}
 
-We can also view locks in a different perspective like exclusive and shared locks \cite{journals/jacm/KedemS83}. When a thread is holding an exclusive lock, other threads cannot acquire this lock until it is released. But shared locks allow multiple threads to hold the lock at one time and alleviate the unnecessary waitings. For example, Java's \CodeIn{ReadWriteLock} is a pair of locks, which allows concurrent access to read operations when there is no write operation going on but exclusive access to write operations.%\zhong{Please explain what exclusive and shared locks are, and their benefits.}
+We can also view locks in a different perspective like exclusive and shared locks \cite{journals/jacm/KedemS83}. When a thread is holding an exclusive lock, other threads cannot acquire this lock until it is released. But shared locks allow multiple threads to hold the lock at one time and alleviate the unnecessary waitings so that the performance is enhanced. For example, Java's \CodeIn{ReadWriteLock} is a pair of locks, which allows concurrent access to read operations when there is no write operation going on but exclusive access to write operations.%\zhong{Please explain what exclusive and shared locks are, and their benefits.}
 
 %ReentrantLock, ReentrantReadWriteLock, StampedLock are all API level locks in Java. Although 'synchronized' keyword is convenient and straightforward, we need other locks when we have more requirements. ReentrantLock is a reentrant lock, which means a lock can be acquired repeatedly in the same thread. It is a exclusive lock with the similar behaviour as monitor lock but has more features such as fairness, condition and tryLock. ReadWriteLock is a pair of locks, which allows concurrent access to read operations when there is no write operation going on but exclusive access to write operations. StampedLock is a lock which provides three modes, namely writing, reading and optimistic reading. This lock is usually used in design of thread-safe classes.
 %Programmers can change their lock types due to various considerations. For example, the \CodeIn{synchronized} keyword can fail to satisfy fairness (\zhong{What is fairness? Why does it matter?}), programmers have to change such implicit locks to explicit locks. \zhong{Add an example for each situation.}
-Programmers can change their lock types due to various considerations. For example, the \CodeIn{synchronized} keyword cannot suffice to the situation where most operations are not repulsive, in which case a reader-writer lock is more suitable.
+Programmers can change their lock types due to various considerations. They might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. The reverse transition also exists. The following two examples give more details of these transitions.%For example, the \CodeIn{synchronized} keyword cannot suffice to the situation where most operations are not repulsive, in which case a reader-writer lock is more suitable. 
 
 %fad9609d13e76e9e3a4e01c96f698bb60b03807e
 %\begin{figure*}
@@ -68,9 +68,9 @@ Example 1 is an example of YARN-5825\footnote{\url{https://issues.apache.org/jir
 
 %\zhong{Please replace all texttt with CodeIn.} 
 
-They also might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. Here are some examples. \zhong{add an example for this.}
+%They also might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. Here are some examples. \zhong{add an example for this.}
 
-Example 2 is an example in Tomcat. \zhong{The issue number?} The developer said a \CodeIn{ReadWriteLock} cannot guard a \CodeIn{WeakHashMap}. It is because get() may modify the \CodeIn{WeakHashMap}, in which case a reader lock is not enough. A plain old lock or synchronization should be used. In this example, the synchronization is used finally. This example is more complex than the previous one although they seem a bit similar. %todo more detail
+Example 2 is an example in Tomcat. \zhong{The issue number?} The developer said a \CodeIn{ReadWriteLock} cannot guard a \CodeIn{WeakHashMap}. It is because get() may modify the \CodeIn{WeakHashMap}, in which case a reader lock is not enough. A plain old lock or synchronization should be used. In this example, the synchronization is used finally. This example is more complex than the previous one although they seem a bit similar.%todo more detail
 
 %When they find that they only need a simple exclusive lock, they switch to synchronized block. \zhong{add an example for this}
 
