@@ -28,9 +28,12 @@
 %Add or remove 'volatile' modifier of a class field
 %Use thread-safe class instead of handling concurrency control manually
 
-Table~\ref{} and \ref{} show an overview of our extracted change patterns. \zhong{Please explain the columns.}
+%Table~\ref{} and \ref{} show an overview of our extracted change patterns. \zhong{Please explain the columns.}
+
+Figure~\ref{figure:patterns} shows an overview of our extracted change patterns. The first column is the sequence number of patterns. The ``source'' column shows the concrete examples of patterns. We put related source code in it. The left is the original code and the right is the modified code. We align the corresponding statements. We use different colors to mark modified lines. The ``pattern'' column shows the extracted patterns. They are short as they ignore the specific statements.
 
 \begin{figure*}
+	\label{figure:patterns}
 	\centering
 	\includegraphics[width=1\textwidth]{patterns}
 	\caption{Patterns}
@@ -38,12 +41,13 @@ Table~\ref{} and \ref{} show an overview of our extracted change patterns. \zhon
 \end{figure*}
 
 \noindent
-\textbf{1. Changing lock types.} It is feasible to lock resources with different mechanisms. For example, Java has a keyword, \CodeIn{synchronized}. The keyword can lock a block of code lines. With the keyword, programmers do not have to acquire and release resources explicitly. Alternatively, programmers can explicitly lock resources with APIs (\emph{e.g.}, \zhong{add example}). \zhong{Please introduce the benefits of explicit locks.}
+\textbf{1. Changing lock types.} It is feasible to lock resources with different mechanisms. For example, Java has a keyword, \CodeIn{synchronized}. The keyword can lock a block of code lines. With the keyword, programmers do not have to acquire and release resources explicitly. Alternatively, programmers can explicitly lock resources with APIs (\emph{e.g.}, \CodeIn{ReentrantLock}). Explicit locks offer more features which \CodeIn{synchronized} do not have such as condition, \CodeIn{tryLock} and fairness.%\zhong{Please introduce the benefits of explicit locks.}
 
-We can also view locks in a different perspective like exclusive and shared locks \cite{journals/jacm/KedemS83}. \zhong{Please explain what exclusive and shared locks are, and their benefits.}
+We can also view locks in a different perspective like exclusive and shared locks \cite{journals/jacm/KedemS83}. When a thread is holding an exclusive lock, other threads cannot acquire this lock until it is released. But shared locks allow multiple threads to hold the lock at one time and alleviate the unnecessary waitings. For example, Java's \CodeIn{ReadWriteLock} is a pair of locks, which allows concurrent access to read operations when there is no write operation going on but exclusive access to write operations.%\zhong{Please explain what exclusive and shared locks are, and their benefits.}
 
 %ReentrantLock, ReentrantReadWriteLock, StampedLock are all API level locks in Java. Although 'synchronized' keyword is convenient and straightforward, we need other locks when we have more requirements. ReentrantLock is a reentrant lock, which means a lock can be acquired repeatedly in the same thread. It is a exclusive lock with the similar behaviour as monitor lock but has more features such as fairness, condition and tryLock. ReadWriteLock is a pair of locks, which allows concurrent access to read operations when there is no write operation going on but exclusive access to write operations. StampedLock is a lock which provides three modes, namely writing, reading and optimistic reading. This lock is usually used in design of thread-safe classes.
-Programmers can change their lock types due to various considerations. For example, the \CodeIn{synchronized} keyword can fail to satisfy fairness (\zhong{What is fairness? Why does it matter?}), programmers have to change such implicit locks to explicit locks. \zhong{Add an example for each situation.}
+%Programmers can change their lock types due to various considerations. For example, the \CodeIn{synchronized} keyword can fail to satisfy fairness (\zhong{What is fairness? Why does it matter?}), programmers have to change such implicit locks to explicit locks. \zhong{Add an example for each situation.}
+Programmers can change their lock types due to various considerations. For example, the \CodeIn{synchronized} keyword cannot suffice to the situation where most operations are not repulsive, in which case a reader-writer lock is more suitable.
 
 %fad9609d13e76e9e3a4e01c96f698bb60b03807e
 %\begin{figure*}
@@ -52,7 +56,7 @@ Programmers can change their lock types due to various considerations. For examp
 %	\caption{Example 1}
 %\end{figure*}
 
-Example 1 is an example of YARN-5825\footnote{\url{https://issues.apache.org/jira/browse/YARN-5825} To save space, we remove the URLs of the other Apache issues. Their URLs can be built by replacing the above URL with their issue number. \zhong{Please remove the URLs}} - \texttt{ProportionalPreemptionalPolicy} could use \texttt{readLock} over \texttt{LeafQueue} instead of a synchronized block. It is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a reader lock. \texttt{LeafQueue} is a method \texttt{getReadLock} which is inherited from its base class. This method returns an instance of \texttt{ReentrantReadWriteLock.ReadLock}. There are many different locks which can be used to synchronize. A reader lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance under the scenario where most of the operations are reading.
+Example 1 is an example of YARN-5825\footnote{\url{https://issues.apache.org/jira/browse/YARN-5825} To save space, we remove the URLs of the other Apache issues. Their URLs can be built by replacing the above URL with their issue number. \zhong{Please remove the URLs}} - \CodeIn{ProportionalPreemptionalPolicy} could use \CodeIn{readLock} over \CodeIn{LeafQueue} instead of a synchronized block. It is a major bug of Hadoop project. They used a synchronized block to synchronize in various places, which can be replaced with a reader lock. \CodeIn{LeafQueue} is a method \CodeIn{getReadLock} which is inherited from its base class. This method returns an instance of \CodeIn{ReentrantReadWriteLock.ReadLock}. There are many different locks which can be used to synchronize. A reader lock is more lightweight than a synchronized block and it allows multiple threads to read simultaneously and hence improves performance under the scenario where most of the operations are reading.
 
 %3e4b1ae6dc786b268505aa2e64067432519c2bcf
 %\begin{figure*}
@@ -62,18 +66,13 @@ Example 1 is an example of YARN-5825\footnote{\url{https://issues.apache.org/jir
 %\zhong{It may be better, if you merge the example figures into a table like Table 1.}
 %\end{figure*}
 
-
-
-\zhong{Please replace all texttt with CodeIn.} 
-
+%\zhong{Please replace all texttt with CodeIn.} 
 
 They also might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. Here are some examples. \zhong{add an example for this.}
 
-Example 2 is an example in Tomcat. \zhong{The issue number?} The developer said a \texttt{ReadWriteLock} cannot guard a \texttt{WeakHashMap}. It is because get() may modify the \texttt{WeakHashMap}, in which case a reader lock is not enough. A plain old lock or synchronization should be used. In this example, the synchronization is used finally. This example is more complex than the previous one although they seem a bit similar. %todo more detail
+Example 2 is an example in Tomcat. \zhong{The issue number?} The developer said a \CodeIn{ReadWriteLock} cannot guard a \CodeIn{WeakHashMap}. It is because get() may modify the \CodeIn{WeakHashMap}, in which case a reader lock is not enough. A plain old lock or synchronization should be used. In this example, the synchronization is used finally. This example is more complex than the previous one although they seem a bit similar. %todo more detail
 
-
- When they find that they only need a simple exclusive lock, they switch to synchronized block. \zhong{add an example for this}
-
+%When they find that they only need a simple exclusive lock, they switch to synchronized block. \zhong{add an example for this}
 
 \zhong{Never use YOU in your paper!}
  
@@ -85,12 +84,12 @@ Example 2 is an example in Tomcat. \zhong{The issue number?} The developer said 
 %	\caption{Example 3}
 %\end{figure*}
 
-Example 3 is an example of FLINK-1419\footnote{\url{https://issues.apache.org/jira/browse/FLINK-1419}} - \texttt{DistributedCache} doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the \texttt{DistributedCache}. They synchronized on \texttt{count}, which is a map instance. Instead, they used \texttt{lock}, which is an instance of \texttt{Object} class. The difference is this instance is only used for synchronization while the former one has its own role not only as a lock. We do not need to blame preference of synchronization usage. This commit also made other changes about synchronization. They modified the critical sections as well.
+Example 3 is an example of FLINK-1419\footnote{\url{https://issues.apache.org/jira/browse/FLINK-1419}} - \CodeIn{DistributedCache} doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the \CodeIn{DistributedCache}. They synchronized on \CodeIn{count}, which is a map instance. Instead, they used \CodeIn{lock}, which is an instance of \CodeIn{Object} class. The difference is this instance is only used for synchronization while the former one has its own role not only as a lock. We do not need to blame preference of synchronization usage. This commit also made other changes about synchronization. They modified the critical sections as well.
 
 %f0e627bb8c9daedb3b064027cac37ce4849bab64
 \zhong{Explain a situation first, before you present its examples! After you present an example, further explain why the sample fit your situation!}
 
-In example 4, The lock instance was originally the instance of the class and now is \texttt{membersLock}. They used single object (\texttt{membersLock}) for all locking as the commit message said. Using a separated locking instance can allow you to have more precise concurrency control than using synchronized methods.
+In example 4, The lock instance was originally the instance of the class and now is \CodeIn{membersLock}. They used single object (\CodeIn{membersLock}) for all locking as the commit message said. Using a separated locking instance can allow you to have more precise concurrency control than using synchronized methods.
 
 \noindent
 \textbf{3. Modifications on critical sections.} A critical section is a code block that is executed, when a thread locked the corresponding resources. \zhong{Based on what??}, we classify such modifications into three categories such as modifications on locks, statements, and locked resources. 
@@ -109,7 +108,7 @@ When two or more threads access one object concurrently and at least one is modi
 %c93d9eaf363a535dff25cc4e7db400d879e73bb1
 %Add option to use single actor system for local execution. Use local connection manager if a single task manager is used for local execution. Remove synchronized blcok in getReceiverList of ChannelManager which effectively serialized the connection lookup calls of a single task manager.
 Modifications on statements change statements of critical sections. 
-Example 6 shows an example of removing synchronization. Developers remove the synchronization of a code block. They said they used a single task manager and removed synchronized block in \texttt{ChannelManager}. If you find the code will not be accessed concurrently or it can be accessed safely in a concurrent way, you do not need to synchronize the code.
+Example 6 shows an example of removing synchronization. Developers remove the synchronization of a code block. They said they used a single task manager and removed synchronized block in \CodeIn{ChannelManager}. If you find the code will not be accessed concurrently or it can be accessed safely in a concurrent way, you do not need to synchronize the code.
 
 \begin{lstlisting}
 commit 7e56bfe40589a1aa9b5ef20b342e421823cd0592
@@ -140,7 +139,7 @@ HDFS-4200. Reduce the size of synchronized sections in PacketResponder. Contribu
      }
 \end{lstlisting}
 
-This is a commit of HDFS-4200\footnote{\url{https://issues.apache.org/jira/browse/HDFS-4200}} - Reduce the size of synchronized sections in \texttt{PacketResponder}, which is a major improvement. The previous two examples are very easy. This is a complex change compared to previous examples. This example contains multiple types of changes. They change the lock instance, remove synchronization of some code, add some new synchronized code. The developers said the size of synchronized sections can be reduced. It is always meaningful to remove the unnecessary synchronizations. Over-synchronization \cite{conf/sigsoft/GuJSZL15} is a real issue in real-world software.
+This is a commit of HDFS-4200\footnote{\url{https://issues.apache.org/jira/browse/HDFS-4200}} - Reduce the size of synchronized sections in \CodeIn{PacketResponder}, which is a major improvement. The previous two examples are very easy. This is a complex change compared to previous examples. This example contains multiple types of changes. They change the lock instance, remove synchronization of some code, add some new synchronized code. The developers said the size of synchronized sections can be reduced. It is always meaningful to remove the unnecessary synchronizations. Over-synchronization \cite{conf/sigsoft/GuJSZL15} is a real issue in real-world software.
 
 %efca79cfb7b496b4bec70561cc94af069c644ef2
 %[FLINK-2384] [runtime] Move blocking I/O call outside of synchronized block
@@ -175,7 +174,7 @@ java.lang.Thread.State: BLOCKED (on object monitor)
 java.lang.Thread.State: BLOCKED (on object monitor)
 \end{lstlisting}
 
-The \texttt{DataSource} is waiting to be notified by the \texttt{Writer} when holding lock A. The \texttt{Writer} is trying to acquire lock B. But lock B is held by the \texttt{Map}. And the \texttt{Map} is trying to acquire lock A, which is held by the \texttt{DataSource}. Here is a waiting chain. This is a kind of bug known as deadlock. The problem is that the \texttt{DataSource} does not need to hold lock A while waiting to be notified. So the developer removed the unnecessary synchronization.
+The \CodeIn{DataSource} is waiting to be notified by the \CodeIn{Writer} when holding lock A. The \CodeIn{Writer} is trying to acquire lock B. But lock B is held by the \CodeIn{Map}. And the \CodeIn{Map} is trying to acquire lock A, which is held by the \CodeIn{DataSource}. Here is a waiting chain. This is a kind of bug known as deadlock. The problem is that the \CodeIn{DataSource} does not need to hold lock A while waiting to be notified. So the developer removed the unnecessary synchronization.
 
 Example 9.
 
@@ -186,14 +185,14 @@ Example 9.
 %Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58392
 %Double-checked locking needs to use volatile to be thread-safe
 
-Example 10 is a fix of bug 58392\footnote{\url{https://bz.apache.org/bugzilla/show_bug.cgi?id=58392}} in Bugzilla. It is reported by a race detector that there is data race on field. Double-checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like omitting \texttt{volatile} modifier of a class member. If \texttt{volatile} is not used, another thread which gets into the method may observe that \texttt{membership} has been assigned but the real initialization of the object has not been done yet due to the JVM's instructions reordering. Some work has been done in double-checked locking pattern \cite{conf/ispass/IshizakiDN14}, which can use this pattern automatically.
+Example 10 is a fix of bug 58392\footnote{\url{https://bz.apache.org/bugzilla/show_bug.cgi?id=58392}} in Bugzilla. It is reported by a race detector that there is data race on field. Double-checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like omitting \CodeIn{volatile} modifier of a class member. If \CodeIn{volatile} is not used, another thread which gets into the method may observe that \CodeIn{membership} has been assigned but the real initialization of the object has not been done yet due to the JVM's instructions reordering. Some work has been done in double-checked locking pattern \cite{conf/ispass/IshizakiDN14}, which can use this pattern automatically.
 
 %560cd00890b3f6af2aca0c3a9d51a45f880692dd
 %Fix a FindBugs warning (increment of volatile not atomic)
 
 \zhong{Please explain why you need two samples for this situation.}
 
-Example 11 shows that \texttt{volatile} is not almighty. The developer used FindBugs to check the code and it said increment of a \texttt{volatile} field is not atomic. This is a wrong demonstration of how to use \texttt{volatile}. The original code is not safe because increment is not an atomic operation. It includes read, calculate and write operations to complete the increment. So the developer used a thread-safe class instead.
+Example 11 shows that \CodeIn{volatile} is not almighty. The developer used FindBugs to check the code and it said increment of a \CodeIn{volatile} field is not atomic. This is a wrong demonstration of how to use \CodeIn{volatile}. The original code is not safe because increment is not an atomic operation. It includes read, calculate and write operations to complete the increment. So the developer used a thread-safe class instead.
 
 \noindent
 \textbf{5. Replacing self-written code with Parallel APIs.} Programmers can implement concurrency code by themselves, but later they realize that it is easier to call APIs that already implement their functionalities. For example, a previous version of Hadoop has the following code: \zhong{Replace the below commit with the buggy code.}
@@ -337,9 +336,9 @@ This example shows a change from ThreadLocal$<$Random$>$ to ThreadLocalRandom fr
 \zhong{Please add more detailed figures! Divide them by their frequencies first! Add \%}
 \end{figure}
 
-Table~\ref{table:topapi} shows the top ten active parallel API classes. \zhong{Explain columns.} For example, the most common class in changes is \texttt{AtomicInteger}. There are 6,891 changes which are related to this class. This indicates that this class is very popular. We notice that the first several classes in the table are all famous and easy to use. The values of different classes vary. For the last 10 classes, the sum of their values is only 148. \%10 classes account for over 50\% occurrence of changes
+Table~\ref{table:topapi} shows the top ten active parallel API classes. \zhong{Explain columns.} For example, the most common class in changes is \CodeIn{AtomicInteger}. There are 6,891 changes which are related to this class. This indicates that this class is very popular. We notice that the first several classes in the table are all famous and easy to use. The values of different classes vary. For the last 10 classes, the sum of their values is only 148. \%10 classes account for over 50\% occurrence of changes
 
-We draw the tendency chart of each class as time goes. Figure 4 shows 3 typical tendencies of these charts. They are ascending lines, descending lines and hybrids. Figure (a) shows an example of ascending tendency. It is \texttt{CountDownLatch}. We are not meaning it is in a strict ascending order. Its overall tendency is rising. Figure (b) shows an example of descending tendency. It is \texttt{LinkedTransferQueue}. However, most charts are like figure (c). They are fluctuating without certain ascending or descending tendency. There are 13 ascending charts, 4 descending charts and 36 hybrid charts.
+We draw the tendency chart of each class as time goes. Figure 4 shows 3 typical tendencies of these charts. They are ascending lines, descending lines and hybrids. Figure (a) shows an example of ascending tendency. It is \CodeIn{CountDownLatch}. We are not meaning it is in a strict ascending order. Its overall tendency is rising. Figure (b) shows an example of descending tendency. It is \CodeIn{LinkedTransferQueue}. However, most charts are like figure (c). They are fluctuating without certain ascending or descending tendency. There are 13 ascending charts, 4 descending charts and 36 hybrid charts.
 
 %We write a program to count and analyze concurrent programming classes usage. Table IV shows top 10 classes added and deleted in the history. Some classes are both active in the added and the deleted column like AtomicInteger and CountDownLatch. This is not surprising because a deletion of class does not mean this class is abandoned. This also indicates this class is active. An interesting observation is that deletions appear more than addition.
 
