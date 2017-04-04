@@ -1,3 +1,4 @@
+*.log
 /bare_conf.aux
 /bare_conf.bbl
 /bare_conf.bib

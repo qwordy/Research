@@ -30,7 +30,7 @@
 
 %Table~\ref{} and \ref{} show an overview of our extracted change patterns. \zhong{Please explain the columns.}
 
-Table~\ref{table:patterns} shows an overview of our extracted change patterns. The first column is the sequence number of patterns. The ``source'' column shows the concrete examples of patterns. We put related source code in it. The left is the original code and the right is the modified code. We align the corresponding statements. We use different colors to mark modified lines. The ``pattern'' column shows the extracted patterns. They are short as they ignore the specific statements.
+Table~\ref{table:patterns} and table~\ref{table:patterns2} show an overview of our extracted change patterns. The first column is the sequence number of patterns. The ``source'' column shows the concrete examples of patterns. We put related source code in it. The left is the original code and the right is the modified code. We align the corresponding statements. We use different colors to mark modified lines. The ``pattern'' column shows the extracted patterns. They are short as they ignore the specific statements.
 
 \begin{table*}
 	\centering
@@ -70,7 +70,7 @@ Example 1 is an example of YARN-5825\footnote{\url{https://issues.apache.org/jir
 
 %They also might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. Here are some examples. \zhong{add an example for this.}
 
-Example 2 is an example in Tomcat. This example is not involved in the issue tracking systems. The developer said a \CodeIn{ReadWriteLock} cannot guard a \CodeIn{WeakHashMap}. It is because get() may modify the \CodeIn{WeakHashMap}, in which case a reader lock is not enough. A plain old lock or synchronization should be used. In this example, the synchronization is used finally. This example is more complex than the previous one although they seem a bit similar.%todo more detail
+Example 2 is an example in Tomcat. This example is not involved in the issue tracking systems. The developer said a \CodeIn{ReadWriteLock} cannot guard a \CodeIn{WeakHashMap}. It is because get() may modify the \CodeIn{WeakHashMap}, in which case a reader lock is not enough. A plain old lock or synchronization should be used. In this example, the synchronization is used finally. This example is more complex than the previous one although they seem a bit similar. The original version first tries to acquire a reader lock and initialize the \CodeIn{result}. If fails, it uses a writer lock and does some logic. The purpose of this piece of code is to get an object from a map and if it does not exist, create one. The modified version simply uses the \CodeIn{synchronized} keyword.%todo more detail
 
 %When they find that they only need a simple exclusive lock, they switch to synchronized block. \zhong{add an example for this}
 
@@ -88,20 +88,17 @@ Fixing bugs are always what developers do when they maintain their software. Cha
 
 Example 3 is an example of FLINK-1419 - \CodeIn{DistributedCache} doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the \CodeIn{DistributedCache}. They synchronized on \CodeIn{count}, which is a map instance. Instead, they used \CodeIn{lock}, which is an instance of \CodeIn{Object} class. The difference is this instance is only used for synchronization while the former one has its own role not only as a lock. We do not need to blame preference of synchronization usage. This commit also made other changes about synchronization. They modified the critical sections as well and then finally fixed the bug.
 
-In example 4, 
-
 %f0e627bb8c9daedb3b064027cac37ce4849bab64
 %\zhong{Explain a situation first, before you present its examples! After you present an example, further explain why the sample fit your situation!}
 
-In some cases, things are not so serious to become a bug. Developers refactor the software 
+In some cases, things are not so serious to become a bug. Developers refactor the software.
 
-In example 5, The lock instance was originally the instance of the class and now is \CodeIn{membersLock}. They used single object (\CodeIn{membersLock}) for all locking as the commit message said. Using a separated locking instance can allow you to have more precise concurrency control than using synchronized methods.
+In example 4, The lock instance was originally the instance of the class and now is \CodeIn{membersLock}. They used single object (\CodeIn{membersLock}) for all locking as the commit message said. Using a separated locking instance can allow you to have more precise concurrency control than using synchronized methods.
 
 \noindent
-\textbf{3. Modifications on critical sections.} A critical section is a code block that is executed, when a thread locked the corresponding resources. \zhong{Based on what??}, we classify such modifications into three categories such as modifications on locks, statements, and locked resources. 
+\textbf{3. Modifications on critical sections.} A critical section is a code block that is executed, when a thread locked the corresponding resources. The modifications can be on locks, statements or both.% \zhong{Based on what??}, we classify such modifications into two categories namely modifications on locks, statements.
 
-
-Modifications on locks either add or remove locks. For example, the ?? row in Table~\ref{} shows an example of adding synchronization. The method was not synchronized before. The basic reason of adding synchronization to existing code is the piece of code might be access concurrently. It is a change to fix a bug\footnote{\url{https://bz.apache.org/bugzilla/show\_bug.cgi?id=58386}}. This bug was reported by RV-Predict, a dynamic race detector. It said
+Modifications on locks either add or remove locks. For example, example 5 shows an example of adding synchronization. The method was not synchronized before. The basic reason of adding synchronization to existing code is the piece of code might be access concurrently. It is a change to fix a bug\footnote{\url{https://bz.apache.org/bugzilla/show\_bug.cgi?id=58386}}. This bug was reported by RV-Predict, a dynamic race detector. It said
 
 \begin{lstlisting}
 Reported by RV-Predict (a dynamic race detector) when running the test suite:
@@ -111,10 +108,11 @@ Concurrent write in thread T93 (locks held: {Monitor@8a841fe, Monitor@8a9a01a})
 
 When two or more threads access one object concurrently and at least one is modifying the object, a data race might happen. The easiest way to tackle this problem is adding synchronization to the access of the object.
 
+Example 6 shows an example of removing synchronization. Developers removed the synchronization of a code block. In other words, they moved a block of code out of a critical section. They said they used a single task manager and removed synchronized block in \CodeIn{ChannelManager}. If the code will not be accessed concurrently or it can be accessed safely in a concurrent way, there is no need to synchronize the code.
+
 %c93d9eaf363a535dff25cc4e7db400d879e73bb1
 %Add option to use single actor system for local execution. Use local connection manager if a single task manager is used for local execution. Remove synchronized blcok in getReceiverList of ChannelManager which effectively serialized the connection lookup calls of a single task manager.
-Modifications on statements change statements of critical sections. 
-Example 6 shows an example of removing synchronization. Developers remove the synchronization of a code block. They said they used a single task manager and removed synchronized block in \CodeIn{ChannelManager}. If you find the code will not be accessed concurrently or it can be accessed safely in a concurrent way, you do not need to synchronize the code.
+
 
 \begin{lstlisting}
 commit 7e56bfe40589a1aa9b5ef20b342e421823cd0592
@@ -145,7 +143,7 @@ HDFS-4200. Reduce the size of synchronized sections in PacketResponder. Contribu
      }
 \end{lstlisting}
 
-This is a commit of HDFS-4200\footnote{\url{https://issues.apache.org/jira/browse/HDFS-4200}} - Reduce the size of synchronized sections in \CodeIn{PacketResponder}, which is a major improvement. The previous two examples are very easy. This is a complex change compared to previous examples. This example contains multiple types of changes. They change the lock instance, remove synchronization of some code, add some new synchronized code. The developers said the size of synchronized sections can be reduced. It is always meaningful to remove the unnecessary synchronizations. Over-synchronization \cite{conf/sigsoft/GuJSZL15} is a real issue in real-world software.
+Modifications on statements change statements of critical sections. Example 7 is a commit of HDFS-4200 - Reduce the size of synchronized sections in \CodeIn{PacketResponder}, which is a major improvement. The previous two examples are very easy. This is a complex change compared to previous examples. This example contains multiple types of changes. They change the lock instance, remove synchronization of some code, add some new synchronized code. The developers said the size of synchronized sections can be reduced. It is always meaningful to remove the unnecessary synchronizations. Over-synchronization \cite{conf/sigsoft/GuJSZL15} is a real issue in real-world software.
 
 %efca79cfb7b496b4bec70561cc94af069c644ef2
 %[FLINK-2384] [runtime] Move blocking I/O call outside of synchronized block
@@ -182,7 +180,14 @@ java.lang.Thread.State: BLOCKED (on object monitor)
 
 The \CodeIn{DataSource} is waiting to be notified by the \CodeIn{Writer} when holding lock A. The \CodeIn{Writer} is trying to acquire lock B. But lock B is held by the \CodeIn{Map}. And the \CodeIn{Map} is trying to acquire lock A, which is held by the \CodeIn{DataSource}. Here is a waiting chain. This is a kind of bug known as deadlock. The problem is that the \CodeIn{DataSource} does not need to hold lock A while waiting to be notified. So the developer removed the unnecessary synchronization.
 
-Example 9.
+%Example 9.
+
+\begin{table*}
+	\centering
+	\includegraphics[width=1\textwidth]{patterns2}
+	\caption{Patterns (Cont.)}
+	\label{table:patterns2}
+\end{table*}
 
 \noindent
 \textbf{4. Changing the \CodeIn{volatile} keyword.} In Java, the \CodeIn{volatile} keyword denotes a variable that is saved in the main memory. For a \CodeIn{volatile} variable, a thread reads its latest value from the main memory, instead of the obsolete  value in the cache. Although it can improve the overall performance, races can occur, when multiple threads read and write \CodeIn{volatile} variables simultaneously.
@@ -196,12 +201,12 @@ Example 10 is a fix of bug 58392\footnote{\url{https://bz.apache.org/bugzilla/sh
 %560cd00890b3f6af2aca0c3a9d51a45f880692dd
 %Fix a FindBugs warning (increment of volatile not atomic)
 
-\zhong{Please explain why you need two samples for this situation.}
+%\zhong{Please explain why you need two samples for this situation.}
 
-Example 11 shows that \CodeIn{volatile} is not almighty. The developer used FindBugs to check the code and it said increment of a \CodeIn{volatile} field is not atomic. This is a wrong demonstration of how to use \CodeIn{volatile}. The original code is not safe because increment is not an atomic operation. It includes read, calculate and write operations to complete the increment. So the developer used a thread-safe class instead.
+It seems easy to simply add or delete a \CodeIn{volatile} modifier of a variable. Literally it is. But the specific context is different. And the reasons vary. Example 11 shows that \CodeIn{volatile} is not almighty. The developer used FindBugs to check the code and it said increment of a \CodeIn{volatile} field is not atomic. This is a wrong demonstration of how to use \CodeIn{volatile}. The original code is not safe because increment is not an atomic operation. It includes read, calculate and write operations to complete the increment. So the developer used a thread-safe class instead.
 
 \noindent
-\textbf{5. Replacing self-written code with Parallel APIs.} Programmers can implement concurrency code by themselves, but later they realize that it is easier to call APIs that already implement their functionalities. For example, a previous version of Hadoop has the following code: \zhong{Replace the below commit with the buggy code.}
+\textbf{5. Replacing self-written code with Parallel APIs.} Programmers can implement concurrency code by themselves, but later they realize that it is easier to call APIs that already implement their functionalities. For example, a previous version of Hadoop has the following code:% \zhong{Replace the below commit with the buggy code.}
 
 \begin{lstlisting}
 commit a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
