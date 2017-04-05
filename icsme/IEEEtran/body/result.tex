@@ -153,11 +153,12 @@ Modifications on statements change statements of critical sections. Example 7 is
 	\centering
 	\includegraphics[height=1.7in]{deadlock}
 	\caption{Deadlock}
-\zhong{Please add resource columns and add edges to denote resource manipulations.}
+	\label{figure:deadlock}
+%\zhong{Please add resource columns and add edges to denote resource manipulations.}
 \end{figure}
 
 
-Modifications on locked resources change the criteria of entering critical sections.  \zhong{Please check whether the samples explain the corresponding situations.}
+%Modifications on locked resources change the criteria of entering critical sections.  \zhong{Please check whether the samples explain the corresponding situations.}
 
 Example 8 is a fix of a bug. It is a critical bug issue\footnote{\url{https://issues.apache.org/jira/browse/FLINK-2384}} ``Deadlock during partition spilling''. A user reported the problem. Here is selected parts of the stack trace.
 
@@ -172,7 +173,7 @@ java.lang.Thread.State: BLOCKED (on object monitor)
 java.lang.Thread.State: BLOCKED (on object monitor)
 \end{lstlisting}
 
-The \CodeIn{DataSource} is waiting to be notified by the \CodeIn{Writer} when holding lock A. The \CodeIn{Writer} is trying to acquire lock B. But lock B is held by the \CodeIn{Map}. And the \CodeIn{Map} is trying to acquire lock A, which is held by the \CodeIn{DataSource}. Here is a waiting chain. This is a kind of bug known as deadlock. The problem is that the \CodeIn{DataSource} does not need to hold lock A while waiting to be notified. So the developer removed the unnecessary synchronization.
+Figure~\ref{figure:deadlock} shows the dependency loop between threads. Let $s1$ and $s2$ denote two statements. An arrow from $s1$ to $s2$ means $s1$ cannot be returned before $s2$ has been returned. The \CodeIn{DataSource} (thread-1) is waiting to be notified by the \CodeIn{Writer} (thread-2) when holding lock A. The \CodeIn{Writer} (thread-2) is trying to acquire lock B. But lock B is held by the \CodeIn{Map} (thread-3). And the \CodeIn{Map} (thread-3) is trying to acquire lock A, which is held by the \CodeIn{DataSource} (thread-1). Here is a waiting chain. This is a kind of bug known as deadlock. The problem is that the \CodeIn{DataSource} (thread-1) does not need to hold lock A while waiting to be notified. So the developer removed the unnecessary synchronization.
 
 %Example 9.
 
