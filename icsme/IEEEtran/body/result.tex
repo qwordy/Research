@@ -47,7 +47,7 @@ We can also view locks in a different perspective like exclusive and shared lock
 
 %ReentrantLock, ReentrantReadWriteLock, StampedLock are all API level locks in Java. Although 'synchronized' keyword is convenient and straightforward, we need other locks when we have more requirements. ReentrantLock is a reentrant lock, which means a lock can be acquired repeatedly in the same thread. It is a exclusive lock with the similar behaviour as monitor lock but has more features such as fairness, condition and tryLock. ReadWriteLock is a pair of locks, which allows concurrent access to read operations when there is no write operation going on but exclusive access to write operations. StampedLock is a lock which provides three modes, namely writing, reading and optimistic reading. This lock is usually used in design of thread-safe classes.
 %Programmers can change their lock types due to various considerations. For example, the \CodeIn{synchronized} keyword can fail to satisfy fairness (\zhong{What is fairness? Why does it matter?}), programmers have to change such implicit locks to explicit locks. \zhong{Add an example for each situation.}
-Programmers can change their lock types due to various considerations. They might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. The reverse transition also exists. The following two examples give more details of these transitions. The transitions are not limited to these two specific types.%For example, the \CodeIn{synchronized} keyword cannot suffice to the situation where most operations are not repulsive, in which case a reader-writer lock is more suitable. 
+Programmers can change their lock types due to various considerations. They might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. The reverse transition also exists. The following two examples give more details of these transitions. The transitions are not limited to these two specific types.%For example, the \CodeIn{synchronized} keyword cannot suffice to the situation where most operations are not repulsive, in which case a reader-writer lock is more suitable.
 
 %fad9609d13e76e9e3a4e01c96f698bb60b03807e
 %\begin{figure*}
@@ -66,7 +66,7 @@ Example 1 is an example of YARN-5825\footnote{\url{https://issues.apache.org/jir
 %\zhong{It may be better, if you merge the example figures into a table like Table 1.}
 %\end{figure*}
 
-%\zhong{Please replace all texttt with CodeIn.} 
+%\zhong{Please replace all texttt with CodeIn.}
 
 %They also might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. Here are some examples. \zhong{add an example for this.}
 
@@ -75,8 +75,8 @@ Example 2 is an example in Tomcat. This example is not involved in the issue tra
 %When they find that they only need a simple exclusive lock, they switch to synchronized block. \zhong{add an example for this}
 
 \zhong{Never use YOU in your paper!}
- 
-\noindent 
+
+\noindent
 \textbf{2. Changing locked resources.} A program needs to lock a resource before it enters the corresponding critical section. Programmers can change locked resources, when they maintain concurrency code. The reasons behind this kind of changes are usually fixing bugs and refactoring.%\zhong{Why they do that? To fix bugs?}
 %\begin{figure*}
 %	\centering
@@ -402,12 +402,18 @@ We draw the tendency chart of each class as time goes. Figure 4 shows 3 typical 
 	\subfigure[Netty]{\includegraphics[height=1.2in]{netty}}
 	\subfigure[Tomcat]{\includegraphics[height=1.2in]{tomcat}}
 	\caption{Number of concurrent related commits compared to all commits}
-\zhong{add confidence!}
+\label{fig:confidence}
+\zhong{add confidence! Add a mark to denote whether it holds or not for each figure.}
 \end{figure*}
 \zhong{Cite and discuss Lu Shan's paper first, before you introduce your results. Explain why you conduct the study, given that Lu Shan already did that.}
 
 Figure 1 shows the numbers of concurrent related commits and all commits of each month in all projects of our study. It also shows the percentage of concurrent related commits. Each subfigure has two subfigures inside. The x axis represents the time in month. The upper subfigure has two lines. The higher line shows the number of all commits while the lower line shows the number of concurrent related commits. The number of concurrent related commits is relatively small compared to the number of all commits. The two indexes have a positive correlation generally. The bottom subfigure shows the percentage of concurrent related commits. The percentages differ in project and time. For example, the percentage of concurrent related commits in mahout is relatively lower than other projects. The percentage in Hadoop is stable and high compared to other projects.
- 
+
+
+\zhong{Delete the following confidences, since you add them in Figure~\ref{fig:confidence} already}. 
+
+\zhong{Introduce your null hypothesis. Introduce how to decide to reject a null hypothesis. That is, introduce how you determine two curves are coefficient.}. 
+
 We calculate Spearman's rank correlation coefficient of number of commits and concurrency commits. Our result in a different language is similar to Gu's result. The coefficients are 0.094 for Cassandra, 0.844 for Flink, 0.868 for Hadoop, 0.896 for Lucene, 0.910 for Netty and 0.745 for Tomcat. Our result is consistent with Gu's result except one project.
 
 \zhong{Explain whether your results are consistent with Shan Lu or not. }
