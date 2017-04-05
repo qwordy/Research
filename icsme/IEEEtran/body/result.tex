@@ -35,11 +35,16 @@ Table~\ref{table:patterns} and table~\ref{table:patterns2} show an overview of o
 \begin{table*}
 	\centering
 	\includegraphics[width=1\textwidth]{patterns}
-	\caption{Patterns}
+	\caption{Change patterns}
 	\label{table:patterns}
 %\zhong{Please add labels to all your figures, tables, and sections. Please refer to your figures with labels. Please split the figure into two figures. Use Table instead of Figure. The font is too small.}
 \end{table*}
-
+\begin{table*}
+	\centering
+	\includegraphics[width=1\textwidth]{patterns2}
+	\caption{Change patterns (Cont.)}
+	\label{table:patterns2}
+\end{table*}
 \noindent
 \textbf{1. Changing lock types.} It is feasible to lock resources with different mechanisms. For example, Java has a keyword, \CodeIn{synchronized}. The keyword can lock a block of code lines. With the keyword, programmers do not have to acquire and release resources explicitly. Alternatively, programmers can explicitly lock resources with APIs (\emph{e.g.}, \CodeIn{ReentrantLock}). Explicit locks offer more features which \CodeIn{synchronized} do not have such as condition, \CodeIn{tryLock} and fairness.%\zhong{Please introduce the benefits of explicit locks.}
 
@@ -182,12 +187,7 @@ The \CodeIn{DataSource} is waiting to be notified by the \CodeIn{Writer} when ho
 
 %Example 9.
 
-\begin{table*}
-	\centering
-	\includegraphics[width=1\textwidth]{patterns2}
-	\caption{Patterns (Cont.)}
-	\label{table:patterns2}
-\end{table*}
+
 
 \noindent
 \textbf{4. Changing the \CodeIn{volatile} keyword.} In Java, the \CodeIn{volatile} keyword denotes a variable that is saved in the main memory. For a \CodeIn{volatile} variable, a thread reads its latest value from the main memory, instead of the obsolete  value in the cache. Although it can improve the overall performance, races can occur, when multiple threads read and write \CodeIn{volatile} variables simultaneously.
