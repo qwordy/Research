@@ -73,7 +73,7 @@ As the above message explains, a developer complained that the \CodeIn{ReadWrite
 
 
 \noindent
-\textbf{2. Changing locked resources.} A program needs to lock a resource before it enters the corresponding critical section. Programmers can change locked resources, when they maintain concurrency code. We find that programmers mainly change locked resources to fix bugs. For example, the third item of Table~\ref{table:patterns} comes from FLINK-1419. This bug complains that \CodeIn{DistributedCache} does not preserver files for subsequent operations. Based on its discussions, we understand that in the buggy file, programmers lock \CodeIn{count}, while they shall lock \CodeIn{lock}. To fully fix the bug, programmers also modified the critical sections and the \CodeIn{finally} clause.
+\textbf{2. Changing locked variables.} A program needs to lock variables before it enters critical section bodies. Programmers can change locked resources, when they maintain concurrency code. We find that programmers mainly change locked resources to fix bugs. For example, the third item of Table~\ref{table:patterns} comes from FLINK-1419. This bug complains that \CodeIn{DistributedCache} does not preserver files for subsequent operations. Based on its discussions, we understand that in the buggy file, programmers lock \CodeIn{count}, while they shall lock \CodeIn{lock}. To fully fix the bug, programmers also modified the critical sections and the \CodeIn{finally} clause.
 
 %f0e627bb8c9daedb3b064027cac37ce4849bab64
 %\zhong{Explain a situation first, before you present its examples! After you present an example, further explain why the sample fit your situation!}
@@ -98,13 +98,13 @@ We find that programmers can also delete unnecessary locks. For example, the six
 Developers removed the synchronization of a code block. In other words, they moved a block of code out of a critical section. They said they used a single task manager and removed synchronized block in \CodeIn{ChannelManager}. If the code will not be accessed concurrently or it can be accessed safely in a concurrent way, there is no need to synchronize the code.
 
 \noindent
-\textbf{3. Modifications on critical sections.} A critical section is a code block that is executed, when a thread locked the corresponding resources. The modifications can be on locks, statements or both.% \zhong{Based on what??}, we classify such modifications into two categories namely modifications on locks, statements.
+\textbf{3. Modifications on critical section bodies.} A critical section is a code block that is executed, when a thread locked the corresponding resources. The modifications can be on locks, statements or both.% \zhong{Based on what??}, we classify such modifications into two categories namely modifications on locks, statements.
 
 
 
 %c93d9eaf363a535dff25cc4e7db400d879e73bb1
 %Add option to use single actor system for local execution. Use local connection manager if a single task manager is used for local execution. Remove synchronized blcok in getReceiverList of ChannelManager which effectively serialized the connection lookup calls of a single task manager.
-
+\zhong{Why do you list the following commits?}
 
 \begin{lstlisting}
 commit 7e56bfe40589a1aa9b5ef20b342e421823cd0592
