@@ -77,7 +77,9 @@ def writeFile(name, dict):
   for key in dict:
     out.write(str(key) + ' ' + str(dict[key]) + '\n')
   out.close()
-  
+
+font = {'size': 15}
+
 def draw():
   for filename in os.listdir('newdata'):
     print filename
@@ -101,14 +103,24 @@ def draw():
     #print e
     #print f
     plt.cla()
-    plt.figure(figsize=(8, 2))
+    fig = plt.figure(figsize=(6, 2))
     plt.plot(e, f)
     plt.xlim(1, xmax - xmin + 1)
     plt.ylim(0)
     plt.title(filename)
-    plt.xlabel('Time (month)')
-    plt.ylabel('Count')
+    plt.xlabel('Time (month)', fontdict=font)
+    plt.ylabel('Count', fontdict=font)
+
+    x, y = 0.2, 0.7
+    if filename == 'CountDownLatch':
+      plt.figtext(x, y, '24%', fontdict=font)
+    elif filename == 'LinkedTransferQueue':
+      plt.figtext(x, y, '8%', fontdict=font)
+    elif filename == 'ThreadPoolExecutor':
+      plt.figtext(x, y, '68%', fontdict=font)
+
     plt.savefig('newfig/' + filename + '.pdf')
+    plt.close(fig)
 
 def sort():
   for filename in os.listdir('newdata'):

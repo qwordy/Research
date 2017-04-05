@@ -429,16 +429,19 @@ public class Counter {
 %	\caption{Removal of CountDownLatch}
 %\end{figure}
 
-\begin{figure}
+\begin{figure*}
 	\centering
-	\subfigure[Ascending]{\includegraphics[height=0.8in]{CountDownLatch}}
-	\subfigure[Descending]{\includegraphics[height=0.8in]{LinkedTransferQueue}}
-	\subfigure[Hybrid]{\includegraphics[height=0.8in]{ThreadPoolExecutor}}
+	\subfigure[Ascending]{\includegraphics[width=2.3in]{CountDownLatch}}
+	\subfigure[Descending]{\includegraphics[width=2.3in]{LinkedTransferQueue}}
+	\subfigure[Hybrid]{\includegraphics[width=2.3in]{ThreadPoolExecutor}}
+	\subfigure[High]{\includegraphics[width=2.3in]{AtomicInteger}}
+	\subfigure[Medium]{\includegraphics[width=2.3in]{SynchronousQueue}}
+	\subfigure[Low]{\includegraphics[width=2.3in]{DiscardPolicy}}
 	\caption{Typical Trend of Change Frequency}
-\zhong{Please add more detailed figures! Divide them by their frequencies first! Add \%}
-\end{figure}
+%\zhong{Please add more detailed figures! Divide them by their frequencies first! Add \%}
+\end{figure*}
 
-Table~\ref{table:topapi} shows the top ten active parallel API classes. The first column lists the names of these classes. The second column lists the times of their occurrence respectively in changed lines in commits. For example, the most common class in changes is \CodeIn{AtomicInteger}. There are 6,891 changes which are related to this class. This indicates that this class is very popular. We notice that the first several classes in the table are all famous and easy to use. The values of different classes vary. For the last 10 classes, the sum of their values is only 148. \%10 classes account for over 50\% occurrence of changes.
+Table~\ref{table:topapi} shows the top ten active parallel API classes. The first column lists the names of these classes. The second column lists the times of their occurrence respectively in changed lines in commits. For example, the most common class in changes is \CodeIn{AtomicInteger}. There are 6,891 changes which are related to this class. This indicates that this class is very popular. We notice that the first several classes in the table are all famous and easy to use. The values of different classes vary. The first \%10 classes account for over 50\% occurrence of changes. The last \%10 classes account for only 0.36\%.
 
 We draw the tendency chart of each class as time goes. Figure 4 shows 3 typical tendencies of these charts. They are ascending lines, descending lines and hybrids. Figure (a) shows an example of ascending tendency. It is \CodeIn{CountDownLatch}. We are not meaning it is in a strict ascending order. Its overall tendency is rising. Figure (b) shows an example of descending tendency. It is \CodeIn{LinkedTransferQueue}. However, most charts are like figure (c). They are fluctuating without certain ascending or descending tendency. There are 13 ascending charts, 4 descending charts and 36 hybrid charts.
 
