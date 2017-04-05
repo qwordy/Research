@@ -31,7 +31,7 @@ def draw2(project):
     a, b, c, d, e = np.loadtxt(project, unpack=True)
     f = e / d
     
-    font = {'size': 20}
+    font = {'size': 17}
     
     plt.subplot(2, 1, 1)
     plt.cla()
