@@ -222,7 +222,9 @@ public synchronized long nextStamp() {
 }
 \end{lstlisting}
 
-Later, a programmer realizes that it is better to replace the above code with the \CodeIn{AtomicLong} class. He reported the issue (HDFS-4029), and set its priority as major. Here, \CodeIn{AtomicLong} is a thread-safe version of type long. It allows updating a \CodeIn{Long} value without explicit synchronization and it is fast. It not only offers a simple interface, but also has a different implementation than the example code above. It uses \CodeIn{Unsafe} class, which provides unsafe operations as its name represents. This class allows low-level programming in Java, which is considered unsafe but can save running time without the check to guarantee safety. It might be promoted to be public API in Java 9. The fixed code is as follow:
+Later, a programmer realizes that it is better to replace the above code with the \CodeIn{AtomicLong} class. He reported the issue (HDFS-4029), and set its priority as major. Here, \CodeIn{AtomicLong} is a thread-safe version of type long. It allows updating a \CodeIn{Long} value without explicit synchronization and it is fast. 
+
+%It not only offers a simple interface, but also has a different implementation than the example code above. It uses \CodeIn{Unsafe} class, which provides unsafe operations as its name represents. This class allows low-level programming in Java, which is considered unsafe but can save running time without the check to guarantee safety. It might be promoted to be public API in Java 9. The fixed code is as follow:
 
 %\zhong{Replace the below commit with the fixed code.}
 
