@@ -1,26 +1,56 @@
 \section{Discussion and Future Work}
+%\noindent
+%\textbf{The causes of reverted commits.} We find that programmers can revert a previous change in the follow-up commits. For example,
+%
+%
+%\zhong{List the previous commit:}
+%
+%\zhong{Explain the commit}
+%
+%However, in a follow-up commit, we find that the above commit is reverted as follow: 
+%
+%
+%\begin{lstlisting}
+%commit f5fab1f64ba11e04e52bd6251ca62fc854e9578c
+%Whoops. Fix regression in r1724015.
+%Code was used although I can't see why a simple AtomicInteger wasn't sufficient.
+%
+%+    private final AtomicInteger aprPoolDestroyed = new AtomicInteger(0);
+%-    private static final AtomicIntegerFieldUpdater<OpenSSLContext> DESTROY_UPDATER = AtomicIntegerFieldUpdater.newUpdater(OpenSSLContext.class, "aprPoolDestroyed");
+%\end{lstlisting}
+%
+%\zhong{Explain the above commit.}
+%\zhong{Explain why programmers revert the commit, why it matters?}
+
 \noindent
-\textbf{The causes of reverted commits.} We find that programmers can revert a previous change in the follow-up commits. For example,
-
-
-\zhong{List the previous commit:}
-
-\zhong{Explain the commit}
-
-However, in a follow-up commit, we find that the above commit is reverted as follow: 
-
+\textbf{The causes of opposite commits.} We find that different programmers can make opposite changes. Here is a pair of opposite commits. The first commit is from Cassandra:
 
 \begin{lstlisting}
-commit f5fab1f64ba11e04e52bd6251ca62fc854e9578c
-Whoops. Fix regression in r1724015.
-Code was used although I can't see why a simple AtomicInteger wasn't sufficient.
-
-+    private final AtomicInteger aprPoolDestroyed = new AtomicInteger(0);
--    private static final AtomicIntegerFieldUpdater<OpenSSLContext> DESTROY_UPDATER = AtomicIntegerFieldUpdater.newUpdater(OpenSSLContext.class, "aprPoolDestroyed");
+-private final AtomicInteger references = new AtomicInteger(1);
++private volatile int references = 1;
++private static final AtomicIntegerFieldUpdater<RefCountedMemory> UPDATER = AtomicIntegerFieldUpdater.newUpdater(RefCountedMemory.class, "references");
+...
+-  int n = references.get();
++  int n = UPDATER.get(this);
+...
+-  if (references.compareAndSet(n, n + 1))
++  if (UPDATER.compareAndSet(this, n, n + 1))
+...
+-  if (references.decrementAndGet() == 0)
++  if (UPDATER.decrementAndGet(this) == 0)
 \end{lstlisting}
 
-\zhong{Explain the above commit.}
-\zhong{Explain why programmers revert the commit, why it matters?}
+The second commit is from Tomcat:
+
+\begin{lstlisting}
+-private static final AtomicIntegerFieldUpdater<OpenSSLContext> DESTROY_UPDATER = AtomicIntegerFieldUpdater.newUpdater(OpenSSLContext.class, "aprPoolDestroyed");
++private final AtomicInteger aprPoolDestroyed = new AtomicInteger(0);
+...
+-  if (DESTROY_UPDATER.compareAndSet(this, 0, 1))
++  if (aprPoolDestroyed.compareAndSet(0, 1))
+\end{lstlisting}
+
+The first commit uses \CodeIn{AtomicIntegerFieldUpdater} to replace \CodeIn{AtomicInteger}. The programmer says it can save memory by doing this. However, in the second commit, the programmer uses \CodeIn{AtomicInteger} to replace \CodeIn{AtomicIntegerFieldUpdater}. He says that he cannot see why a simple \CodeIn{AtomicInteger} is not sufficient.
 
 \noindent
 \textbf{The extension of existing tools.} \zhong{Explain how to improve existing tools with your findings. Discuss how to implement a tool that, for example, that can replace self-written code with existing parallel APIs. }
