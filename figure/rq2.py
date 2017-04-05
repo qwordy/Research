@@ -31,7 +31,7 @@ def draw2(project):
     a, b, c, d, e = np.loadtxt(project, unpack=True)
     f = e / d
     
-    font = {'size': 16}
+    font = {'size': 20}
     
     plt.subplot(2, 1, 1)
     plt.cla()
@@ -47,7 +47,7 @@ def draw2(project):
     plt.plot(c, f)
     plt.xlabel('Time (month)', fontdict=font)
     plt.ylabel('Percentage', fontdict=font)
-    plt.text(3, 1, 'confidence=' + confs[project])
+    plt.text(3, 0.7, 'Correlation=' + confs[project], fontdict=font)
     plt.xlim(c.min(), c.max())
     plt.ylim(0, 1)
     
