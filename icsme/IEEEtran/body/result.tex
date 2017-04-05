@@ -65,8 +65,15 @@ We find that programmers can replace the \CodeIn{synchronized} keyword with para
 %\zhong{Please replace all texttt with CodeIn.}
 
 %They also might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. Here are some examples. \zhong{add an example for this.}
-Meanwhile, we find that programmers can replace parallel API classes with the \CodeIn{synchronized} keyword. For example, the second item of Table~\ref{table:patterns} comes from Tomcat. This commit is not reported, and we find it through our SVM classifier. \zhong{List the commit message/log}.
+Meanwhile, we find that programmers can replace parallel API classes with the \CodeIn{synchronized} keyword. For example, the second item of Table~\ref{table:patterns} comes from Tomcat. This commit is not reported, and we find it through our SVM classifier.% \zhong{List the commit message/log}.
 
+%3e4b1ae6dc786b268505aa2e64067432519c2bcf
+\begin{lstlisting}
+A ReadWriteLock cannot be used to guard a WeakHashMap. The
+WeakHashMap may modify itself on get(), as it processes the reference
+queue of items removed by GC.
+Either a plain old lock / synchronization is needed, or some other solution
+\end{lstlisting}
 
 As the above message explains, a developer complained that the \CodeIn{ReadWriteLock} method does not guard the \CodeIn{WeakHashMap} variable, since the \CodeIn{get()} method can modify the \CodeIn{WeakHashMap} variable, and the modification can bypass the lock. In this example, programmers fix the problem by replacing the methods with the \CodeIn{synchronized} keyword.%todo more detail
 
