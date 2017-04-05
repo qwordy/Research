@@ -283,12 +283,12 @@ Instead of handling synchronization by themselves, programmers replace the above
 \subsection{RQ2. The usefulness of our change patterns.}
 \label{sec:result:sample}
 
-\zhong{Try to add an example for each change pattern.}
-\zhong{How many pull requests did you submit?}
+%\zhong{Try to add an example for each change pattern.}
+%\zhong{How many pull requests did you submit?}
 
-We have found some contexts which are suitable for the change patterns in different projects.
+We have found some contexts which are suitable for the change patterns in different projects. We make 3 pull requests. One is accepted. One is abandoned. One is not responded yet.
 
-Schmince-2 is a game in Google Play. It has the following code:
+Schmince-2\footnote{\url{https://github.com/derekmu/Schmince-2}} is a game in Google Play. It has the following code:
 
 \begin{lstlisting}
 public class DRandom {
@@ -330,8 +330,7 @@ public class DRandom {
 
 %This example shows a change from ThreadLocal$<$Random$>$ to ThreadLocalRandom from JDK7. It is from a Schmince-2, a game on Google Play. We make the change and our pull request\footnote{\url{https://github.com/derekmu/Schmince-2/pull/1}} has been accept. ThreadLocalRandom should be used when available in place of ThreadLocal$<$Random$>$. For JDK7 the difference is minimal, but JDK8 starts including optimizations for ThreadLocalRandom. The ThreadLocal class provides thread-local variables. The ThreadLocalRandom class is a random number generator isolated to the current thread.
 
-UnifiedEmail is an open-source android application in Github. It has the following code:
-\zhong{URLs}
+UnifiedEmail\footnote{\url{https://github.com/HexagonRom/android_packages_apps_UnifiedEmail}} is an open-source android application in Github. It has the following code:
 
 \begin{lstlisting}
 private static NotificationMap sActiveNotificationMap = null;
@@ -344,7 +343,7 @@ private static synchronized NotificationMap getNotificationMap(Context context) 
 }
 \end{lstlisting}
 
-The method returns a map. If the map does not exist, the method will create one. However, synchronizing the whole method is too heavy. The modified code is as follow:
+The method returns a map. If the map does not exist, the method will create one. However, synchronizing the whole method is too heavy. We can synchronize only when the variable is not null and hence improve the performance. The modified code is as follow:
 
 \begin{lstlisting}
 private static volatile NotificationMap sActiveNotificationMap = null;
@@ -361,7 +360,41 @@ private static NotificationMap getNotificationMap(Context context) {
 }
 \end{lstlisting}
 
-\zhong{add more examples.}
+Spider4java\footnote{\url{https://github.com/lichangshu/spider4java}} is a crawler tool written in Java. It has the following code:
+
+\begin{lstlisting}
+public class Counter {
+  protected int count;
+  public Counter() {
+    count = 0;
+  }
+  public synchronized void increment() {
+    count = count + 1;
+  }
+  public synchronized int getValue() {
+    return count;
+  }
+}
+\end{lstlisting}
+
+We modify it as follow:
+
+\begin{lstlisting}
+public class Counter {
+  protected AtomicInteger count;
+  public Counter() {
+    count = new AtomicInteger();
+  }
+  public void increment() {
+    count.getAndIncrement();
+  }
+  public int getValue() {
+    return count.get();
+  }
+}
+\end{lstlisting}
+
+%\zhong{add more examples.}
 
 \subsection{RQ3. What are the change trends of using parallel APIs}
 \label{sec:result:trend}
