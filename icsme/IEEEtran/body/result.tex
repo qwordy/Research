@@ -78,22 +78,29 @@ As the above message explains, a developer complained that the \CodeIn{ReadWrite
 %f0e627bb8c9daedb3b064027cac37ce4849bab64
 %\zhong{Explain a situation first, before you present its examples! After you present an example, further explain why the sample fit your situation!}
 
-In other cases, we find that programmers can refine their locked resources to improve performance. For example, the fourth item of Table~\ref{table:patterns} comes from \zhong{where?}. The original code locks the instance of a class, but the modified code locks only the \CodeIn{membersLock} field. 
+In some other cases, we find that programmers can refine their locked resources to improve performance. For example, the fourth item of Table~\ref{table:patterns} comes from \zhong{where?}. The original code locks the instance of a class, but the modified code locks only the \CodeIn{membersLock} field.
 
-\noindent
-\textbf{3. Modifications on critical sections.} A critical section is a code block that is executed, when a thread locked the corresponding resources. The modifications can be on locks, statements or both.% \zhong{Based on what??}, we classify such modifications into two categories namely modifications on locks, statements.
-
-Modifications on locks either add or remove locks. For example, example 5 shows an example of adding synchronization. The method was not synchronized before. The basic reason of adding synchronization to existing code is the piece of code might be access concurrently. It is a change to fix a bug\footnote{\url{https://bz.apache.org/bugzilla/show\_bug.cgi?id=58386}}. This bug was reported by RV-Predict, a dynamic race detector. It said
+We find that programmers can add new locks. For example, the fifth item of Table~\ref{table:patterns} comes from Tomcat\footnote{\url{https://bz.apache.org/bugzilla/show\_bug.cgi?id=58386}}. It includes the following message:
 
 \begin{lstlisting}
 Reported by RV-Predict (a dynamic race detector) when running the test suite:
 Data race on field org.apache.catalina.tribes.io.ObjectReader.accessed: {{{
-Concurrent write in thread T93 (locks held: {Monitor@8a841fe, Monitor@8a9a01a})
+Concurrent write in thread T93 (locks held: {...})
 \end{lstlisting}
 
-When two or more threads access one object concurrently and at least one is modifying the object, a data race might happen. The easiest way to tackle this problem is adding synchronization to the access of the object.
+The data race indicates that the \CodeIn{isAccessed()} is not locked, so programmers add the \CodeIn{synchronized} keyword to allow locking on the method.
 
-Example 6 shows an example of removing synchronization. Developers removed the synchronization of a code block. In other words, they moved a block of code out of a critical section. They said they used a single task manager and removed synchronized block in \CodeIn{ChannelManager}. If the code will not be accessed concurrently or it can be accessed safely in a concurrent way, there is no need to synchronize the code.
+We find that programmers can also delete unnecessary locks. For example, the sixth item of Table~\ref{table:patterns} comes from \zhong{where?} 
+
+\zhong{show what programmers say. Why it is unnecessary}.
+
+
+Developers removed the synchronization of a code block. In other words, they moved a block of code out of a critical section. They said they used a single task manager and removed synchronized block in \CodeIn{ChannelManager}. If the code will not be accessed concurrently or it can be accessed safely in a concurrent way, there is no need to synchronize the code.
+
+\noindent
+\textbf{3. Modifications on critical sections.} A critical section is a code block that is executed, when a thread locked the corresponding resources. The modifications can be on locks, statements or both.% \zhong{Based on what??}, we classify such modifications into two categories namely modifications on locks, statements.
+
+
 
 %c93d9eaf363a535dff25cc4e7db400d879e73bb1
 %Add option to use single actor system for local execution. Use local connection manager if a single task manager is used for local execution. Remove synchronized blcok in getReceiverList of ChannelManager which effectively serialized the connection lookup calls of a single task manager.
