@@ -99,10 +99,9 @@ Concurrent write in thread T93 (locks held: {...})
 
 The data race indicates that the \CodeIn{isAccessed()} is not locked, so programmers add the \CodeIn{synchronized} keyword to allow locking on the method.
 
-We find that programmers can also delete unnecessary locks. For example, the sixth item of Table~\ref{table:patterns} comes from \zhong{where?}
+We find that programmers can also delete unnecessary locks. For example, the sixth item of Table~\ref{table:patterns} comes from Flink.
 
 \zhong{show what programmers say. Why it is unnecessary}.
-
 
 Developers removed the synchronization of a code block. In other words, they moved a block of code out of a critical section. They said they used a single task manager and removed synchronized block in \CodeIn{ChannelManager}. If the code will not be accessed concurrently or it can be accessed safely in a concurrent way, there is no need to synchronize the code.
 
@@ -127,7 +126,6 @@ java.lang.Thread.State: BLOCKED (on object monitor)
 In some other cases, we find that programmers can refine their locked resources to improve performance. For example, the fourth item of Table~\ref{table:patterns} comes from \zhong{where?}. The original code locks the instance of a class, but the modified code locks only the \CodeIn{membersLock} field.
 
 
-
 \noindent
 \textbf{3. Modifications on critical section bodies.} A critical section is a code block that is executed, when a thread locked the corresponding resources. The modifications on critical section bodies indicate new functionalities or refactoring. For example, the seventh item of Table~\ref{table:patterns2} comes from 
 
@@ -135,38 +133,38 @@ In some other cases, we find that programmers can refine their locked resources 
 
 %c93d9eaf363a535dff25cc4e7db400d879e73bb1
 %Add option to use single actor system for local execution. Use local connection manager if a single task manager is used for local execution. Remove synchronized blcok in getReceiverList of ChannelManager which effectively serialized the connection lookup calls of a single task manager.
-\zhong{Why do you list the following commits? If you cannot list the following commit in Table~\ref{table:patterns2}, split it into the original code and fixed code. Explain them separatively.}
+%\zhong{Why do you list the following commits? If you cannot list the following commit in Table~\ref{table:patterns2}, split it into the original code and fixed code. Explain them separatively.}
 
-\begin{lstlisting}
-commit 7e56bfe40589a1aa9b5ef20b342e421823cd0592
-HDFS-4200. Reduce the size of synchronized sections in PacketResponder. Contributed by Suresh Srinivas.
+%\begin{lstlisting}
+%commit 7e56bfe40589a1aa9b5ef20b342e421823cd0592
+%HDFS-4200. Reduce the size of synchronized sections in PacketResponder. Contributed by Suresh Srinivas.
+%
+%-    synchronized void enqueue(final long seqno,
+%-        final boolean lastPacketInBlock, final long offsetInBlock) {
+%-      if (running) {
+%-        final Packet p = new Packet(seqno, lastPacketInBlock, offsetInBlock,
+%-            System.nanoTime());
+%-        if(LOG.isDebugEnabled()) {
+%-          LOG.debug(myString + ": enqueue " + p);
+%+    void enqueue(final long seqno, final boolean lastPacketInBlock,
+%+        final long offsetInBlock) {
+%+      final Packet p = new Packet(seqno, lastPacketInBlock, offsetInBlock,
+%+          System.nanoTime());
+%+      if(LOG.isDebugEnabled()) {
+%+        LOG.debug(myString + ": enqueue " + p);
+%+      }
+%+      synchronized(this) {
+%+        if (running) {
+%+          ackQueue.addLast(p);
+%+          notifyAll();
+%}
+%-        ackQueue.addLast(p);
+%-        notifyAll();
+%       }
+%     }
+%\end{lstlisting}
 
--    synchronized void enqueue(final long seqno,
--        final boolean lastPacketInBlock, final long offsetInBlock) {
--      if (running) {
--        final Packet p = new Packet(seqno, lastPacketInBlock, offsetInBlock,
--            System.nanoTime());
--        if(LOG.isDebugEnabled()) {
--          LOG.debug(myString + ": enqueue " + p);
-+    void enqueue(final long seqno, final boolean lastPacketInBlock,
-+        final long offsetInBlock) {
-+      final Packet p = new Packet(seqno, lastPacketInBlock, offsetInBlock,
-+          System.nanoTime());
-+      if(LOG.isDebugEnabled()) {
-+        LOG.debug(myString + ": enqueue " + p);
-+      }
-+      synchronized(this) {
-+        if (running) {
-+          ackQueue.addLast(p);
-+          notifyAll();
-}
--        ackQueue.addLast(p);
--        notifyAll();
-       }
-     }
-\end{lstlisting}
-
-Modifications on statements change statements of critical sections. Example 7 is a commit of HDFS-4200 - Reduce the size of synchronized sections in \CodeIn{PacketResponder}, which is a major improvement. The previous two examples are very easy. This is a complex change compared to previous examples. This example contains multiple types of changes. They change the lock instance, remove synchronization of some code, add some new synchronized code. The developers said the size of synchronized sections can be reduced. It is always meaningful to remove the unnecessary synchronizations. Over-synchronization \cite{conf/sigsoft/GuJSZL15} is a real issue in real-world software.
+Modifications on statements change statements of critical sections. For example, the seventh item of Table~\ref{table:patterns2} is from HDFS-4200 - Reduce the size of synchronized sections in \CodeIn{PacketResponder}, which is a major improvement. The previous two examples are very easy. This is a complex change compared to previous examples. This example contains multiple types of changes. They change the lock instance, remove synchronization of some code, add some new synchronized code. The developers said the size of synchronized sections can be reduced. It is always meaningful to remove the unnecessary synchronizations. Over-synchronization \cite{conf/sigsoft/GuJSZL15} is a real issue in real-world software.
 
 %efca79cfb7b496b4bec70561cc94af069c644ef2
 %[FLINK-2384] [runtime] Move blocking I/O call outside of synchronized block
