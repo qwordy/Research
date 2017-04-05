@@ -235,29 +235,31 @@ public long nextStamp() {
 }
 \end{lstlisting}
 
-\zhong{Rewrite the following sample as I did in the previous one.}
-Another example is from Lucene. A previous version of Lucene has the following code:
+Besides replacing directly, programmers can replace their code with parallel APIs that implement similar functions. For example, the below code comes from LUCENE-2779:
 
 \begin{lstlisting}
-commit 7f443f67eaa588323f912f3922cff9b699b38fbd
-LUCENE-2779: Use ConcurrentHashMap in RAMDirectory
-
--  protected HashMap<String,RAMFile> fileMap = new HashMap<String,RAMFile>();
-+  protected Map<String,RAMFile> fileMap = new ConcurrentHashMap<String,RAMFile>();
-...
- @Override
- public final boolean fileExists(String name) {
-     ensureOpen();
--    RAMFile file;
--    synchronized (this) {
--      file = fileMap.get(name);
--    }
--    return file != null;
-+    return fileMap.containsKey(name);
+  protected HashMap<String,RAMFile> fileMap = new HashMap<String,RAMFile>();
+  ...
+  public final boolean fileExists(String name) {
+    ensureOpen();
+    RAMFile file;
+    synchronized (this) {
+      file = fileMap.get(name);
+    }
+    return file != null;
  }
 \end{lstlisting}
 
-This commit is from lucene-solr. It is a commit for LUCENE-2779 which is a minor-priority improvement. It is better to use a thread-safe version collection ConcurrentHashMap instead of using HashMap and synchronizing the access code. This thread-safe class not only simplify the way of using a hash map, but also improve the performance compared to manual synchronization like the example because the implementation of ConcurrentHashMap is carefully designed. Retrieval operations do not acquire any locks at all and update operations do not lock the entire map. It supports full concurrency of retrievals and high expected concurrency for updates.
+Instead of handling synchronization by themselves, programmers replace the above code with a parallel API:
+
+\begin{lstlisting}
+ protected Map<String,RAMFile> fileMap = new ConcurrentHashMap<String,RAMFile>();
+ ...
+ public final boolean fileExists(String name) {
+    ensureOpen();
+    return fileMap.containsKey(name);
+ }
+\end{lstlisting}
 
 %\textbf{Other class replace}
 %
