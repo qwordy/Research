@@ -17,6 +17,16 @@ def draw(project):
     plt.savefig(project + '.pdf')
     #plt.show()
 
+confs = {
+  'hadoop': '0.868',
+  'cassandra': '0.094',
+  'flink': '0.844',
+  'netty': '0.910',
+  'tomcat': '0.745',
+  'lucene-solr': '0.896',
+  'mahout': '0'
+}
+
 def draw2(project):
     a, b, c, d, e = np.loadtxt(project, unpack=True)
     f = e / d
@@ -37,6 +47,7 @@ def draw2(project):
     plt.plot(c, f)
     plt.xlabel('Time (month)', fontdict=font)
     plt.ylabel('Percentage', fontdict=font)
+    plt.text(3, 1, 'confidence=' + confs[project])
     plt.xlim(c.min(), c.max())
     plt.ylim(0, 1)
     
