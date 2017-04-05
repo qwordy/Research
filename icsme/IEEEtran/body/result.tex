@@ -44,6 +44,7 @@ Table~\ref{table:patterns} and table~\ref{table:patterns2} show an overview of o
 	\includegraphics[width=1\textwidth]{patterns2}
 	\caption{Change patterns (Cont.)}
 	\label{table:patterns2}
+\zhong{add subcolumn titles}
 \end{table*}
 \noindent
 \textbf{1. Changing lock types.} It is feasible to lock resources with different mechanisms. For example, Java has a keyword, \CodeIn{synchronized}. The keyword can lock a block of code lines. With the keyword, programmers do not have to acquire and release resources explicitly. Alternatively, programmers can explicitly lock resources with APIs (\emph{e.g.}, \CodeIn{ReentrantLock}). Explicit locks offer more features that the \CodeIn{synchronized} keyword does not. For example, with such APIs, programmers can determine the conditions for a lock. As another example, besides exclusive locks, programmers can use shared locks. When a thread is holding an exclusive lock, other threads have to wait until it is released. In the constrast, shared locks allow multiple threads to hold the lock with specific actions. For example, \CodeIn{ReadWriteLock} allows multiple read actions, but denies multiple write actions.%\zhong{Please explain what exclusive and shared locks are, and their benefits.}
@@ -70,17 +71,18 @@ Meanwhile, we find that programmers can replace parallel API classes with the \C
 As the above message explains, a developer complained that the \CodeIn{ReadWriteLock} method does not guard the \CodeIn{WeakHashMap} variable, since the \CodeIn{get()} method can modify the \CodeIn{WeakHashMap} variable, and the modification can bypass the lock. In this example, programmers fix the problem by replacing the methods with the \CodeIn{synchronized} keyword.%todo more detail
 
 %When they find that they only need a simple exclusive lock, they switch to synchronized block. \zhong{add an example for this}
-
+\begin{figure}
+	\centering
+	\includegraphics[height=1.7in]{deadlock}
+	\caption{Deadlock}
+	\label{figure:deadlock}
+%\zhong{Please add resource columns and add edges to denote resource manipulations.}
+\end{figure}
 
 \noindent
-\textbf{2. Changing locked variables.} A program needs to lock variables before it enters critical section bodies. Programmers can change locked resources, when they maintain concurrency code. We find that programmers mainly change locked resources to fix bugs. For example, the third item of Table~\ref{table:patterns} comes from FLINK-1419. This bug complains that \CodeIn{DistributedCache} does not preserver files for subsequent operations. Based on its discussions, we understand that in the buggy file, programmers lock \CodeIn{count}, while they shall lock \CodeIn{lock}. To fully fix the bug, programmers also modified the critical sections and the \CodeIn{finally} clause.
+\textbf{2. Changing locked variables.} A program needs to lock variables before it enters critical section bodies. During software maintenance, programmers can change locked variables, and we find that the main purpose is to repair bugs. For example, the third item of Table~\ref{table:patterns} comes from FLINK-1419. This bug complains that \CodeIn{DistributedCache} does not preserver files for subsequent operations. Based on its discussions, we understand that in the buggy file, programmers lock \CodeIn{count}, while they shall lock \CodeIn{lock}. To fully fix the bug, programmers also modified the critical sections and the \CodeIn{finally} clause.
 
-%f0e627bb8c9daedb3b064027cac37ce4849bab64
-%\zhong{Explain a situation first, before you present its examples! After you present an example, further explain why the sample fit your situation!}
-
-In some other cases, we find that programmers can refine their locked resources to improve performance. For example, the fourth item of Table~\ref{table:patterns} comes from \zhong{where?}. The original code locks the instance of a class, but the modified code locks only the \CodeIn{membersLock} field.
-
-We find that programmers can add new locks. For example, the fifth item of Table~\ref{table:patterns} comes from Tomcat\footnote{\url{https://bz.apache.org/bugzilla/show\_bug.cgi?id=58386}}. It includes the following message:
+As another example, when repairing bugs, programmers can add new locks. For example, the fifth item of Table~\ref{table:patterns} comes from Tomcat\footnote{\url{https://bz.apache.org/bugzilla/show\_bug.cgi?id=58386}}. It includes the following message:
 
 \begin{lstlisting}
 Reported by RV-Predict (a dynamic race detector) when running the test suite:
@@ -96,6 +98,25 @@ We find that programmers can also delete unnecessary locks. For example, the six
 
 
 Developers removed the synchronization of a code block. In other words, they moved a block of code out of a critical section. They said they used a single task manager and removed synchronized block in \CodeIn{ChannelManager}. If the code will not be accessed concurrently or it can be accessed safely in a concurrent way, there is no need to synchronize the code.
+
+Example 8 is a fix of a bug. It is a critical bug issue\footnote{\url{https://issues.apache.org/jira/browse/FLINK-2384}} ``Deadlock during partition spilling''. A user reported the problem. Here is selected parts of the stack trace.
+
+\begin{lstlisting}
+"CHAIN DataSource (at createInput(ExecutionEnvironment.java:502) (org.apache.flink.api.java.hadoop.mapreduce.HadoopInputFormat)) -> FlatMap (FlatMap at readFlinkTuplesFromThriftParquet(ParquetThriftEntitons.java:96)) (7/8)" daemon prio=10 tid=0x00007f934005b000 nid=0x73c4 in Object.wait() [0x00007f93c16ac000]
+java.lang.Thread.State: TIMED_WAITING (on object monitor)
+
+"IOManager writer thread #1" daemon prio=10 tid=0x00007f93d8b7b000 nid=0x73a8 waiting for monitor entry [0x00007f93c2fc5000]
+java.lang.Thread.State: BLOCKED (on object monitor)
+
+"Map (Projection [0, 1, 2, 3, 4]) (7/8)" daemon prio=10 tid=0x00007f92b0434800 nid=0x74a3 waiting for monitor entry [0x00007f93a32f1000]
+java.lang.Thread.State: BLOCKED (on object monitor)
+\end{lstlisting}
+
+Figure~\ref{figure:deadlock} shows the dependency loop between threads. Let $s1$ and $s2$ denote two statements. An arrow from $s1$ to $s2$ means $s1$ cannot be returned before $s2$ has been returned. The \CodeIn{DataSource} (thread-1) is waiting to be notified by the \CodeIn{Writer} (thread-2) when holding lock A. The \CodeIn{Writer} (thread-2) is trying to acquire lock B. But lock B is held by the \CodeIn{Map} (thread-3). And the \CodeIn{Map} (thread-3) is trying to acquire lock A, which is held by the \CodeIn{DataSource} (thread-1). Here is a waiting chain. This is a kind of bug known as deadlock. The problem is that the \CodeIn{DataSource} (thread-1) does not need to hold lock A while waiting to be notified. So the developer removed the unnecessary synchronization.
+
+In some other cases, we find that programmers can refine their locked resources to improve performance. For example, the fourth item of Table~\ref{table:patterns} comes from \zhong{where?}. The original code locks the instance of a class, but the modified code locks only the \CodeIn{membersLock} field.
+
+
 
 \noindent
 \textbf{3. Modifications on critical section bodies.} A critical section is a code block that is executed, when a thread locked the corresponding resources. The modifications can be on locks, statements or both.% \zhong{Based on what??}, we classify such modifications into two categories namely modifications on locks, statements.
@@ -147,31 +168,12 @@ Modifications on statements change statements of critical sections. Example 7 is
 %before, because no operation assumes the spilling to be finished when the
 %finish call has returned.
 
-\begin{figure}
-	\centering
-	\includegraphics[height=1.7in]{deadlock}
-	\caption{Deadlock}
-	\label{figure:deadlock}
-%\zhong{Please add resource columns and add edges to denote resource manipulations.}
-\end{figure}
+
 
 
 %Modifications on locked resources change the criteria of entering critical sections.  \zhong{Please check whether the samples explain the corresponding situations.}
 
-Example 8 is a fix of a bug. It is a critical bug issue\footnote{\url{https://issues.apache.org/jira/browse/FLINK-2384}} ``Deadlock during partition spilling''. A user reported the problem. Here is selected parts of the stack trace.
 
-\begin{lstlisting}
-"CHAIN DataSource (at createInput(ExecutionEnvironment.java:502) (org.apache.flink.api.java.hadoop.mapreduce.HadoopInputFormat)) -> FlatMap (FlatMap at readFlinkTuplesFromThriftParquet(ParquetThriftEntitons.java:96)) (7/8)" daemon prio=10 tid=0x00007f934005b000 nid=0x73c4 in Object.wait() [0x00007f93c16ac000]
-java.lang.Thread.State: TIMED_WAITING (on object monitor)
-
-"IOManager writer thread #1" daemon prio=10 tid=0x00007f93d8b7b000 nid=0x73a8 waiting for monitor entry [0x00007f93c2fc5000]
-java.lang.Thread.State: BLOCKED (on object monitor)
-
-"Map (Projection [0, 1, 2, 3, 4]) (7/8)" daemon prio=10 tid=0x00007f92b0434800 nid=0x74a3 waiting for monitor entry [0x00007f93a32f1000]
-java.lang.Thread.State: BLOCKED (on object monitor)
-\end{lstlisting}
-
-Figure~\ref{figure:deadlock} shows the dependency loop between threads. Let $s1$ and $s2$ denote two statements. An arrow from $s1$ to $s2$ means $s1$ cannot be returned before $s2$ has been returned. The \CodeIn{DataSource} (thread-1) is waiting to be notified by the \CodeIn{Writer} (thread-2) when holding lock A. The \CodeIn{Writer} (thread-2) is trying to acquire lock B. But lock B is held by the \CodeIn{Map} (thread-3). And the \CodeIn{Map} (thread-3) is trying to acquire lock A, which is held by the \CodeIn{DataSource} (thread-1). Here is a waiting chain. This is a kind of bug known as deadlock. The problem is that the \CodeIn{DataSource} (thread-1) does not need to hold lock A while waiting to be notified. So the developer removed the unnecessary synchronization.
 
 %Example 9.
 
