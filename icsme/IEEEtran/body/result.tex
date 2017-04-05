@@ -65,8 +65,15 @@ We find that programmers can replace the \CodeIn{synchronized} keyword with para
 %\zhong{Please replace all texttt with CodeIn.}
 
 %They also might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. Here are some examples. \zhong{add an example for this.}
-Meanwhile, we find that programmers can replace parallel API classes with the \CodeIn{synchronized} keyword. For example, the second item of Table~\ref{table:patterns} comes from Tomcat. This commit is not reported, and we find it through our SVM classifier. \zhong{List the commit message/log}.
+Meanwhile, we find that programmers can replace parallel API classes with the \CodeIn{synchronized} keyword. For example, the second item of Table~\ref{table:patterns} comes from Tomcat. This commit is not reported, and we find it through our SVM classifier.% \zhong{List the commit message/log}.
 
+%3e4b1ae6dc786b268505aa2e64067432519c2bcf
+\begin{lstlisting}
+A ReadWriteLock cannot be used to guard a WeakHashMap. The
+WeakHashMap may modify itself on get(), as it processes the reference
+queue of items removed by GC.
+Either a plain old lock / synchronization is needed, or some other solution
+\end{lstlisting}
 
 As the above message explains, a developer complained that the \CodeIn{ReadWriteLock} method does not guard the \CodeIn{WeakHashMap} variable, since the \CodeIn{get()} method can modify the \CodeIn{WeakHashMap} variable, and the modification can bypass the lock. In this example, programmers fix the problem by replacing the methods with the \CodeIn{synchronized} keyword.%todo more detail
 
@@ -188,15 +195,13 @@ Modifications on statements change statements of critical sections. Example 7 is
 %8313fa0f1ca277e9633a78f461804abc3c5515b8
 %Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58392
 %Double-checked locking needs to use volatile to be thread-safe
-
-Example 10 is a fix of bug 58392\footnote{\url{https://bz.apache.org/bugzilla/show_bug.cgi?id=58392}} in Bugzilla. It is reported by a race detector that there is data race on field. Double-checked locking is a synchronization pattern in software engineering. It first check the condition without lock to reduce the time overhead when the condition is not satisfied. A typical usage of it is singleton pattern which uses lazy initialization to provide an unique instance during the process execution time in multi-threaded scenario. But sometimes programmers make some mistakes using this pattern like omitting \CodeIn{volatile} modifier of a class member. If \CodeIn{volatile} is not used, another thread which gets into the method may observe that \CodeIn{membership} has been assigned but the real initialization of the object has not been done yet due to the JVM's instructions reordering. Some work has been done in double-checked locking pattern \cite{conf/ispass/IshizakiDN14}, which can use this pattern automatically.
+We find that programmers can add the \CodeIn{volatile} keyword to improve performance. For example, the tenth item of Table~\ref{table:patterns2} comes from Tomcat\footnote{\url{https://bz.apache.org/bugzilla/show_bug.cgi?id=58392}}. It reports a data race, and the bug was repaired by add the \CodeIn{volatile} keyword.
 
 %560cd00890b3f6af2aca0c3a9d51a45f880692dd
 %Fix a FindBugs warning (increment of volatile not atomic)
 
 %\zhong{Please explain why you need two samples for this situation.}
-
-It seems easy to simply add or delete a \CodeIn{volatile} modifier of a variable. Literally it is. But the specific context is different. And the reasons vary. Example 11 shows that \CodeIn{volatile} is not almighty. The developer used FindBugs to check the code and it said increment of a \CodeIn{volatile} field is not atomic. This is a wrong demonstration of how to use \CodeIn{volatile}. The original code is not safe because increment is not an atomic operation. It includes read, calculate and write operations to complete the increment. So the developer used a thread-safe class instead.
+Besides adding the keyword, we find that programmers have to remove the \CodeIn{volatile} keyword, since they do not fully understand its meanings. For example, in eleventh item of Table~\ref{table:patterns2} comes from \zhong{where?}. In this bug, programmers auto-increment a \CodeIn{volatile} variable, but such an action is not atomic. As a result, FindBugs reports it as a bug, and programmers have to remove the keyword. 
 
 \noindent
 \textbf{5. Replacing self-written code with Parallel APIs.} Programmers can implement concurrency code by themselves, but later they realize that it is easier to call APIs that already implement their functionalities. For example, a previous version of Hadoop has the following code:% \zhong{Replace the below commit with the buggy code.}
@@ -224,7 +229,9 @@ public synchronized long nextStamp() {
 }
 \end{lstlisting}
 
-Later, a programmer realizes that it is better to replace the above code with the \CodeIn{AtomicLong} class. He reported the issue (HDFS-4029), and set its priority as major. Here, \CodeIn{AtomicLong} is a thread-safe version of type long. It allows updating a \CodeIn{Long} value without explicit synchronization and it is fast. It not only offers a simple interface, but also has a different implementation than the example code above. It uses \CodeIn{Unsafe} class, which provides unsafe operations as its name represents. This class allows low-level programming in Java, which is considered unsafe but can save running time without the check to guarantee safety. It might be promoted to be public API in Java 9. The fixed code is as follow:
+Later, a programmer realizes that it is better to replace the above code with the \CodeIn{AtomicLong} class. He reported the issue (HDFS-4029), and set its priority as major. Here, \CodeIn{AtomicLong} is a thread-safe version of type long. It allows updating a \CodeIn{Long} value without explicit synchronization and it is fast. 
+
+%It not only offers a simple interface, but also has a different implementation than the example code above. It uses \CodeIn{Unsafe} class, which provides unsafe operations as its name represents. This class allows low-level programming in Java, which is considered unsafe but can save running time without the check to guarantee safety. It might be promoted to be public API in Java 9. The fixed code is as follow:
 
 %\zhong{Replace the below commit with the fixed code.}
 
@@ -235,29 +242,31 @@ public long nextStamp() {
 }
 \end{lstlisting}
 
-\zhong{Rewrite the following sample as I did in the previous one.}
-Another example is from Lucene. A previous version of Lucene has the following code:
+Besides replacing directly, programmers can replace their code with parallel APIs that implement similar functions. For example, the below code comes from LUCENE-2779:
 
 \begin{lstlisting}
-commit 7f443f67eaa588323f912f3922cff9b699b38fbd
-LUCENE-2779: Use ConcurrentHashMap in RAMDirectory
-
--  protected HashMap<String,RAMFile> fileMap = new HashMap<String,RAMFile>();
-+  protected Map<String,RAMFile> fileMap = new ConcurrentHashMap<String,RAMFile>();
-...
- @Override
- public final boolean fileExists(String name) {
-     ensureOpen();
--    RAMFile file;
--    synchronized (this) {
--      file = fileMap.get(name);
--    }
--    return file != null;
-+    return fileMap.containsKey(name);
+  protected HashMap<String,RAMFile> fileMap = new HashMap<String,RAMFile>();
+  ...
+  public final boolean fileExists(String name) {
+    ensureOpen();
+    RAMFile file;
+    synchronized (this) {
+      file = fileMap.get(name);
+    }
+    return file != null;
  }
 \end{lstlisting}
 
-This commit is from lucene-solr. It is a commit for LUCENE-2779 which is a minor-priority improvement. It is better to use a thread-safe version collection ConcurrentHashMap instead of using HashMap and synchronizing the access code. This thread-safe class not only simplify the way of using a hash map, but also improve the performance compared to manual synchronization like the example because the implementation of ConcurrentHashMap is carefully designed. Retrieval operations do not acquire any locks at all and update operations do not lock the entire map. It supports full concurrency of retrievals and high expected concurrency for updates.
+Instead of handling synchronization by themselves, programmers replace the above code with a parallel API:
+
+\begin{lstlisting}
+ protected Map<String,RAMFile> fileMap = new ConcurrentHashMap<String,RAMFile>();
+ ...
+ public final boolean fileExists(String name) {
+    ensureOpen();
+    return fileMap.containsKey(name);
+ }
+\end{lstlisting}
 
 %\textbf{Other class replace}
 %
