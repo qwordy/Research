@@ -37,7 +37,7 @@ Table~\ref{table:patterns} and table~\ref{table:patterns2} show an overview of o
 	\includegraphics[width=1\textwidth]{patterns}
 	\caption{Change patterns}
 	\label{table:patterns}
-%\zhong{Please add labels to all your figures, tables, and sections. Please refer to your figures with labels. Please split the figure into two figures. Use Table instead of Figure. The font is too small.}
+\zhong{add subcolumn titles}
 \end{table*}
 \begin{table*}
 	\centering
@@ -231,7 +231,7 @@ public synchronized long nextStamp() {
 }
 \end{lstlisting}
 
-Later, a programmer realized that it is better to replace the above code with the \CodeIn{AtomicLong} class. He reported the issue (HDFS-4029), and set its priority as major. Here, \CodeIn{AtomicLong} is a thread-safe version of type long. It allows updating a \CodeIn{Long} value without explicit synchronization and it is fast. It not only offers a simple interface, but also has a different implementation than the example code above. It uses \CodeIn{Unsafe} class, which provides unsafe operations as its name represents. This class allows low-level programming in Java, which is considered unsafe but can save running time without the check to guarantee safety. It might be promoted to be public API in Java 9. The fixed code is as follow:
+Later, a programmer realizes that it is better to replace the above code with the \CodeIn{AtomicLong} class. He reported the issue (HDFS-4029), and set its priority as major. Here, \CodeIn{AtomicLong} is a thread-safe version of type long. It allows updating a \CodeIn{Long} value without explicit synchronization and it is fast. It not only offers a simple interface, but also has a different implementation than the example code above. It uses \CodeIn{Unsafe} class, which provides unsafe operations as its name represents. This class allows low-level programming in Java, which is considered unsafe but can save running time without the check to guarantee safety. It might be promoted to be public API in Java 9. The fixed code is as follow:
 
 %\zhong{Replace the below commit with the fixed code.}
 
@@ -246,60 +246,25 @@ public long nextStamp() {
 Another example is from Lucene. A previous version of Lucene has the following code:
 
 \begin{lstlisting}
-protected HashMap<String,RAMFile> fileMap = new HashMap<String,RAMFile>();
-public synchronized final String[] listAll() {
-  ensureOpen();
-  Set<String> fileNames = fileMap.keySet();
-  String[] result = new String[fileNames.size()];
-  int i = 0;
-  for(final String fileName: fileNames) 
-  result[i++] = fileName;
-  return result;
-}
-public final boolean fileExists(String name) {
-  ensureOpen();
-  RAMFile file;
-  synchronized (this) {
-    file = fileMap.get(name);
-  }
-  return file != null;
-}
+commit 7f443f67eaa588323f912f3922cff9b699b38fbd
+LUCENE-2779: Use ConcurrentHashMap in RAMDirectory
+
+-  protected HashMap<String,RAMFile> fileMap = new HashMap<String,RAMFile>();
++  protected Map<String,RAMFile> fileMap = new ConcurrentHashMap<String,RAMFile>();
+...
+ @Override
+ public final boolean fileExists(String name) {
+     ensureOpen();
+-    RAMFile file;
+-    synchronized (this) {
+-      file = fileMap.get(name);
+-    }
+-    return file != null;
++    return fileMap.containsKey(name);
+ }
 \end{lstlisting}
 
-Later, a programmer realized he could use \CodeIn{ConcurrentHashMap}, a more convenient class to rewrite the above code. He reported the issue (LUCENE-2779) and set its priority as a minor. Its type is improvement. Here, it is better to use a thread-safe version collection \CodeIn{ConcurrentHashMap} instead of using \CodeIn{HashMap} and synchronizing the access code. This thread-safe class not only simplify the way of using a hash map, but also improve the performance compared to manual synchronization like the example because the implementation of \CodeIn{ConcurrentHashMap} is carefully designed. Retrieval operations do not acquire any locks at all and update operations do not lock the entire map. It supports full concurrency of retrievals and high expected concurrency for updates. The fixed code is as follow. We can see that the length fixed code is significantly reduced compared to the original code.
-
-\begin{lstlisting}
-protected Map<String,RAMFile> fileMap = new ConcurrentHashMap<String,RAMFile>();
-public final String[] listAll() {
-  ensureOpen();
-  return fileMap.keySet().toArray(new String[0]);
-}
-public final boolean fileExists(String name) {
-  ensureOpen();
-  return fileMap.containsKey(name);
-}
-\end{lstlisting}
-
-%\begin{lstlisting}
-%commit 7f443f67eaa588323f912f3922cff9b699b38fbd
-%LUCENE-2779: Use ConcurrentHashMap in RAMDirectory
-%
-%-  protected HashMap<String,RAMFile> fileMap = new HashMap<String,RAMFile>();
-%+  protected Map<String,RAMFile> fileMap = new ConcurrentHashMap<String,RAMFile>();
-%...
-% @Override
-% public final boolean fileExists(String name) {
-%     ensureOpen();
-%-    RAMFile file;
-%-    synchronized (this) {
-%-      file = fileMap.get(name);
-%-    }
-%-    return file != null;
-%+    return fileMap.containsKey(name);
-% }
-%\end{lstlisting}
-
-%This commit is from lucene-solr. It is a commit for LUCENE-2779 which is a minor-priority improvement. It is better to use a thread-safe version collection ConcurrentHashMap instead of using HashMap and synchronizing the access code. This thread-safe class not only simplify the way of using a hash map, but also improve the performance compared to manual synchronization like the example because the implementation of ConcurrentHashMap is carefully designed. Retrieval operations do not acquire any locks at all and update operations do not lock the entire map. It supports full concurrency of retrievals and high expected concurrency for updates.
+This commit is from lucene-solr. It is a commit for LUCENE-2779 which is a minor-priority improvement. It is better to use a thread-safe version collection ConcurrentHashMap instead of using HashMap and synchronizing the access code. This thread-safe class not only simplify the way of using a hash map, but also improve the performance compared to manual synchronization like the example because the implementation of ConcurrentHashMap is carefully designed. Retrieval operations do not acquire any locks at all and update operations do not lock the entire map. It supports full concurrency of retrievals and high expected concurrency for updates.
 
 %\textbf{Other class replace}
 %
