@@ -64,11 +64,13 @@ We find that programmers can replace the \CodeIn{synchronized} keyword with para
 %\zhong{Please replace all texttt with CodeIn.}
 
 %They also might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. Here are some examples. \zhong{add an example for this.}
-Meanwhile, we find that programmers can replace parallel API classes with the \CodeIn{synchronized} keyword. For example, the second item of Table~\ref{table:patterns} comes from Tomcat. This commit is not reported, and we find it through our SVM classifier. \zhong{List the commit message/log}. The developer said a \CodeIn{ReadWriteLock} cannot guard a \CodeIn{WeakHashMap}. It is because get() may modify the \CodeIn{WeakHashMap}, in which case a reader lock is not enough. A plain old lock or synchronization should be used. In this example, the synchronization is used finally. This example is more complex than the previous one although they seem a bit similar. The original version first tries to acquire a reader lock and initialize the \CodeIn{result}. If fails, it uses a writer lock and does some logic. The purpose of this piece of code is to get an object from a map and if it does not exist, create one. The modified version simply uses the \CodeIn{synchronized} keyword.%todo more detail
+Meanwhile, we find that programmers can replace parallel API classes with the \CodeIn{synchronized} keyword. For example, the second item of Table~\ref{table:patterns} comes from Tomcat. This commit is not reported, and we find it through our SVM classifier. \zhong{List the commit message/log}. 
+
+
+As the above message explains, a developer complained that the \CodeIn{ReadWriteLock} method does not guard the \CodeIn{WeakHashMap} variable, since the \CodeIn{get()} method can modify the \CodeIn{WeakHashMap} variable, and the modification can bypass the lock. In this example, programmers fix the problem by replacing the methods with the \CodeIn{synchronized} keyword.%todo more detail
 
 %When they find that they only need a simple exclusive lock, they switch to synchronized block. \zhong{add an example for this}
 
-\zhong{Never use YOU in your paper!}
 
 \noindent
 \textbf{2. Changing locked resources.} A program needs to lock a resource before it enters the corresponding critical section. Programmers can change locked resources, when they maintain concurrency code. The reasons behind this kind of changes are usually fixing bugs and refactoring.%\zhong{Why they do that? To fix bugs?}
@@ -365,9 +367,9 @@ We draw the tendency chart of each class as time goes. Figure 4 shows 3 typical 
 Figure 1 shows the numbers of concurrent related commits and all commits of each month in all projects of our study. It also shows the percentage of concurrent related commits. Each subfigure has two subfigures inside. The x axis represents the time in month. The upper subfigure has two lines. The higher line shows the number of all commits while the lower line shows the number of concurrent related commits. The number of concurrent related commits is relatively small compared to the number of all commits. The two indexes have a positive correlation generally. The bottom subfigure shows the percentage of concurrent related commits. The percentages differ in project and time. For example, the percentage of concurrent related commits in mahout is relatively lower than other projects. The percentage in Hadoop is stable and high compared to other projects.
 
 
-\zhong{Delete the following confidences, since you add them in Figure~\ref{fig:confidence} already}. 
+\zhong{Delete the following confidences, since you add them in Figure~\ref{fig:confidence} already}.
 
-\zhong{Introduce your null hypothesis. Introduce how to decide to reject a null hypothesis. That is, introduce how you determine two curves are coefficient.}. 
+\zhong{Introduce your null hypothesis. Introduce how to decide to reject a null hypothesis. That is, introduce how you determine two curves are coefficient.}.
 
 We calculate Spearman's rank correlation coefficient of number of commits and concurrency commits. Our result in a different language is similar to Gu's result. The coefficients are 0.094 for Cassandra, 0.844 for Flink, 0.868 for Hadoop, 0.896 for Lucene, 0.910 for Netty and 0.745 for Tomcat. Our result is consistent with Gu's result except one project.
 
