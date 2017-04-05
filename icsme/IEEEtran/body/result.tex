@@ -73,23 +73,12 @@ As the above message explains, a developer complained that the \CodeIn{ReadWrite
 
 
 \noindent
-\textbf{2. Changing locked resources.} A program needs to lock a resource before it enters the corresponding critical section. Programmers can change locked resources, when they maintain concurrency code. The reasons behind this kind of changes are usually fixing bugs and refactoring.%\zhong{Why they do that? To fix bugs?}
-%\begin{figure*}
-%	\centering
-%	\includegraphics[scale=0.3]{lockins1}
-%	\caption{Example 3}
-%\end{figure*}
-
-Fixing bugs are always what developers do when they maintain their software. Changing locked resources is usually a part of changes which are conducted to fix a bug. For example, when an inappropriate resource is locked, something might get wrong when running the program.
-
-Example 3 is an example of FLINK-1419 - \CodeIn{DistributedCache} doesn't preserver files for subsequent operations, which is a major bug. The description said that it happens that the files are created yet for the operations when subsequent operations are going to access the same file in the \CodeIn{DistributedCache}. They synchronized on \CodeIn{count}, which is a map instance. Instead, they used \CodeIn{lock}, which is an instance of \CodeIn{Object} class. The difference is this instance is only used for synchronization while the former one has its own role not only as a lock. We do not need to blame preference of synchronization usage. This commit also made other changes about synchronization. They modified the critical sections as well and then finally fixed the bug.
+\textbf{2. Changing locked resources.} A program needs to lock a resource before it enters the corresponding critical section. Programmers can change locked resources, when they maintain concurrency code. We find that programmers mainly change locked resources to fix bugs. For example, the third item of Table~\ref{table:patterns} comes from FLINK-1419. This bug complains that \CodeIn{DistributedCache} does not preserver files for subsequent operations. Based on its discussions, we understand that in the buggy file, programmers lock \CodeIn{count}, while they shall lock \CodeIn{lock}. To fully fix the bug, programmers also modified the critical sections and the \CodeIn{finally} clause.
 
 %f0e627bb8c9daedb3b064027cac37ce4849bab64
 %\zhong{Explain a situation first, before you present its examples! After you present an example, further explain why the sample fit your situation!}
 
-In some cases, things are not so serious to become a bug. Developers refactor the software.
-
-In example 4, The lock instance was originally the instance of the class and now is \CodeIn{membersLock}. They used single object (\CodeIn{membersLock}) for all locking as the commit message said. Using a separated locking instance can allow developers to have more precise concurrency control than using synchronized methods.
+In other cases, we find that programmers can refine their locked resources to improve performance. For example, the fourth item of Table~\ref{table:patterns} comes from \zhong{where?}. The original code locks the instance of a class, but the modified code locks only the \CodeIn{membersLock} field. 
 
 \noindent
 \textbf{3. Modifications on critical sections.} A critical section is a code block that is executed, when a thread locked the corresponding resources. The modifications can be on locks, statements or both.% \zhong{Based on what??}, we classify such modifications into two categories namely modifications on locks, statements.
