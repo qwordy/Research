@@ -98,9 +98,10 @@ Concurrent write in thread T93 (locks held: {...})
 
 The data race indicates that the \CodeIn{isAccessed()} is not locked, so programmers add the \CodeIn{synchronized} keyword to allow locking on the method.
 
-We find that programmers can also delete unnecessary locks. For example, the fifth item of Table~\ref{table:patterns} comes from Flink. \zhong{The URL or issue number}.
+We find that programmers can also delete unnecessary locks. For example, the fifth item of Table~\ref{table:patterns} comes from Flink.
 
-\zhong{show what programmers say. Why it is unnecessary}.
+%\zhong{The URL or issue number}.
+%\zhong{show what programmers say. Why it is unnecessary}.
 
 The programmers said they used a single task manager and removed synchronized block in \CodeIn{ChannelManager}. They removed the synchronization of a code block. In other words, they moved a block of code from a critical section to outside. If the code will not be accessed concurrently or it will not cause data race or inconsistency when it are executed concurrently, there is no need to synchronize the code.
 
