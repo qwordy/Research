@@ -458,9 +458,7 @@ In summary, we find that Java parallel API classes follow a similar distribution
 \label{sec:result:correlation}
 
 
-Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} find that at the granularity of code lines, concurrency-related modifications and total modifications have strong correlation. In our study, we further explore the problem at the granularity of commits. Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} use the Spearman's rank
-correlation coefficient to determine the correlation. In our study, we use the identical measure. Given two sets of data, the Spearman's rank
-correlation coefficient calculates a correlation value between -1 and +1. Here, +1 denotes that it finds a perfect monotone function for the two sets of data, and -1 denotes the opposite.
+
 
 Figure~\ref{fig:confidence} shows our results. Each label denotes a project, and has two associated figures. In particular, the upper figure denotes total commits and concurrency-related commits in the interval of months. Its horizontal axis denotes time, and its vertical axis denotes number of commits. Its blue curve denotes total commits, and its yellow curve denotes concurrency-related commits. We find that the curves of total commits and concurrency-related commits are not quite similar. However, the Spearman's rank
 correlation coefficient shows that in the five out of six projects, the two sets of values are correlated. One exception is Cassandra, where the correlation value is at the border (0.094).
