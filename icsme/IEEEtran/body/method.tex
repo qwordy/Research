@@ -41,7 +41,7 @@ In this study, we collected commits from seven Apache\footnote{\url{http://www.a
 		%Mahout&109,584&1,215&3,703&0\\\hline
 		Total&98,352&11868&561\\\hline
 	\end{tabular}
-\zhong{? in the total row?}
+%\zhong{? in the total row?}
 \end{table}
 
 \subsection{Study mechanism}
@@ -55,9 +55,9 @@ As introduced in Section~\ref{sec:intro}, it is quite difficult to implement a s
 The search alone can lose some useful commits. Researchers have explored related problems. For example, Tian \emph{et al.}~\cite{tian2012identifying} propose an approach that identifies bug fixing patches with classification techniques. Motivated by their approach, we train a classifier to predict whether a commit is related to concurrent code. When training the classifier, our tool analyzes change hunks that are produced by the \CodeIn{diff} command, and uses the results as our code features. As shown in Table~\ref{table:feature}, in total, our tool extracts 12 features from each commit. The first column shows the feature names, and the second column shows the explanations.
 Our tool employs the SVM \cite{journals/ml/CortesV95} algorithm to identify commits that are related to concurrent programming. In particular, our tool is implemented based on the popular SVM library, LIBSVM \cite{libsvm}. As SVM is a supervised classification algorithm, it needs both labeled positive and negative data for training. We manually label some data as a training data set first then train a model. The trained classifier selects 135 positive instances from all the commits.
 
-\zhong{Do you have overlaps between the two sets of commits? How many commits do you analyze in total?}
+%\zhong{Do you have overlaps between the two sets of commits? How many commits do you analyze in total?}
 
-Finally we have 561 potential concurrent-related commits selected by keyword matching of commit message and 135 commits by using machine learning.
+Finally we have 561 potential concurrent-related commits selected by keyword matching of commit message and 135 commits by using machine learning. We have not found common commits selected by both criteria.
 
 \begin{table}
 	\centering
@@ -82,7 +82,7 @@ Finally we have 561 potential concurrent-related commits selected by keyword mat
 
 \subsubsection{Step 3. Analyzing commits according to different research questions} We then conduct detailed analysis according to our research questions.
 
-\textbf{RQ1. Determining change patterns.} To explore this research question, we manually analyze ? concurrency-related commits. For example, the below is a concurrency-related commit. The top five lines describe the metadata of the commit. The other lines describe the differences between two versions of code.
+\textbf{RQ1. Determining change patterns.} To explore this research question, we manually analyze 696 concurrency-related commits. For example, the below is a concurrency-related commit. The top five lines describe the metadata of the commit. The other lines describe the differences between two versions of code.
 
 \begin{lstlisting}
 commit 563e546236217dace58a8031d56d08a27e08160b
