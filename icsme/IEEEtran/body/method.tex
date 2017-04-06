@@ -27,23 +27,23 @@ Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} compare the code changes and chang
 
 \subsection{Data set}
 \label{sec:method:data}
-In this study, we collected commits from seven Apache\footnote{\url{http://www.apache.org/}} projects. Table~\ref{table:dataset} shows the details of our data set. We selected these projects, since they are popular and active. These projects cover various types of projects such as distributed computing, web server, database, information retrieval, I/O and machine learning. In particular, Hadoop is one of the most popular distributed computing frameworks in Java. Tomcat is a popular server. Cassandra is a database system that manages massive data. Solr is an enterprise search platform. Netty is an asynchronous network application framework. Flink is a stream processing framework. Mahout is a machine learning library. Column ``LOC'' lists the lines of code. Column ``\#Files'' lists number of source files. Column ``\#Commits'' lists number of commits. Column ``\#Selected Commits'' lists our manually investigated commits. We checked out all the commits in December 2016. The next section explains how we selected concurrency-related commits.
+In this study, we collected commits from seven Apache\footnote{\url{http://www.apache.org/}} projects. Table~\ref{table:dataset} shows the details of our data set. We selected these projects, since they are popular and active. Concurrent commits are commits which are related to concurrent programming. Selected commits are commits which are selected for our manual analysis. These projects cover various types of projects such as distributed computing, web server, database, information retrieval, I/O and machine learning. In particular, Hadoop is one of the most popular distributed computing frameworks in Java. Tomcat is a popular server. Cassandra is a database system that manages massive data. Solr is an enterprise search platform. Netty is an asynchronous network application framework. Flink is a stream processing framework. Mahout is a machine learning library. Column ``LOC'' lists the lines of code. Column ``\#Files'' lists number of source files. Column ``\#Commits'' lists number of commits. Column ``\#Selected Commits'' lists our manually investigated commits. We checked out all the commits in December 2016. The next section explains how we selected concurrency-related commits.
 
 \begin{table}
 	\centering
 	\caption{Projects Information (LOC and \#Files are both of Java files)}
     \label{table:dataset}
 	\begin{tabular}{|c|r|r|r|r|}\hline
-		Project&\multicolumn{1}{|c|}{LOC}&\#Files&\#Commits&\#Selected Commits\\\hline
-		Hadoop&1,202,764&7,701&14,930&49\\
-		Tomcat&301,173&2,192&17,731&159\\
-		Cassandra&387,980&2,143&21,982&48\\
-		Lucene-solr&918,398&6,310&26,152&74\\
-		Netty&218,131&2,054&7,759&202\\
-		Flink&414,264&4,068&9,771&28\\\hline
+		Project&\#Commits&\#Concurrent commits&\#Selected Commits\\\hline
+		Hadoop&14,930&2739&49\\
+		Tomcat&17,731&1963&159\\
+		Cassandra&21,982&1904&48\\
+		Lucene-solr&26,152&2375&75\\
+		Netty&7,759&1387&202\\
+		Flink&9,771&1500&28\\\hline
 		%Guava&251,205&1,672&3,850\\\hline
 		%Mahout&109,584&1,215&3,703&0\\\hline
-		Total&3,442,710&24,468&98,352&560\\\hline
+		Total&98,352&11868&561\\\hline
 	\end{tabular}
 \zhong{? in the total row?}
 \end{table}
@@ -61,7 +61,7 @@ Our tool employs the SVM \cite{journals/ml/CortesV95} algorithm to identify comm
 
 \zhong{Do you have overlaps between the two sets of commits? How many commits do you analyze in total?}
 
-Finally we have 560 potential concurrent-related commits selected by keyword matching of commit message and 135 commits by using machine learning.
+Finally we have 561 potential concurrent-related commits selected by keyword matching of commit message and 135 commits by using machine learning.
 
 \begin{table}
 	\centering
@@ -86,7 +86,7 @@ Finally we have 560 potential concurrent-related commits selected by keyword mat
 
 \subsubsection{Step 3. Analyzing commits according to different research questions} We then conduct detailed analysis according to our research questions.
 
-\textbf{RQ1. Determining change patterns.} To explore this research question, we manually analyze 300 concurrency-related commits. For example, the below is a concurrency-related commit. The top five lines describe the metadata of the commit. The other lines describe the differences between two versions of code.
+\textbf{RQ1. Determining change patterns.} To explore this research question, we manually analyze ? concurrency-related commits. For example, the below is a concurrency-related commit. The top five lines describe the metadata of the commit. The other lines describe the differences between two versions of code.
 
 \begin{lstlisting}
 commit 563e546236217dace58a8031d56d08a27e08160b
