@@ -435,12 +435,23 @@ In summary, our results show that our change patterns are repetitive in future m
 
 \begin{figure*}
 	\centering
-	\subfigure[Ascending]{\includegraphics[width=2.3in]{CountDownLatch}}
-	\subfigure[Descending]{\includegraphics[width=2.3in]{LinkedTransferQueue}}
-	\subfigure[Hybrid]{\includegraphics[width=2.3in]{ThreadPoolExecutor}}
-	\subfigure[High]{\includegraphics[width=2.3in]{AtomicInteger}}
-	\subfigure[Medium]{\includegraphics[width=2.3in]{SynchronousQueue}}
-	\subfigure[Low]{\includegraphics[width=2.3in]{DiscardPolicy}}
+	\subfigure[Ascending-high]{\includegraphics[width=2.3in]{CountDownLatch}}
+	\subfigure[Descending-high]{\includegraphics[width=2.3in]{LinkedTransferQueue}}
+	\subfigure[Hybrid-high]{\includegraphics[width=2.3in]{CopyOnWriteArrayList}}
+	
+	\subfigure[Ascending-medium]{\includegraphics[width=2.3in]{AtomicIntegerFieldUpdater}}
+	\subfigure[Descending-medium]{\includegraphics[width=2.3in]{ConcurrentSkipListMap}}
+	\subfigure[Hybrid-medium]{\includegraphics[width=2.3in]{LinkedBlockingDeque}}
+	
+	\subfigure[Ascending-low]{\includegraphics[width=2.3in]{AtomicLongArray}}
+	\subfigure[Descending-low]{\includegraphics[width=2.3in]{DelayQueue}}
+	\subfigure[Hybrid-low]{\includegraphics[width=2.3in]{AtomicReferenceArray}}
+	
+%	\subfigure[Descending]{\includegraphics[width=2.3in]{LinkedTransferQueue}}
+%	\subfigure[Hybrid]{\includegraphics[width=2.3in]{ThreadPoolExecutor}}
+%	\subfigure[High]{\includegraphics[width=2.3in]{AtomicInteger}}
+%	\subfigure[Medium]{\includegraphics[width=2.3in]{SynchronousQueue}}
+%	\subfigure[Low]{\includegraphics[width=2.3in]{DiscardPolicy}}
 	\caption{Typical Trend of Change Frequency}
 	\label{figure:trend}
 \zhong{The labels shall be like ascending-high, ascending-medium, ascending-low, and etc. There shall be nine graphs in total. The percents of the nine graphs shall add up to 100\%.}

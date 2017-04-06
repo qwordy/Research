@@ -26,6 +26,7 @@
 \noindent
 \textbf{The causes of opposite commits.} We find that different programmers can make opposite changes. Here is a pair of opposite commits. The first commit is from Cassandra:
 
+%id: 95, 250
 \begin{lstlisting}
 -private final AtomicInteger references = new AtomicInteger(1);
 +private volatile int references = 1;
