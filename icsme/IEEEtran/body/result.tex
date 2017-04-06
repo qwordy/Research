@@ -37,14 +37,14 @@ Table~\ref{table:patterns} and table~\ref{table:patterns2} show an overview of o
 	\includegraphics[width=1\textwidth]{patterns}
 	\caption{Change patterns}
 	\label{table:patterns}
-\zhong{add subcolumn titles}
+
 \end{table*}
 \begin{table*}
 	\centering
 	\includegraphics[width=1\textwidth]{patterns2}
 	\caption{Change patterns (Cont.)}
 	\label{table:patterns2}
-\zhong{add subcolumn titles}
+\zhong{add subcolumn titles. The 7th item is empty}
 \end{table*}
 \noindent
 \textbf{1. Changing lock types.} It is feasible to lock resources with different mechanisms. For example, Java has a keyword, \CodeIn{synchronized}. The keyword can lock a block of code lines. With the keyword, programmers do not have to acquire and release resources explicitly. Alternatively, programmers can explicitly lock resources with APIs (\emph{e.g.}, \CodeIn{ReentrantLock}). Explicit locks offer more features that the \CodeIn{synchronized} keyword does not. For example, with such APIs, programmers can determine the conditions for a lock. As another example, besides exclusive locks, programmers can use shared locks. When a thread is holding an exclusive lock, other threads have to wait until it is released. In the constrast, shared locks allow multiple threads to hold the lock with specific actions. For example, \CodeIn{ReadWriteLock} allows multiple read actions, but denies multiple write actions.%\zhong{Please explain what exclusive and shared locks are, and their benefits.}
@@ -127,7 +127,7 @@ In some other cases, we find that programmers can refine their locked resources 
 
 
 \noindent
-\textbf{3. Modifications on critical section bodies.} A critical section is a code block that is executed, when a thread locked the corresponding resources. The modifications on critical section bodies indicate new functionalities or refactoring. For example, the seventh item of Table~\ref{table:patterns2} comes from 
+\textbf{3. Modifications on critical section bodies.} A critical section is a code block that is executed, when a thread locked the corresponding resources. The modifications on critical section bodies indicate new functionalities or refactoring. For example, the seventh item of Table~\ref{table:patterns2} comes from
 
 
 
@@ -199,7 +199,7 @@ We find that programmers can add the \CodeIn{volatile} keyword to improve perfor
 %Fix a FindBugs warning (increment of volatile not atomic)
 
 %\zhong{Please explain why you need two samples for this situation.}
-Besides adding the keyword, we find that programmers have to remove the \CodeIn{volatile} keyword, since they do not fully understand its meanings. For example, in eleventh item of Table~\ref{table:patterns2} comes from \zhong{where?}. In this bug, programmers auto-increment a \CodeIn{volatile} variable, but such an action is not atomic. As a result, FindBugs reports it as a bug, and programmers have to remove the keyword. 
+Besides adding the keyword, we find that programmers have to remove the \CodeIn{volatile} keyword, since they do not fully understand its meanings. For example, in eleventh item of Table~\ref{table:patterns2} comes from \zhong{where?}. In this bug, programmers auto-increment a \CodeIn{volatile} variable, but such an action is not atomic. As a result, FindBugs reports it as a bug, and programmers have to remove the keyword.
 
 \noindent
 \textbf{5. Replacing self-written code with Parallel APIs.} Programmers can implement concurrency code by themselves, but later they realize that it is easier to call APIs that already implement their functionalities. For example, a previous version of Hadoop has the following code:% \zhong{Replace the below commit with the buggy code.}
@@ -227,7 +227,7 @@ public synchronized long nextStamp() {
 }
 \end{lstlisting}
 
-Later, a programmer realizes that it is better to replace the above code with the \CodeIn{AtomicLong} class. He reported the issue (HDFS-4029), and set its priority as major. Here, \CodeIn{AtomicLong} is a thread-safe version of type long. It allows updating a \CodeIn{Long} value without explicit synchronization and it is fast. 
+Later, a programmer realizes that it is better to replace the above code with the \CodeIn{AtomicLong} class. He reported the issue (HDFS-4029), and set its priority as major. Here, \CodeIn{AtomicLong} is a thread-safe version of type long. It allows updating a \CodeIn{Long} value without explicit synchronization and it is fast.
 
 %It not only offers a simple interface, but also has a different implementation than the example code above. It uses \CodeIn{Unsafe} class, which provides unsafe operations as its name represents. This class allows low-level programming in Java, which is considered unsafe but can save running time without the check to guarantee safety. It might be promoted to be public API in Java 9. The fixed code is as follow:
 
