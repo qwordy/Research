@@ -402,7 +402,7 @@ We made the third pull request on Spider4java\footnote{\url{https://github.com/l
 %	\subfigure[Low]{\includegraphics[width=2.3in]{DiscardPolicy}}
 	\caption{Typical Trend of Change Frequency}
 	\label{figure:trend}
-\zhong{The labels shall be like ascending-high, ascending-medium, ascending-low, and etc. There shall be nine graphs in total. The percents of the nine graphs shall add up to 100\%.}
+%\zhong{The labels shall be like ascending-high, ascending-medium, ascending-low, and etc. There shall be nine graphs in total. The percents of the nine graphs shall add up to 100\%.}
 \end{figure*}
 
 \begin{lstlisting}
@@ -461,7 +461,9 @@ In summary, our results show that our change patterns are repetitive in future m
 
 Table~\ref{table:topapi} shows the top ten active parallel API classes. The first column lists the names of these classes. The second column lists the times of their occurrence respectively in changed lines in commits. For example, the most common class in changes is \CodeIn{AtomicInteger}. There are 6,891 changes which are related to this class. This indicates that this class is very popular. We notice that the first several classes in the table are all famous and easy to use. The values of different classes vary. The first \%10 classes account for over 50\% occurrence of changes. The last \%10 classes account for only 0.36\%.
 
-We draw the trend chart of each class as time goes. Figure~\ref{figure:trend} shows 3 typical trends of the classes in (a)~(c) and 3 representatives of high-frequency, medium-frequency and low-frequency classes in (d)~(f). The 3 typical trends are ascending lines, descending lines and hybrids. The percentage in these 3 figures denote the proportion of each typical tread. Figure (a) shows an example of ascending tendency. It is \CodeIn{CountDownLatch}. We are not meaning it is in a strict ascending order. Its overall tendency is rising. Figure (b) shows an example of descending tendency. It is \CodeIn{LinkedTransferQueue}. However, most charts are like figure (c). They are fluctuating without certain ascending or descending tendency. We divide the classes into 3 parts equally and show one class of each part.
+We draw the trend chart of each class as time goes. We divive the classes into 3 groups based on their frequency: high-frequency, medium-frequency and low-frequency. For each group, we draw a representative of ascending, descending and hybrid trend. Figure~\ref{figure:trend} has 9 charts in total. The percentage in each chart denotes the proportion of this kind of classes. Most classes are in a hybrid trend. They are fluctuating without certain ascending or descending tendency. The number of ascending classes is larger than descending classes.
+
+%Figure (a) shows an example of ascending tendency. It is \CodeIn{CountDownLatch}. We are not meaning it is in a strict ascending order. Its overall tendency is rising. Figure (b) shows an example of descending tendency. It is \CodeIn{LinkedTransferQueue}. However, most charts are like figure (c). They are fluctuating without certain ascending or descending tendency. We divide the classes into 3 parts equally and show one class of each part.
 
 % There are 13 ascending charts, 4 descending charts and 36 hybrid charts.
 
