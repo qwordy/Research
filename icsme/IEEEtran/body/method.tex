@@ -5,9 +5,9 @@ This section presents our research questions (Section~\ref{sec:method:rq}), our 
 \label{sec:method:rq}
 To understand how concurrent code is maintained, in this study, we focus on the following research questions:
 
-\textbf{RQ1.} What patterns are followed when programmers maintain concurrent code?
+\textbf{RQ1.} What change patterns are followed when programmers maintain concurrent code?
 
-In each day, programmers can make numerous commits. Based on their analysis on commits, Kim and Notkin~\cite{conf/icse/KimN09} find that code changes can be repetitive, and Martinez \emph{et al.}~\cite{conf/icsm/MartinezDM13} further extract change patterns to denote such repetitive changes. However, the change patterns of concurrent programming is rarely studied. The recent study~\cite{conf/sigsoft/GuJSZL15} mainly focuses on changes only on critical sections. As a result, this research question is still largely open. To explore this research question, we carefully put our selected concurrent-related commits into 6 categories (see Section~\ref{sec:result:rq1} for details).
+In each day, programmers can make numerous commits. Based on their analysis on commits, Kim and Notkin~\cite{conf/icse/KimN09} find that code changes can be repetitive, and Martinez \emph{et al.}~\cite{conf/icsm/MartinezDM13} further extract change patterns to denote such repetitive changes. However, to the best of our knowledge, no previous study explored the change patterns of concurrent programming, and this research question is still largely open. In our empirical study, we summarize concurrency-related commits into five change patterns, and present examples to explain our change patterns (see Section~\ref{sec:result:pattern} for details).
 
 \textbf{RQ2.} How useful are our extracted change patterns, when programmers maintain concurrent code?
 
