@@ -1,54 +1,56 @@
-AtomicInteger 6891
-AtomicBoolean 4180
-ConcurrentHashMap 3976
-AtomicLong 3926
-CountDownLatch 3211
-AtomicReference 2254
-Executors 2026
-ThreadPoolExecutor 1617
-LinkedBlockingQueue 1553
-ConcurrentLinkedQueue 1435
-ReentrantLock 1184
-ReentrantReadWriteLock 813
-ThreadLocalRandom 799
-CopyOnWriteArrayList 570
-Semaphore 516
-LinkedTransferQueue 496
-FutureTask 390
-ArrayBlockingQueue 374
-AtomicReferenceFieldUpdater 362
-AtomicIntegerFieldUpdater 356
-ConcurrentSkipListMap 354
-ForkJoinTask 344
-AbstractExecutorService 320
-LinkedBlockingDeque 313
-SynchronousQueue 292
-CyclicBarrier 255
-ScheduledThreadPoolExecutor 250
-ForkJoinPool 231
-ConcurrentSkipListSet 226
-ExecutorCompletionService 181
-WriteLock 179
-CountedCompleter 128
-LockSupport 121
-CompletableFuture 116
-ForkJoinWorkerThread 95
-ReadLock 84
-CopyOnWriteArraySet 74
-AtomicLongArray 70
-LongAdder 68
-AtomicLongFieldUpdater 54
-AbstractQueuedSynchronizer 48
-DelayQueue 42
-AtomicIntegerArray 35
-KeySetView 33
-AtomicReferenceArray 27
-ConcurrentLinkedDeque 23
-CallerRunsPolicy 22
-DiscardPolicy 12
-Exchanger 10
-RecursiveAction 6
-AbortPolicy 6
-DiscardOldestPolicy 5
-PriorityBlockingQueue 4
+AtomicInteger 6891 1
+AtomicBoolean 4180 1
+ConcurrentHashMap 3976 1
+AtomicLong 3926 1
+CountDownLatch 3211 1
+AtomicReference 2254 1
+Executors 2026 3
+ThreadPoolExecutor 1617 3
+LinkedBlockingQueue 1553 3
+ConcurrentLinkedQueue 1435 1
+ReentrantLock 1184 2
+ReentrantReadWriteLock 813 3
+ThreadLocalRandom 799 3
+CopyOnWriteArrayList 570 3
+Semaphore 516 1
+LinkedTransferQueue 496 2
+FutureTask 390 3
+ArrayBlockingQueue 374 3
+
+AtomicReferenceFieldUpdater 362 3
+AtomicIntegerFieldUpdater 356 1
+ConcurrentSkipListMap 354 2
+ForkJoinTask 344 3
+AbstractExecutorService 320 3
+LinkedBlockingDeque 313 3
+SynchronousQueue 292 2
+CyclicBarrier 255 2
+ScheduledThreadPoolExecutor 250 3
+ForkJoinPool 231 3
+ConcurrentSkipListSet 226 1
+ExecutorCompletionService 181 3
+WriteLock 179 3
+CountedCompleter 128 3
+LockSupport 121 3
+CompletableFuture 116 1
+ForkJoinWorkerThread 95 3
+ReadLock 84 3
+
+CopyOnWriteArraySet 74 3
+AtomicLongArray 70 1
+LongAdder 68 3
+AtomicLongFieldUpdater 54 3
+AbstractQueuedSynchronizer 48 3
+DelayQueue 42 2
+AtomicIntegerArray 35 3
+KeySetView 33 3
+AtomicReferenceArray 27 3
+ConcurrentLinkedDeque 23 3
+CallerRunsPolicy 22 3
+DiscardPolicy 12 3
+Exchanger 10 3
+RecursiveAction 6 1
+AbortPolicy 6 3
+DiscardOldestPolicy 5 2
+PriorityBlockingQueue 4 3
 40957
