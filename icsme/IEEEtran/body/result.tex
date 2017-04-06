@@ -280,6 +280,8 @@ Instead of handling synchronization by themselves, programmers replace the above
 %
 %\textbf{Final in multiple threads}
 
+In summary, in our study, we identify five types of change patterns in total. First, we find that programmers can modify parallel keywords and locked variables, and such modifications are mainly for repairing bugs and improving performance. Second, we notice modifications on critical section bodies, and such modifications often indicate new functions. Finally, we notice that self-written code is replaced with corresponding parallel APIs. In most cases, we find that maintaining concurrency code is not a one-direction migration. For example, there are several different ways to implement a lock. Programmers shall careful analyze their programming contexts to determine which is their best choice. 
+
 \subsection{RQ2. The usefulness of our change patterns.}
 \label{sec:result:sample}
 
