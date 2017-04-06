@@ -117,7 +117,7 @@ java.lang.Thread.State: BLOCKED (on object monitor)
 java.lang.Thread.State: BLOCKED (on object monitor)
 \end{lstlisting}
 
-The stack trace shows that three threads are all in a waiting or blocked state and there is a waiting chain among the threads. In order to repair this bug, the developer removed the synchronization of one thread when it is waiting to be notified by another thread and then the threads no longer wait for each.
+The stack trace shows that three threads are all in a waiting or blocked state and there is a waiting chain among the threads. In order to repair this bug, the developer removed the unnecessary synchronization of one thread when it is waiting to be notified by another thread and then the threads no longer wait for each.
 
 %\zhong{Why do you present the above stack trace.}
 
