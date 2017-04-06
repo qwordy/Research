@@ -24,7 +24,7 @@
 %\zhong{Explain why programmers revert the commit, why it matters?}
 
 \noindent
-\textbf{The causes of reverted commits.} We find that different programmers can make opposite changes. For example, we find the following The first commit\footnote{\url{https://github.com/apache/tomcat/commit/f5fab1f64ba11e04e52bd6251ca62fc854e9578c}} is from Cassandra:
+\textbf{The causes of contradicted commits.} We find that programmers can make seemingly contradicted commits. For example, we find the following commit\footnote{\url{https://github.com/apache/tomcat/commit/f5fab1f64ba11e04e52bd6251ca62fc854e9578c}} rom Cassandra:
 
 %id: 95, 250
 \begin{lstlisting}
@@ -42,7 +42,7 @@
 +  if (UPDATER.decrementAndGet(this) == 0)
 \end{lstlisting}
 
-The second commit\footnote{\url{https://github.com/apache/cassandra/commit/7918718c8ce53c6d0958aa969fc813e586463d08}} is from Tomcat:
+The above commit replaces the \CodeIn{AtomicInteger} class with the \CodeIn{Ato\-mic\-Integer\-Field\-Updater} class, since its programmer believe that it saves memory. Meanwhile, we find that a commit\footnote{\url{https://github.com/apache/cassandra/commit/7918718c8ce53c6d0958aa969fc813e586463d08}} from Tomcat made the contradicted change:
 
 \begin{lstlisting}
 -private static final AtomicIntegerFieldUpdater<OpenSSLContext> DESTROY_UPDATER = AtomicIntegerFieldUpdater.newUpdater(OpenSSLContext.class, "aprPoolDestroyed");
@@ -52,10 +52,10 @@ The second commit\footnote{\url{https://github.com/apache/cassandra/commit/79187
 +  if (aprPoolDestroyed.compareAndSet(0, 1))
 \end{lstlisting}
 
-The first commit uses \CodeIn{AtomicIntegerFieldUpdater} to replace \CodeIn{AtomicInteger}. The programmer says it can save memory by doing this. However, in the second commit, the programmer uses \CodeIn{AtomicInteger} to replace \CodeIn{AtomicIntegerFieldUpdater}. He says that he cannot see why a simple \CodeIn{AtomicInteger} is not sufficient. Different programmers have different opinons. Another reason of this phenomenon is that a change has a strong correlation with its context. So opposite changes are possible.
+The programmer of the above commit explains that the \CodeIn{AtomicInteger} class is sufficient. Different programmers have different opinions. In future work, we plan to conduct surveys to fully understand the rationale behind their choices.
 
 \noindent
-\textbf{The extension of existing tools.} Our patterns and findings can help improving existing program transformation tools. Many transformation tools can only handle certain conditions. For example, Asynchronizer \cite{conf/sigsoft/LinRD14} focus on \CodeIn{AsyncTask}. Tools can utilize rules which contains the contexts and the corresponding change patterns to enhance their ablitilies. It is beneficial if IDEs can support automatic transformation of some common change patterns.\zhong{Explain how to improve existing tools with your findings. Discuss how to implement a tool that, for example, that can replace self-written code with existing parallel APIs.}
+\textbf{The extension of existing tools.} Our patterns and findings can help improving existing program transformation tools. For example,  Lin \emph{et al.}~\cite{conf/sigsoft/LinRD14} propose Asynchronizer that transforms self-written code with the \CodeIn{AsyncTask} class. Our study finds self-written code snippets that can be replaced with other parallel API classes. With minor modifications, we can extend Asynchronizer to transform self-written code to more APIs. We plan to explore such extension in future work.
 
 \noindent
 \textbf{The usefulness of our other findings.} Our result of the trend of change frequency can help programmers understand what concurrent classes are heavily used and what concurrent classes are gradually abandoned.% We can pay more attention to the active classes.

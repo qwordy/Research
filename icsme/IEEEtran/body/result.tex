@@ -98,7 +98,7 @@ Concurrent write in thread T93 (locks held: {...})
 
 The data race indicates that the \CodeIn{isAccessed()} is not locked, so programmers add the \CodeIn{synchronized} keyword to allow locking on the method.
 
-We find that programmers can also delete unnecessary locks. For example, the sixth item of Table~\ref{table:patterns} comes from Flink.
+We find that programmers can also delete unnecessary locks. For example, the sixth item of Table~\ref{table:patterns} comes from Flink. \zhong{The URL or issue number}.
 
 \zhong{show what programmers say. Why it is unnecessary}.
 
@@ -138,7 +138,7 @@ For example, the seventh item of Table~\ref{table:patterns2} is from HDFS-4200 -
 %Add option to use single actor system for local execution. Use local connection manager if a single task manager is used for local execution. Remove synchronized blcok in getReceiverList of ChannelManager which effectively serialized the connection lookup calls of a single task manager.
 %\zhong{Why do you list the following commits? If you cannot list the following commit in Table~\ref{table:patterns2}, split it into the original code and fixed code. Explain them separatively.}
 
-%Modifications on statements change statements of critical sections. 
+%Modifications on statements change statements of critical sections.
 
 %efca79cfb7b496b4bec70561cc94af069c644ef2
 %[FLINK-2384] [runtime] Move blocking I/O call outside of synchronized block
@@ -173,7 +173,7 @@ We find that programmers can add the \CodeIn{volatile} keyword to improve perfor
 %Fix a FindBugs warning (increment of volatile not atomic)
 
 %\zhong{Please explain why you need two samples for this situation.}
-Besides adding the keyword, we find that programmers have to remove the \CodeIn{volatile} keyword, since they do not fully understand its meanings. For example, in tenth item of Table~\ref{table:patterns2} comes from Tomcat. In this bug, programmers auto-increment a \CodeIn{volatile} variable, but such an action is not atomic. As a result, FindBugs reports it as a bug, and programmers have to remove the keyword.
+Besides adding the keyword, we find that programmers have to remove the \CodeIn{volatile} keyword, since they do not fully understand its meanings. For example, in eleventh item of Table~\ref{table:patterns2} comes from \zhong{where?}. In this bug, programmers auto-increment a \CodeIn{volatile} variable, but such an action is not atomic. As a result, FindBugs reports it as a bug, and programmers have to remove the keyword.
 
 \noindent
 \textbf{5. Replacing self-written code with Parallel APIs.} Programmers can implement concurrent code by themselves, but later they realize that it is easier to call APIs that already implement their functionalities. For example, a previous version of Hadoop has the following code:% \zhong{Replace the below commit with the buggy code.}
@@ -444,9 +444,9 @@ In summary, our results show that our change patterns are repetitive in future m
 %\end{figure}
 Table~\ref{table:topapi} shows the top ten active parallel API classes in Java. Column ``class'' lists names of these classes. Column ``Occurrence'' lists their occurrences in our concurrency-related commits. Dig~\cite{conf/sigsoft/OkurD12} find that in C\#, 10\% of parallel API classes account for 90\% of API usages. We find that Java follows similar usages patterns as C\#. However, the distribution of Java is not as screwed as C\#. We find that the top \%10 classes account only for about 50\% of the total occurrences, while the bottom \%10 classes account for 0.36\%.
 
-Based on their occurrences, we put the 53 classes into three categories such as \emph{high-frequency}, \emph{medium-frequency} and \emph{low-frequency}, and each category contains roughly the same number of classes. For each category, we further put its classes into three subcategories such as \emph{ascending}, \emph{descending} and \emph{hybrid}. Figure~\ref{figure:trend} shows the results. The percent in each chart is calculated from the classes with the corresponding trend to the total classes. Although most classes are in the hybrid trend, we notice that in the high-frequent category, 15.1\% of classes are in the ascending subcategory. The trend can indicate that some popular parallel API classes are becoming more popular. 
+Based on their occurrences, we put the 53 classes into three categories such as \emph{high-frequency}, \emph{medium-frequency} and \emph{low-frequency}, and each category contains roughly the same number of classes. For each category, we further put its classes into three subcategories such as \emph{ascending}, \emph{descending} and \emph{hybrid}. Figure~\ref{figure:trend} shows the results. The percent in each chart is calculated from the classes with the corresponding trend to the total classes. Although most classes are in the hybrid trend, we notice that in the high-frequent category, 15.1\% of classes are in the ascending subcategory. The trend can indicate that some popular parallel API classes are becoming more popular.
 
-In summary, we find that Java parallel API classes follow a similar distribution as C\#, but the distribution is less screwed. However, the trends indicate that the distribution can become more like C\#, since popular ones are becoming more popular. 
+In summary, we find that Java parallel API classes follow a similar distribution as C\#, but the distribution is less screwed. However, the trends indicate that the distribution can become more like C\#, since popular ones are becoming more popular.
 
 %Figure (a) shows an example of ascending tendency. It is \CodeIn{CountDownLatch}. We are not meaning it is in a strict ascending order. Its overall tendency is rising. Figure (b) shows an example of descending tendency. It is \CodeIn{LinkedTransferQueue}. However, most charts are like figure (c). They are fluctuating without certain ascending or descending tendency. We divide the classes into 3 parts equally and show one class of each part.
 
