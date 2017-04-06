@@ -201,7 +201,7 @@ We find that programmers can add the \CodeIn{volatile} keyword to improve perfor
 Besides adding the keyword, we find that programmers have to remove the \CodeIn{volatile} keyword, since they do not fully understand its meanings. For example, in eleventh item of Table~\ref{table:patterns2} comes from \zhong{where?}. In this bug, programmers auto-increment a \CodeIn{volatile} variable, but such an action is not atomic. As a result, FindBugs reports it as a bug, and programmers have to remove the keyword.
 
 \noindent
-\textbf{5. Replacing self-written code with Parallel APIs.} Programmers can implement concurrency code by themselves, but later they realize that it is easier to call APIs that already implement their functionalities. For example, a previous version of Hadoop has the following code:% \zhong{Replace the below commit with the buggy code.}
+\textbf{5. Replacing self-written code with Parallel APIs.} Programmers can implement concurrent code by themselves, but later they realize that it is easier to call APIs that already implement their functionalities. For example, a previous version of Hadoop has the following code:% \zhong{Replace the below commit with the buggy code.}
 
 %\begin{lstlisting}
 %commit a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
@@ -279,7 +279,7 @@ Instead of handling synchronization by themselves, programmers replace the above
 %
 %\textbf{Final in multiple threads}
 
-In summary, in our study, we identify five types of change patterns in total. First, we find that programmers can modify parallel keywords and locked variables, and such modifications are mainly for repairing bugs and improving performance. Second, we notice modifications on critical section bodies, and such modifications often indicate new functions. Finally, we notice that self-written code is replaced with corresponding parallel APIs. In most cases, we find that maintaining concurrency code is not a one-direction migration. For example, there are several different ways to implement a lock. Programmers shall careful analyze their programming contexts to determine which is their best choice. As shown in our examples, during software maintenance, programmers can migrate to any types according to their needs.
+In summary, in our study, we identify five types of change patterns in total. First, we find that programmers can modify parallel keywords and locked variables, and such modifications are mainly for repairing bugs and improving performance. Second, we notice modifications on critical section bodies, and such modifications often indicate new functions. Finally, we notice that self-written code is replaced with corresponding parallel APIs. In most cases, we find that maintaining concurrent code is not a one-direction migration. For example, there are several different ways to implement a lock. Programmers shall careful analyze their programming contexts to determine which is their best choice. As shown in our examples, during software maintenance, programmers can migrate to any types according to their needs.
 
 \subsection{RQ2. The usefulness of our change patterns.}
 \label{sec:result:sample}
