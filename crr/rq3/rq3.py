@@ -115,7 +115,8 @@ def draw():
     #print e
     #print f
     plt.cla()
-    fig = plt.figure(figsize=(6, 2))
+    fig = plt.figure(figsize=(8, 1))
+    
     plt.plot(e, f)
     plt.xlim(1, xmax - xmin + 1)
     plt.ylim(0)
@@ -127,6 +128,7 @@ def draw():
     if filename in percs:
       plt.figtext(x, y, percs[filename], fontdict=font)
 
+    plt.show()
     plt.savefig('newfig/' + filename + '.pdf')
     plt.close(fig)
 
