@@ -128,11 +128,7 @@ The stack trace shows that three threads are all in a waiting or blocked state a
 In some other cases, we find that programmers can refine their locked resources to improve performance. For example, the fourth item of Table~\ref{table:patterns} comes from Tomcat. The original code locks the instance of a class, but the modified code locks only the \CodeIn{membersLock} field.
 
 \noindent
-\textbf{3. Modifications on critical section bodies.} A critical section is a code block that is executed, when a thread locked the corresponding resources. The modifications on critical section bodies indicate new functionalities or refactoring.
-
-%c93d9eaf363a535dff25cc4e7db400d879e73bb1
-For example, the seventh item of Table~\ref{table:patterns2} is from HDFS-4200 - Reduce the size of synchronized sections in \CodeIn{PacketResponder}, which is a major improvement. The previous two examples are very easy. This is a complex change compared to previous examples. This example contains multiple types of changes. They change the lock instance, remove synchronization of some code, add some new synchronized code. The developers said the size of synchronized sections can be reduced. It is always meaningful to remove the unnecessary synchronizations. Over-synchronization \cite{conf/sigsoft/GuJSZL15} is a real issue in real-world software.
-
+\textbf{3. Modifications on critical section bodies.} A critical section is a code block that is executed, when a thread locked the corresponding resources. The modifications on critical section bodies indicate new functionalities or refactoring. For example, the seventh item of Table~\ref{table:patterns2} comes from HDFS-4200. To reduce the size of a critical section body, programmers refactor the body into several methods. Indeed, this issue involves modifications that are related to even more change patterns (\emph{e.g.}, adding locked variables).
 
 %c93d9eaf363a535dff25cc4e7db400d879e73bb1
 %Add option to use single actor system for local execution. Use local connection manager if a single task manager is used for local execution. Remove synchronized blcok in getReceiverList of ChannelManager which effectively serialized the connection lookup calls of a single task manager.
