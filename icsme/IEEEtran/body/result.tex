@@ -280,7 +280,7 @@ Instead of handling synchronization by themselves, programmers replace the above
 %
 %\textbf{Final in multiple threads}
 
-In summary, in our study, we identify five types of change patterns in total. First, we find that programmers can modify parallel keywords and locked variables, and such modifications are mainly for repairing bugs and improving performance. Second, we notice modifications on critical section bodies, and such modifications often indicate new functions. Finally, we notice that self-written code is replaced with corresponding parallel APIs. In most cases, we find that maintaining concurrency code is not a one-direction migration. For example, there are several different ways to implement a lock. Programmers shall careful analyze their programming contexts to determine which is their best choice. 
+In summary, in our study, we identify five types of change patterns in total. First, we find that programmers can modify parallel keywords and locked variables, and such modifications are mainly for repairing bugs and improving performance. Second, we notice modifications on critical section bodies, and such modifications often indicate new functions. Finally, we notice that self-written code is replaced with corresponding parallel APIs. In most cases, we find that maintaining concurrency code is not a one-direction migration. For example, there are several different ways to implement a lock. Programmers shall careful analyze their programming contexts to determine which is their best choice.
 
 \subsection{RQ2. The usefulness of our change patterns.}
 \label{sec:result:sample}
@@ -312,7 +312,7 @@ public class DRandom {
   }
 }
 \end{lstlisting}
-This pull request is already confirmed by their programmers. 
+This pull request is already confirmed by their programmers.
 %\begin{lstlisting}
 %+import java.util.concurrent.ThreadLocalRandom;
 %public class DRandom {
@@ -344,7 +344,7 @@ private static synchronized NotificationMap getNotificationMap(Context context) 
 \end{lstlisting}
 
 If the \CodeIn{sActiveNotificationMap} field is \CodeIn{null}, the above method creates a new map and assigns the new map to the field. To allow multiple threads call the methods, programmes add the \CodeIn{synchronized} keyword to the method. We believe that when \CodeIn{sActiveNotificationMap} is not \CodeIn{null}, the lock is unnecessary, since it does not change the field. According to our second change pattern, we made the following modification to synchronize only the lines that modify the field:
- 
+
 \begin{lstlisting}
 private static volatile NotificationMap sActiveNotificationMap = null;
 private static NotificationMap getNotificationMap(Context context) {
@@ -360,7 +360,7 @@ private static NotificationMap getNotificationMap(Context context) {
 }
 \end{lstlisting}
 
-The above pull request is still pending. 
+The above pull request is still pending.
 
 We made the third pull request on Spider4java\footnote{\url{https://github.com/lichangshu/spider4java}}. It is a Java web crawler. It has the following code:
 
@@ -396,7 +396,7 @@ public class Counter {
 }
 \end{lstlisting}
 
-However, their programmes denied the pull request. Although our pull request works, it is more neat to systematically replace the above \CodeIn{Counter} class with the \CodeIn{AtomicInteger} class. Their programmers may deny our pull request, simply because the wrapper style looks ugly. 
+However, their programmes denied the pull request. Although our pull request works, it is more neat to systematically replace the above \CodeIn{Counter} class with the \CodeIn{AtomicInteger} class. Their programmers may deny our pull request, simply because the wrapper style looks ugly.
 
 In summary, our results show that our change patterns are repetitive in future maintenance, and programmers confirmed that our change patterns are useful. However, our results also reveal that it needs much programming experience to fully unleash the potential of our change patterns. We further discuss this issue in Section~\ref{sec:discuss}.
 
@@ -467,7 +467,7 @@ We draw the trend chart of each class as time goes. Figure~\ref{figure:trend} sh
 
 %We draw line for addition and removal of each class. Figure 3 and figure 4 show examples. We can see that both numbers of addition and removal increase as a whole as time passing by. This indicates that this class is attracting developers' attention.
 
-\subsection{RQ4. The correlations between commits and concurrency commits.}
+\subsection{RQ4. The correlations between total commits and concurrency-related commits.}
 
 \begin{figure*}
 	\centering
@@ -482,17 +482,22 @@ We draw the trend chart of each class as time goes. Figure~\ref{figure:trend} sh
 	\label{fig:confidence}
 \zhong{Add a mark to denote whether it holds or not for each figure. Enlarge the figures. Let the first row have three subfigures.}
 \end{figure*}
-\zhong{Cite and discuss Lu Shan's paper first, before you introduce your results. Explain why you conduct the study, given that Lu Shan already did that.}
 
-Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} studied the correlation between the number of critical section changes and the lines of changed code. They found the two sequences have strong correlation in Spearman's rank correlation coefficient and Z test with a statistical confidence of 95\%. We calculate the correlation between the number of commits and the number of concurrency commits in a different language and different projects. We are interested to know whether the same trend still holds and to what degree it holds in a pair of sequences with similar meanings and different data set.
+Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} find that at the granularity of code lines, concurrency-related modifications and total modifications have strong correlation. In our study, we further explore the problem at the granularity of commits. Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} use the Spearman's rank
+correlation coefficient to determine the correlation. In our study, we use the identical measure. Given two sets of data, the Spearman's rank
+correlation coefficient calculates a correlation value between -1 and +1. Here, +1 denotes that it finds a perfect monotone function for the two sets of data, and -1 denotes the opposite. 
+ 
+Figure~\ref{fig:confidence} shows our results. Each label denotes a project, and has two associated figures. In particular, the upper figure denotes total commits and concurrency-related commits in the interval of months. Its horizontal axis denotes time, and its vertical axis denotes number of commits. Its blue curve denotes total commits, and its yellow curve denotes concurrency-related commits. We find that the curves of total commits and concurrency-related commits are not quite similar. However, the Spearman's rank
+correlation coefficient shows that in the five out of six projects, the two sets of values are correlated. One exception is Cassandra, where the correlation value is at the border (0.094).
 
-Figure 1 shows the numbers of concurrent related commits and all commits of each month in all projects of our study. It also shows the percentage of concurrent related commits. Each subfigure has two subfigures inside. The x axis represents the time in month. The upper subfigure has two lines. The higher line shows the number of all commits while the lower line shows the number of concurrent related commits. The number of concurrent related commits is relatively small compared to the number of all commits. The two indexes have a positive correlation generally. The bottom subfigure shows the percentage of concurrent related commits. The percentages differ in project and time. For example, the percentage of concurrent related commits in mahout is relatively lower than other projects. The percentage in Hadoop is stable and high compared to other projects.
+In the lower figures, we calculate the percents from total commits to concurrency-related commits. Although the two sets of data are correlated, we find that their percents are inconstant. In total, about 20\% of total commits are related to concurrency. However, if we make predication based on the percents, the prediction can be unreliable.
 
+In summary, we find that at a coarser granularity, the correlation between total commits and concurrency-related commits still exist, but the correlation becomes less significant.  
 %\zhong{Delete the following confidences, since you add them in Figure~\ref{fig:confidence} already}.
 
 %\zhong{Introduce your null hypothesis. Introduce how to decide to reject a null hypothesis. That is, introduce how you determine two curves are coefficient.}.
 
-We calculate Spearman's rank correlation coefficient of number of commits and concurrency commits. The correlation should be between -1 and +1. The value +1 denotes that it is a perfect monotone function of two variables. The correlations are marked in the Figure~\ref{fig:confidence}. Our results in a different language are similar to Gu's results. Our results are consistent with Gu's results except one project, Cassandra, with a correlation of 0.094.
+
 
 %The coefficients are 0.094 for Cassandra, 0.844 for Flink, 0.868 for Hadoop, 0.896 for Lucene, 0.910 for Netty and 0.745 for Tomcat. Our result is consistent with Gu's result except one project.
 
