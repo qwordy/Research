@@ -48,6 +48,8 @@ def draw2(project):
     plt.xlabel('Time (month)', fontdict=font)
     plt.ylabel('Percentage', fontdict=font)
     plt.text(3, 0.7, 'Correlation=' + confs[project], fontdict=font)
+    #if confs[project] > 0.7:
+
     plt.xlim(c.min(), c.max())
     plt.ylim(0, 1)
     
