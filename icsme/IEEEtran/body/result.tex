@@ -328,7 +328,29 @@ This pull request is already confirmed by their programmers.
 %\end{lstlisting}
 
 %This example shows a change from ThreadLocal$<$Random$>$ to ThreadLocalRandom from JDK7. It is from a Schmince-2, a game on Google Play. We make the change and our pull request\footnote{\url{https://github.com/derekmu/Schmince-2/pull/1}} has been accept. ThreadLocalRandom should be used when available in place of ThreadLocal$<$Random$>$. For JDK7 the difference is minimal, but JDK8 starts including optimizations for ThreadLocalRandom. The ThreadLocal class provides thread-local variables. The ThreadLocalRandom class is a random number generator isolated to the current thread.
-
+\begin{figure*}
+	\centering
+	\subfigure[Ascending-high]{\includegraphics[width=2.3in]{CountDownLatch}}
+	\subfigure[Descending-high]{\includegraphics[width=2.3in]{LinkedTransferQueue}}
+	\subfigure[Hybrid-high]{\includegraphics[width=2.3in]{CopyOnWriteArrayList}}
+	
+	\subfigure[Ascending-medium]{\includegraphics[width=2.3in]{AtomicIntegerFieldUpdater}}
+	\subfigure[Descending-medium]{\includegraphics[width=2.3in]{ConcurrentSkipListMap}}
+	\subfigure[Hybrid-medium]{\includegraphics[width=2.3in]{LinkedBlockingDeque}}
+	
+	\subfigure[Ascending-low]{\includegraphics[width=2.3in]{AtomicLongArray}}
+	\subfigure[Descending-low]{\includegraphics[width=2.3in]{DelayQueue}}
+	\subfigure[Hybrid-low]{\includegraphics[width=2.3in]{AtomicReferenceArray}}
+	
+%	\subfigure[Descending]{\includegraphics[width=2.3in]{LinkedTransferQueue}}
+%	\subfigure[Hybrid]{\includegraphics[width=2.3in]{ThreadPoolExecutor}}
+%	\subfigure[High]{\includegraphics[width=2.3in]{AtomicInteger}}
+%	\subfigure[Medium]{\includegraphics[width=2.3in]{SynchronousQueue}}
+%	\subfigure[Low]{\includegraphics[width=2.3in]{DiscardPolicy}}
+	\caption{Typical Trend of Change Frequency}
+	\label{figure:trend}
+%\zhong{The labels shall be like ascending-high, ascending-medium, ascending-low, and etc. There shall be nine graphs in total. The percents of the nine graphs shall add up to 100\%.}
+\end{figure*}
 We made the second pull request on UnifiedEmail\footnote{\url{https://github.com/HexagonRom/android_packages_apps_UnifiedEmail}}. It is an Android email client. It has the following code:
 
 \begin{lstlisting}
@@ -380,29 +402,7 @@ The above pull request is still pending.
 \end{table}
 
 We made the third pull request on Spider4java\footnote{\url{https://github.com/lichangshu/spider4java}}. It is a Java web crawler. It has the following code:
-\begin{figure*}
-	\centering
-	\subfigure[Ascending-high]{\includegraphics[width=2.3in]{CountDownLatch}}
-	\subfigure[Descending-high]{\includegraphics[width=2.3in]{LinkedTransferQueue}}
-	\subfigure[Hybrid-high]{\includegraphics[width=2.3in]{CopyOnWriteArrayList}}
-	
-	\subfigure[Ascending-medium]{\includegraphics[width=2.3in]{AtomicIntegerFieldUpdater}}
-	\subfigure[Descending-medium]{\includegraphics[width=2.3in]{ConcurrentSkipListMap}}
-	\subfigure[Hybrid-medium]{\includegraphics[width=2.3in]{LinkedBlockingDeque}}
-	
-	\subfigure[Ascending-low]{\includegraphics[width=2.3in]{AtomicLongArray}}
-	\subfigure[Descending-low]{\includegraphics[width=2.3in]{DelayQueue}}
-	\subfigure[Hybrid-low]{\includegraphics[width=2.3in]{AtomicReferenceArray}}
-	
-%	\subfigure[Descending]{\includegraphics[width=2.3in]{LinkedTransferQueue}}
-%	\subfigure[Hybrid]{\includegraphics[width=2.3in]{ThreadPoolExecutor}}
-%	\subfigure[High]{\includegraphics[width=2.3in]{AtomicInteger}}
-%	\subfigure[Medium]{\includegraphics[width=2.3in]{SynchronousQueue}}
-%	\subfigure[Low]{\includegraphics[width=2.3in]{DiscardPolicy}}
-	\caption{Typical Trend of Change Frequency}
-	\label{figure:trend}
-%\zhong{The labels shall be like ascending-high, ascending-medium, ascending-low, and etc. There shall be nine graphs in total. The percents of the nine graphs shall add up to 100\%.}
-\end{figure*}
+
 
 \begin{lstlisting}
 public class Counter {
@@ -458,7 +458,7 @@ In summary, our results show that our change patterns are repetitive in future m
 
 
 
-Table~\ref{table:topapi} shows the top ten active parallel API classes. The first column lists the names of these classes. The second column lists the times of their occurrence respectively in changed lines in commits. For example, the most common class in changes is \CodeIn{AtomicInteger}. There are 6,891 changes which are related to this class. This indicates that this class is very popular. We notice that the first several classes in the table are all famous and easy to use. The values of different classes vary. The first \%10 classes account for over 50\% occurrence of changes. The last \%10 classes account for only 0.36\%.
+Table~\ref{table:topapi} shows the top ten active parallel API classes. Column ``class'' lists names of these classes. Column ``Occurrence'' lists their occurrences in commits. For example, the most common class in changes is \CodeIn{AtomicInteger}. There are 6,891 changes which are related to this class. This indicates that this class is very popular. We notice that the first several classes in the table are all famous and easy to use. The values of different classes vary. The first \%10 classes account for over 50\% occurrence of changes. The last \%10 classes account for only 0.36\%.
 
 We draw the trend chart of each class as time goes. We divive the classes into 3 groups based on their frequency: high-frequency, medium-frequency and low-frequency. For each group, we draw a representative of ascending, descending and hybrid trend. Figure~\ref{figure:trend} has 9 charts in total. The percentage in each chart denotes the proportion of this kind of classes. Most classes are in a hybrid trend. They are fluctuating without certain ascending or descending tendency. The number of ascending classes is larger than descending classes.
 
