@@ -47,13 +47,14 @@ def draw2(project):
     plt.plot(c, f)
     plt.xlabel('Time (month)', fontdict=font)
     plt.ylabel('Percentage', fontdict=font)
-    plt.text(3, 0.7, 'Correlation=' + confs[project], fontdict=font)
+    plt.figtext(0.15, 0.8, 'Correlation=' + confs[project], fontdict=font)
     #if confs[project] > 0.7:
 
     plt.xlim(c.min(), c.max())
     plt.ylim(0, 1)
     
     plt.savefig(project + '.pdf')
+    plt.close()
     
 
 projects = ['hadoop', 'cassandra', 'flink', 'netty', 'tomcat', 'lucene-solr', 'mahout']
