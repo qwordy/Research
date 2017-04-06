@@ -17,9 +17,9 @@ To assess the usefulness of our extracted change patterns, we search open source
 
 Okur and Dig~\cite{conf/sigsoft/OkurD12} find that in C\#, 10\% of parallel API classes account for 90\% of API usages. In Java, J2SE\footnote{\url{https://docs.oracle.com/javase/}} also provides standard APIs for developing concurrent code. In this research question, we explore whether Java parallel APIs follow a similar distribution as C\#. Our results show that in Java, popular parallel APIs also account for a large portion of the total API usages, but the distribution is less screwed. However, the trends show that in the long run, the distribution of Java can be more screwed, since popular APIs are becoming more popular (see Section~\ref{sec:result:trend} for details). 
 
-\textbf{RQ4.} Are there any correlations between code changes and changes on concurrent code?
+\textbf{RQ4.} Are there any correlations between total commits and concurrency-related commits?
 
-Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} compare the code changes and changes on concurrent code, and they find strong correlation between the two types of code changes. With a different data set, we explore whether their finding still holds on other projects. Our results show that Spearman's rank correlation coefficient is 0.093.
+At the granularity of code lines, Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} find a strong correlation between total changes and concurrency-related changes. With a different data set and a coarser granularity, we explore whether their finding still holds on our data set. Our results show that the correlation still exists, but is less significant (see Section~\ref{sec:result:correlation} for details).
 
 \subsection{Data set}
 \label{sec:method:data}
