@@ -361,8 +361,49 @@ private static NotificationMap getNotificationMap(Context context) {
 \end{lstlisting}
 
 The above pull request is still pending.
+\begin{table}
+	\centering
+	\caption{Top 10 Active Classes}
+	\label{table:topapi}
+	\begin{tabular}{|c|c|}\hline
+		Class&Occurrence\\\hline
+		AtomicInteger&6,891\\
+		AtomicBoolean&4,180\\
+		ConcurrentHashMap&3,976\\
+		AtomicLong&3,926\\
+		CountDownLatch&3,211\\
+		AtomicReference&2,254\\
+		Executors&2,026\\
+		ThreadPoolExecutor&1,617\\
+		LinkedBlockingQueue&1,553\\
+		ConcurrentLinkedQueue&1,435\\\hline
+	\end{tabular}
+\end{table}
 
 We made the third pull request on Spider4java\footnote{\url{https://github.com/lichangshu/spider4java}}. It is a Java web crawler. It has the following code:
+\begin{figure*}
+	\centering
+	\subfigure[Ascending-high]{\includegraphics[width=2.3in]{CountDownLatch}}
+	\subfigure[Descending-high]{\includegraphics[width=2.3in]{LinkedTransferQueue}}
+	\subfigure[Hybrid-high]{\includegraphics[width=2.3in]{CopyOnWriteArrayList}}
+	
+	\subfigure[Ascending-medium]{\includegraphics[width=2.3in]{AtomicIntegerFieldUpdater}}
+	\subfigure[Descending-medium]{\includegraphics[width=2.3in]{ConcurrentSkipListMap}}
+	\subfigure[Hybrid-medium]{\includegraphics[width=2.3in]{LinkedBlockingDeque}}
+	
+	\subfigure[Ascending-low]{\includegraphics[width=2.3in]{AtomicLongArray}}
+	\subfigure[Descending-low]{\includegraphics[width=2.3in]{DelayQueue}}
+	\subfigure[Hybrid-low]{\includegraphics[width=2.3in]{AtomicReferenceArray}}
+	
+%	\subfigure[Descending]{\includegraphics[width=2.3in]{LinkedTransferQueue}}
+%	\subfigure[Hybrid]{\includegraphics[width=2.3in]{ThreadPoolExecutor}}
+%	\subfigure[High]{\includegraphics[width=2.3in]{AtomicInteger}}
+%	\subfigure[Medium]{\includegraphics[width=2.3in]{SynchronousQueue}}
+%	\subfigure[Low]{\includegraphics[width=2.3in]{DiscardPolicy}}
+	\caption{Typical Trend of Change Frequency}
+	\label{figure:trend}
+\zhong{The labels shall be like ascending-high, ascending-medium, ascending-low, and etc. There shall be nine graphs in total. The percents of the nine graphs shall add up to 100\%.}
+\end{figure*}
 
 \begin{lstlisting}
 public class Counter {
@@ -402,24 +443,7 @@ In summary, our results show that our change patterns are repetitive in future m
 
 \subsection{RQ3. What are the change trends of using parallel APIs}
 \label{sec:result:trend}
-\begin{table}
-	\centering
-	\caption{Top 10 Active Classes}
-	\label{table:topapi}
-	\begin{tabular}{|c|c|}\hline
-		Class&Occurrence\\\hline
-		AtomicInteger&6,891\\
-		AtomicBoolean&4,180\\
-		ConcurrentHashMap&3,976\\
-		AtomicLong&3,926\\
-		CountDownLatch&3,211\\
-		AtomicReference&2,254\\
-		Executors&2,026\\
-		ThreadPoolExecutor&1,617\\
-		LinkedBlockingQueue&1,553\\
-		ConcurrentLinkedQueue&1,435\\\hline
-	\end{tabular}
-\end{table}
+
 
 %\begin{figure}
 %	\centering
@@ -433,29 +457,7 @@ In summary, our results show that our change patterns are repetitive in future m
 %	\caption{Removal of CountDownLatch}
 %\end{figure}
 
-\begin{figure*}
-	\centering
-	\subfigure[Ascending-high]{\includegraphics[width=2.3in]{CountDownLatch}}
-	\subfigure[Descending-high]{\includegraphics[width=2.3in]{LinkedTransferQueue}}
-	\subfigure[Hybrid-high]{\includegraphics[width=2.3in]{CopyOnWriteArrayList}}
-	
-	\subfigure[Ascending-medium]{\includegraphics[width=2.3in]{AtomicIntegerFieldUpdater}}
-	\subfigure[Descending-medium]{\includegraphics[width=2.3in]{ConcurrentSkipListMap}}
-	\subfigure[Hybrid-medium]{\includegraphics[width=2.3in]{LinkedBlockingDeque}}
-	
-	\subfigure[Ascending-low]{\includegraphics[width=2.3in]{AtomicLongArray}}
-	\subfigure[Descending-low]{\includegraphics[width=2.3in]{DelayQueue}}
-	\subfigure[Hybrid-low]{\includegraphics[width=2.3in]{AtomicReferenceArray}}
-	
-%	\subfigure[Descending]{\includegraphics[width=2.3in]{LinkedTransferQueue}}
-%	\subfigure[Hybrid]{\includegraphics[width=2.3in]{ThreadPoolExecutor}}
-%	\subfigure[High]{\includegraphics[width=2.3in]{AtomicInteger}}
-%	\subfigure[Medium]{\includegraphics[width=2.3in]{SynchronousQueue}}
-%	\subfigure[Low]{\includegraphics[width=2.3in]{DiscardPolicy}}
-	\caption{Typical Trend of Change Frequency}
-	\label{figure:trend}
-\zhong{The labels shall be like ascending-high, ascending-medium, ascending-low, and etc. There shall be nine graphs in total. The percents of the nine graphs shall add up to 100\%.}
-\end{figure*}
+
 
 Table~\ref{table:topapi} shows the top ten active parallel API classes. The first column lists the names of these classes. The second column lists the times of their occurrence respectively in changed lines in commits. For example, the most common class in changes is \CodeIn{AtomicInteger}. There are 6,891 changes which are related to this class. This indicates that this class is very popular. We notice that the first several classes in the table are all famous and easy to use. The values of different classes vary. The first \%10 classes account for over 50\% occurrence of changes. The last \%10 classes account for only 0.36\%.
 
@@ -485,14 +487,14 @@ We draw the trend chart of each class as time goes. Figure~\ref{figure:trend} sh
 
 Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} find that at the granularity of code lines, concurrency-related modifications and total modifications have strong correlation. In our study, we further explore the problem at the granularity of commits. Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} use the Spearman's rank
 correlation coefficient to determine the correlation. In our study, we use the identical measure. Given two sets of data, the Spearman's rank
-correlation coefficient calculates a correlation value between -1 and +1. Here, +1 denotes that it finds a perfect monotone function for the two sets of data, and -1 denotes the opposite. 
- 
+correlation coefficient calculates a correlation value between -1 and +1. Here, +1 denotes that it finds a perfect monotone function for the two sets of data, and -1 denotes the opposite.
+
 Figure~\ref{fig:confidence} shows our results. Each label denotes a project, and has two associated figures. In particular, the upper figure denotes total commits and concurrency-related commits in the interval of months. Its horizontal axis denotes time, and its vertical axis denotes number of commits. Its blue curve denotes total commits, and its yellow curve denotes concurrency-related commits. We find that the curves of total commits and concurrency-related commits are not quite similar. However, the Spearman's rank
 correlation coefficient shows that in the five out of six projects, the two sets of values are correlated. One exception is Cassandra, where the correlation value is at the border (0.094).
 
 In the lower figures, we calculate the percents from total commits to concurrency-related commits. Although the two sets of data are correlated, we find that their percents are inconstant. In total, about 20\% of total commits are related to concurrency. However, if we make predication based on the percents, the prediction can be unreliable.
 
-In summary, we find that at a coarser granularity, the correlation between total commits and concurrency-related commits still exist, but the correlation becomes less significant.  
+In summary, we find that at a coarser granularity, the correlation between total commits and concurrency-related commits still exist, but the correlation becomes less significant.
 %\zhong{Delete the following confidences, since you add them in Figure~\ref{fig:confidence} already}.
 
 %\zhong{Introduce your null hypothesis. Introduce how to decide to reject a null hypothesis. That is, introduce how you determine two curves are coefficient.}.
