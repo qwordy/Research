@@ -50,7 +50,7 @@ public class GitLogParser {
     parse("hadoop"); // 21m 35m
     parse("flink"); // 18m
     parse("tomcat"); // 5m
-    parse("mahout"); // 4m
+    //parse("mahout"); // 4m
     parse("cassandra"); // 9m
     parse("lucene-solr"); // 40m 1h
     parse("netty"); // 4m 9m
@@ -112,6 +112,9 @@ public class GitLogParser {
     Feature f = new Feature();
     textFeature(lines, f);
     codeFeature(lines, f);
+
+    if (f.related())
+      relatedCommitCount++;
 //    if (f.related()) {
 //      relatedCommitCount++;
 //      fileCount++;

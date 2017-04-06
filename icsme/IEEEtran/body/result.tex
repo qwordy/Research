@@ -347,7 +347,7 @@ This pull request is already confirmed by their programmers.
 %	\subfigure[High]{\includegraphics[width=2.3in]{AtomicInteger}}
 %	\subfigure[Medium]{\includegraphics[width=2.3in]{SynchronousQueue}}
 %	\subfigure[Low]{\includegraphics[width=2.3in]{DiscardPolicy}}
-	\caption{Typical Trend of Change Frequency}
+	\caption{Typical trends and their percents}
 	\label{figure:trend}
 %\zhong{The labels shall be like ascending-high, ascending-medium, ascending-low, and etc. There shall be nine graphs in total. The percents of the nine graphs shall add up to 100\%.}
 \end{figure*}
@@ -435,6 +435,18 @@ public class Counter {
   }
 }
 \end{lstlisting}
+\begin{figure*}
+	\centering
+	\subfigure[Cassandra]{\includegraphics[height=1.4in]{cassandra}}
+	\subfigure[Flink]{\includegraphics[height=1.4in]{flink}}
+	\subfigure[Hadoop]{\includegraphics[height=1.4in]{hadoop}}
+	\subfigure[Lucene-Solr]{\includegraphics[height=1.4in]{lucene-solr}}
+	%\subfigure[Mahout]{\includegraphics[height=1.2in]{mahout}}
+	\subfigure[Netty]{\includegraphics[height=1.4in]{netty}}
+	\subfigure[Tomcat]{\includegraphics[height=1.4in]{tomcat}}
+	\caption{Number of concurrent related commits compared to all commits}
+	\label{fig:confidence}
+\end{figure*}
 
 However, their programmes denied the pull request. Although our pull request works, it is more neat to systematically replace the above \CodeIn{Counter} class with the \CodeIn{AtomicInteger} class. Their programmers may deny our pull request, simply because the wrapper style looks ugly.
 
@@ -455,12 +467,11 @@ In summary, our results show that our change patterns are repetitive in future m
 %	\includegraphics[height=1.5in]{CountDownLatchMinus}
 %	\caption{Removal of CountDownLatch}
 %\end{figure}
+Table~\ref{table:topapi} shows the top ten active parallel API classes in Java. Column ``class'' lists names of these classes. Column ``Occurrence'' lists their occurrences in our concurrency-related commits. Dig~\cite{conf/sigsoft/OkurD12} find that in C\#, 10\% of parallel API classes account for 90\% of API usages. We find that Java follows similar usages patterns as C\#. However, the distribution of Java is not as screwed as C\#. We find that the top \%10 classes account only for about 50\% of the total occurrences, while the bottom \%10 classes account for 0.36\%.
 
+Based on their occurrences, we put the 53 classes into three categories such as \emph{high-frequency}, \emph{medium-frequency} and \emph{low-frequency}, and each category contains roughly the same number of classes. For each category, we further put its classes into three subcategories such as \emph{ascending}, \emph{descending} and \emph{hybrid}. Figure~\ref{figure:trend} shows the results. The percent in each chart is calculated from the classes with the corresponding trend to the total classes. Although most classes are in the hybrid trend, we notice that in the high-frequent category, 15.1\% of classes are in the ascending subcategory. The trend can indicate that some popular parallel API classes are becoming more popular. 
 
-
-Table~\ref{table:topapi} shows the top ten active parallel API classes. Column ``class'' lists names of these classes. Column ``Occurrence'' lists their occurrences in commits. For example, the most common class in changes is \CodeIn{AtomicInteger}. There are 6,891 changes which are related to this class. This indicates that this class is very popular. We notice that the first several classes in the table are all famous and easy to use. The values of different classes vary. The first \%10 classes account for over 50\% occurrence of changes. The last \%10 classes account for only 0.36\%.
-
-We draw the trend chart of each class as time goes. We divive the classes into 3 groups based on their frequency: high-frequency, medium-frequency and low-frequency. For each group, we draw a representative of ascending, descending and hybrid trend. Figure~\ref{figure:trend} has 9 charts in total. The percentage in each chart denotes the proportion of this kind of classes. Most classes are in a hybrid trend. They are fluctuating without certain ascending or descending tendency. The number of ascending classes is larger than descending classes.
+In summary, we find that Java parallel API classes follow a similar distribution as C\#, but the distribution is less screwed. However, the trends indicate that the distribution can become more like C\#, since popular ones are becoming more popular. 
 
 %Figure (a) shows an example of ascending tendency. It is \CodeIn{CountDownLatch}. We are not meaning it is in a strict ascending order. Its overall tendency is rising. Figure (b) shows an example of descending tendency. It is \CodeIn{LinkedTransferQueue}. However, most charts are like figure (c). They are fluctuating without certain ascending or descending tendency. We divide the classes into 3 parts equally and show one class of each part.
 
@@ -471,19 +482,8 @@ We draw the trend chart of each class as time goes. We divive the classes into 3
 %We draw line for addition and removal of each class. Figure 3 and figure 4 show examples. We can see that both numbers of addition and removal increase as a whole as time passing by. This indicates that this class is attracting developers' attention.
 
 \subsection{RQ4. The correlations between total commits and concurrency-related commits.}
+\label{sec:result:correlation}
 
-\begin{figure*}
-	\centering
-	\subfigure[Cassandra]{\includegraphics[height=1.4in]{cassandra}}
-	\subfigure[Flink]{\includegraphics[height=1.4in]{flink}}
-	\subfigure[Hadoop]{\includegraphics[height=1.4in]{hadoop}}
-	\subfigure[Lucene-Solr]{\includegraphics[height=1.4in]{lucene-solr}}
-	%\subfigure[Mahout]{\includegraphics[height=1.2in]{mahout}}
-	\subfigure[Netty]{\includegraphics[height=1.4in]{netty}}
-	\subfigure[Tomcat]{\includegraphics[height=1.4in]{tomcat}}
-	\caption{Number of concurrent related commits compared to all commits}
-	\label{fig:confidence}
-\end{figure*}
 
 Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} find that at the granularity of code lines, concurrency-related modifications and total modifications have strong correlation. In our study, we further explore the problem at the granularity of commits. Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} use the Spearman's rank
 correlation coefficient to determine the correlation. In our study, we use the identical measure. Given two sets of data, the Spearman's rank
