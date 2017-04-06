@@ -171,7 +171,7 @@ We find that programmers can add the \CodeIn{volatile} keyword to improve perfor
 %Fix a FindBugs warning (increment of volatile not atomic)
 
 %\zhong{Please explain why you need two samples for this situation.}
-Besides adding the keyword, we find that programmers have to remove the \CodeIn{volatile} keyword, since they do not fully understand its meanings. For example, in eleventh item of Table~\ref{table:patterns2} comes from \zhong{where?}. In this bug, programmers auto-increment a \CodeIn{volatile} variable, but such an action is not atomic. As a result, FindBugs reports it as a bug, and programmers have to remove the keyword.
+Besides adding the keyword, we find that programmers have to remove the \CodeIn{volatile} keyword, since they do not fully understand its meanings. For example, in tenth item of Table~\ref{table:patterns2} comes from Tomcat. In this bug, programmers auto-increment a \CodeIn{volatile} variable, but such an action is not atomic. As a result, FindBugs reports it as a bug, and programmers have to remove the keyword.
 
 \noindent
 \textbf{5. Replacing self-written code with Parallel APIs.} Programmers can implement concurrent code by themselves, but later they realize that it is easier to call APIs that already implement their functionalities. For example, a previous version of Hadoop has the following code:% \zhong{Replace the below commit with the buggy code.}
