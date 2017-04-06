@@ -35,7 +35,7 @@ However, to fulfil the above benefits, we have to overcome the following challen
 \noindent
 \textbf{Challenge 2.} The changes on concurrency code can be complicated. A recent study~\cite{tufano2016there} show that only 38\% commits are compilable. To analyze code that is not compilable, researchers typically use partial-code tools such as PPA~\cite{DagenaisH08ppa} and ChangeDistiller~\cite{fluri2007change} to analyze commits. However, as partial programs lose information, partial-code tools are imprecise and typically do not support advanced analysis. Furthermore, as we do not know what patterns can be followed, it is difficult to implement a automatic tool. As a result, it is inevitable to take much human effort when we conduct the empirical study.
 
-In this paper, we conducted an empirical study on 102,028 commits that were collected 7 popular and representative open-source projects. In total, we selected 696 concurrency-related commits from our collected commits, and carefully analyzed our extracted commits. Based on our results, this paper makes the following contributions:
+In this paper, we conducted an empirical study on 98,352 commits that were collected six popular and representative open-source projects. In total, we selected 695 concurrency-related commits from our collected commits, and carefully analyzed our extracted commits. Based on our results, this paper makes the following contributions:
 
 \begin{itemize}
 	\item We find some interesting findings: Some changes are contrary. Different developers may modify their code in an opposite direction. Developers are using some code-checking tools like findbugs to help them inspect their code, but sometimes these tools are not enough.
