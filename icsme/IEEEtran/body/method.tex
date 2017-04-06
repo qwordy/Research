@@ -39,7 +39,7 @@ In this study, we collected commits from seven Apache\footnote{\url{http://www.a
 		Flink&414,264&4,068&9,771&28\\\hline
 		%Guava&251,205&1,672&3,850\\\hline
 		%Mahout&109,584&1,215&3,703&0\\\hline
-		Total&3,442,710&24,468&98,352&?\\\hline
+		Total&3,442,710&24,468&98,352&560\\\hline
 	\end{tabular}
 \zhong{? in the total row?}
 \end{table}
@@ -57,7 +57,7 @@ Our tool employs the SVM \cite{journals/ml/CortesV95} algorithm to identify comm
 
 \zhong{Do you have overlaps between the two sets of commits? How many commits do you analyze in total?}
 
-Finally we have 561 potential concurrent-related commits selected by keyword matching of commit message and 135 commits by using machine learning.
+Finally we have 560 potential concurrent-related commits selected by keyword matching of commit message and 135 commits by using machine learning.
 
 \begin{table}
 	\centering
@@ -82,7 +82,7 @@ Finally we have 561 potential concurrent-related commits selected by keyword mat
 
 \subsubsection{Step 3. Analyzing commits according to different research questions} We then conduct detailed analysis according to our research questions.
 
-\textbf{RQ1. Determining change patterns.} To explore this research question, we manually analyze \zhong{all the?} concurrency-related commits. For example, the below is a concurrency-related commit. The top five lines describe the metadata of the commit. The other lines describe the differences between two versions of code.
+\textbf{RQ1. Determining change patterns.} To explore this research question, we manually analyze 300 concurrency-related commits. For example, the below is a concurrency-related commit. The top five lines describe the metadata of the commit. The other lines describe the differences between two versions of code.
 
 \begin{lstlisting}
 commit 563e546236217dace58a8031d56d08a27e08160b
