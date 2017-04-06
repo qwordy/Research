@@ -18,12 +18,12 @@ def draw(project):
     #plt.show()
 
 confs = {
-  'hadoop': '0.868',
-  'cassandra': '0.094',
-  'flink': '0.844',
-  'netty': '0.910',
-  'tomcat': '0.745',
-  'lucene-solr': '0.896',
+  'hadoop': '0.868 ' + u'\u2713',
+  'cassandra': '0.094 ' + u'\u2717',
+  'flink': '0.844 ' + u'\u2713',
+  'netty': '0.910 ' + u'\u2713',
+  'tomcat': '0.745 ' + u'\u2713',
+  'lucene-solr': '0.896 ' + u'\u2713',
   'mahout': '0'
 }
 
