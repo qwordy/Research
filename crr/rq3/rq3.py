@@ -80,6 +80,18 @@ def writeFile(name, dict):
 
 font = {'size': 15}
 
+percs = {
+  'CountDownLatch': '15.1%',
+  'LinkedTransferQueue': '3.7%',
+  'CopyOnWriteArrayList': '15.1%',
+  'AtomicIntegerFieldUpdater': '5.7%',
+  'ConcurrentSkipListMap': '5.7%',
+  'LinkedBlockingDeque': '22.6%',
+  'AtomicLongArray': '3.8%',
+  'DelayQueue': '3.8%',
+  'AtomicReferenceArray': '24.5%'
+}
+
 def draw():
   for filename in os.listdir('newdata'):
     print filename
@@ -112,12 +124,8 @@ def draw():
     plt.ylabel('Count', fontdict=font)
 
     x, y = 0.2, 0.7
-    if filename == 'CountDownLatch':
-      plt.figtext(x, y, '24%', fontdict=font)
-    elif filename == 'LinkedTransferQueue':
-      plt.figtext(x, y, '8%', fontdict=font)
-    elif filename == 'ThreadPoolExecutor':
-      plt.figtext(x, y, '68%', fontdict=font)
+    if filename in percs:
+      plt.figtext(x, y, percs[filename], fontdict=font)
 
     plt.savefig('newfig/' + filename + '.pdf')
     plt.close(fig)
