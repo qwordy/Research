@@ -117,13 +117,15 @@ java.lang.Thread.State: BLOCKED (on object monitor)
 java.lang.Thread.State: BLOCKED (on object monitor)
 \end{lstlisting}
 
-\zhong{Why do you present the above stack trace.}
+The stack trace shows that three threads are all in a waiting or blocked state and there is a waiting chain among the threads. In order to repair this bug, the developer removed the synchronization of one thread when it is waiting to be notified by another thread and then the threads no longer wait for each.
 
-\zhong{Instead of why a deadlock occurs, you shall explain why the modification in Table~\ref{table:patterns2} repaired the deadlock. If the modification alone is insufficient, add more details here.}
+%\zhong{Why do you present the above stack trace.}
+
+%\zhong{Instead of why a deadlock occurs, you shall explain why the modification in Table~\ref{table:patterns2} repaired the deadlock. If the modification alone is insufficient, add more details here.}
 %As shown in Figure~\ref{figure:deadlock}, a deadlock can occur when three threads execute in a specific order. Here, we use $s1$ and $s2$ to denote two statements. An arrow from $s1$ to $s2$ means $s1$ cannot be returned before $s2$ has been returned. The \CodeIn{DataSource} (thread-1) is waiting to be notified by the \CodeIn{Writer} (thread-2) when holding lock A. The \CodeIn{Writer} (thread-2) is trying to acquire lock B. But lock B is held by the \CodeIn{Map} (thread-3). And the \CodeIn{Map} (thread-3) is trying to acquire lock A, which is held by the \CodeIn{DataSource} (thread-1). Here is a waiting chain. This is a kind of bug known as deadlock. The problem is that the \CodeIn{DataSource} (thread-1) does not need to hold lock A while waiting to be notified. So the developer removed the unnecessary synchronization.
 
-In some other cases, we find that programmers can refine their locked resources to improve performance. For example, the fourth item of Table~\ref{table:patterns} comes from \zhong{where?}. The original code locks the instance of a class, but the modified code locks only the \CodeIn{membersLock} field.
-
+%f0e627bb8c9daedb3b064027cac37ce4849bab64
+In some other cases, we find that programmers can refine their locked resources to improve performance. For example, the fourth item of Table~\ref{table:patterns} comes from Tomcat. The original code locks the instance of a class, but the modified code locks only the \CodeIn{membersLock} field.
 
 \noindent
 \textbf{3. Modifications on critical section bodies.} A critical section is a code block that is executed, when a thread locked the corresponding resources. The modifications on critical section bodies indicate new functionalities or refactoring.
