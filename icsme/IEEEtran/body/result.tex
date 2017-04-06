@@ -44,7 +44,6 @@ Table~\ref{table:patterns} and table~\ref{table:patterns2} show an overview of o
 	\includegraphics[width=1\textwidth]{patterns2}
 	\caption{Change patterns (Cont.)}
 	\label{table:patterns2}
-\zhong{add subcolumn titles. The 7th item is empty}
 \end{table*}
 \noindent
 \textbf{1. Changing lock types.} It is feasible to lock resources with different mechanisms. For example, Java has a keyword, \CodeIn{synchronized}. The keyword can lock a block of code lines. With the keyword, programmers do not have to acquire and release resources explicitly. Alternatively, programmers can explicitly lock resources with APIs (\emph{e.g.}, \CodeIn{ReentrantLock}). Explicit locks offer more features that the \CodeIn{synchronized} keyword does not. For example, with such APIs, programmers can determine the conditions for a lock. As another example, besides exclusive locks, programmers can use shared locks. When a thread is holding an exclusive lock, other threads have to wait until it is released. In the constrast, shared locks allow multiple threads to hold the lock with specific actions. For example, \CodeIn{ReadWriteLock} allows multiple read actions, but denies multiple write actions.%\zhong{Please explain what exclusive and shared locks are, and their benefits.}
