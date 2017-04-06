@@ -288,9 +288,7 @@ In summary, in our study, we identify five types of change patterns in total. Fi
 %\zhong{Try to add an example for each change pattern.}
 %\zhong{How many pull requests did you submit?}
 
-We have found some contexts which are suitable for the change patterns in different projects. We make 3 pull requests. One is accepted. One is abandoned. One is not responded yet.
-
-Schmince-2\footnote{\url{https://github.com/derekmu/Schmince-2}} is a game in Google Play. It has the following code:
+In total, we made three pull requests. We made the first pull request on Schmince-2\footnote{\url{https://github.com/derekmu/Schmince-2}}. This is a game, where players control space tourists for adventure. It has the following code:
 
 \begin{lstlisting}
 public class DRandom {
@@ -305,7 +303,7 @@ public class DRandom {
 }
 \end{lstlisting}
 
-We find that we can use \CodeIn{ThreadLocalRandom} class to replace the above code. We make the change and our pull request\footnote{\url{https://github.com/derekmu/Schmince-2/pull/1}} has been accept. \CodeIn{ThreadLocal} class provides thread-local variables. \CodeIn{ThreadLocalRandom} class is a random number generator isolated to the current thread. \CodeIn{ThreadLocalRandom} can be used when available in place of \CodeIn{ThreadLocal<Random>}. It not only reduces and smartens the original code, but also has optimizations in its implementation since Java 8. The modified code is as follow:
+The above code implement a class that generates random values for multiple threads. We find that J2SE provides the \CodeIn{ThreadLocalRandom} class\footnote{\url{https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadLocalRandom.html}} that implements the identical function. According to our fifth change pattern, we made a pull request to replace the above code with the corresponding API\footnote{\url{https://github.com/derekmu/Schmince-2/pull/1}}, and the modified code is as follow:
 
 \begin{lstlisting}
 public class DRandom {
@@ -314,7 +312,7 @@ public class DRandom {
   }
 }
 \end{lstlisting}
-
+This pull request is already confirmed by their programmers. 
 %\begin{lstlisting}
 %+import java.util.concurrent.ThreadLocalRandom;
 %public class DRandom {
@@ -332,7 +330,7 @@ public class DRandom {
 
 %This example shows a change from ThreadLocal$<$Random$>$ to ThreadLocalRandom from JDK7. It is from a Schmince-2, a game on Google Play. We make the change and our pull request\footnote{\url{https://github.com/derekmu/Schmince-2/pull/1}} has been accept. ThreadLocalRandom should be used when available in place of ThreadLocal$<$Random$>$. For JDK7 the difference is minimal, but JDK8 starts including optimizations for ThreadLocalRandom. The ThreadLocal class provides thread-local variables. The ThreadLocalRandom class is a random number generator isolated to the current thread.
 
-UnifiedEmail\footnote{\url{https://github.com/HexagonRom/android_packages_apps_UnifiedEmail}} is an open-source android application in Github. It has the following code:
+We made the second pull request on UnifiedEmail\footnote{\url{https://github.com/HexagonRom/android_packages_apps_UnifiedEmail}}. It is an Android email client. It has the following code:
 
 \begin{lstlisting}
 private static NotificationMap sActiveNotificationMap = null;
