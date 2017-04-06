@@ -455,10 +455,7 @@ In summary, our results show that our change patterns are repetitive in future m
 %	\includegraphics[height=1.5in]{CountDownLatchMinus}
 %	\caption{Removal of CountDownLatch}
 %\end{figure}
-
-
-
-Table~\ref{table:topapi} shows the top ten active parallel API classes. Column ``class'' lists names of these classes. Column ``Occurrence'' lists their occurrences in commits. For example, the most common class in changes is \CodeIn{AtomicInteger}. There are 6,891 changes which are related to this class. This indicates that this class is very popular. We notice that the first several classes in the table are all famous and easy to use. The values of different classes vary. The first \%10 classes account for over 50\% occurrence of changes. The last \%10 classes account for only 0.36\%.
+Table~\ref{table:topapi} shows the top ten active parallel API classes in Java. Column ``class'' lists names of these classes. Column ``Occurrence'' lists their occurrences in our concurrency-related commits. Dig~\cite{conf/sigsoft/OkurD12} find that in C\#, 10\% of parallel API classes account for 90\% of API usages. We find that Java follows similar usages patterns as C\#. However, the distribution of Java is not as screwed as C\#. We find that the top \%10 classes account only for about 50\% of the total occurrences, while the bottom \%10 classes account for only 0.36\%.
 
 We draw the trend chart of each class as time goes. We divive the classes into 3 groups based on their frequency: high-frequency, medium-frequency and low-frequency. For each group, we draw a representative of ascending, descending and hybrid trend. Figure~\ref{figure:trend} has 9 charts in total. The percentage in each chart denotes the proportion of this kind of classes. Most classes are in a hybrid trend. They are fluctuating without certain ascending or descending tendency. The number of ascending classes is larger than descending classes.
 

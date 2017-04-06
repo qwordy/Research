@@ -15,7 +15,11 @@ To assess the usefulness of our extracted change patterns, we search open source
 
 \textbf{RQ3.} What are the change trends of using parallel APIs?
 
-J2SE\footnote{\url{https://docs.oracle.com/javase/}} provides standard APIs for developing concurrent code. Alternatively, programmers can use third-party libraries, since they provide similar and extensive functions. In practice, programmers can choose different APIs to implement their concurrent code. Their different choices can lead to different change trends that can be examined through their revision histories. For example, a parallel API can be difficult to use, so programmers have to constantly modify corresponding code, during software maintenance. In Section~\ref{sec:result:trend}, we count commits that involve different parallel APIs over time. We find 3 types of change trends. They are ascending trends (24\%), descending trends (8\%) and hybrid trends (68\%).%\zhong{Please add details.}
+J2SE\footnote{\url{https://docs.oracle.com/javase/}} provides standard APIs for developing concurrent code. Alternatively, programmers can use third-party libraries, since they provide similar and extensive functions. Okur and Dig~\cite{conf/sigsoft/OkurD12} find that in C\#, 10\% of parallel API classes account for 90\% of API usages.
+
+
+
+In practice, programmers can choose different APIs to implement their concurrent code. Their different choices can lead to different change trends that can be examined through their revision histories. For example, a parallel API can be difficult to use, so programmers have to constantly modify corresponding code, during software maintenance. In Section~\ref{sec:result:trend}, we count commits that involve different parallel APIs over time. We find 3 types of change trends. They are ascending trends (24\%), descending trends (8\%) and hybrid trends (68\%).%\zhong{Please add details.}
 
 \textbf{RQ4.} Are there any correlations between code changes and changes on concurrent code?
 
