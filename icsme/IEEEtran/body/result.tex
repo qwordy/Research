@@ -68,10 +68,7 @@ Meanwhile, we find that programmers can replace parallel API classes with the \C
 
 %3e4b1ae6dc786b268505aa2e64067432519c2bcf
 \begin{lstlisting}
-A ReadWriteLock cannot be used to guard a WeakHashMap. The
-WeakHashMap may modify itself on get(), as it processes the reference
-queue of items removed by GC.
-Either a plain old lock / synchronization is needed, or some other solution
+A ReadWriteLock cannot be used to guard a WeakHashMap. The WeakHashMap may modify itself on get(), as it processes the reference queue of items removed by GC. Either a plain old lock / synchronization is needed, or some other solution.
 \end{lstlisting}
 
 As the above message explains, a developer complained that the \CodeIn{ReadWriteLock} method does not guard the \CodeIn{WeakHashMap} variable, since the \CodeIn{get()} method can modify the \CodeIn{WeakHashMap} variable, and the modification can bypass the lock. In this example, programmers fix the problem by replacing the methods with the \CodeIn{synchronized} keyword.%todo more detail
@@ -86,7 +83,7 @@ As the above message explains, a developer complained that the \CodeIn{ReadWrite
 %\end{figure}
 
 \noindent
-\textbf{2. Changing locked variables.} A program needs to lock variables before it enters critical section bodies. During software maintenance, programmers can change locked variables, and we find that the main purpose is to repair bugs. For example, the third item of Table~\ref{table:patterns} comes from FLINK-1419. This bug complains that \CodeIn{DistributedCache} does not preserve files for subsequent operations. Based on its discussions, we understand that in the buggy file, programmers lock \CodeIn{count}, while they shall lock \CodeIn{lock}. To fully fix the bug, programmers also modified the critical sections and the \CodeIn{finally} clause.
+\textbf{2. Changing locked variables.} A program needs to lock variables before it enters critical section bodies. During software maintenance, programmers can change locked variables, and we find that the main purpose is to repair bugs. For example, the third item of Table~\ref{table:patterns} comes from FLINK-1419. This bug complains that \CodeIn{DistributedCache} does not preserver files for subsequent operations. Based on its discussions, we understand that in the buggy file, programmers lock \CodeIn{count}, while they shall lock \CodeIn{lock}. To fully fix the bug, programmers also modified the critical sections and the \CodeIn{finally} clause.
 
 As another example, when repairing bugs, programmers can add new locks. For example, the fourth item of Table~\ref{table:patterns} comes from Tomcat\footnote{\url{https://bz.apache.org/bugzilla/show\_bug.cgi?id=58386}}. It includes the following message:
 
@@ -107,7 +104,7 @@ We find that programmers can also delete unnecessary locks. For example, the fif
 %\zhong{show the URL of the commit}.
 %\zhong{show what programmers say. Why it is unnecessary}.
 
-As the above commit message says, programmers removed synchronization from the \CodeIn{ChannelManager} class to improve the performance.
+As the above commit messages says, programmers removed synchronization from the \CodeIn{ChannelManager} class to improve the performance.
 
 
 %\zhong{show the URL of the commit}.
