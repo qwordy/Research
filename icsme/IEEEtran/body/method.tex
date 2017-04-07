@@ -85,12 +85,7 @@ Our tool employs the SVM \cite{journals/ml/CortesV95} algorithm to identify comm
 
 %\textbf{RQ1. Determining change patterns.} To explore this research question, we manually analyze 696 concurrency-related commits. For example, the below is a concurrency-related commit. The top five lines describe the metadata of the commit. The other lines describe the differences between two versions of code.
 
-\textbf{RQ1. Determining change patterns.} To explore this research question, we get 696 concurrency-related commits selected from our tool. However, we find many changes are similar when we begin to inspect these commits. So we randomly inspect half of the commits of each project.
-
-%we sampled ? concurrency-related commits for manual inspection.
-%\zhong{How did you sample the commits?}
-
-For example, the below is a concurrency-related commit. The top five lines describe the metadata of the commit. The other lines describe the differences between two versions of code.
+\textbf{RQ1. Determining change patterns.} To explore this research question, we get 696 concurrency-related commits selected from our tool. Due to the heave manual effort, we randomly sample some commits from each project. We then analyze each sampled commits for their change patterns. For example, the below is a concurrency-related commit. The top five lines describe the metadata of the commit. The other lines describe the differences between two versions of code.
 
 \begin{lstlisting}
 commit 563e546236217dace58a8031d56d08a27e08160b
