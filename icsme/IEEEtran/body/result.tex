@@ -64,7 +64,7 @@ We find that programmers can replace the \CodeIn{synchronized} keyword with para
 %\zhong{Please replace all texttt with CodeIn.}
 
 %They also might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. Here are some examples. \zhong{add an example for this.}
-Meanwhile, we find that programmers can replace parallel API classes with the \CodeIn{synchronized} keyword. For example, the second item of Table~\ref{table:patterns} comes from Tomcat. This commit is not reported, and we find it through our SVM classifier.% \zhong{List the commit message/log}.
+Meanwhile, we find that programmers can replace parallel API classes with the \CodeIn{synchronized} keyword. For example, the second item of Table~\ref{table:patterns} comes from Tomcat\footnote{\url{https://svn.apache.org/viewvc?view=revision&revision=1414150}}. This commit is not reported, and we find it through our SVM classifier.% \zhong{List the commit message/log}.
 
 %3e4b1ae6dc786b268505aa2e64067432519c2bcf
 \begin{lstlisting}
@@ -98,9 +98,9 @@ Concurrent write in thread T93 (locks held: {...})
 
 The data race indicates that the \CodeIn{isAccessed()} is not locked, so programmers add the \CodeIn{synchronized} keyword to allow locking on the method.
 
-We find that programmers can also delete unnecessary locks. For example, the fifth item of Table~\ref{table:patterns} comes from Flink.
+We find that programmers can also delete unnecessary locks. For example, the fifth item of Table~\ref{table:patterns} comes from Flink\footnote{\url{https://github.com/apache/flink/commit/c93d9eaf363a535dff25cc4e7db400d879e73bb1}}.
 
-\zhong{show the URL of the commit}.
+%\zhong{show the URL of the commit}.
 %\zhong{show what programmers say. Why it is unnecessary}.
 
 The programmers said they used a single task manager and removed synchronized block in \CodeIn{ChannelManager}. They removed the synchronization of a code block. In other words, they moved a block of code from a critical section to outside. If the code will not be accessed concurrently or it will not cause data race or inconsistency when it are executed concurrently, there is no need to synchronize the code.
@@ -113,7 +113,7 @@ The programmers said they used a single task manager and removed synchronized bl
 %As shown in Figure~\ref{figure:deadlock}, a deadlock can occur when three threads execute in a specific order. Here, we use $s1$ and $s2$ to denote two statements. An arrow from $s1$ to $s2$ means $s1$ cannot be returned before $s2$ has been returned. The \CodeIn{DataSource} (thread-1) is waiting to be notified by the \CodeIn{Writer} (thread-2) when holding lock A. The \CodeIn{Writer} (thread-2) is trying to acquire lock B. But lock B is held by the \CodeIn{Map} (thread-3). And the \CodeIn{Map} (thread-3) is trying to acquire lock A, which is held by the \CodeIn{DataSource} (thread-1). Here is a waiting chain. This is a kind of bug known as deadlock. The problem is that the \CodeIn{DataSource} (thread-1) does not need to hold lock A while waiting to be notified. So the developer removed the unnecessary synchronization.
 
 %f0e627bb8c9daedb3b064027cac37ce4849bab64
-In some other cases, we find that programmers can refine their locked resources to improve performance. For example, the seventh item of Table~\ref{table:patterns} comes from Tomcat. The original code locks the instance of a class, but the modified code locks only the \CodeIn{membersLock} field.
+In some other cases, we find that programmers can refine their locked resources to improve performance. For example, the seventh item of Table~\ref{table:patterns} comes from Tomcat\footnote{\url{https://bz.apache.org/bugzilla/show_bug.cgi?id=58382}}. The original code locks the instance of a class, but the modified code locks only the \CodeIn{membersLock} field.
 
 \noindent
 \textbf{3. Modifications inside critical section bodies.} A critical section is a code block that is executed, when a thread locked the corresponding resources. We notice that even modifications inside critical section bodies can repair concurrency bugs. For example, the sixth item of Table~\ref{table:patterns2} comes from FLINK-2384. It reports a deadlock that produces the following stack trace:
@@ -132,7 +132,15 @@ java.lang.Thread.State: BLOCKED (on object monitor)
 The stack trace indicates that the \CodeIn{spillWriter.close()} method has an implicit lock. As programmers typically do not known such locks inside APIs, the lock leads to the deadlock. Indeed, we find that a recent benchmark~\cite{lin2015ase} includes a similar concurrency bug, and Lin \emph{et al.}~\cite{lin2016lockpeeker} propose an approach that detects such implicit locks inside APIs. In this example, programmers move the \CodeIn{spillWriter.close()} method outside the critical section body to resolve the deadlock.
 
 
+%<<<<<<< HEAD
+%f0e627bb8c9daedb3b064027cac37ce4849bab64
+%In some other cases, we find that programmers can refine their locked resources to improve performance. For example, the seventh item of Table~\ref{table:patterns} comes from Tomcat\footnote{\url{https://bz.apache.org/bugzilla/show_bug.cgi?id=58382}}. The original code locks the instance of a class, but the modified code locks only the \CodeIn{membersLock} field.
+
+%\noindent
+%\textbf{3. Modifications on critical section bodies.} A critical section is a code block that is executed, when a thread locked the corresponding resources. The modifications on critical section bodies indicate new functionalities or refactoring. For example, the eighth item of Table~\ref{table:patterns2} comes from HDFS-4200. To reduce the size of a critical section body, programmers refactor the body into several methods. Indeed, this issue involves modifications that are related to even more change patterns (\emph{e.g.}, adding locked variables).
+%=======
 Besides the above example, the majority of modifications on critical section bodies indicates new functionalities or refactoring. For example, the eighth item of Table~\ref{table:patterns2} comes from HDFS-4200. To reduce the size of a critical section body, programmers refactor the body into several methods. Indeed, this issue involves modifications that are related to even more change patterns (\emph{e.g.}, adding locked variables).
+%>>>>>>> 9e8b767a2cf136027178c18c50d9c5eea616e630
 
 %c93d9eaf363a535dff25cc4e7db400d879e73bb1
 %Add option to use single actor system for local execution. Use local connection manager if a single task manager is used for local execution. Remove synchronized blcok in getReceiverList of ChannelManager which effectively serialized the connection lookup calls of a single task manager.
@@ -173,7 +181,7 @@ We find that programmers can add the \CodeIn{volatile} keyword to improve perfor
 %Fix a FindBugs warning (increment of volatile not atomic)
 
 %\zhong{Please explain why you need two samples for this situation.}
-Besides adding the keyword, we find that programmers have to remove the \CodeIn{volatile} keyword, since they do not fully understand its meanings. For example, in tenth item of Table~\ref{table:patterns2} comes from Tomcat. In this bug, programmers auto-increment a \CodeIn{volatile} variable, but such an action is not atomic. As a result, FindBugs reports it as a bug, and programmers have to remove the keyword.
+Besides adding the keyword, we find that programmers have to remove the \CodeIn{volatile} keyword, since they do not fully understand its meanings. For example, in tenth item of Table~\ref{table:patterns2} comes from Tomcat\footnote{\url{https://svn.apache.org/viewvc?view=revision&revision=1360946}}. In this bug, programmers auto-increment a \CodeIn{volatile} variable, but such an action is not atomic. As a result, FindBugs reports it as a bug, and programmers have to remove the keyword.
 
 \noindent
 \textbf{5. Replacing self-written code with Parallel APIs.} Programmers can implement concurrent code by themselves, but later they realize that it is easier to call APIs that already implement their functionalities. For example, a previous version of Hadoop has the following code:% \zhong{Replace the below commit with the buggy code.}
