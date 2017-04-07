@@ -129,7 +129,7 @@ java.lang.Thread.State: BLOCKED (on object monitor)
 java.lang.Thread.State: BLOCKED (on object monitor)
 \end{lstlisting}
 
-The stack trace indicates that the \CodeIn{spillWriter.close()} method has an implicit lock. As programmers typically do not known such locks inside APIs, the lock leads to the deadlock. Indeed, we find that a recent benchmark~\cite{lin2015ase} includes a similar concurrency bug, and Lin \emph{et al.}~\cite{lin2016lockpeeker} propose an approach that detects such implicit locks inside APIs.
+The stack trace indicates that the \CodeIn{spillWriter.close()} method has an implicit lock. As programmers typically do not known such locks inside APIs, the lock leads to the deadlock. Indeed, we find that a recent benchmark~\cite{lin2015ase} includes a similar concurrency bug, and Lin \emph{et al.}~\cite{lin2016lockpeeker} propose an approach that detects such implicit locks inside APIs. In this example, programmers move the \CodeIn{spillWriter.close()} method outside the critical section body to resolve the deadlock.
 
 
 Besides the above example, the majority of modifications on critical section bodies indicates new functionalities or refactoring. For example, the eighth item of Table~\ref{table:patterns2} comes from HDFS-4200. To reduce the size of a critical section body, programmers refactor the body into several methods. Indeed, this issue involves modifications that are related to even more change patterns (\emph{e.g.}, adding locked variables).
