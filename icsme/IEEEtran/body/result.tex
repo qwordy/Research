@@ -276,7 +276,7 @@ In summary, in our study, we identify five types of change patterns in total. Fi
 %\zhong{Try to add an example for each change pattern.}
 %\zhong{How many pull requests did you submit?}
 
-In total, we make three pull requests. We make the first pull request on Schmince-2\footnote{\url{https://github.com/derekmu/Schmince-2}}. This is a game, where players control space tourists for adventure. It has the following code:
+In total, we made three pull requests. We made the first pull request on Schmince-2\footnote{\url{https://github.com/derekmu/Schmince-2}}. This is a game, where players control space tourists for adventure. It has the following code:
 
 \begin{lstlisting}
 public class DRandom {
@@ -291,7 +291,7 @@ public class DRandom {
 }
 \end{lstlisting}
 
-The above code implements a class that generates random values for multiple threads. We find that J2SE provides the \CodeIn{ThreadLocalRandom} class\footnote{\url{https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadLocalRandom.html}} that implements the identical function. According to our fifth change pattern, we make a pull request to replace the above code with the corresponding API\footnote{\url{https://github.com/derekmu/Schmince-2/pull/1}}, and the modified code is as follow:
+The above code implements a class that generates random values for multiple threads. We find that J2SE provides the \CodeIn{ThreadLocalRandom} class\footnote{\url{https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadLocalRandom.html}} that implements the identical function. According to our fifth change pattern, we made a pull request to replace the above code with the corresponding API\footnote{\url{https://github.com/derekmu/Schmince-2/pull/1}}, and the modified code is as follow:
 
 \begin{lstlisting}
 public class DRandom {
@@ -353,7 +353,7 @@ private static synchronized NotificationMap getNotificationMap(Context context) 
 }
 \end{lstlisting}
 
-If the \CodeIn{sActiveNotificationMap} field is \CodeIn{null}, the above method creates a new map and assigns the new map to the field. To allow multiple threads call the methods, programmes add the \CodeIn{synchronized} keyword to the method. We believe that when \CodeIn{sActiveNotificationMap} is not \CodeIn{null}, the lock is unnecessary, since it does not change the field. According to our second change pattern, we made the following modification to synchronize only the lines that modify the field:
+If the \CodeIn{sActiveNotificationMap} field is \CodeIn{null}, the above method creates a new map and assigns the new map to the field. To allow multiple threads to call the methods, programmers add the \CodeIn{synchronized} keyword to the method. We believe that when \CodeIn{sActiveNotificationMap} is not \CodeIn{null}, the lock is unnecessary, since it does not change the field. According to our second change pattern, we made the following modification to synchronize only the lines that modify the field:
 
 \begin{lstlisting}
 private static volatile NotificationMap sActiveNotificationMap = null;
@@ -437,7 +437,7 @@ public class Counter {
 	\label{fig:confidence}\vspace*{-3ex}
 \end{figure*}
 
-However, their programmes denied the pull request. Although our pull request works, it is more neat to systematically replace the above \CodeIn{Counter} class with the \CodeIn{AtomicInteger} class. Their programmers may deny our pull request, simply because the wrapper style looks ugly.
+However, their programmers denied the pull request. Although our pull request works, it is more neat to systematically replace the above \CodeIn{Counter} class with the \CodeIn{AtomicInteger} class. Their programmers may deny our pull request, simply because the wrapper style looks ugly.
 
 In summary, our results show that our change patterns are repetitive in future maintenance, and programmers confirmed that our change patterns are useful. However, our results also reveal that it needs much programming experience to fully unleash the potential of our change patterns. We further discuss this issue in Section~\ref{sec:discuss}.
 
