@@ -24,7 +24,7 @@
 %\zhong{Explain why programmers revert the commit, why it matters?}
 
 \noindent
-\textbf{The causes of contradicted commits.} We find that programmers can make seemingly contradicted commits. For example, we find the following commit\footnote{\url{https://github.com/apache/tomcat/commit/f5fab1f64ba11e04e52bd6251ca62fc854e9578c}} from Cassandra:
+\textbf{The causes of contradictory commits.} We find that programmers can make seemingly contradictory commits. For example, we find the following commit\footnote{\url{https://github.com/apache/tomcat/commit/f5fab1f64ba11e04e52bd6251ca62fc854e9578c}} from Cassandra:
 
 %id: 95, 250
 \begin{lstlisting}
@@ -42,7 +42,7 @@
 +  if (UPDATER.decrementAndGet(this) == 0)
 \end{lstlisting}
 
-The above commit replaces the \CodeIn{AtomicInteger} class with the \CodeIn{Ato\-mic\-Integer\-Field\-Updater} class, since its programmer believe that it saves memory. Meanwhile, we find that a commit\footnote{\url{https://github.com/apache/cassandra/commit/7918718c8ce53c6d0958aa969fc813e586463d08}} from Tomcat made the contradicted change:
+The above commit replaces the \CodeIn{AtomicInteger} class with the \CodeIn{Ato\-mic\-Integer\-Field\-Updater} class, since its programmers believe that it saves memory. Meanwhile, we find that a commit\footnote{\url{https://github.com/apache/cassandra/commit/7918718c8ce53c6d0958aa969fc813e586463d08}} from Tomcat makes the contradictory change:
 
 \begin{lstlisting}
 -private static final AtomicIntegerFieldUpdater<OpenSSLContext> DESTROY_UPDATER = AtomicIntegerFieldUpdater.newUpdater(OpenSSLContext.class, "aprPoolDestroyed");
