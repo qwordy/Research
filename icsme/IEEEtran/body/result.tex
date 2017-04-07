@@ -276,7 +276,7 @@ In summary, in our study, we identify five types of change patterns in total. Fi
 %\zhong{Try to add an example for each change pattern.}
 %\zhong{How many pull requests did you submit?}
 
-In total, we made three pull requests. We made the first pull request on Schmince-2\footnote{\url{https://github.com/derekmu/Schmince-2}}. This is a game, where players control space tourists for adventure. It has the following code:
+In total, we make three pull requests. We make the first pull request on Schmince-2\footnote{\url{https://github.com/derekmu/Schmince-2}}. This is a game, where players control space tourists for adventure. It has the following code:
 
 \begin{lstlisting}
 public class DRandom {
@@ -291,7 +291,7 @@ public class DRandom {
 }
 \end{lstlisting}
 
-The above code implement a class that generates random values for multiple threads. We find that J2SE provides the \CodeIn{ThreadLocalRandom} class\footnote{\url{https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadLocalRandom.html}} that implements the identical function. According to our fifth change pattern, we made a pull request to replace the above code with the corresponding API\footnote{\url{https://github.com/derekmu/Schmince-2/pull/1}}, and the modified code is as follow:
+The above code implements a class that generates random values for multiple threads. We find that J2SE provides the \CodeIn{ThreadLocalRandom} class\footnote{\url{https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadLocalRandom.html}} that implements the identical function. According to our fifth change pattern, we make a pull request to replace the above code with the corresponding API\footnote{\url{https://github.com/derekmu/Schmince-2/pull/1}}, and the modified code is as follow:
 
 \begin{lstlisting}
 public class DRandom {
@@ -300,7 +300,7 @@ public class DRandom {
   }
 }
 \end{lstlisting}
-This pull request is already confirmed by their programmers.
+This pull request is already confirmed by programmers of the project.
 %\begin{lstlisting}
 %+import java.util.concurrent.ThreadLocalRandom;
 %public class DRandom {
