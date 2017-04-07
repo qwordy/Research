@@ -181,7 +181,7 @@ Besides the above example, the majority of modifications on critical section bod
 %8313fa0f1ca277e9633a78f461804abc3c5515b8
 %Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58392
 %Double-checked locking needs to use volatile to be thread-safe
-We find that programmers can add the \CodeIn{volatile} keyword to improve performance. For example, the ninth item of Table~\ref{table:patterns2} comes from Tomcat\footnote{\url{https://bz.apache.org/bugzilla/show_bug.cgi?id=58392}}. It reports a data race, and the bug was repaired by add the \CodeIn{volatile} keyword.
+We find that programmers can add the \CodeIn{volatile} keyword to improve performance. For example, the ninth item of Table~\ref{table:patterns2} comes from Tomcat\footnote{\url{https://bz.apache.org/bugzilla/show_bug.cgi?id=58392}}. It reports a data race, and the bug was repaired by adding the \CodeIn{volatile} keyword.
 
 %560cd00890b3f6af2aca0c3a9d51a45f880692dd
 %Fix a FindBugs warning (increment of volatile not atomic)
