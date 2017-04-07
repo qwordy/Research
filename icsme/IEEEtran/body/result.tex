@@ -105,7 +105,18 @@ We find that programmers can also delete unnecessary locks. For example, the fif
 
 The programmers said they used a single task manager and removed synchronized block in \CodeIn{ChannelManager}. They removed the synchronization of a code block. In other words, they moved a block of code from a critical section to outside. If the code will not be accessed concurrently or it will not cause data race or inconsistency when it are executed concurrently, there is no need to synchronize the code.
 
-In some reported bugs, the locks on variables cause deadlocks. For example, the sixth item of Table~\ref{table:patterns2} is reported in FLINK-2384. It reports a deadlock, and the following stack trace is attached:
+
+
+%\zhong{Why do you present the above stack trace.}
+
+%\zhong{Instead of why a deadlock occurs, you shall explain why the modification in Table~\ref{table:patterns2} repaired the deadlock. If the modification alone is insufficient, add more details here.}
+%As shown in Figure~\ref{figure:deadlock}, a deadlock can occur when three threads execute in a specific order. Here, we use $s1$ and $s2$ to denote two statements. An arrow from $s1$ to $s2$ means $s1$ cannot be returned before $s2$ has been returned. The \CodeIn{DataSource} (thread-1) is waiting to be notified by the \CodeIn{Writer} (thread-2) when holding lock A. The \CodeIn{Writer} (thread-2) is trying to acquire lock B. But lock B is held by the \CodeIn{Map} (thread-3). And the \CodeIn{Map} (thread-3) is trying to acquire lock A, which is held by the \CodeIn{DataSource} (thread-1). Here is a waiting chain. This is a kind of bug known as deadlock. The problem is that the \CodeIn{DataSource} (thread-1) does not need to hold lock A while waiting to be notified. So the developer removed the unnecessary synchronization.
+
+%f0e627bb8c9daedb3b064027cac37ce4849bab64
+In some other cases, we find that programmers can refine their locked resources to improve performance. For example, the seventh item of Table~\ref{table:patterns} comes from Tomcat. The original code locks the instance of a class, but the modified code locks only the \CodeIn{membersLock} field.
+
+\noindent
+\textbf{3. Modifications inside critical section bodies.} A critical section is a code block that is executed, when a thread locked the corresponding resources. We notice that even modifications inside critical section bodies can repair concurrency bugs. For example, the sixth item of Table~\ref{table:patterns2} comes from FLINK-2384. It reports a deadlock that produces the following stack trace:
 
 \begin{lstlisting}
 "CHAIN DataSource (at createInput(ExecutionEnvironment.java:502) (org.apache.flink.api.java.hadoop.mapreduce.HadoopInputFormat)) -> FlatMap (FlatMap at readFlinkTuplesFromThriftParquet(ParquetThriftEntitons.java:96)) (7/8)" daemon prio=10 tid=0x00007f934005b000 nid=0x73c4 in Object.wait() [0x00007f93c16ac000]
@@ -118,18 +129,10 @@ java.lang.Thread.State: BLOCKED (on object monitor)
 java.lang.Thread.State: BLOCKED (on object monitor)
 \end{lstlisting}
 
-The stack trace shows that three threads are all in a waiting or blocked state and there is a waiting chain among the threads. In order to repair this bug, the developer removed the unnecessary synchronization of one thread when it is waiting to be notified by another thread and then the threads no longer wait for each.
+The stack trace indicates that the \CodeIn{spillWriter.close()} method has an implicit lock. As programmers typically do not known such locks inside APIs, the lock leads to the deadlock. Indeed, we find that a recent benchmark~\cite{lin2015ase} includes a similar concurrency bug, and Lin \emph{et al.}~\cite{lin2016lockpeeker} propose an approach that detects such implicit locks inside APIs.
 
-%\zhong{Why do you present the above stack trace.}
 
-%\zhong{Instead of why a deadlock occurs, you shall explain why the modification in Table~\ref{table:patterns2} repaired the deadlock. If the modification alone is insufficient, add more details here.}
-%As shown in Figure~\ref{figure:deadlock}, a deadlock can occur when three threads execute in a specific order. Here, we use $s1$ and $s2$ to denote two statements. An arrow from $s1$ to $s2$ means $s1$ cannot be returned before $s2$ has been returned. The \CodeIn{DataSource} (thread-1) is waiting to be notified by the \CodeIn{Writer} (thread-2) when holding lock A. The \CodeIn{Writer} (thread-2) is trying to acquire lock B. But lock B is held by the \CodeIn{Map} (thread-3). And the \CodeIn{Map} (thread-3) is trying to acquire lock A, which is held by the \CodeIn{DataSource} (thread-1). Here is a waiting chain. This is a kind of bug known as deadlock. The problem is that the \CodeIn{DataSource} (thread-1) does not need to hold lock A while waiting to be notified. So the developer removed the unnecessary synchronization.
-
-%f0e627bb8c9daedb3b064027cac37ce4849bab64
-In some other cases, we find that programmers can refine their locked resources to improve performance. For example, the seventh item of Table~\ref{table:patterns} comes from Tomcat. The original code locks the instance of a class, but the modified code locks only the \CodeIn{membersLock} field.
-
-\noindent
-\textbf{3. Modifications on critical section bodies.} A critical section is a code block that is executed, when a thread locked the corresponding resources. The modifications on critical section bodies indicate new functionalities or refactoring. For example, the eighth item of Table~\ref{table:patterns2} comes from HDFS-4200. To reduce the size of a critical section body, programmers refactor the body into several methods. Indeed, this issue involves modifications that are related to even more change patterns (\emph{e.g.}, adding locked variables).
+Besides the above example, the majority of modifications on critical section bodies indicates new functionalities or refactoring. For example, the eighth item of Table~\ref{table:patterns2} comes from HDFS-4200. To reduce the size of a critical section body, programmers refactor the body into several methods. Indeed, this issue involves modifications that are related to even more change patterns (\emph{e.g.}, adding locked variables).
 
 %c93d9eaf363a535dff25cc4e7db400d879e73bb1
 %Add option to use single actor system for local execution. Use local connection manager if a single task manager is used for local execution. Remove synchronized blcok in getReceiverList of ChannelManager which effectively serialized the connection lookup calls of a single task manager.
