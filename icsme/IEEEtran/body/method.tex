@@ -27,7 +27,7 @@ In this study, we collect commits from six Apache\footnote{\url{http://www.apach
 
 \begin{table}
 	\centering
-	\caption{Projects Information}
+	\caption{Projects Information}\vspace*{-2ex}
     \label{table:dataset}
 	\begin{tabular}{|c|r|r|r|r|}\hline
 		Project&\#Commits&\#Concurrency&\#Manual\\\hline
@@ -40,7 +40,7 @@ In this study, we collect commits from six Apache\footnote{\url{http://www.apach
 		%Guava&251,205&1,672&3,850\\\hline
 		%Mahout&109,584&1,215&3,703&0\\\hline
 		Total&98,325&11,868&696\\\hline
-	\end{tabular}
+	\end{tabular}\vspace*{-3ex}
 \end{table}
 
 \subsection{Study mechanism}
@@ -62,7 +62,7 @@ Our tool employs the SVM \cite{journals/ml/CortesV95} algorithm to identify comm
 
 \begin{table}
 	\centering
-	\caption{Features of Data}
+	\caption{Features of Data}\vspace*{-2ex}
 	\label{table:feature}
 	\begin{tabular}{|c|l|}\hline
 		Feature&\multicolumn{1}{|c|}{Explanation}\\\hline
@@ -78,7 +78,7 @@ Our tool employs the SVM \cite{journals/ml/CortesV95} algorithm to identify comm
 		keySub&keyAdd - keyRemove\\
 		keySum&keyAdd + keyRemove\\
 		contextKey&Number of keywords in context code\\\hline
-	\end{tabular}
+	\end{tabular}\vspace*{-3ex}
 \end{table}
 
 \subsubsection{Step 3. Analyzing commits according to different research questions} We then conduct detailed analysis according to our research questions.
@@ -119,9 +119,9 @@ We classify concurrency-related commits into different categories, mainly accord
 
 \textbf{RQ2. Exploring the usefulness of our change patterns.} We prepare a set of keywords for each change pattern, and search Github\footnote{\url{https://github.com}} for code where the pattern can apply. For example, we use \CodeIn{synchronized}, \CodeIn{put} or \CodeIn{get} as keywords to search code pieces that manually handle synchronization of collections. We find numerous code pieces in the search results. We manually check the code and decide whether it is acceptable for the pattern. If it is, we fork the project; make our changes; and submit the pull request.
 
-\textbf{RQ3. Determining the trends of using parallel APIs.} To explore this research question, we analyze all the 53 classes that are declared in the \CodeIn{java.util.concurrent} package. We selecte this package, since it is a popular package for concurrent programming. For each parallel API class, we count their occurrences in all the 11,868 concurrency-related commits. Here, we consider that a class occurs in a concurrency-related commit, if the class occurs in added lines or deleted lines of the commit. In addition, we draw its trend of its occurrences in the interval of months. Based on occurrences, we put these classes into three categories, and based on their trends, we further put them into three subcategories.%  \zhong{How did you determine that a parallel class is related to a commit?}
+\textbf{RQ3. Determining the trends of using parallel APIs.} To explore this research question, we analyzed all the 53 classes that are declared in the \CodeIn{java.util.concurrent} package. We selected this package, since it is a popular package for concurrent programming. For each parallel API class, we count their occurrences in all the 11,868 concurrency-related commits. Here, we consider that a class occurs a concurrency-related commit, if the class occurs in added lines or deleted lines of the commit. In addition, we draw its trend of its occurrences in the interval of months. Based on occurrences, we put these classes into three categories, and based on their trends, we further put them into three subcategories. %  \zhong{How did you determine that a parallel class is related to a commit?}
 
-\textbf{RQ4. Determining the correlations between total commits and concurrency-related commits} Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} found that at the granularity of code lines, concurrency-related modifications and total modifications have strong correlation. In our study, we further explore the problem at the granularity of commits, for all the 11,868 concurrency-related commits. In particular, we compare total commits and concurrency-related commits in the interval of months. Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} used the Spearman's rank correlation coefficient to determine the correlation. In our study, we use the identical measure. Given two sets of data, the Spearman's rank
+\textbf{RQ4. Determining the correlations between total commits and concurrency-related commits} Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} find that at the granularity of code lines, concurrency-related modifications and total modifications have strong correlation. In our study, we further explore the problem at the granularity of commits, for all the 11,868 concurrency-related commits. In particular, we compare total commits and concurrency-related commits in the interval of months. Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} use the Spearman's rank correlation coefficient to determine the correlation. In our study, we use the identical measure. Given two sets of data, the Spearman's rank
 correlation coefficient calculates a correlation value between -1 and +1. Here, +1 denotes that it finds a perfect monotone function for the two sets of data, and -1 denotes the opposite.
 
 %\zhong{Please explain what measure do you use to determine the correlations}
