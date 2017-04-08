@@ -34,19 +34,19 @@ Table~\ref{table:patterns} and table~\ref{table:patterns2} show an overview of o
 
 \begin{table*}
 	\centering
-	\includegraphics[width=1\textwidth]{patterns}
-	\caption{Change patterns}
+\caption{Change patterns}\vspace*{-3ex}
+	\includegraphics[width=1\textwidth]{patterns}	
 	\label{table:patterns}
 
 \end{table*}
 \begin{table*}
 	\centering
+	\caption{Change patterns (Cont.)}\vspace*{-3ex}
 	\includegraphics[width=1\textwidth]{patterns2}
-	\caption{Change patterns (Cont.)}
-	\label{table:patterns2}\vspace*{-3ex}
+	\label{table:patterns2}
 \end{table*}
 \noindent
-\textbf{1. Changing lock types.} It is feasible to lock resources with different mechanisms. For example, Java has a keyword, \CodeIn{synchronized}. The keyword can lock a block of code lines. With the keyword, programmers do not have to acquire and release resources explicitly. Alternatively, programmers can explicitly lock resources with APIs (\emph{e.g.}, \CodeIn{ReentrantLock}). Explicit locks offer more features that the \CodeIn{synchronized} keyword does not. For example, with such APIs, programmers can determine the conditions for a lock. As another example, besides exclusive locks, programmers can use shared locks. When a thread is holding an exclusive lock, other threads have to wait until it is released. In the constrast, shared locks allow multiple threads to hold the lock with specific actions. For example, \CodeIn{ReadWriteLock} allows multiple read actions, but denies multiple write actions.%\zhong{Please explain what exclusive and shared locks are, and their benefits.}
+\textbf{1. Changing lock types.} It is feasible to lock resources with different mechanisms. For example, Java has a keyword, \CodeIn{synchronized}. The keyword can lock a block of code lines. With the keyword, programmers do not have to acquire and release resources explicitly. Alternatively, programmers can explicitly lock resources with APIs (\emph{e.g.}, \CodeIn{ReentrantLock}). Explicit locks offer more features that the \CodeIn{synchronized} keyword does not. For example, with such APIs, programmers can determine the conditions for a lock. As another example, besides exclusive locks, programmers can use shared locks. When a thread is holding an exclusive lock, other threads have to wait until it is released. In the contrast, shared locks allow multiple threads to hold the lock with specific actions. For example, \CodeIn{ReadWriteLock} allows multiple read actions, but denies multiple write actions.%\zhong{Please explain what exclusive and shared locks are, and their benefits.}
 
 %ReentrantLock, ReentrantReadWriteLock, StampedLock are all API level locks in Java. Although 'synchronized' keyword is convenient and straightforward, we need other locks when we have more requirements. ReentrantLock is a reentrant lock, which means a lock can be acquired repeatedly in the same thread. It is a exclusive lock with the similar behaviour as monitor lock but has more features such as fairness, condition and tryLock. ReadWriteLock is a pair of locks, which allows concurrent access to read operations when there is no write operation going on but exclusive access to write operations. StampedLock is a lock which provides three modes, namely writing, reading and optimistic reading. This lock is usually used in design of thread-safe classes.
 %Programmers can change their lock types due to various considerations. For example, the \CodeIn{synchronized} keyword can fail to satisfy fairness (\zhong{What is fairness? Why does it matter?}), programmers have to change such implicit locks to explicit locks. \zhong{Add an example for each situation.}
