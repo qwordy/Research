@@ -1,6 +1,6 @@
 \section{Methodology}
 \label{sec:method}
-This section presents our research questions (Section~\ref{sec:method:rq}), our data set (Section~\ref{sec:method:data}), and our support tools (Section~\ref{sec:method:tool}).
+This section presents the research questions (Section~\ref{sec:method:rq}), the data set (Section~\ref{sec:method:data}), and the support tools (Section~\ref{sec:method:tool}) of our study.
 \subsection{Research questions}
 \label{sec:method:rq}
 To understand how concurrent code is maintained, in this study, we focus on the following research questions:
@@ -15,7 +15,7 @@ To assess the usefulness of our extracted change patterns, we search matching co
 
 \textbf{RQ3.} What are the change trends of using parallel APIs?
 
-Okur and Dig~\cite{conf/sigsoft/OkurD12} found that in C\#, 10\% of parallel API classes account for 90\% of API usages. In Java, J2SE\footnote{\url{https://docs.oracle.com/javase/}} also provides standard APIs for developing concurrent programs. In this research question, we explore whether Java parallel APIs follow a similar distribution as C\#. Our results show that in Java, popular parallel APIs also account for a large portion of the total API usages, but the distribution is less screwed. However, the trends show that in the long run, the distribution of Java can be more screwed, since popular APIs are becoming more popular (see Section~\ref{sec:result:trend} for details).
+Okur and Dig~\cite{conf/sigsoft/OkurD12} found that in C\#, 10\% of parallel API classes account for 90\% of API usages. In Java, J2SE\footnote{\url{https://docs.oracle.com/javase/}} also provides standard APIs for developing concurrent programs. In this research question, we explore whether Java parallel APIs follow a similar distribution as C\#. Our results show that in Java, popular parallel APIs also account for a large portion of the total API usages, but the distribution is less screwed. While their study focus on the static distribution, our study further explore the trends during software maintenance. In particular, the trends show that in the long run, the distribution of Java can be more screwed, since popular APIs are becoming more popular (see Section~\ref{sec:result:trend} for details).
 
 \textbf{RQ4.} Are there any correlations between total commits and concurrency-related commits?
 
