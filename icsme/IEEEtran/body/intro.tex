@@ -6,8 +6,6 @@ In recent years, to fully leverage the potential of multi-core CPUs, concurrent 
 
 
 
-
-
 \noindent
 \textbf{Benefit 1.} The results can deepen the knowledge on how to maintain concurrent code. Due to the complexity of concurrent programming, we find that even experienced developers can be confused when they maintain relevant code. For example, Mark Thomas is a member of the Apache Tomcat Project Management Committee\footnote{\url{http://tomcat.apache.org/whoweare.html}}, and senior software engineer at the Covalent division of SpringSource\footnote{\url{https://sourceforge.net/projects/covalent/}}. He contributed more than 10,000 commits to Tomcat. In a commit message, he left the complaint as follow:
 
@@ -39,7 +37,7 @@ In this paper, we conduct an empirical study on 98,325 commits that are collecte
 
 \begin{itemize}
 	\item The first analysis on the change patterns of maintaining concurrent code. Based on our results, we summarize five change patterns, and we present their examples for explanation. We find that following such change patterns, during software maintenance, programmers can modify concurrent code to repair bugs, improve performance, and change functions of their code. Furthermore, we find that maintaining concurrent code is not a one-direction migration. Due to various considerations, programmers can apply seemingly contradictory changes, and even revert their changes. Sometimes, programmers can even make changes, before they fully understand the consequences of their changes.
-	\item An application of our change patterns in real code. In particular, we search the latest versions of three projects for chances to apply our change patterns, and synthesize three pull requests according to our change patterns. One of our pull requests is already confirmed and accepted by their programmers. However, our results also reveal that it needs much experience and understanding to leverage our change patterns.
+	\item An application of our change patterns in real code. In particular, we search the latest versions of three projects for chances to apply our change patterns, and synthesize three pull requests according to our change patterns. Two of our pull requests are already confirmed and accepted by their programmers. However, our results also reveal that it needs much experience and understanding to leverage our change patterns.
 	\item More findings on concurrent programs. For example, we reveal the trends of different parallel API classes. As another example, we find that at the granularity of commits, there still exists a correlation between total commits and concurrency-related commits, but it is less significant than at the granularity of code lines.
 \end{itemize}
 

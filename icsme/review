@@ -1,0 +1,138 @@
+Review 1
+Overall evaluation: 	In this paper, the authors conducted an experimental study to investigate how programmers maintain concurrent code. They investigated a number of research questions, including the change patterns in the analyzed software systems, the usefulness of those patterns in finding bugs in new software systems, the usage trends of parallel APIs, and the correlation between total commits and concurrency-related commits. Based on the experimental data, the authors concluded that their findings were useful for practitioners as well as researchers.
+
+The topic of this paper is interesting. When reading the abstract and introduction, I was very excited, as the authors reported that the identified change patterns were able to help find concurrency bugs in new software systems. However, after reading the whole paper, I find that the current paper is not ready for publication for the following issues:
+(1) Many important details on data collection are missing. The authors used six projects to collect the data on concurrency-related commits. For each project, they first identified the commits whose logs contained concurrent-programming-related keywords. Then, they built a model to predict additional concurrency-related commits. The problem here is that they did not describe the detail on the prediction model. For each system, how did you obtain the training data? What was the characteristic of the training data? It is not enough just to mention “We manually label some data as a training data set first and then train a model”. Furthermore, what is the prediction accuracy? For example, for Hadoop, Table I reports that there are 2739 concurrency-related commits. Of the 2739 commits, how many were identified by the keyword-query method? How many were obtained by the prediction method? How many false concurrency-related commits? In particular, the authors stated that they randomly select a number of concurrency-related bugs for manual inspection. How to randomly select them? For example, for Hadoop, 64 (i.e. 2.34%) were selected from 2739. For Tomcat, 207 (10.54%) were selected from 1963. The problem here is that the selection percentage varies from 2.34% to 15.14% over the six investigate systems. For a random selection, I believe, the selection percentage should be same over these systems.
+(2) It is questionable whether the change patterns reported in RQ1 are real change patterns. According to Wiki, “a pattern, apart from the term's use to mean "Template", is a discernible regularity in the world or in a manmade design. As such, the elements of a pattern repeat in a predictable manner.” In other words, a pattern must frequently occur in code commits. However, the authors did not report how many times their identified patterns occurred. Without such information, it is hard to call it a pattern. Furthermore, I am not sure whether we should call the code in the last two columns in Table III a pattern (for example, #5).
+(3) It is unclear how to use the identified patterns to find bugs in new software systems. In section III.B, the authors aimed to explore “the usefulness of our change patterns”. To this end, they gave three examples in three systems. The problem here is that it is unclear how to match such buggy code using the identified change patterns.
+Review 3
+Overall evaluation: 	1. Summary
+The paper presents an empirical study on concurrency-related commits in six Java open source projects. First, using 12 features extracted from commit logs an SVM classifier is trained to predict whether a commit is concurrency-related. Next, a random sample of 696 predicted concurrency-related commits is manually analyzed to determine 5 change patterns, namely changing the lock type, changing the locked variable, modifications inside the critical section, changing the volatile keyword, and replacing self-written code with the Java parallel API. The usefulness of these change patterns is demonstrated with three real examples that also have been submitted as pull-requests (two of them have been accepted until today). Finally, the paper presents an analysis of the trend of references of Java parallel API classes in commits and the ratio of those commits compared to the total number of commits per month. The results indicate that some popular classes occur more frequently than others and that, except for one project, there is a strong correlation between the number of concurrency-related and the total number of commits over time.
+
+2. Points for
++ Interesting idea (however novelty is not clear)
+
+3. Point against
+- Many typos
+- Evaluation of the commit classification missing
+- Novelty not clear given the paper by Tao and Qian
+- Evaluation of usefulness is insufficient
+- Answers to RQ3 and RQ4 are vague
+- Discussion of the implications of the results is insufficient
+
+4. Detailed review
+
+The English of the paper needs to be improved. There are many typos - I list only the typos found on the first four pages. I strongly advice the authors to have the paper proofread.
+
+The paper starts strong with a good motivation for this piece of research. It clearly describes the difference to an existing similar study and points out the benefits and challenges. While the first benefit is clear and shown by the paper, the second benefit needs a strong evaluation of the usefulness. Currently, the authors only provide anecdotal evidence while a more thorough evaluation is needed.
+
+Concerning the second challenge, I disagree with the authors. Partial program analysis is not complete but can provide sufficient details on code snippets to analyze them. For instance, PPA can be used to extract ASTs from two code snippets that then can be input general tree differencing tools, such as GumTree (J.-R. Falleri, F. Morandat, X. Blanc, M. Martinez, and M. Monperrus, “Fine-grained and accurate source code differencing,” in Proceedings of the International Conference on Automated Software Engineering. ACM, 2014, pp. 313–324.)
+
+Section 2.C.2 presents the approach for identifying concurrency-related commits. The general idea of using a classifier is adapted from previous research, which is OK. What is missing is a complete list of the keywords related to concurrent programming that are used to compute several of the features in Table 2.Furthermore, the authors need to be more precise with the labeling of the data - "some" is not a good word to use for that. How much commits did you label?
+
+Moreover, how accurate is the classifier? What is its precision, recall, f-measure? Throughout the paper I could not find an evaluation of the prediction model. Without knowing the performance of the classifier, it remains unclear how accurate the dataset of concurrency-related commits used in the follow-up analyses is. This needs to be clarified.
+
+Similarly, the description of ansering RQ1 is vague. The authors start with "we randomly sampled 'some' commits" .... Again, please provide concrete numbers (how many commits did you sample?).
+
+The description of the classification of the changes also needs to be described in more detail. Who and how did you perform the classification? Did you use criteria for identifying the changes types (which ones)? Did you cross-validate your findings?
+
+As a minor comment, the description of the Spearman correlation needs to be improved: Cohen (J. Cohen, Statistical Power Analysis for the Behavioral Sciences. Lawrence Erlbaum Associates, 1988.), defines 0.1 < |r| < 0.3 as small correlation, 0.3 ≤ |r| < 0.5 as moderate correlation, and |r| ≥ 0.5 as strong correlation. Furthermore, note, -1 also denotes a strong monoton negative correlation.
+
+Regarding the change patterns presented in Table 3, I have some minor and one major concern. First the minor concerns:
+1) pattern in Row 1 - either use synchronized(lock) or try { obj.lock(); ...} ...
+2) pattern in Row 6 - is the order of the statements important? Could the first/second statement also be moved before the synchronized block (is this supported by your approach)?
+3) pattern in Row 8 - original should be synchronized void foo(...) { statement1, statement2 }
+
+My major issue concerns the patterns 4, 6, 7, and 8: Tao and Qian "Refactoring Java Concurrent Programs Based on Synchronization Requirement Analysis" present an approach to identify and automatically refactor Split Lock, Split Critical Section, and Convert to Atomic refactoring opportunities. How do the patterns presented in your paper differ from their patterns? Furthermore, the approach by Tao and Qian can refactor these shortcomings automatically while the approach in your paper is manual. Could your patterns be integrated in their approach?
+
+The evaluation of the usefulness of the patterns currently only provides anecdotal evidence with three examples. First, three examples it not enough to draw valid conclusions. Second and most of all, it is currently not clear how much work needs to be done by developers to apply the change patterns and consequently, how useful the patterns are. Third, there exists the automatic refactoring approach by Tao and Qian - why did the authors not use a similar approach for evaluating the change patterns?
+
+Checking GitHub, it seems that also the third pull request has been accepted (which is nice).
+
+The answer to RQ3 is vague. First, the authors need to be clear that the analyses are about the number of occurrences of parallel APIs in commits. This should not be confused with the usage or popularity of parallel APIs. Second, the answer that "some" popular classes are changing more frequently is vague. Third, it is not clear to me what a developer or researcher should learn from this finding. What is the take away message?
+
+Similar issues apply to the answer to RQ4. First, the authors wrongly interprete the results: the Spearman correlations in Figure 2, except the one for Cassandra, clearly show a strong correlation between number of concurrency-related and total commits. The answer that the correlation becomes less significant is not true. Second, it is not clear to me what we should learn from this finding. What are the implications of this finding? A more comprehensive discussion of them needs to be added. Only stating that "we believe ... " is not sufficient.
+
+
+# Typos:
+p1,c1: ... programming has become ...
+p1,c2: ... can be applied to new code ...
+p2,c1: ... concurrent programs.
+p2,c2: ... applies to ...
+p2,c2: ... their study focuses ... explores ...
+p2,c2: ... be more skewed ..
+p2,c2: ... we collected ... We selected (in general, I suggest to use the past tense for describing actions that have been done in the past and are over).
+p3,c1: ... related to ...
+p3,c2: ... each sampled commit. For example, below is ...
+p4,c1: ... number of occurrences ... (check throughout the paper)
+p4,c1: ... and Table 4 ...
+p4,c2: ... offer more features than ...
+p4,c2: In contrast ...
+p4,c2: ... programmers replaced ...
+p4,c2: ... programmers fixed ...
+p4,c2: ... does not perserve ...
+
+
+
+5. Suggested improvements
+See my detailed comments.
+Review 2
+Overall evaluation: 	*** Paper summary ***
+
+This paper presents an empirical study on how programmers maintain concurrent code. The authors studied the concurrency-related code commits from six different Java-based projects in Apache Software Foundation and synthesized into five patterns. They applied their change patterns on three open source projects and got mixed results.
+
+*** Points for the paper ***
+
+1. Well structured and easy to follow.
+
+2. First work on change patterns of maintaining concurrent code in Java.
+
+3. An empirical work with both quantitative and qualitative studies.
+
+*** Points against the paper ***
+
+1. Generalizability issue: All the studied projects are Java-based projects from Apache Software Foundation.
+
+2. Certain places need better explanations/justifications.
+
+3. Missing explanations and evaluations on the prediction models for classifying commits.
+
+4. It is not clear how concurrency issues are detected and fixed in RQ2. Were some tooling implemented to detect and fix concurrency issues after studying the change patterns in RQ1?
+
+5. Lack of actionable items/implications after each research question. In particular, what can programmers do to better maintain their concurrency-related code?
+
+6. Missing replication package
+
+*** Supporting argumentation for your points ***
+
+1. All the studied projects are Java-based projects from Apache Software Foundation. The findings might not be generalizable for projects written in other programming languages or projects from other repositories (e.g., GitHub).
+
+2. There are certain places which lack justifications. Below I list three examples in RQ1: (1) Table I shows the project information. But it is not clear how the authors picked the number of instances for each project. For example, why only study 64 instances for Hadoop, although it is one of the largest projects in terms of code commits as well as concurrency-related commits? (2) Table III and IV contain 10 different patterns. But why in the text only 5 patterns are explained? (3) What are general break down in terms of # of instances for each pattern for the manually studied instances?
+
+3. The authors built an SVM-based classification model to predict whether a commit is concurrency-related or not. However, little details are reported. For example, what is the size of the training and testing dataset? How good is the prediction results? Such information is important, as it shows the quality of the studied dataset used in the RQs.
+
+4. How is how RQ2 done? Did the authors implement the change patterns in some tools and detect on the new releases? More explanations are required.
+
+5. In RQ2, the authors had submitted three pull requests. One was accepted, one rejected, and one pending. The impact of this research is not clearly demonstrated.
+
+6. The discussion after each empirical study is weak. In particular, it misses implications in terms of how developers/researchers can leverage information to better maintain the quality of their concurrent code.
+
+*** Suggested paper improvements ***
+
+1. I believe all the studied projects are written in Java and are in Apache. It would be better to change the title to be “How to Programmers Maintain Concurrent Code – A Case Study on Java-based Apache Projects”. In addition, you need to mention this as threat for generalization in the Threats section.
+
+2. Try with stratified sampling in terms of number of manually analyzed instances for Table 1.
+
+3. Add more details on the classification model.
+
+4. There are some typos and minor writing issues in the paper:
+
+- Page 2: “More findings on concurrent program” -> “More findings on concurrent programS”
+
+- Table 1: add the begin/end date for the studied commits for each project
+
+- Page 8: “Their programmers may deny our pull request, simply because the wrapper style looks ugly.” Is this the actual feedback or just simply the guessing from the authors? More information would be useful.
+
+5. Find better ways to demonstrate the usefulness/impact of the derived patterns.
+
+6. Add replication package for this study.

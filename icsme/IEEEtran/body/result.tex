@@ -473,9 +473,6 @@ In summary, we find that Java parallel API classes follow a similar distribution
 \subsection{RQ4. The correlations between total commits and concurrency-related commits.}
 \label{sec:result:correlation}
 
-
-
-
 Figure~\ref{fig:confidence} shows our results. Each label denotes a project, and has two associated figures. In particular, the upper figure denotes total commits and concurrency-related commits in the interval of months. Its horizontal axis denotes time, and its vertical axis denotes number of commits. Its blue curve denotes total commits, and its yellow curve denotes concurrency-related commits. We find that the curves of total commits and concurrency-related commits are not quite similar. However, the Spearman's rank correlation coefficient shows that in the five out of six projects, the two sets of values are correlated. One exception is Cassandra, where the correlation value is at the border (0.094).
 
 In the lower figures, we calculate the percents from total commits to concurrency-related commits. Although the two sets of data are correlated, we find that their percents are inconstant. In total, about 20\% of total commits are related to concurrency. However, if we make predication based on the percents, the prediction can be unreliable.
