@@ -370,7 +370,9 @@ private static NotificationMap getNotificationMap(Context context) {
 }
 \end{lstlisting}
 
-The above pull request is still pending.
+%The above pull request is still pending.
+The owner of the project deleted our pull request. We checked the pull requests of the project and found that there is no open or closed pull request. This project has more than 19,000 commits. It is possible that it has a strict policy of introducing external source code.
+
 \begin{table}
 	\centering
 	\caption{Top 10 Active Classes}\vspace*{-2ex}
@@ -391,7 +393,6 @@ The above pull request is still pending.
 \end{table}
 
 We made the third pull request on Spider4java\footnote{\url{https://github.com/lichangshu/spider4java}}. It is a Java web crawler. It has the following code:
-
 
 \begin{lstlisting}
 public class Counter {
@@ -437,7 +438,8 @@ public class Counter {
 	\label{fig:confidence}\vspace*{-3ex}
 \end{figure*}
 
-However, their programmers denied the pull request. Although our pull request works, it is more neat to systematically replace the above \CodeIn{Counter} class with the \CodeIn{AtomicInteger} class. Their programmers may deny our pull request, simply because the wrapper style looks ugly.
+This pull request has been accepted.
+%However, their programmers denied the pull request. Although our pull request works, it is more neat to systematically replace the above \CodeIn{Counter} class with the \CodeIn{AtomicInteger} class. Their programmers may deny our pull request, simply because the wrapper style looks ugly.
 
 In summary, our results show that our change patterns are repetitive in future maintenance, and programmers confirmed that our change patterns are useful. However, our results also reveal that it needs much programming experience to fully unleash the potential of our change patterns. We further discuss this issue in Section~\ref{sec:discuss}.
 
