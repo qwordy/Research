@@ -23,36 +23,36 @@
 %\zhong{Explain the above commit.}
 %\zhong{Explain why programmers revert the commit, why it matters?}
 
-\noindent
-\textbf{The causes of contradictory commits.} We find that programmers can make seemingly contradictory commits. For example, we find the following commit\footnote{\url{https://github.com/apache/tomcat/commit/f5fab1f64ba11e04e52bd6251ca62fc854e9578c}} from Cassandra:
-
-%id: 95, 250
-\begin{lstlisting}
--private final AtomicInteger references = new AtomicInteger(1);
-+private volatile int references = 1;
-+private static final AtomicIntegerFieldUpdater<RefCountedMemory> UPDATER = AtomicIntegerFieldUpdater.newUpdater(RefCountedMemory.class, "references");
-...
--  int n = references.get();
-+  int n = UPDATER.get(this);
-...
--  if (references.compareAndSet(n, n + 1))
-+  if (UPDATER.compareAndSet(this, n, n + 1))
-...
--  if (references.decrementAndGet() == 0)
-+  if (UPDATER.decrementAndGet(this) == 0)
-\end{lstlisting}
-
-The above commit replaces the \CodeIn{AtomicInteger} class with the \CodeIn{Ato\-mic\-Integer\-Field\-Updater} class, since its programmers believe that it saves memory. Meanwhile, we find that a commit\footnote{\url{https://github.com/apache/cassandra/commit/7918718c8ce53c6d0958aa969fc813e586463d08}} from Tomcat makes the contradictory change:
-
-\begin{lstlisting}
--private static final AtomicIntegerFieldUpdater<OpenSSLContext> DESTROY_UPDATER = AtomicIntegerFieldUpdater.newUpdater(OpenSSLContext.class, "aprPoolDestroyed");
-+private final AtomicInteger aprPoolDestroyed = new AtomicInteger(0);
-...
--  if (DESTROY_UPDATER.compareAndSet(this, 0, 1))
-+  if (aprPoolDestroyed.compareAndSet(0, 1))
-\end{lstlisting}
-
-The programmer of the above commit explains that the \CodeIn{AtomicInteger} class is sufficient. Different programmers have different opinions. In future work, we plan to conduct surveys to fully understand the rationale behind their choices.
+%\noindent
+%\textbf{The causes of contradictory commits.} We find that programmers can make seemingly contradictory commits. For example, we find the following commit\footnote{\url{https://github.com/apache/tomcat/commit/f5fab1f64ba11e04e52bd6251ca62fc854e9578c}} from Cassandra:
+%
+%%id: 95, 250
+%\begin{lstlisting}
+%-private final AtomicInteger references = new AtomicInteger(1);
+%+private volatile int references = 1;
+%+private static final AtomicIntegerFieldUpdater<RefCountedMemory> UPDATER = AtomicIntegerFieldUpdater.newUpdater(RefCountedMemory.class, "references");
+%...
+%-  int n = references.get();
+%+  int n = UPDATER.get(this);
+%...
+%-  if (references.compareAndSet(n, n + 1))
+%+  if (UPDATER.compareAndSet(this, n, n + 1))
+%...
+%-  if (references.decrementAndGet() == 0)
+%+  if (UPDATER.decrementAndGet(this) == 0)
+%\end{lstlisting}
+%
+%The above commit replaces the \CodeIn{AtomicInteger} class with the \CodeIn{Ato\-mic\-Integer\-Field\-Updater} class, since its programmers believe that it saves memory. Meanwhile, we find that a commit\footnote{\url{https://github.com/apache/cassandra/commit/7918718c8ce53c6d0958aa969fc813e586463d08}} from Tomcat makes the contradictory change:
+%
+%\begin{lstlisting}
+%-private static final AtomicIntegerFieldUpdater<OpenSSLContext> DESTROY_UPDATER = AtomicIntegerFieldUpdater.newUpdater(OpenSSLContext.class, "aprPoolDestroyed");
+%+private final AtomicInteger aprPoolDestroyed = new AtomicInteger(0);
+%...
+%-  if (DESTROY_UPDATER.compareAndSet(this, 0, 1))
+%+  if (aprPoolDestroyed.compareAndSet(0, 1))
+%\end{lstlisting}
+%
+%The programmer of the above commit explains that the \CodeIn{AtomicInteger} class is sufficient. Different programmers have different opinions. In future work, we plan to conduct surveys to fully understand the rationale behind their choices.
 
 \noindent
 \textbf{The extension of existing tools.} Our patterns and findings can help improving existing program transformation tools. For example,  Lin \emph{et al.}~\cite{conf/sigsoft/LinRD14} proposed Asynchronizer that transforms self-written code with the \CodeIn{AsyncTask} class. Our study finds self-written code snippets that can be replaced with other parallel API classes. With minor modifications, we can extend Asynchronizer to transform self-written code to more APIs. We plan to explore such extension in future work.
