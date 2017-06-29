@@ -21,13 +21,13 @@ Okur and Dig~\cite{conf/sigsoft/OkurD12} found that in C\#, 10\% of parallel API
 
 At the granularity of code lines, Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} found a strong correlation between total changes and concurrency-related changes. With a different data set and a coarser granularity, we explore whether their finding still holds on our data set. Our results show that the correlation still exists, but is less significant (see Section~\ref{sec:result:correlation} for details).
 
-\subsection{Data set}
+\subsection{Dataset}
 \label{sec:method:data}
 In this study, we collected commits from six Apache\footnote{\url{http://www.apache.org/}} projects. Table~\ref{table:dataset} shows the details of our data set. We selected these projects, since they are all popular and active. These projects cover various types of projects such as distributed computing, web server, database, information retrieval, and network. In particular, Hadoop is one of the most popular distributed computing frameworks in Java. Tomcat is a popular web server. Cassandra is a database system that manages massive data. Solr is an enterprise search platform. Netty is an asynchronous network application framework. Flink is a stream processing framework. Column ``\#Commits'' lists number of commits. Column ``\#Concurrency'' lists number of concurrency-related commits. From these concurrency-related commits, we selected a subset for manual analysis. Column ``\#Manual'' lists number of our selected commits. We checked out all the commits in December 2016. We next explain how to identify concurrency-related commits.
 
 \begin{table}
 	\centering
-	\caption{Projects Information}\vspace*{-2ex}
+	\caption{Selected Commits}\vspace*{-2ex}
     \label{table:dataset}
 	\begin{tabular}{|c|r|r|r|r|}\hline
 		Project&\#Commits&\#Concurrency&\#Manual\\\hline

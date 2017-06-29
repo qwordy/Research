@@ -344,8 +344,8 @@ We made the second pull request on UnifiedEmail\footnote{\url{https://github.com
 private static NotificationMap sActiveNotificationMap = null;
 private static synchronized NotificationMap getNotificationMap(Context context) {
   if (sActiveNotificationMap == null) {
-    sActiveNotificationMap = new NotificationMap();
-    sActiveNotificationMap.loadNotificationMap(context);
+   sActiveNotificationMap = new NotificationMap();
+   sActiveNotificationMap.loadNotificationMap(context);
   }
   return sActiveNotificationMap;
 }
@@ -359,8 +359,8 @@ private static NotificationMap getNotificationMap(Context context) {
   if (sActiveNotificationMap == null) {
     synchronized (NotificationUtils.class) {
       if (sActiveNotificationMap == null) {
-        sActiveNotificationMap = new NotificationMap();
-        sActiveNotificationMap.loadNotificationMap(context);
+       sActiveNotificationMap = new NotificationMap();
+       sActiveNotificationMap.loadNotificationMap(context);
       }
     }
   }
