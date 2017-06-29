@@ -80,7 +80,7 @@ The search alone can lose some useful commits. Researchers have explored related
 
 \subsubsection{Step 3. Analyzing commits according to different research questions} We then conduct detailed analysis according to our research questions.
 
-%\textbf{RQ1. Determining change patterns.} To explore this research question, we manually analyze 696 concurrency-related commits. For example, the below is a concurrency-related commit. The top five lines describe the metadata of the commit. The other lines describe the differences between two versions of code. Due to the heavy manual effort, we randomly sample some commits from each project. 
+%\textbf{RQ1. Determining change patterns.} To explore this research question, we manually analyze 696 concurrency-related commits. For example, the below is a concurrency-related commit. The top five lines describe the metadata of the commit. The other lines describe the differences between two versions of code. Due to the heavy manual effort, we randomly sample some commits from each project.
 
 \textbf{RQ1. Determining change patterns.} To explore this research question, we select 696 concurrency-related commits. We analyze each sampled commit for their change patterns. For example, below is a concurrency-related commit. The top five lines describe the metadata of the commit. The other lines describe the differences between two versions of code.
 
@@ -88,26 +88,13 @@ The search alone can lose some useful commits. Researchers have explored related
 commit 563e546236217dace58a8031d56d08a27e08160b
 Author: zentol <s.motsu@web.de>
 Date:   Mon Jan 26 11:07:53 2015 +0100
-[FLINK-1419] [runtime] Fix: distributed cache properly synchronized
-This closes #339
+[FLINK-1419] [runtime] Fix: distributed ...
 
-public FutureTask<Path> createTmpFile(String name, DistributedCacheEntry entry, JobID jobID) {
+public FutureTask<Path> createTmpFile(...) {
 -    synchronized (count) {
--      Pair<JobID, String> key = new ImmutablePair<JobID, String>(jobID, name);
--      if (count.containsKey(key)) {
--        count.put(key, count.get(key) + 1);
+       ...
 +    synchronized (lock) {
-+      if (!jobCounts.containsKey(jobID)) {
-+        jobCounts.put(jobID, new HashMap<String, Integer>());
-+      }
-+      Map<String, Integer> count = jobCounts.get(jobID);
-+      if (count.containsKey(name)) {
-+        count.put(name, count.get(name) + 1);
-       } else {
--        count.put(key, 1);
-+        count.put(name, 1);
-       }
-     }
+       ...
 \end{lstlisting}
 
 For each commit, we first read the metadata and the corresponding issue to understand why programmers make the commit. After that, we scan change hunks to understand the details. In a change hunk, the ``+'' symbol denotes added lines, and the ``-'' symbol denotes removed lines. In some cases, it is infeasible to determine the category of a commit based on only its change hunks. For example, as change hunks are limited, it can be infeasible to determine the type of a variable. In such cases, we check out the original and modified versions of all files to analyze. In this example, we cannot determine the type of the \CodeIn{count} and \CodeIn{lock} variables. After we check out all the files, we understand that the types of them are \CodeIn{Map} and \CodeIn{Object}, respectively.
