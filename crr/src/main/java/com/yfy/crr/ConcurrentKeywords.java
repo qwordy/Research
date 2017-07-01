@@ -10,7 +10,7 @@ public class ConcurrentKeywords {
   public static void main(String[] args) {
     Util.log(list.size());
   }
-  
+
   public static List<String> list = Arrays.asList(
       "synchronized",
       "volatile",
