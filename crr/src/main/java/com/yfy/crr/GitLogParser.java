@@ -34,7 +34,7 @@ public class GitLogParser {
 
   public GitLogParser() throws Exception {
     //db = new Db();
-    //pw = new PrintWriter("../svm2/test");
+    pw = new PrintWriter("../svm2/test");
     //pw2 = new PrintWriter("../svm/commitId");
     rq3map = new HashMap<>();
     rq3map2 = new HashMap<>();
@@ -55,7 +55,7 @@ public class GitLogParser {
     parse("lucene-solr"); // 40m 1h
     parse("netty"); // 4m 9m
     //parse("guava"); // 2m 4m
-    //p w.close();
+    pw.close();
     //pw2.close();
 
 //    for (String key : rq3map.keySet())
@@ -64,7 +64,7 @@ public class GitLogParser {
 //    for (String key : rq3map2.keySet())
 //      Util.log(key + " " + rq3map2.get(key));
 
-    rq3.print();
+    //rq3.print();
   }
 
   private void parse(String project) throws Exception {
@@ -93,8 +93,7 @@ public class GitLogParser {
       if (taskType == TaskType.ChangeByTime)
         rq2.deal(commit, feature);
     }
-    if (taskType == TaskType.ChangeByTime)
-      rq2.finish();
+    if (taskType == TaskType.ChangeByTime) rq2.finish();
 //    Util.log("Project:             " + project);
 //    Util.log("Commit count:        " + commitCount);
 //    Util.log("Related commit count " + relatedCommitCount);
@@ -113,16 +112,14 @@ public class GitLogParser {
     textFeature(lines, f);
     codeFeature(lines, f);
 
-    if (f.related())
+    if (f.related()) {
       relatedCommitCount++;
-//    if (f.related()) {
-//      relatedCommitCount++;
-//      fileCount++;
-      //pw.println("1 " + f.toStr());
-//      pw2.println(project + ' ' + commitId);
-//      writeDiff(lines, Config.projectsDir + "/diff2", fileCount + "_" +
-//          project + '_' + commitId + ".diff");
-//    }
+      fileCount++;
+      pw.println("1 " + f.toStr());
+      //pw2.println(project + ' ' + commitId);
+      //writeDiff(lines, Config.projectsDir + "/diff2", fileCount + "_" +
+      //    project + '_' + commitId + ".diff");
+    }
     return f;
   }
 
