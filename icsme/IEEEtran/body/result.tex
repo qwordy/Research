@@ -213,25 +213,23 @@ public long nextStamp() {
 Besides replacing directly, programmers can replace their code with parallel APIs that implement similar functions. For example, the below code comes from LUCENE-2779:
 
 \begin{lstlisting}
-  protected HashMap<String,RAMFile> fileMap = ...;
-  public final boolean fileExists(String name) {
-    ensureOpen();
-    RAMFile file;
-    synchronized (this) {
-      file = fileMap.get(name);
-    }
-    return file != null;
- }
+protected ... fileMap = new HashMap<...>();
+public final boolean fileExists(String name) {
+  ensureOpen();
+  RAMFile file;
+  synchronized (this) {
+    file = fileMap.get(name);
+  }
+  return file != null; }
 \end{lstlisting}
 
 Instead of handling synchronization by themselves, programmers replaced the above code with a parallel API:
 
 \begin{lstlisting}
- protected Map<String,RAMFile> fileMap = ...;
- public final boolean fileExists(String name) {
-    ensureOpen();
-    return fileMap.containsKey(name);
- }
+protected ... fileMap = new ConcurrentHashMap<...>();
+public final boolean fileExists(String name) {
+  ensureOpen();
+  return fileMap.containsKey(name); }
 \end{lstlisting}
 
 %\textbf{Other class replace}
