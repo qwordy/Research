@@ -7,7 +7,7 @@ To understand how concurrent code is maintained, in this study, we focus on the 
 
 \textbf{RQ1.} What change patterns are followed when programmers maintain concurrent code?
 
-In each day, programmers can make numerous commits. Based on their analysis on commits, Kim and Notkin~\cite{conf/icse/KimN09} found that code changes can be repetitive, and Martinez \emph{et al.}~\cite{conf/icsm/MartinezDM13} further extracted change patterns to denote such repetitive changes. However, to the best of our knowledge, no previous study explored the change patterns of concurrent programming, and this research question is still largely open. In our empirical study, we summarize concurrency-related commits into five change patterns, and present examples to explain our change patterns (see Section~\ref{sec:result:pattern} for details).
+Based on their analysis on commits, Kim and Notkin~\cite{conf/icse/KimN09} found that code changes can be repetitive, and Martinez \emph{et al.}~\cite{conf/icsm/MartinezDM13} further extracted change patterns to denote such repetitive changes. However, to the best of our knowledge, no previous study explored the change patterns of concurrent programming, and this research question is still largely open. In our empirical study, we summarize concurrency-related commits into five change patterns, and present examples to explain our change patterns (see Section~\ref{sec:result:pattern} for details).
 
 \textbf{RQ2.} How useful are our extracted change patterns, when programmers maintain concurrent code?
 
@@ -15,7 +15,7 @@ To assess the usefulness of our extracted change patterns, we search matching co
 
 \textbf{RQ3.} What are the change trends of using parallel APIs?
 
-Okur and Dig~\cite{conf/sigsoft/OkurD12} found that in C\#, 10\% of parallel API classes account for 90\% of API usages. In Java, J2SE\footnote{\url{https://docs.oracle.com/javase/}} also provides standard APIs for developing concurrent programs. In this research question, we explore whether Java parallel APIs follow a similar distribution as C\#. Our results show that in Java, popular parallel APIs also account for a large portion of the total API usages, but the distribution is less screwed. While their study focuses on the static distribution, our study further explores the trends during software maintenance. In particular, the trends show that in the long run, the distribution of Java can be more skewed, since popular APIs are becoming more popular (see Section~\ref{sec:result:trend} for details).
+Okur and Dig~\cite{conf/sigsoft/OkurD12} found that in C\#, 10\% of parallel API classes account for 90\% of API usages. In Java, J2SE\footnote{\url{https://docs.oracle.com/javase/}} also provides standard APIs for developing concurrent programs. In this research question, we explore whether Java parallel APIs follow a similar distribution as C\#. Our results show that in Java, popular parallel APIs also account for a large portion of the total API usages, but the distribution is less screwed (see Section~\ref{sec:result:trend} for details).
 
 \textbf{RQ4.} Are there any correlations between total commits and concurrency-related commits?
 
@@ -110,7 +110,7 @@ We classify concurrency-related commits into different categories, mainly accord
 %\zhong{How did you determine that a parallel class is related to a commit?}
 
 \textbf{RQ4. Determining the correlations between total commits and concurrency-related commits} Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} find that at the granularity of code lines, concurrency-related modifications and total modifications have strong correlation. In our study, we further explore the problem at the granularity of commits, for all the 11,868 concurrency-related commits. In particular, we compare total commits and concurrency-related commits in the interval of months. Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} use the Spearman's rank correlation coefficient to determine the correlation. In our study, we use the identical measure. Given two sets of data, the Spearman's rank
-correlation coefficient calculates a correlation value $r$ between -1 and +1. Cohen~\cite{bibid} defines, $0.1 < |r| < 0.3$ as small correlation, $0.3 \leq |r| < 0.5$ as moderate correlation, and $|r| \geq 0.5$ as strong correlation. Furthermore, -1 also denotes a strong monotonic negative correlation.
+correlation coefficient calculates a correlation value $r$ between -1 and +1. Cohen~\cite{bibid} defines, $0.1 < |r| < 0.3$ as small correlation, $0.3 \leq |r| < 0.5$ as moderate correlation, and $|r| \geq 0.5$ as strong correlation. Here, -1 also denotes a strong monotonic negative correlation.
 
 %\zhong{Please explain what measure do you use to determine the correlations}
 

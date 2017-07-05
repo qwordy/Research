@@ -36,14 +36,14 @@ Table~\ref{table:patterns} and Table~\ref{table:patterns2} show an overview of o
 	\centering
 \caption{Change patterns}\vspace*{-3ex}
 	\includegraphics[width=1\textwidth]{patterns}	
-	\label{table:patterns}
+	\label{table:patterns}\vspace*{-3ex}
 
 \end{table*}
 \begin{table*}
 	\centering
 	\caption{Change patterns (Cont.)}\vspace*{-3ex}
 	\includegraphics[width=1\textwidth]{patterns2}
-	\label{table:patterns2}
+	\label{table:patterns2}\vspace*{-3ex}
 \end{table*}
 \noindent
 \textbf{1. Changing lock types.} It is feasible to lock resources with different mechanisms. For example, Java has a keyword, \CodeIn{synchronized}. The keyword can lock a block of code lines. With the keyword, programmers do not have to acquire and release resources explicitly. Alternatively, programmers can explicitly lock resources with APIs (\emph{e.g.}, \CodeIn{ReentrantLock}). Explicit locks offer more features than the \CodeIn{synchronized} keyword does. For example, with such APIs, programmers can determine the conditions for a lock. As another example, besides exclusive locks, programmers can use shared locks. When a thread is holding an exclusive lock, other threads have to wait until it is released. In contrast, shared locks allow multiple threads to hold the lock with specific actions. For example, \CodeIn{ReadWriteLock} allows multiple read actions, but denies multiple write actions.%\zhong{Please explain what exclusive and shared locks are, and their benefits.}
@@ -190,27 +190,12 @@ Besides adding the keyword, we find that programmers have to remove the \CodeIn{
 \noindent
 \textbf{5. Replacing self-written code with Parallel APIs.} Programmers can implement concurrent code by themselves, but later they realize that it is easier to call APIs that already implement their functionalities. For example, a previous version of Hadoop has the following code:% \zhong{Replace the below commit with the buggy code.}
 
-%\begin{lstlisting}
-%commit a258263ecfa1d9efe03761f5e3b73e8e6ddb4a43
-%HDFS-4029. GenerationStamp should use an AtomicLong. Contributed by Eli Collins
-%
-%-  private volatile long genstamp;
-%+  private AtomicLong genstamp = new AtomicLong();
-%...
-%-  public synchronized long nextStamp() {
-%-    this.genstamp++;
-%-    return this.genstamp;
-%+  public long nextStamp() {
-%+    return genstamp.incrementAndGet();
-%   }
-%\end{lstlisting}
 
 \begin{lstlisting}
 private volatile long genstamp;
 public synchronized long nextStamp() {
   this.genstamp++;
-  return this.genstamp;
-}
+  return this.genstamp; }
 \end{lstlisting}
 
 Later, a programmer realized that it is better to replace the above code with the \CodeIn{AtomicLong} class. He reported the issue (HDFS-4029), and set its priority as major. Here, \CodeIn{AtomicLong} is a thread-safe version of type long. It allows updating a \CodeIn{Long} value without explicit synchronization and it is fast.
@@ -222,15 +207,13 @@ Later, a programmer realized that it is better to replace the above code with th
 \begin{lstlisting}
 private volatile long genstamp;
 public long nextStamp() {
-  return genstamp.incrementAndGet();
-}
+  return genstamp.incrementAndGet(); }
 \end{lstlisting}
 
 Besides replacing directly, programmers can replace their code with parallel APIs that implement similar functions. For example, the below code comes from LUCENE-2779:
 
 \begin{lstlisting}
-  protected HashMap<String,RAMFile> fileMap = new HashMap<String,RAMFile>();
-  ...
+  protected HashMap<String,RAMFile> fileMap = ...;
   public final boolean fileExists(String name) {
     ensureOpen();
     RAMFile file;
@@ -244,8 +227,7 @@ Besides replacing directly, programmers can replace their code with parallel API
 Instead of handling synchronization by themselves, programmers replaced the above code with a parallel API:
 
 \begin{lstlisting}
- protected Map<String,RAMFile> fileMap = new ConcurrentHashMap<String,RAMFile>();
- ...
+ protected Map<String,RAMFile> fileMap = ...;
  public final boolean fileExists(String name) {
     ensureOpen();
     return fileMap.containsKey(name);
@@ -278,7 +260,7 @@ In total, we made three pull requests. We made the first pull request on Schminc
 
 \begin{lstlisting}
 public class DRandom {
-  private static ThreadLocal<Random> random = new ThreadLocal<Random>() {
+  private ... random = new ThreadLocal<Random>() {
     protected Random initialValue() {
       return new Random();
     }
@@ -343,11 +325,11 @@ We made the second pull request on UnifiedEmail\footnote{\url{https://github.com
 \begin{lstlisting}
 private static NotificationMap sActiveNotificationMap = null;
 private static synchronized NotificationMap getNotificationMap(Context context) {
-  if (sActiveNotificationMap == null) {
-   sActiveNotificationMap = new NotificationMap();
-   sActiveNotificationMap.loadNotificationMap(context);
-  }
-  return sActiveNotificationMap;
+ if (sActiveNotificationMap == null) {
+  sActiveNotificationMap = new NotificationMap();
+  sActiveNotificationMap.loadNotificationMap(context);
+ }
+ return sActiveNotificationMap;
 }
 \end{lstlisting}
 
