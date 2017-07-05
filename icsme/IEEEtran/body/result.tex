@@ -34,14 +34,14 @@ Table~\ref{table:patterns} and Table~\ref{table:patterns2} show an overview of o
 
 \begin{table*}
 	\centering
-\caption{Change patterns}\vspace*{-3ex}
+\caption{Change patterns}\vspace*{-1ex}
 	\includegraphics[width=1\textwidth]{patterns}	
 	\label{table:patterns}\vspace*{-3ex}
 
 \end{table*}
 \begin{table*}
 	\centering
-	\caption{Change patterns (Cont.)}\vspace*{-3ex}
+	\caption{Change patterns (Cont.)}\vspace*{-1ex}
 	\includegraphics[width=1\textwidth]{patterns2}
 	\label{table:patterns2}\vspace*{-3ex}
 \end{table*}
@@ -378,7 +378,7 @@ public class Counter {
 }
 \end{lstlisting}
 
-The above class implements a counter for multiple threads. As J2SE provides the identical API, \CodeIn{AtomicInteger}\footnote{\url{https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/atomic/AtomicInteger.html}}, we modify it as follow:
+The above class implements a counter for multiple threads. As J2SE provides the identical API, \CodeIn{AtomicInteger}\footnote{\url{https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/atomic/AtomicInteger.html}}. Our pull request has been accepted, and its code is as follow:
 
 \begin{lstlisting}
 public class Counter {
@@ -410,7 +410,7 @@ public class Counter {
 	\label{fig:confidence}\vspace*{-3ex}
 \end{figure*}
 
-This pull request has been accepted.
+
 %However, their programmers denied the pull request. Although our pull request works, it is more neat to systematically replace the above \CodeIn{Counter} class with the \CodeIn{AtomicInteger} class. Their programmers may deny our pull request, simply because the wrapper style looks ugly.
 
 In summary, our results show that our change patterns are repetitive in future maintenance, and programmers confirmed that our change patterns are useful. However, our results also reveal that it needs much programming experience to fully unleash the potential of our change patterns. We further discuss this issue in Section~\ref{sec:discuss}.
