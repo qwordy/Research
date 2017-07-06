@@ -110,7 +110,7 @@ We classify concurrency-related commits into different categories, mainly accord
 %\zhong{How did you determine that a parallel class is related to a commit?}
 
 \textbf{RQ4. Determining the correlations between total commits and concurrency-related commits} Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} find that at the granularity of code lines, concurrency-related modifications and total modifications have strong correlation. In our study, we further explore the problem at the granularity of commits, for all the 11,868 concurrency-related commits. In particular, we compare total commits and concurrency-related commits in the interval of months. Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} use the Spearman's rank correlation coefficient to determine the correlation. In our study, we use the identical measure. Given two sets of data, the Spearman's rank
-correlation coefficient calculates a correlation value $r$ between -1 and +1. Cohen~\cite{bibid} defines, $0.1 < |r| < 0.3$ as small correlation, $0.3 \leq |r| < 0.5$ as moderate correlation, and $|r| \geq 0.5$ as strong correlation. Here, -1 also denotes a strong monotonic negative correlation.
+correlation coefficient calculates a correlation value $r$ between -1 and +1. Cohen and Jacob~\cite{cohen1988statistical} defines, $0.1 < |r| < 0.3$ as small correlation, $0.3 \leq |r| < 0.5$ as moderate correlation, and $|r| \geq 0.5$ as strong correlation. Here, -1 also denotes a strong monotonic negative correlation.
 
 %\zhong{Please explain what measure do you use to determine the correlations}
 
