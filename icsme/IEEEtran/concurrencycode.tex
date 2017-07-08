@@ -338,9 +338,9 @@
 % author names and affiliations
 % use a multiple column layout for up to three different
 % affiliations
-\author{\IEEEauthorblockN{Feiyue Yu and Hao Zhong}
+\author{\IEEEauthorblockN{Feiyue Yu, Hao Zhong, Beijun Shen}
 \IEEEauthorblockA{Department of Computer Science, Shanghai Jiao Tong University, China\\
-Email: iamyfy@163.com, zhonghao@sjtu.edu.cn}
+\{yufeiyue, zhonghao, bjshen\}@sjtu.edu.cn}
 %\and
 %\IEEEauthorblockN{Homer Simpson}
 %\IEEEauthorblockA{Twentieth Century Fox\\
@@ -391,7 +391,7 @@ Email: iamyfy@163.com, zhonghao@sjtu.edu.cn}
 % As a general rule, do not put math, special symbols or citations
 % in the abstract
 \begin{abstract}
-Concurrent programming is pervasive in nowadays software development. Although it unleashes the potential of multi-core computers, many programmers believe that concurrent programming is difficult, and maintaining concurrency code is error-prone. Although researchers have conducted empirical studies to understand concurrent programming, they still rarely study how programmers maintain concurrent code. To the best of our knowledge, only a recent study explored the modifications on critical sections, and many related questions are still open. In this paper, we conduct an empirical study to explore how programmers maintain concurrent code. In our empirical study, we analyze more concurrency-related commits and explore more issues such as the change patterns of maintaining concurrent code than the previous empirical study. In particular, according to our analysis on 696 concurrency-related commits, we summarize five change patterns. We apply our change patterns on the latest versions of three open source projects, and synthesize three pull requests. Until now, two of the pull requests have been accepted. Furthermore, we analyze other issues such as the usages of parallel API classes and the correlations between total commits and concurrency-related commits. Our results show that some of such usages follow specific trends and there is a correlation between total commits and concurrency-related commits. Such findings can be useful for programmers to maintain concurrent code and for researchers to implement treating techniques.
+Concurrent programming is pervasive in nowadays software development. Many programmers believe that concurrent programming is difficult, and maintaining concurrency code is error-prone. Although researchers have conducted empirical studies to understand concurrent programming, they still rarely study how programmers maintain concurrent code. To the best of our knowledge, only a recent study explored the modifications on critical sections, and many related questions are still open. In this paper, we conduct an empirical study to explore how programmers maintain concurrent code. We analyze more concurrency-related commits and explore more issues such as the change patterns of maintaining concurrent code than the previous study. We summarize five change patterns according to our analysis on 696 concurrency-related commits. We apply our change patterns to three open source projects, and synthesize three pull requests. Until now, two of them have been accepted. Furthermore, we analyze other issues such as the usages of parallel API classes and the correlations between total commits and concurrency-related commits. Our results show that some of such usages follow specific trends and there is a strong correlation between total commits and concurrency-related commits. Such findings can be useful for programmers to maintain concurrent code and for researchers to implement treating techniques.
 \end{abstract}
 
 % no keywords
