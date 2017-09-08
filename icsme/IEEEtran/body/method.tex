@@ -13,13 +13,7 @@ We define change patterns in this paper as abstract description of similar code 
 
 To assess the usefulness of our extracted change patterns, we search matching code in open-source projects with our change patterns. We manually exterminate return code. If a change pattern applies to such code, we fork the source files. After that we make our changes, and submit our pull request. Two of our pull requests are already confirmed and accepted by their programmers (see Section~\ref{sec:result:sample} for more details).
 
-\textbf{RQ3.} What are the change trends of using parallel APIs?
 
-Okur and Dig~\cite{conf/sigsoft/OkurD12} found that in C\#, 10\% of parallel API classes account for 90\% of API usages. In Java, J2SE\footnote{\url{https://docs.oracle.com/javase/}} also provides standard APIs for developing concurrent programs. In this research question, we explore whether Java parallel APIs follow a similar distribution as C\#. Our results show that in Java, popular parallel APIs also account for a large portion of the total API usages, but the distribution is less screwed (see Section~\ref{sec:result:trend} for details).
-
-\textbf{RQ4.} Are there any correlations between total commits and concurrency-related commits?
-
-At the granularity of code lines, Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} found a strong correlation between total changes and concurrency-related changes. With a different data set and a coarser granularity, we explore whether their finding still holds on our data set. Our results show that the correlation still exists, but is less significant (see Section~\ref{sec:result:correlation} for details).
 
 \subsection{Dataset}
 \label{sec:method:data}
@@ -105,12 +99,7 @@ We classify concurrency-related commits into different categories, mainly accord
 
 \textbf{RQ2. Exploring the usefulness of our change patterns.} We prepare a set of keywords for each change pattern, and search Github\footnote{\url{https://github.com}} for code where the pattern can apply. For example, we use \CodeIn{synchronized}, \CodeIn{put} or \CodeIn{get} as keywords to search code pieces that manually handle synchronization of collections. We find numerous code pieces in the search results. We manually check the code and decide whether it is acceptable for the pattern. If it is, we fork the project; make our changes; and submit the pull request.
 
-\textbf{RQ3. Determining the trends of using parallel APIs.} To explore this research question, we analyzed all the 53 classes that are declared in the \CodeIn{java.util.concurrent} package. We selected this package, since it is a popular package for concurrent programming. For each parallel API class, we count their occurrences in all the 11,868 concurrency-related commits. Here, we consider that a class occurs a concurrency-related commit, if the class occurs in added lines or deleted lines of the commit. In addition, we draw its trend of its occurrences in the interval of months. Based on occurrences, we put these classes into three categories, and based on their trends, we further put them into three subcategories.
 
-%\zhong{How did you determine that a parallel class is related to a commit?}
-
-\textbf{RQ4. Determining the correlations between total commits and concurrency-related commits} Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} find that at the granularity of code lines, concurrency-related modifications and total modifications have strong correlation. In our study, we further explore the problem at the granularity of commits, for all the 11,868 concurrency-related commits. In particular, we compare total commits and concurrency-related commits in the interval of months. Gu \emph{et al.}~\cite{conf/sigsoft/GuJSZL15} use the Spearman's rank correlation coefficient to determine the correlation. In our study, we use the identical measure. Given two sets of data, the Spearman's rank
-correlation coefficient calculates a correlation value $r$ between -1 and +1. Cohen and Jacob~\cite{cohen1988statistical} defines, $0.1 < |r| < 0.3$ as small correlation, $0.3 \leq |r| < 0.5$ as moderate correlation, and $|r| \geq 0.5$ as strong correlation. Here, -1 also denotes a strong monotonic negative correlation.
 
 %\zhong{Please explain what measure do you use to determine the correlations}
 
