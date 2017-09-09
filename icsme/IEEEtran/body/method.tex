@@ -17,7 +17,7 @@ To assess the usefulness of our extracted change patterns, we search matching co
 
 \subsection{Dataset}
 \label{sec:method:data}
-In this study, we collected commits from six Apache\footnote{\url{http://www.apache.org/}} projects. Table~\ref{table:dataset} shows the details of our data set. We selected these projects, since they are all popular and active. These projects cover various types of projects such as distributed computing, web server, database, information retrieval, and network. In particular, Hadoop is one of the most popular distributed computing frameworks in Java. Tomcat is a popular web server. Cassandra is a database system that manages massive data. Solr is an enterprise search platform. Netty is an asynchronous network application framework. Flink is a stream processing framework. Column ``\#Commits'' lists number of commits. Column ``\#Concurrency'' lists number of concurrency-related commits. From these concurrency-related commits, we selected a subset for manual analysis. Column ``\#Manual'' lists number of our selected commits. We checked out all the commits in December 2016. We next explain how to identify concurrency-related commits.
+In this study, we collected commits from six Apache\footnote{\url{http://www.apache.org/}} projects. Table~\ref{table:dataset} shows the details of our data set. We selected these projects, since they are all popular and active. These projects cover various types of projects such as distributed computing, web server, database, information retrieval, and network. For example, Hadoop is one of the most popular distributed computing frameworks in Java. Tomcat is a popular web server. Column ``\#Commits'' lists number of commits. Column ``\#Concurrency'' lists number of concurrency-related commits. From these concurrency-related commits, we selected a subset for manual analysis. Column ``\#Manual'' lists number of our selected commits. We checked out all the commits in December 2016. We next explain how to identify concurrency-related commits.
 
 \begin{table}
 	\centering
@@ -78,22 +78,21 @@ We selected 696 commits for manual analysis in total.
 
 %\textbf{RQ1. Determining change patterns.} To explore this research question, we manually analyze 696 concurrency-related commits. For example, the below is a concurrency-related commit. The top five lines describe the metadata of the commit. The other lines describe the differences between two versions of code. Due to the heavy manual effort, we randomly sample some commits from each project.
 
-\textbf{RQ1. Determining change patterns.} To explore this research question, we analyzed each selected commit for their change patterns. For example, below is a concurrency-related commit. The top five lines describe the metadata of the commit. The other lines describe the differences between two versions of code.
+%For example, below is a concurrency-related commit. The top five lines describe the metadata of the commit. The other lines describe the differences between two versions of code.
 
+
+%commit 563e546236217dace58a8031d56d08a27e08160b
+%Author: zentol <s.motsu@web.de>
+%Date:   Mon Jan 26 11:07:53 2015 +0100
+%[FLINK-1419] [runtime] Fix: distributed ...
+
+\textbf{RQ1. Determining change patterns.} To explore this research question, we analyzed each selected commit for their change patterns. For each commit, we first read the metadata and the corresponding issue to understand why programmers make the commit. After that, we scan change hunks to understand the details. In a change hunk, the ``+'' symbol denotes added lines, and the ``-'' symbol denotes removed lines. In some cases, it is infeasible to determine the category of a commit based on only its change hunks. For example, as change hunks are limited, it can be infeasible to determine the type of a variable. In such cases, we check out the original and modified versions of all files to analyze.
 \begin{lstlisting}
-commit 563e546236217dace58a8031d56d08a27e08160b
-Author: zentol <s.motsu@web.de>
-Date:   Mon Jan 26 11:07:53 2015 +0100
-[FLINK-1419] [runtime] Fix: distributed ...
-
 public FutureTask<Path> createTmpFile(...) {
 -    synchronized (count) {
-       ...
 +    synchronized (lock) {
-       ...
 \end{lstlisting}
-
-For each commit, we first read the metadata and the corresponding issue to understand why programmers make the commit. After that, we scan change hunks to understand the details. In a change hunk, the ``+'' symbol denotes added lines, and the ``-'' symbol denotes removed lines. In some cases, it is infeasible to determine the category of a commit based on only its change hunks. For example, as change hunks are limited, it can be infeasible to determine the type of a variable. In such cases, we check out the original and modified versions of all files to analyze. In this example, we cannot determine the type of the \CodeIn{count} and \CodeIn{lock} variables. After we check out all the files, we understand that the types of them are \CodeIn{Map} and \CodeIn{Object}, respectively.
+In this example, we cannot determine the type of the \CodeIn{count} and \CodeIn{lock} variables. After we check out all files, we understand that the types of them are \CodeIn{Map} and \CodeIn{Object}, respectively.
 
 We classify concurrency-related commits into different categories, mainly according to our observed code changes such as the modifications on code elements, parallel libraries, and control flows.
 

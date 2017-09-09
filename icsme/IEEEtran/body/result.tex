@@ -217,9 +217,7 @@ protected ... fileMap = new HashMap<...>();
 public final boolean fileExists(String name) {
   ensureOpen();
   RAMFile file;
-  synchronized (this) {
-    file = fileMap.get(name);
-  }
+  synchronized (this) { file = fileMap.get(name); }
   return file != null; }
 \end{lstlisting}
 
@@ -261,14 +259,8 @@ In total, we made three pull requests. We made the first pull request on Schminc
 \begin{lstlisting}
 public class DRandom {
   private ... random = new ThreadLocal<Random>() {
-    protected Random initialValue() {
-      return new Random();
-    }
-  };
-  public static Random get() {
-    return random.get();
-  }
-}
+    protected Random initialValue() {return new Random();}};
+  public static Random get() {return random.get();}}
 \end{lstlisting}
 
 The above code implements a class that generates random values for multiple threads. We find that J2SE provides the \CodeIn{ThreadLocalRandom} class\footnote{\url{https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadLocalRandom.html}} that implements the identical function. According to our fifth change pattern, we made a pull request to replace the above code with the corresponding API\footnote{\url{https://github.com/derekmu/Schmince-2/pull/1}}. This pull request is already confirmed.
@@ -292,31 +284,25 @@ The above code implements a class that generates random values for multiple thre
 We made the second pull request on UnifiedEmail\footnote{\url{https://github.com/HexagonRom/android_packages_apps_UnifiedEmail}}. It is an Android email client. It has the following code:
 
 \begin{lstlisting}
-private static NotificationMap sActiveNotificationMap = null;
-private static synchronized NotificationMap getNotificationMap(Context context) {
- if (sActiveNotificationMap == null) {
-  sActiveNotificationMap = new NotificationMap();
-  sActiveNotificationMap.loadNotificationMap(context);
- }
- return sActiveNotificationMap;
-}
+static NMap map = null;
+static synchronized NMap getNMap(Context context) {
+  if (map == null) {
+    map = new NMap();
+    map.loadNotificationMap(context); }
+  return map; }
 \end{lstlisting}
 
-If the \CodeIn{sActiveNotificationMap} field is \CodeIn{null}, the above method creates a new map and assigns the new map to the field. To allow multiple threads to call the methods, programmers add the \CodeIn{synchronized} keyword to the method. We believe that when \CodeIn{sActiveNotificationMap} is not \CodeIn{null}, the lock is unnecessary, since it does not change the field. According to our second change pattern, we made the following modification to synchronize only the lines that modify the field:
+If the \CodeIn{map} field is \CodeIn{null}, the above method creates a new map and assigns the new map to the field. To allow multiple threads to call the methods, programmers add the \CodeIn{synchronized} keyword to the method. We believe that when \CodeIn{map} is not \CodeIn{null}, the lock is unnecessary, since it does not change the field. According to our second change pattern, we made the following modification to synchronize only the lines that modify the field:
 
 \begin{lstlisting}
-private static volatile NotificationMap sActiveNotificationMap = null;
-private static NotificationMap getNotificationMap(Context context) {
-  if (sActiveNotificationMap == null) {
+static volatile NMap map = null;
+static NMap getNMap(Context context) {
+  if (map == null) {
     synchronized (NotificationUtils.class) {
-      if (sActiveNotificationMap == null) {
-       sActiveNotificationMap = new NotificationMap();
-       sActiveNotificationMap.loadNotificationMap(context);
-      }
-    }
-  }
-  return sActiveNotificationMap;
-}
+      if (map == null) {
+        map = new NMap();
+        map.loadNotificationMap(context); }}}
+  return map; }
 \end{lstlisting}
 
 %The above pull request is still pending.
@@ -329,16 +315,9 @@ We made the third pull request on Spider4java\footnote{\url{https://github.com/l
 \begin{lstlisting}
 public class Counter {
   protected int count;
-  public Counter() {
-    count = 0;
-  }
-  public synchronized void increment() {
-    count = count + 1;
-  }
-  public synchronized int getValue() {
-    return count;
-  }
-}
+  public Counter() { count = 0; }
+  public synchronized void increment() {count=count+1;}
+  public synchronized int getValue() {return count;}}
 \end{lstlisting}
 
 The above class implements a counter for multiple threads. As J2SE provides the identical API, \CodeIn{AtomicInteger}\footnote{\url{https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/atomic/AtomicInteger.html}}. Our pull request has been accepted, and its code is as follow:
@@ -346,16 +325,9 @@ The above class implements a counter for multiple threads. As J2SE provides the 
 \begin{lstlisting}
 public class Counter {
   protected AtomicInteger count;
-  public Counter() {
-    count = new AtomicInteger();
-  }
-  public void increment() {
-    count.getAndIncrement();
-  }
-  public int getValue() {
-    return count.get();
-  }
-}
+  public Counter() { count = new AtomicInteger(); }
+  public void increment() { count.getAndIncrement(); }
+  public int getValue() { return count.get(); }}
 \end{lstlisting}
 
 
