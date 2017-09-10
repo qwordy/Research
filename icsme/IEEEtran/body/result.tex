@@ -281,8 +281,7 @@ We made the second pull request on UnifiedEmail\footnote{\url{https://github.com
 static NMap map = null;
 static synchronized NMap getNMap(Context context) {
   if (map == null) {
-    map = new NMap();
-    map.loadNotificationMap(context); }
+    map = new NMap(); ...; }
   return map; }
 \end{lstlisting}
 
@@ -294,8 +293,7 @@ static NMap getNMap(Context context) {
   if (map == null) {
     synchronized (NotificationUtils.class) {
       if (map == null) {
-        map = new NMap();
-        map.loadNotificationMap(context); }}}
+        map = new NMap(); ...; }}}
   return map; }
 \end{lstlisting}
 
@@ -329,7 +327,9 @@ public class Counter {
 
 %However, their programmers denied the pull request. Although our pull request works, it is more neat to systematically replace the above \CodeIn{Counter} class with the \CodeIn{AtomicInteger} class. Their programmers may deny our pull request, simply because the wrapper style looks ugly.
 
-In summary, our results show that our change patterns are repetitive in future maintenance, and programmers confirmed that our change patterns are useful. However, our results also reveal that it needs much programming experience to fully unleash the potential of our change patterns. We further discuss this issue in Section~\ref{sec:discuss}.
+In summary, our results show that our change patterns are repetitive in future maintenance, and programmers confirmed that our change patterns are useful. However, our results also reveal that it needs much programming experience to fully unleash the potential of our change patterns.
+
+%We further discuss this issue in Section~\ref{sec:discuss}.
 
 
 
