@@ -30,7 +30,7 @@
 
 %Table~\ref{} and \ref{} show an overview of our extracted change patterns. \zhong{Please explain the columns.}
 
-Table~\ref{table:patterns} and Table~\ref{table:patterns2} show an overview of our extracted change patterns. Each row is an example of a certain change pattern. The first column is the sequence number of examples. The ``Source Code'' column shows the concrete source code of examples. The left is the original code and the right is the modified code. We align the corresponding statements. We use different colors to mark modified lines. The ``Simplified Code'' column shows the simplified code of the source code. They are short as they ignore the specific statements.
+Table~\ref{table:patterns} shows an overview of our extracted change patterns. Each row is an example of a certain change pattern. The first column is the sequence number of examples. The ``Source Code'' column shows the concrete source code of examples. The left is the original code and the right is the modified code. We align the corresponding statements. We use different colors to mark modified lines. The ``Simplified Code'' column shows the simplified code of the source code. They are short as they ignore the specific statements.
 
 \begin{table*}
 	\centering
@@ -116,7 +116,7 @@ As the above commit messages says, programmers removed synchronization from the 
 In some other cases, we find that programmers can refine their locked resources to improve performance. For example, the seventh item of Table~\ref{table:patterns} comes from Tomcat\footnote{\url{https://bz.apache.org/bugzilla/show_bug.cgi?id=58382}}. The original code locks the instance of a class, but the modified code locks only the \CodeIn{membersLock} field.
 
 \noindent
-\textbf{3. Modifications inside critical section bodies.} A critical section is a code block that is executed, when a thread locks the corresponding resources. We notice that even modifications inside critical section bodies can repair concurrency bugs. For example, the sixth item of Table~\ref{table:patterns2} comes from FLINK-2384. It is caused by an implicit lock in the \CodeIn{spillWriter.close()} method. As programmers typically do not know such locks inside APIs, the lock leads to the deadlock. Indeed, we find that a recent benchmark~\cite{lin2015ase} includes a similar concurrency bug, and Lin \emph{et al.}~\cite{lin2016lockpeeker} proposed an approach that detects such implicit locks inside APIs. In this example, programmers move the \CodeIn{spillWriter.close()} method outside the critical section body to resolve the deadlock.
+\textbf{3. Modifications inside critical section bodies.} A critical section is a code block that is executed, when a thread locks the corresponding resources. We notice that even modifications inside critical section bodies can repair concurrency bugs. For example, the sixth item of Table~\ref{table:patterns} comes from FLINK-2384. It is caused by an implicit lock in the \CodeIn{spillWriter.close()} method. As programmers typically do not know such locks inside APIs, the lock leads to the deadlock. Indeed, we find that a recent benchmark~\cite{lin2015ase} includes a similar concurrency bug, and Lin \emph{et al.}~\cite{lin2016lockpeeker} proposed an approach that detects such implicit locks inside APIs. In this example, programmers move the \CodeIn{spillWriter.close()} method outside the critical section body to resolve the deadlock.
 
 %
 %\begin{lstlisting}
@@ -137,7 +137,7 @@ In some other cases, we find that programmers can refine their locked resources 
 %\noindent
 %\textbf{3. Modifications on critical section bodies.} A critical section is a code block that is executed, when a thread locked the corresponding resources. The modifications on critical section bodies indicate new functionalities or refactoring. For example, the eighth item of Table~\ref{table:patterns2} comes from HDFS-4200. To reduce the size of a critical section body, programmers refactor the body into several methods. Indeed, this issue involves modifications that are related to even more change patterns (\emph{e.g.}, adding locked variables).
 %=======
-Besides the above example, the majority of modifications on critical section bodies indicates new functionalities or refactoring. For example, the eighth item of Table~\ref{table:patterns2} comes from HDFS-4200. To reduce the size of a critical section body, programmers refactor the body into several methods. Indeed, this issue involves modifications that are related to even more change patterns (\emph{e.g.}, adding locked variables).
+Besides the above example, the majority of modifications on critical section bodies indicates new functionalities or refactoring. For example, the eighth item of Table~\ref{table:patterns} comes from HDFS-4200. To reduce the size of a critical section body, programmers refactor the body into several methods. Indeed, this issue involves modifications that are related to even more change patterns (\emph{e.g.}, adding locked variables).
 %>>>>>>> 9e8b767a2cf136027178c18c50d9c5eea616e630
 
 %c93d9eaf363a535dff25cc4e7db400d879e73bb1
@@ -173,13 +173,13 @@ Besides the above example, the majority of modifications on critical section bod
 %8313fa0f1ca277e9633a78f461804abc3c5515b8
 %Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58392
 %Double-checked locking needs to use volatile to be thread-safe
-We find that programmers can add the \CodeIn{volatile} keyword to improve performance. For example, the ninth item of Table~\ref{table:patterns2} comes from Tomcat\footnote{\url{https://bz.apache.org/bugzilla/show_bug.cgi?id=58392}}. It reports a data race, and the bug was repaired by adding the \CodeIn{volatile} keyword.
+We find that programmers can add the \CodeIn{volatile} keyword to improve performance. For example, the ninth item of Table~\ref{table:patterns} comes from Tomcat\footnote{\url{https://bz.apache.org/bugzilla/show_bug.cgi?id=58392}}. It reports a data race, and the bug was repaired by adding the \CodeIn{volatile} keyword.
 
 %560cd00890b3f6af2aca0c3a9d51a45f880692dd
 %Fix a FindBugs warning (increment of volatile not atomic)
 
 %\zhong{Please explain why you need two samples for this situation.}
-Besides adding the keyword, we find that programmers have to remove the \CodeIn{volatile} keyword, since they do not fully understand its meanings. For example, in tenth item of Table~\ref{table:patterns2} comes from Tomcat\footnote{\url{https://svn.apache.org/viewvc?view=revision&revision=1360946}}. In this bug, programmers auto-increment a \CodeIn{volatile} variable, but such an action is not atomic. As a result, FindBugs reports it as a bug, and programmers have to remove the keyword.
+Besides adding the keyword, we find that programmers have to remove the \CodeIn{volatile} keyword, since they do not fully understand its meanings. For example, in tenth item of Table~\ref{table:patterns} comes from Tomcat\footnote{\url{https://svn.apache.org/viewvc?view=revision&revision=1360946}}. In this bug, programmers auto-increment a \CodeIn{volatile} variable, but such an action is not atomic. As a result, FindBugs reports it as a bug, and programmers have to remove the keyword.
 
 \noindent
 \textbf{5. Replacing self-written code with Parallel APIs.} Programmers can implement concurrent code by themselves, but later they realize that it is easier to call APIs that already implement their functionalities. For example, a previous version of Hadoop has the following code:% \zhong{Replace the below commit with the buggy code.}
