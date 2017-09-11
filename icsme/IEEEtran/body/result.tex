@@ -47,7 +47,7 @@ Table~\ref{table:patterns} shows an overview of our extracted change patterns. E
 %ReentrantLock, ReentrantReadWriteLock, StampedLock are all API level locks in Java. Although 'synchronized' keyword is convenient and straightforward, we need other locks when we have more requirements. ReentrantLock is a reentrant lock, which means a lock can be acquired repeatedly in the same thread. It is a exclusive lock with the similar behaviour as monitor lock but has more features such as fairness, condition and tryLock. ReadWriteLock is a pair of locks, which allows concurrent access to read operations when there is no write operation going on but exclusive access to write operations. StampedLock is a lock which provides three modes, namely writing, reading and optimistic reading. This lock is usually used in design of thread-safe classes.
 %Programmers can change their lock types due to various considerations. For example, the \CodeIn{synchronized} keyword can fail to satisfy fairness (\zhong{What is fairness? Why does it matter?}), programmers have to change such implicit locks to explicit locks. \zhong{Add an example for each situation.}
 
-We find that programmers can replace the \CodeIn{synchronized} keyword with parallel API classes. For example, the first item of Table~\ref{table:patterns} comes from YARN-5825\footnote{\url{https://issues.apache.org/jira/browse/YARN-5825} To save space, we remove the URLs of the other Apache issues. Their URLs can be built by replacing the above URL with their issue number.}. To improve the performance, programmers replaced the \CodeIn{synchronized} with the \CodeIn{getReadLock} method. The method returns a shared lock, so multiple threads can read the query simultaneously.
+We find that programmers can replace the \CodeIn{synchronized} keyword with parallel API classes. For example, the first item of Table~\ref{table:patterns} comes from YARN-5825\footnote{\url{https://issues.apache.org/jira/browse/YARN-5825} The URLs of Apache issues can be built by replacing the above URL with their issue number.}. To improve the performance, programmers replaced the \CodeIn{synchronized} with the \CodeIn{getReadLock} method. The method returns a shared lock, so multiple threads can read the query simultaneously.
 
 %3e4b1ae6dc786b268505aa2e64067432519c2bcf
 %\begin{figure*}
@@ -60,7 +60,7 @@ We find that programmers can replace the \CodeIn{synchronized} keyword with para
 %\zhong{Please replace all texttt with CodeIn.}
 
 %They also might switch to a reader-writer lock \cite{journals/cacm/CouroisHP71} from a normal lock to improve concurrency when there are plenty of concurrent read operations. Here are some examples. \zhong{add an example for this.}
-Meanwhile, we find that programmers can replace parallel API classes with the \CodeIn{synchronized} keyword. For example, the second item of Table~\ref{table:patterns} comes from Tomcat\footnote{\url{https://svn.apache.org/viewvc?view=revision&revision=1414150}}. This commit is not reported, and we find it through our SVM classifier.% \zhong{List the commit message/log}.
+Meanwhile, we find that programmers can replace parallel API classes with the \CodeIn{synchronized} keyword. For example, the second item of Table~\ref{table:patterns} comes from an unreported Tomcat bug. We find it through our SVM classifier.% \zhong{List the commit message/log}.
 
 %3e4b1ae6dc786b268505aa2e64067432519c2bcf
 \begin{lstlisting}
@@ -81,12 +81,11 @@ As the above message explains, a developer complained that the \CodeIn{ReadWrite
 \noindent
 \textbf{2. Changing locked variables.} A program needs to lock variables before it enters critical section bodies. During software maintenance, programmers can change locked variables, and we find that the main purpose is to repair bugs. For example, the third item of Table~\ref{table:patterns} comes from FLINK-1419. This bug complains that \CodeIn{DistributedCache} does not preserve files for subsequent operations. Based on its discussions, we understand that in the buggy file, programmers lock \CodeIn{count}, while they shall lock \CodeIn{lock}. To fully fix the bug, programmers also modified the critical sections and the \CodeIn{finally} clause.
 
-As another example, when repairing bugs, programmers can add new locks. For example, the fourth item of Table~\ref{table:patterns} comes from Tomcat\footnote{\url{https://bz.apache.org/bugzilla/show\_bug.cgi?id=58386}}. It includes the following message:
+As another example, when repairing bugs, programmers can add new locks. For example, the fourth item of Table~\ref{table:patterns} comes from Tomcat\footnote{\url{https://bz.apache.org/bugzilla/show\_bug.cgi?id=58386} The URLs of Tomcat
+issues can be built by replacing the above URL with their issue number.}. It includes the following message:
 
 \begin{lstlisting}
-Reported by RV-Predict (a dynamic race detector) when running the test suite:
-Data race on field org.apache.catalina.tribes.io.ObjectReader.accessed: {{{
-Concurrent write in thread T93 (locks held: {...})
+Reported by RV-Predict (a dynamic race detector) when running the test suite: Data race on ...)
 \end{lstlisting}
 
 The data race indicates that the \CodeIn{isAccessed()} is not locked, so programmers add the \CodeIn{synchronized} keyword to allow locking on the method.
@@ -115,7 +114,7 @@ The data race indicates that the \CodeIn{isAccessed()} is not locked, so program
 %As shown in Figure~\ref{figure:deadlock}, a deadlock can occur when three threads execute in a specific order. Here, we use $s1$ and $s2$ to denote two statements. An arrow from $s1$ to $s2$ means $s1$ cannot be returned before $s2$ has been returned. The \CodeIn{DataSource} (thread-1) is waiting to be notified by the \CodeIn{Writer} (thread-2) when holding lock A. The \CodeIn{Writer} (thread-2) is trying to acquire lock B. But lock B is held by the \CodeIn{Map} (thread-3). And the \CodeIn{Map} (thread-3) is trying to acquire lock A, which is held by the \CodeIn{DataSource} (thread-1). Here is a waiting chain. This is a kind of bug known as deadlock. The problem is that the \CodeIn{DataSource} (thread-1) does not need to hold lock A while waiting to be notified. So the developer removed the unnecessary synchronization.
 
 %f0e627bb8c9daedb3b064027cac37ce4849bab64
-In some other cases, we find that programmers can refine their locked resources to improve performance. For example, the sixth item of Table~\ref{table:patterns} comes from Tomcat\footnote{\url{https://bz.apache.org/bugzilla/show_bug.cgi?id=58382}}. The original code locks the instance of a class, but the modified code locks only the \CodeIn{membersLock} field.
+In some other cases, we find that programmers can refine their locked resources to improve performance. For example, the sixth item of Table~\ref{table:patterns} comes from Tomcat 58382. The original code locks the instance of a class, but the modified code locks only the \CodeIn{membersLock} field.
 
 \noindent
 \textbf{3. Modifications inside critical section bodies.} A critical section is a code block that is executed, when a thread locks the corresponding resources. We notice that even modifications inside critical section bodies can repair concurrency bugs. For example, the fifth item of Table~\ref{table:patterns} comes from FLINK-2384. It is caused by an implicit lock in the \CodeIn{spillWriter.close()} method. As programmers typically do not know such locks inside APIs, the lock leads to the deadlock. Indeed, we find that a recent benchmark~\cite{lin2015ase} includes a similar concurrency bug, and Lin \emph{et al.}~\cite{lin2016lockpeeker} proposed an approach that detects such implicit locks inside APIs. In this example, programmers move the \CodeIn{spillWriter.close()} method outside the critical section body to resolve the deadlock.
@@ -175,13 +174,13 @@ Besides the above example, the majority of modifications on critical section bod
 %8313fa0f1ca277e9633a78f461804abc3c5515b8
 %Fix https://bz.apache.org/bugzilla/show_bug.cgi?id=58392
 %Double-checked locking needs to use volatile to be thread-safe
-We find that programmers can add the \CodeIn{volatile} keyword to improve performance. For example, the eighth item of Table~\ref{table:patterns} comes from Tomcat\footnote{\url{https://bz.apache.org/bugzilla/show_bug.cgi?id=58392}}. It reports a data race, and the bug was repaired by adding the \CodeIn{volatile} keyword.
+We find that programmers can add the \CodeIn{volatile} keyword to improve performance. For example, the eighth item of Table~\ref{table:patterns} comes from Tomcat 58392. It reports a data race, and the bug was repaired by adding the \CodeIn{volatile} keyword.
 
 %560cd00890b3f6af2aca0c3a9d51a45f880692dd
 %Fix a FindBugs warning (increment of volatile not atomic)
 
 %\zhong{Please explain why you need two samples for this situation.}
-Besides adding the keyword, we find that programmers have to remove the \CodeIn{volatile} keyword, since they do not fully understand its meanings. For example, the ninth item of Table~\ref{table:patterns} comes from Tomcat\footnote{\url{https://svn.apache.org/viewvc?view=revision&revision=1360946}}. In this bug, programmers auto-increment a \CodeIn{volatile} variable, but such an action is not atomic. As a result, FindBugs reports it as a bug, and programmers have to remove the keyword.
+Besides adding the keyword, we find that programmers have to remove the \CodeIn{volatile} keyword, since they do not fully understand its meanings. For example, the ninth item of Table~\ref{table:patterns} comes from a Tomcat bug. In particular, programmers auto-increment a \CodeIn{volatile} variable, but such an action is not atomic. In this fix, programmers have to remove the keyword.
 
 \noindent
 \textbf{5. Replacing self-written code with Parallel APIs.} Programmers can implement concurrent code by themselves, but later they realize that it is easier to call APIs that already implement their functionalities. For example, a previous version of Hadoop has the following code:% \zhong{Replace the below commit with the buggy code.}
@@ -240,7 +239,7 @@ public final boolean fileExists(String name) {
 %
 %\textbf{Final in multiple threads}
 
-In summary, we identify five types of change patterns in total. The percentages of their occurrence are 4\%, 3.5\%, 29\%, 34.5\% and 29\% respectively. First, we find that programmers can modify parallel keywords and locked variables, and such modifications are mainly for repairing bugs and improving performance. Second, we notice modifications on critical section bodies, and such modifications often indicate new functions. Finally, we notice that self-written code is replaced with corresponding parallel APIs. In most cases, we find that maintaining concurrent code is not a one-direction migration. For example, there are several different ways to implement a lock.
+In summary, we identify five types of change patterns in total. The percentages of their occurrence are 4\%, 3.5\%, 29\%, 34.5\% and 29\% respectively. First, we find that programmers can modify parallel keywords and locked variables, and such modifications are mainly for repairing bugs and improving performance. Second, we notice modifications on critical section bodies, and such modifications often indicate new functions. Finally, we notice that self-written code is replaced with corresponding parallel APIs. In most cases, we find that maintaining concurrent code is not a one-direction migration. 
 
 %Programmers shall carefully analyze their programming contexts to determine which is their best choice. As shown in our examples, during software maintenance, programmers can migrate to any types according to their need.
 
@@ -252,7 +251,7 @@ In summary, we identify five types of change patterns in total. The percentages 
 
 Once developers know and understand these change patterns well in concurrent programming, they can refer to these change patterns to see whether one of them matches the condition when they are writing or maintaining concurrent code and then make the change. However, it is impractical for us to read vast concurrent code and find examples to apply the change patterns. Instead, we use a keyword search method to find possible code context to apply the change patterns.
 
-In total, we made three pull requests. We made the first pull request on Schmince-2\footnote{\url{https://github.com/derekmu/Schmince-2}}. This is a game, where players control space tourists for adventure. It has the following code:
+In total, we made three pull requests. We made the first pull request on Schmince-2. The original code is as follow:
 
 \begin{lstlisting}
 public class DRandom {
@@ -261,7 +260,7 @@ public class DRandom {
   public static Random get() {return random.get();}}
 \end{lstlisting}
 
-The above code implements a class that generates random values for multiple threads. We find that J2SE provides the \CodeIn{ThreadLocalRandom} class\footnote{\url{https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadLocalRandom.html}} that implements the identical function. According to our fifth change pattern, we made a pull request to replace the above code with the corresponding API\footnote{\url{https://github.com/derekmu/Schmince-2/pull/1}}. This pull request is already confirmed.
+The above code implements a class that generates random values for multiple threads. We find that J2SE provides the \CodeIn{ThreadLocalRandom} class that implements the identical function. According to our fifth change pattern, we made a pull request to replace the above code with the corresponding API. This pull request is already confirmed.
 %\begin{lstlisting}
 %+import java.util.concurrent.ThreadLocalRandom;
 %public class DRandom {
@@ -279,7 +278,7 @@ The above code implements a class that generates random values for multiple thre
 
 %This example shows a change from ThreadLocal$<$Random$>$ to ThreadLocalRandom from JDK7. It is from a Schmince-2, a game on Google Play. We make the change and our pull request\footnote{\url{https://github.com/derekmu/Schmince-2/pull/1}} has been accept. ThreadLocalRandom should be used when available in place of ThreadLocal$<$Random$>$. For JDK7 the difference is minimal, but JDK8 starts including optimizations for ThreadLocalRandom. The ThreadLocal class provides thread-local variables. The ThreadLocalRandom class is a random number generator isolated to the current thread.
 
-We made the second pull request on UnifiedEmail\footnote{\url{https://github.com/HexagonRom/android_packages_apps_UnifiedEmail}}. It is an Android email client. It has the following code:
+We made the second pull request on UnifiedEmail. It has the following code:
 
 \begin{lstlisting}
 static NMap map = null;
@@ -306,7 +305,7 @@ The owner of the project deleted our pull request. We checked the pull requests 
 
 
 
-We made the third pull request on Spider4java\footnote{\url{https://github.com/lichangshu/spider4java}}. It is a Java web crawler. It has the following code:
+We made the third pull request on Spider4java. It is a Java web crawler. It has the following code:
 
 \begin{lstlisting}
 public class Counter {
@@ -316,7 +315,7 @@ public class Counter {
   public synchronized int getValue() {return count;}}
 \end{lstlisting}
 
-The above class implements a counter for multiple threads. As J2SE provides the identical API, \CodeIn{AtomicInteger}\footnote{\url{https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/atomic/AtomicInteger.html}}. Our pull request has been accepted, and its code is as follow:
+The above class implements a counter for multiple threads. As J2SE provides the identical API, \CodeIn{AtomicInteger}. Our pull request has been accepted, and its code is as follow:
 
 \begin{lstlisting}
 public class Counter {

@@ -1,26 +1,29 @@
 \section{Methodology}
 \label{sec:method}
-This section presents the research questions (Section~\ref{sec:method:rq}), the data set (Section~\ref{sec:method:data}), and the support tools (Section~\ref{sec:method:tool}) of our study.
+%This section presents the research questions (Section~\ref{sec:method:rq}), the data set (Section~\ref{sec:method:data}), and the support tools (Section~\ref{sec:method:tool}) of our study.
 \subsection{Research questions}
 \label{sec:method:rq}
 To understand how concurrent code is maintained, in this study, we focus on the following research questions:
 
 \textbf{RQ1.} What change patterns are followed when programmers maintain concurrent code?
 
-We define change patterns in this paper as abstract description of similar code changes that appear many times in code revision history. Based on their analysis on commits, Kim and Notkin~\cite{conf/icse/KimN09} found that code changes can be repetitive, and Martinez \emph{et al.}~\cite{conf/icsm/MartinezDM13} further extracted change patterns to denote such repetitive changes. However, to the best of our knowledge, no previous study explored the change patterns of concurrent programming, and this research question is still largely open. In our empirical study, we summarize concurrency-related commits into five change patterns, and present examples to explain our change patterns (see Section~\ref{sec:result:pattern} for details).
+%Based on their analysis on commits, Kim and Notkin~\cite{conf/icse/KimN09} found that code changes can be repetitive, and Martinez \emph{et al.}~\cite{conf/icsm/MartinezDM13} further extracted change patterns to denote such repetitive changes. To the best of our knowledge, no previous study explored the change patterns of concurrent programming, and this research question is still largely open.
+
+In this paper, we define change patterns as abstract description of similar code changes that appear many times in code revision history.  In our study, we summarize concurrency-related commits into five change patterns, and present examples to explain our change patterns (Section~\ref{sec:result:pattern}).
 
 \textbf{RQ2.} How useful are our extracted change patterns, when programmers maintain concurrent code?
 
-To assess the usefulness of our extracted change patterns, we search matching code in open-source projects with our change patterns. We manually exterminate return code. If a change pattern applies to such code, we fork the source files. After that we make our changes, and submit our pull request. Two of our pull requests are already confirmed and accepted by their programmers (see Section~\ref{sec:result:sample} for more details).
+To assess the usefulness of our extracted change patterns, we manually apply our change patterns in three pull requests. Two of them are accepted by their programmers (Section~\ref{sec:result:sample}).
 
 
 
 \subsection{Dataset}
 \label{sec:method:data}
-In this study, we collected commits from six popular and active Apache\footnote{\url{http://www.apache.org/}} projects. Table~\ref{table:dataset} shows the details of our data set. These projects cover various types of projects such as distributed computing, web server, database, information retrieval, and network. Column ``\#Commits'' lists number of commits. Column ``\#Concurrency'' lists number of concurrency-related commits. From these concurrency-related commits, we selected a subset for manual analysis. Column ``\#Manual'' lists number of our selected commits. We checked out all the commits in December 2016. We next explain how to identify concurrency-related commits.
+In this study, we collected commits from six popular and active Apache projects. Table~\ref{table:dataset} shows the details of our data set. These projects cover various types of projects such as distributed computing, web server, database, information retrieval, and network. Column ``\#Commits'' lists number of commits. Column ``\#Concurrency'' lists number of concurrency-related commits. From these concurrency-related commits, we selected a subset for manual analysis. Column ``\#Manual'' lists number of our selected commits. We checked out all the commits in December 2016. %We next explain how to identify concurrency-related commits.
 
 \begin{table}
 	\centering
+\begin{SmallOut}
 	\caption{Selected Commits}\vspace*{-2ex}
     \label{table:dataset}
 	\begin{tabular}{|c|r|r|r|r|}\hline
@@ -35,18 +38,18 @@ In this study, we collected commits from six popular and active Apache\footnote{
 		%Mahout&109,584&1,215&3,703&0\\\hline
 		Total&98,325&11,868&696\\\hline
 	\end{tabular}\vspace*{-3ex}
+  \end{SmallOut}
 \end{table}
 
 \subsection{Study mechanism}
 \label{sec:method:tool}
 As introduced in Section~\ref{sec:intro}, it is quite difficult to implement a single tool to automate our analysis. Instead, we employ and implement a set of tools to reduce the analysis effort. Inevitably, we have to introduce manual analysis in RQ1. Our study mechanism has the following steps:
 
-\subsubsection{Step 1. Collecting commits} All the projects in our study use Git\footnote{\url{https://git-scm.com/}} as their version control system. We implement a tool to check out all their commits. A typical commit log contains a commit id, an author name, the commit date, and a message. Once we get a commit id, our tool uses the \CodeIn{git show} command to list details, and then uses the textual \CodeIn{diff} command to produce its change hunks.
+\subsubsection{Step 1. Collecting commits} All the projects in our study use Git as their version control system. We implement a tool to check out all their commits. A typical commit log contains a commit id, an author name, the commit date, and a message. Once we get a commit id, our tool uses the \CodeIn{git show} command to list details, and then uses the textual \CodeIn{diff} command to produce its change hunks.
 
-\subsubsection{Step 2. Identifying commits for the follow-up analysis} From collected commits, the second step is to extract commits that are related to concurrent code. Here, we consider that a commit is a  \emph{concurrency-related commit}, if the commit involves synchronization, thread, or concurrent API classes. A commit has a commit message that often explains which files are modified and why programmers make such modifications. Our tool builds queries to search for concurrency-related commits. The built queries contain concurrency-related keywords. We choose 96 keywords such as \CodeIn{synchronized}, \CodeIn{volatile}, and concurrent API class names. The full list can be found in our project homepage\footnote{\url{https://github.com/qwordy/Research}}. However, this selector selects 11,868 commits that are too many for manual analysis. We selected a subset from them for manual analysis by checking whether a commit message contains concurrency-related keywords. The first selector selects 11,868 commits from 98,325 commits. The second selector selects 561 commits from the 11,868 commits that are output of the first selector. The size of the final selected set is 561. The precision is 0.67 based on a manual inspection.
+\subsubsection{Step 2. Identifying commits for the follow-up analysis} From collected commits, the second step is to extract commits that are related to concurrent code. Here, we consider that a commit is a  \emph{concurrency-related commit}, if the commit involves synchronization, thread, or concurrent API classes. A commit has a commit message that often explains which files are modified and why programmers make such modifications. Our tool builds queries to search for concurrency-related commits. The built queries contain concurrency-related keywords. We choose 96 keywords such as \CodeIn{synchronized}, \CodeIn{volatile}, and concurrent API class names. The full list can be found in our project homepage: \url{https://github.com/qwordy/Research}. However, this selector selects 11,868 commits that are too many for manual analysis. We selected a subset from them for manual analysis by checking whether a commit message contains concurrency-related keywords. The first selector selects 11,868 commits from 98,325 commits. The second selector selects 561 commits from the 11,868 commits that are output of the first selector. The size of the final selected set is 561. The precision is 0.67 based on a manual inspection.
 
 The textual matching method can lose some useful commits. We use a machine learning method to select concurrency-related commits from the 11,868 commits as supplements. Researchers have explored related problems. For example, Tian \emph{et al.}~\cite{tian2012identifying} proposed an approach that identifies bug fixing patches with classification techniques. Motivated by their approach, we train a classifier to predict concurrency-related commits. Our tool analyzes change hunks that are produced by the \CodeIn{diff} command, and extracts code features. As shown in Table~\ref{table:feature}, our tool extracts 12 features from each commit. The first column shows feature names, and the second column shows explanations. The keywords are the same as the concurrency-related keywords used in the previous paragragh. Our tool employs the SVM \cite{journals/ml/CortesV95} algorithm to identify concurrency-related commits. In particular, we use LIBSVM \cite{libsvm}. We randomly select 48 commits as a training set. We build features of them and label them. The 48 commits have 15 positive instances and 35 negative ones. Then we train a model and use it to classify commits. It selects 135 positive commits. The precision is 0.74 based on a manual inspection. The accurate recall is unavailable because our goal is to predict these positive instances.
-
 We selected 696 commits for manual analysis in total.
 
 
@@ -86,17 +89,19 @@ We selected 696 commits for manual analysis in total.
 %Date:   Mon Jan 26 11:07:53 2015 +0100
 %[FLINK-1419] [runtime] Fix: distributed ...
 
-\textbf{RQ1. Determining change patterns.} To explore this research question, we analyzed each selected commit for their change patterns. For each commit, we first read the message and the corresponding issue to understand why programmers make the commit. After that, we scan change hunks to understand the details. In a change hunk, the ``+'' symbol denotes added lines, and the ``-'' symbol denotes removed lines. In some cases, it is infeasible to determine the category of a commit based on only its change hunks. For example, as change hunks are limited, it can be infeasible to determine the type of a variable. In such cases, we check out the original and modified versions of all files to analyze.
-\begin{lstlisting}
-public FutureTask<Path> createTmpFile(...) {
--    synchronized (count) {
-+    synchronized (lock) {
-\end{lstlisting}
-In this example, we cannot determine the type of the \CodeIn{count} and \CodeIn{lock} variables. After we check out all files, we understand that the types of them are \CodeIn{Map} and \CodeIn{Object}, respectively.
+\textbf{RQ1. Determining change patterns.} To explore this research question, we analyzed each selected commit for their change patterns. For each commit, we first read the message and the corresponding issue to understand why programmers make the commit. After that, we scan change hunks to understand the details. Here, we classify concurrency-related commits into different categories, mainly according to our observed code changes such as the modifications on code elements, parallel libraries, and control flows.
 
-We classify concurrency-related commits into different categories, mainly according to our observed code changes such as the modifications on code elements, parallel libraries, and control flows.
+%In a change hunk, the ``+'' symbol denotes added lines, and the ``-'' symbol denotes removed lines. In some cases, it is infeasible to determine the category of a commit based on only its change hunks. For example, as change hunks are limited, it can be infeasible to determine the type of a variable. In such cases, we check out the original and modified versions of all files to analyze.
+%\begin{lstlisting}
+%public FutureTask<Path> createTmpFile(...) {
+%-    synchronized (count) {
+%+    synchronized (lock) {
+%\end{lstlisting}
+%In this example, we cannot determine the type of the \CodeIn{count} and \CodeIn{lock} variables. After we check out all files, we understand that the types of them are \CodeIn{Map} and \CodeIn{Object}, respectively.
 
-\textbf{RQ2. Exploring the usefulness of our change patterns.} We prepare a set of keywords for each change pattern, and search Github\footnote{\url{https://github.com}} for code where the pattern can apply. For example, we use \CodeIn{synchronized}, \CodeIn{put} or \CodeIn{get} as keywords to search code pieces that manually handle synchronization of collections. We find numerous code pieces in the search results. We manually check the code and decide whether it is acceptable for the pattern. If it is, we fork the project; make our changes; and submit the pull request.
+
+
+\textbf{RQ2. Exploring the usefulness of our change patterns.} We prepare a set of keywords for each change pattern, and search Github for code where the pattern can apply. For example, we use \CodeIn{synchronized}, \CodeIn{put} or \CodeIn{get} as keywords to search code pieces that manually handle synchronization of collections. We find numerous code pieces in the search results. We manually check the code and decide whether our patterns apply on such code. If it is, we fork the project; make our changes; and submit our pull request.
 
 
 
