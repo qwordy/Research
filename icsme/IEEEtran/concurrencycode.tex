@@ -325,7 +325,11 @@
 \newcommand{\CodeIn}[1]{{\small\texttt{#1}}}
 \newenvironment{SmallOut}{\begin{small}}{\end{small}}
 \lstset{numbers=left, breaklines=true,  basicstyle=\ttfamily\scriptsize,  xleftmargin=2.4em, tabsize=2}
+%\hyphenpenalty=1000
+%\tolerance=5000
+
 \begin{document}
+\fontdimen2\font=0.7ex
 %
 % paper title
 % Titles are generally capitalized except for words such as a, an, and, as,
@@ -418,7 +422,7 @@ Concurrent programming is pervasive in nowadays software development. Many progr
 %\input{body/discuss}
 \input{body/related}
 \input{body/conclude}
-
+\input{body/ack}
 
 
 
