@@ -256,7 +256,8 @@ In total, we made three pull requests. We made the first pull request on Schminc
 \begin{lstlisting}
 public class DRandom {
   private ... random = new ThreadLocal<Random>() {
-    protected Random initialValue() {return new Random();}};
+    protected Random initialValue() {
+      return new Random();}};
   public static Random get() {return random.get();}}
 \end{lstlisting}
 
@@ -283,8 +284,7 @@ We made the second pull request on UnifiedEmail. It has the following code:
 \begin{lstlisting}
 static NMap map = null;
 static synchronized NMap getNMap(Context context) {
-  if (map == null) {
-    map = new NMap(); ...; }
+  if (map == null) { map = new NMap(); ...; }
   return map; }
 \end{lstlisting}
 
@@ -295,8 +295,7 @@ static volatile NMap map = null;
 static NMap getNMap(Context context) {
   if (map == null) {
     synchronized (NotificationUtils.class) {
-      if (map == null) {
-        map = new NMap(); ...; }}}
+      if (map == null) { map = new NMap(); ...; }}}
   return map; }
 \end{lstlisting}
 
