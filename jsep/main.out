@@ -1,0 +1,15 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Methodology}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Research questions}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Dataset}{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{Study mechanism}{section.2}% 5
+\BOOKMARK [3][-]{subsubsection.2.3.1}{Step 1. Collecting commits}{subsection.2.3}% 6
+\BOOKMARK [3][-]{subsubsection.2.3.2}{Step 2. Identifying commits for the follow-up analysis}{subsection.2.3}% 7
+\BOOKMARK [3][-]{subsubsection.2.3.3}{Step 3. Analyzing commits according to different research questions}{subsection.2.3}% 8
+\BOOKMARK [1][-]{section.3}{Results}{}% 9
+\BOOKMARK [2][-]{subsection.3.1}{RQ1. Change patterns}{section.3}% 10
+\BOOKMARK [2][-]{subsection.3.2}{RQ2. The usefulness of our change patterns.}{section.3}% 11
+\BOOKMARK [2][-]{subsection.3.3}{Threats to Validity}{section.3}% 12
+\BOOKMARK [1][-]{section.4}{Discussion and Future Work}{}% 13
+\BOOKMARK [1][-]{section.5}{Related work}{}% 14
+\BOOKMARK [1][-]{section.6}{Conclusion}{}% 15
